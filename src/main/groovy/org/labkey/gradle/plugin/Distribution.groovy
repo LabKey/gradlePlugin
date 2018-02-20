@@ -50,6 +50,8 @@ class Distribution implements Plugin<Project>
         if (teamCityExt == null)
             project.extensions.create("teamCity", TeamCityExtension, project)
 
+        // we depend on tasks from the server project, so it needs to have been evaluated first
+        project.evaluationDependsOn(":server")
         addConfigurations(project)
         addTasks(project)
         addTaskDependencies(project)
