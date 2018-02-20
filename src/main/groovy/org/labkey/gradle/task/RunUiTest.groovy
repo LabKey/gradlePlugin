@@ -46,7 +46,7 @@ class RunUiTest extends Test
         setClasspath (project.sourceSets.uiTest.runtimeClasspath)
         setTestClassesDirs (project.sourceSets.uiTest.output.classesDirs)
 
-        ignoreFailures true // Failing tests should not cause task to fail
+        ignoreFailures = true // Failing tests should not cause task to fail
         outputs.upToDateWhen( { return false }) // always run tests when asked to
     }
 
@@ -77,7 +77,7 @@ class RunUiTest extends Test
         Properties testConfig = testExt.getConfig()
         for (String key : testConfig.keySet())
         {
-            if (!StringUtils.isEmpty(testConfig.get(key)))
+            if (!StringUtils.isEmpty((String) testConfig.get(key)))
                 systemProperty key, testConfig.get(key)
         }
         systemProperty "devMode", LabKeyExtension.isDevMode(project)
