@@ -96,3 +96,11 @@ methods that are to be removed with Gradle 5.0.
 module dependencies to be declared in the build.gradle file instead of module.properties
 * [Issue 32153](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=32153) - look for the database type in TeamCity and project properties since the pickDb task may not have run yet
 * [Issue 32730](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=32730) - make test jar an artifact of the test project to enable running uiTest task on individual modules
+
+### version 1.2.4
+*Release*: ???
+(Earliest compatible LabKey version: 18.1)
+
+* [Issue 32420](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=32420) - another attempt to fix the log4j.xml file not getting updated with developer mode settings
+* Updating evaluation dependencies for distribution projects (in anticipation of moving these projects)
+* Avoid infinite recursion for Gradle 4.5+ by removing call to setSystemProperties in constructor for RunTestSuite()
