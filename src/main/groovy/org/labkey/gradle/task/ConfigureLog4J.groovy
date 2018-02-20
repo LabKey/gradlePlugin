@@ -17,7 +17,7 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 /**
@@ -34,11 +34,14 @@ class ConfigureLog4J extends DefaultTask
     File stagingDir = new File((String) project.staging.webappClassesDir)
     File deployDir = new File("${project.serverDeploy.webappDir}/WEB-INF/classes");
 
-    @OutputFile
     File stagingFile = new File(stagingDir, FILE_NAME)
-
-    @OutputFile
     File deployFile = new File(deployDir, FILE_NAME)
+
+    @OutputFiles
+    List<File> getOutputFiles()
+    {
+        return Arrays.asList(stagingFile, deployFile);
+    }
 
     @TaskAction
     void copyFile()
@@ -51,7 +54,7 @@ class ConfigureLog4J extends DefaultTask
         ant.copy(
                 todir: stagingDir,
                 overwrite: true,
-                preserveLastModified: true
+//                preserveLastModified: true
         )
         {
             fileset(file: log4jXML)
@@ -65,7 +68,7 @@ class ConfigureLog4J extends DefaultTask
         ant.copy(
                 todir: deployDir,
                 overwrite: true,
-                preserveLastModified: true
+//                preserveLastModified: true
         )
         {
             fileset(file: stagingFile)
