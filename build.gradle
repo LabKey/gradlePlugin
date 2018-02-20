@@ -39,7 +39,7 @@ buildscript {
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
 
-project.version = "1.2.3"
+project.version = "1.2.4-SNAPSHOT"
 
 publishing {
     publications {
