@@ -26,6 +26,7 @@ class TeamCityExtension
     List<String> validationMessages = new ArrayList<>()
     Project project
 
+    // TODO remove this?  TeamCity seems to be happy with postgres10 and sqlserver2017 without updates here
     private static final Map<String, DatabaseProperties> SUPPORTED_DATABASES = new HashMap<>()
     static
     {
