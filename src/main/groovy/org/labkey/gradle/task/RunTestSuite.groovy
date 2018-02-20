@@ -31,7 +31,6 @@ class RunTestSuite extends RunUiTest
     RunTestSuite()
     {
         super()
-        setSystemProperties()
 
         scanForTestClasses = false
         include "org/labkey/test/Runner.class"
@@ -59,12 +58,6 @@ class RunTestSuite extends RunUiTest
             })
         }
     }
-
-//    @Override
-//    protected String getDebugPort()
-//    {
-//        return !TeamCityExtension.isOnTeamCity(project) ? super.getDebugPort() : project.teamcity["tomcat.debug"]
-//    }
 
     @Override
     protected void setSystemProperties()
