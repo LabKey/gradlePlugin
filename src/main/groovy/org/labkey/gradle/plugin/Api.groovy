@@ -73,7 +73,7 @@ class Api implements Plugin<Project>
                 }
     }
 
-    private void addApiJarTask(Project project)
+    private static void addApiJarTask(Project project)
     {
         Task apiJar = project.task("apiJar",
                 group: GroupNames.API,
