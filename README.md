@@ -102,5 +102,7 @@ module dependencies to be declared in the build.gradle file instead of module.pr
 (Earliest compatible LabKey version: 18.1)
 
 * [Issue 32420](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=32420) - another attempt to fix the log4j.xml file not getting updated with developer mode settings
-* Updating evaluation dependencies for distribution projects (in anticipation of moving these projects)
+* Update evaluation dependencies for distribution projects (in anticipation of moving these projects)
 * Avoid infinite recursion for Gradle 4.5+ by removing call to setSystemProperties in constructor for RunTestSuite()
+* [Issue 32874](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=32874) - make files in each module's `test/resources`
+directory available for tests by including them in the :server:test:uiTest resources source directories
