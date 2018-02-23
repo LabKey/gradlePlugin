@@ -21,7 +21,6 @@ import org.labkey.gradle.plugin.extension.UiTestExtension
 import org.labkey.gradle.task.RunUiTest
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
-
 /**
  * Created by susanh on 12/21/16.
  */
@@ -30,6 +29,7 @@ class UiTest implements Plugin<Project>
     UiTestExtension testRunnerExt
 
     public static final String TEST_SRC_DIR = "test/src"
+    public static final String TEST_RESOURCES_DIR = "test/resources";
 
     static Boolean isApplicable(Project project)
     {
@@ -68,7 +68,7 @@ class UiTest implements Plugin<Project>
                     srcDirs = [TEST_SRC_DIR]
                 }
                 resources {
-                    srcDirs = ["test/resources"]
+                    srcDirs = [TEST_RESOURCES_DIR]
                 }
             }
         }

@@ -31,9 +31,9 @@ class TestRunner extends UiTest
 
     protected void addTasks(Project project)
     {
-        super.addTasks(project)
-
         addJarTask(project)
+
+        super.addTasks(project)
 
         addPasswordTasks(project)
 
@@ -57,13 +57,22 @@ class TestRunner extends UiTest
                     // we add the test/src directories from all projects because the test suites encompass tests
                     // across modules.
                     project.rootProject.allprojects { Project otherProj ->
-                        if (otherProj.file(UiTest.TEST_SRC_DIR).exists())
+                        if (otherProj.file(TEST_SRC_DIR).exists())
                         {
-                            srcDirs += otherProj.file(UiTest.TEST_SRC_DIR)
+                            srcDirs += otherProj.file(TEST_SRC_DIR)
                         }
                         else if (otherProj.file("test/test/src").exists())  // special case for labmodules and scharp directories
                         {
                             srcDirs += otherProj.file("test/test/src")
+                        }
+                    }
+                }
+                resources {
+                    srcDirs = []
+                    project.rootProject.allprojects { Project otherProj ->
+                        if (otherProj.file(TEST_RESOURCES_DIR).exists())
+                        {
+                            srcDirs += otherProj.file(TEST_RESOURCES_DIR)
                         }
                     }
                 }
