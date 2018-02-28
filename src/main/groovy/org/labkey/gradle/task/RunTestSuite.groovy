@@ -30,8 +30,6 @@ class RunTestSuite extends RunUiTest
 
     RunTestSuite()
     {
-        super()
-
         scanForTestClasses = false
         include "org/labkey/test/Runner.class"
         if (project.findProject(":sampledata:qc") != null)
