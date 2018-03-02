@@ -67,8 +67,8 @@ class Api implements Plugin<Project>
     {
         project.dependencies
                 {
-                    apiCompile  project.project(":server:api"),
-                        project.project(":server:internal")
+                    BuildUtils.addLabKeyDependency(project: project, config: 'apiCompile', depProjectPath: ":server:api")
+                    BuildUtils.addLabKeyDependency(project: project, config: 'apiCompile', depProjectPath: ":server:internal")
                     BuildUtils.addLabKeyDependency(project: project, config: "apiCompile", depProjectPath: ":remoteapi:java", depVersion: project.labkeyVersion)
                 }
     }
