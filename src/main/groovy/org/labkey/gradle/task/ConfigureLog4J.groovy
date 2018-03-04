@@ -54,7 +54,6 @@ class ConfigureLog4J extends DefaultTask
         ant.copy(
                 todir: stagingDir,
                 overwrite: true,
-//                preserveLastModified: true
         )
         {
             fileset(file: log4jXML)
@@ -68,7 +67,6 @@ class ConfigureLog4J extends DefaultTask
         ant.copy(
                 todir: deployDir,
                 overwrite: true,
-//                preserveLastModified: true
         )
         {
             fileset(file: stagingFile)
