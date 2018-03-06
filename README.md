@@ -106,3 +106,5 @@ module dependencies to be declared in the build.gradle file instead of module.pr
 * Avoid infinite recursion for Gradle 4.5+ by removing call to setSystemProperties in constructor for RunTestSuite()
 * [Issue 32874](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=32874) - make files in each module's `test/resources`
 directory available for tests by including them in the :server:test:uiTest resources source directories
+* [Issue 33389](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=33389) - use addLabKeyDependency to declare dependency
+on api and internal for apiCompile so we respect the buildFromSource parameter
