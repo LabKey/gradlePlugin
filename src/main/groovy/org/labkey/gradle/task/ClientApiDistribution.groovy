@@ -31,6 +31,7 @@ class ClientApiDistribution extends DefaultTask
     public static final String SCHEMA_DOC_CLASSIFIER = "schema-doc"
 
     File javaDir
+    File javaJdbcDir
     File javascriptDir
     File xmlDir
 
@@ -40,6 +41,7 @@ class ClientApiDistribution extends DefaultTask
     ClientApiDistribution()
     {
         javaDir = new File(project.dist.dir, "/client-api/java")
+        javaJdbcDir = new File(project.dist.dir, "/client-api/jdbc")
         javascriptDir = new File(project.dist.dir, "/client-api/javascript")
         xmlDir = new File(project.dist.dir, "/client-api/XML")
 
@@ -61,6 +63,8 @@ class ClientApiDistribution extends DefaultTask
         createXsdDocs()
 
         createTeamCityArchives()
+
+        createJdbcApi()
     }
 
     @OutputFile
@@ -91,6 +95,14 @@ class ClientApiDistribution extends DefaultTask
         ant.zip(destfile: getJavaClientApiSrcFile()) {
             zipfileset(dir: "${project.project(":remoteapi:java").projectDir}/src")
         }
+    }
+
+    private void createJdbcApi()
+    {
+        project.copy({CopySpec copy ->
+            copy.from project.project(":remoteapi:labkey-api-jdbc").tasks.fatJar
+            copy.into javaJdbcDir
+        })
     }
 
     @OutputFiles
