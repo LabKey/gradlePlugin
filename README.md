@@ -9,6 +9,12 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
+### version 1.2.7
+*Released*: TBD
+(Earliest compatible LabKey version: 18.2)
+
+* update ClientApiDistribution to include the new jdbc jar file.
+
 ### version 1.2.6
 *Released*: 7 May 2018
 (Earliest compatible LabKey version: 18.2)
