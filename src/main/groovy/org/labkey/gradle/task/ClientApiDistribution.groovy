@@ -64,7 +64,8 @@ class ClientApiDistribution extends DefaultTask
 
         createTeamCityArchives()
 
-        createJdbcApi()
+        if(project.findProject(":remoteapi:labkey-api-jdbc") != null)
+            createJdbcApi()
     }
 
     @OutputFile
