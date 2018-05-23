@@ -168,6 +168,7 @@ class Gwt implements Plugin<Project>
                                             '-logLevel', project.gwt.logLevel,
                                             '-extra', extrasDir,
                                             '-deploy', extrasDir,
+                                            '-localWorkers', 4,
                                             gwtModuleClass.getValue()
                                     ]
                             if (project.gwt.draftCompile)
