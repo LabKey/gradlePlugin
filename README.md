@@ -21,7 +21,7 @@ but also make certain assumptions that you may not want to impose on your module
 *Released*: 23 May 2018
 (Earliest compatible LabKey version: 18.2)
 
-* update ClientApiDistribution to include the new jdbc jar file.
+* update ClientApiDistribution to include the new jdbc jar file
 * enable multiple worker threads for the GWT compile
 
 ### version 1.2.6
