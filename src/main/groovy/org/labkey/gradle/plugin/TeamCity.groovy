@@ -230,7 +230,7 @@ class TeamCity extends Tomcat
                         task.fn = {
                             properties.mergePropertiesFromFile()
                             if (extension.dropDatabase) {
-                                if (extension.getTeamCityProperty("testValidationOnly").equalsIgnoreCase("true")){
+                                if ((Boolean) extension.getTeamCityProperty("testValidationOnly")){
                                     logger.info("The 'testValidationOnly' flag is true, not going to drop the database.")
                                 }
                                 else {
