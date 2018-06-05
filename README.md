@@ -10,7 +10,7 @@ but also make certain assumptions that you may not want to impose on your module
 ## Release Notes
 
 ### version 1.2.8
-*Released*: TBD
+*Released*: 5 June 2018
 (Earliest compatible LabKey version: 18.2)
 
 * added TeamCity parameter testValidationOnly for test that will do validation only (e.g. upgrade tests, blue-green)
