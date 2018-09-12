@@ -56,9 +56,21 @@ class XmlBeans implements Plugin<Project>
                     xmlSchema // Used for declaring artifacts
                 }
         String schemasProjectPath = BuildUtils.getProjectPath(project.gradle, "schemasProjectPath", ":schemas")
-        if (!project.path.equals(schemasProjectPath))
+        if (project.findProject(schemasProjectPath) != null && project.findProject(schemasProjectPath).projectDir.exists())
         {
-            BuildUtils.addLabKeyDependency(project: project, config: 'xmlbeans', depProjectPath: schemasProjectPath, depProjectConfig: 'xmlSchema', depVersion: project.labkeyVersion)
+            if (!project.path.equals(schemasProjectPath))
+            {
+                BuildUtils.addLabKeyDependency(project: project, config: 'xmlbeans', depProjectPath: schemasProjectPath, depProjectConfig: 'xmlSchema', depVersion: project.labkeyVersion)
+            }
+        }
+        else
+        {
+            String apiProjectPath = BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api")
+
+            if (!project.path.equals(apiProjectPath) && project.project(apiProjectPath).configurations.findByName("xmlbeans") != null)
+            {
+                BuildUtils.addLabKeyDependency(project: project, config: 'xmlbeans', depProjectPath: apiProjectPath, depProjectConfig: 'xmlbeans', depVersion: project.labkeyVersion)
+            }
         }
         project.dependencies
                 {
@@ -83,8 +95,9 @@ class XmlBeans implements Plugin<Project>
         schemasCompile.onlyIf {
             isApplicable(project)
         }
+
         // remove the directories containing the generated java files and the compiled classes when we have to make changes.
-        schemasCompile.doFirst( {SchemaCompile task ->
+        project.tasks.schemasCompile.doFirst( {SchemaCompile task ->
             project.delete(task.getSrcGenDir())
             project.delete(task.getClassesDir())
         })
@@ -101,7 +114,7 @@ class XmlBeans implements Plugin<Project>
                     jar.destinationDir = project.file(project.labkey.explodedModuleLibDir)
                 }
         )
-        schemasJar.dependsOn(schemasCompile)
+        schemasJar.dependsOn(project.tasks.schemasCompile)
         schemasJar.onlyIf
                 {
                     isApplicable(project)
