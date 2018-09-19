@@ -16,6 +16,7 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec
@@ -62,6 +63,12 @@ class DoThenSetup extends DefaultTask
 
     @TaskAction
     void setup() {
+        File tomcatConfDir = project.file(project.ext.tomcatConfDir)
+        if (!tomcatConfDir.isDirectory())
+            throw new GradleException("No such file or directory: ${tomcatConfDir.absolutePath}")
+        if (!tomcatConfDir.canWrite() || !tomcatConfDir.canRead())
+            throw new GradleException("Directory ${tomcatConfDir.absolutePath} does not have proper permissions")
+
         getFn().run()
 
         String appDocBase = project.serverDeploy.webappDir.toString().split("[/\\\\]").join("${File.separator}")
