@@ -1,2 +1,3 @@
 // Empty settings file to remove the following warning:
 // Support for nested build without a settings file was deprecated and will be removed in Gradle 5.0. You should create a empty settings file
+enableFeaturePreview('STABLE_PUBLISHING')
