@@ -27,6 +27,7 @@ dependencies {
     compile "org.apache.commons:commons-lang3:${commonsLang3Version}"
     compile "commons-io:commons-io:${commonsIoVersion}"
     compile "com.yahoo.platform.yui:yuicompressor:${yuiCompressorVersion}"
+    compile 'org.ajoberstar:grgit:2.3.0'
 }
 
 buildscript {
@@ -40,7 +41,7 @@ buildscript {
 
 apply plugin: 'maven-publish'
 
-project.version = "1.3.3-SNAPSHOT"
+project.version = "1.4.0-SNAPSHOT"
 
 if (project.file("moduleTemplate").exists())
 {
@@ -55,14 +56,12 @@ if (project.file("moduleTemplate").exists())
     File webDir = Paths.get(templateDirPath, "resources/web").toFile();
     webDir.mkdirs()
 
-    project.task("zipModuleTemplate",
-            type: Zip,
-            {
-                archiveName = "moduleTemplate.zip"
-                from project.file("moduleTemplate")
-                destinationDir = new File(project.projectDir, "src/main/resources")
-            }
-    )
+    project.tasks.register("zipModuleTemplate", Zip) {
+        Zip zip ->
+            zip.archiveName = "moduleTemplate.zip"
+            zip.from project.file("moduleTemplate")
+            zip.destinationDir = new File(project.projectDir, "src/main/resources") 
+    }
     project.tasks.processResources.dependsOn(project.tasks.zipModuleTemplate)
 }
 
