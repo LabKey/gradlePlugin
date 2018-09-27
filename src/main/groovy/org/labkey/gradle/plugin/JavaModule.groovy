@@ -110,6 +110,8 @@ class JavaModule extends FileModule
                     compile.extendsFrom(labkey)
                     compile.extendsFrom(local)
                 }
+        project.configurations.local.setDescription("For compile dependencies that are not needed at runtime (deprecated; use implementation)")
+        project.configurations.labkey.setDescription("Dependencies on LabKey API jars that are needed for a module when the full module is not required")
     }
 
     protected void setJavaBuildProperties(Project project)
