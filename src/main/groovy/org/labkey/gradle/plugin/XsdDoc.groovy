@@ -40,14 +40,13 @@ class XsdDoc implements Plugin<Project>
         }
     }
 
-    private void addTasks(Project project)
+    private static void addTasks(Project project)
     {
-       project.task(
-                "xsddoc",
-                group: GroupNames.DOCUMENTATION,
-                type: CreateXsdDocs,
-                description: 'Generating documentation for classes generated from XSD files'
-        )
+       project.tasks.register("xsddoc", CreateXsdDocs) {
+           CreateXsdDocs task ->
+               task.group = GroupNames.DOCUMENTATION
+               task.description = 'Generating documentation for classes generated from XSD files'
+       }
     }
 }
 

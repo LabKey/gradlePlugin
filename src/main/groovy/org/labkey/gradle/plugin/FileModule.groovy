@@ -144,36 +144,40 @@ class FileModule implements Plugin<Project>
     protected void addTasks(Project project)
     {
         File moduleXmlFile = new File("${project.labkey.explodedModuleConfigDir}/module.xml")
-        Task moduleXmlTask = project.task('moduleXml').doLast {
-            InputStream is = getClass().getClassLoader().getResourceAsStream("module.template.xml")
-            if (is == null)
-            {
-                throw new GradleException("Could not find 'module.template.xml' as resource file")
-            }
-
-            List<String> moduleDependencies = [];
-            project.configurations.modules.dependencies.each {
-                Dependency dep -> moduleDependencies += dep.getName()
-            }
-            if (!moduleDependencies.isEmpty())
-                project.lkModule.setPropertyValue("ModuleDependencies", moduleDependencies.join(", "))
-            project.mkdir(project.labkey.explodedModuleConfigDir)
-            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(moduleXmlFile))
-
-            is.readLines().each{
-                String line ->
-                    Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
-                    String newLine = line
-                    while (matcher.find())
+        project.tasks.register('moduleXml') {
+            Task task ->
+                task.doLast {
+                    InputStream is = getClass().getClassLoader().getResourceAsStream("module.template.xml")
+                    if (is == null)
                     {
-                        newLine = newLine.replace(matcher.group(), (String) project.lkModule.getPropertyValue(matcher.group(1), ""))
+                        throw new GradleException("Could not find 'module.template.xml' as resource file")
                     }
-                    writer.println(newLine)
-            }
-            writer.close()
-            is.close()
+
+                    List<String> moduleDependencies = [];
+                    project.configurations.modules.dependencies.each {
+                        Dependency dep -> moduleDependencies += dep.getName()
+                    }
+                    if (!moduleDependencies.isEmpty())
+                        project.lkModule.setPropertyValue("ModuleDependencies", moduleDependencies.join(", "))
+                    project.mkdir(project.labkey.explodedModuleConfigDir)
+                    OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(moduleXmlFile))
+
+                    is.readLines().each {
+                        String line ->
+                            Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
+                            String newLine = line
+                            while (matcher.find())
+                            {
+                                newLine = newLine.replace(matcher.group(), (String) project.lkModule.getPropertyValue(matcher.group(1), ""))
+                            }
+                            writer.println(newLine)
+                    }
+                    writer.close()
+                    is.close()
+                }
         }
 
+        Task moduleXmlTask = project.tasks.moduleXml
         if (project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
             moduleXmlTask.inputs.file(project.file(ModuleExtension.MODULE_PROPERTIES_FILE))
         moduleXmlTask.outputs.file(moduleXmlFile)
@@ -181,33 +185,33 @@ class FileModule implements Plugin<Project>
         // This is added because Intellij started creating this "out" directory when you build through IntelliJ.
         // It copies files there that are actually input files to the build, which causes some problems when later
         // builds attempt to find their input files.
-        project.task("cleanOut",
-            group: GroupNames.BUILD,
-            type: Delete,
-            description: "removes the ${project.file('out')} directory created by Intellij builds",
-                { Delete delete ->
-                        if (project.file("out").isDirectory())
-                            project.delete project.file("out")
-                }
-        )
+        project.tasks.create("cleanOut", Delete) {
+            Delete task ->
+                task.group = GroupNames.BUILD
+                task.description = "removes the ${project.file('out')} directory created by Intellij builds"
+                task.configure({ Delete delete ->
+                    if (project.file("out").isDirectory())
+                        project.delete project.file("out")
+                })
+        }
+
         if (!AntBuild.isApplicable(project))
         {
-            Task moduleFile = project.task("module",
-                    group: GroupNames.MODULE,
-                    type: Jar,
-                    description: "create the module file for this project",
-                    {Jar jar ->
-                        jar.from project.labkey.explodedModuleDir
-                        jar.exclude '**/*.uptodate'
-                        jar.exclude "META-INF/${project.name}/**"
-                        jar.exclude 'gwt-unitCache/**'
-                        jar.baseName project.name
-                        jar.version BuildUtils.getModuleFileVersion(project)
-                        jar.extension 'module'
-                        jar.destinationDir = project.buildDir
-                    }
-            )
+            project.tasks.register("module", Jar) {
+                Jar jar ->
+                    jar.group = GroupNames.MODULE
+                    jar.description = "create the module file for this project"
+                    jar.from project.labkey.explodedModuleDir
+                    jar.exclude '**/*.uptodate'
+                    jar.exclude "META-INF/${project.name}/**"
+                    jar.exclude 'gwt-unitCache/**'
+                    jar.baseName = project.name
+                    jar.version = BuildUtils.getModuleFileVersion(project)
+                    jar.extension = 'module'
+                    jar.destinationDir = project.buildDir
+            }
 
+            Task moduleFile = project.tasks.module
             if (ModuleResources.isApplicable(project))
                 moduleFile.dependsOn(project.tasks.processModuleResources)
             if (SpringConfig.isApplicable(project))
@@ -224,10 +228,10 @@ class FileModule implements Plugin<Project>
                         published moduleFile
                     }
 
-        project.task('deployModule',
-                group: GroupNames.MODULE,
-                description: "copy a project's .module file to the local deploy directory")
+        project.tasks.register('deployModule')
                 { Task task ->
+                    task.group = GroupNames.MODULE
+                    task.description = "copy a project's .module file to the local deploy directory"
                     task.inputs.files moduleFile
                     task.outputs.file "${ServerDeployExtension.getModulesDeployDirectory(project)}/${moduleFile.outputs.getFiles()[0].getName()}"
 
@@ -251,10 +255,11 @@ class FileModule implements Plugin<Project>
                     }
                 }
 
-            project.task('undeployModule',
-                    group: GroupNames.MODULE,
-                    description: "remove a project's .module file and the unjarred file from the deploy directory",
-                    type: Delete,
+            project.tasks.register('undeployModule', Delete) {
+                Delete task ->
+                    task.group = GroupNames.MODULE
+                    task.description = "remove a project's .module file and the unjarred file from the deploy directory"
+                    task.configure(
                     { Delete delete ->
                         getModuleFilesAndDirectories(project).forEach({
                             File file ->
@@ -270,26 +275,28 @@ class FileModule implements Plugin<Project>
                             Api.deleteModulesApiJar(project)
                         }
                     })
+            }
 
-            project.task("reallyClean",
-                    group: GroupNames.BUILD,
-                    description: "Deletes the build, staging, and deployment directories of this module",
-            ).dependsOn(project.tasks.clean, project.tasks.undeployModule)
+
+            project.tasks.register("reallyClean") {
+                Task task ->
+                    task.group = GroupNames.BUILD
+                    task.description = "Deletes the build, staging, and deployment directories of this module"
+                    task.dependsOn(project.tasks.clean, project.tasks.undeployModule)
+            }
         }
 
         if (hasClientLibraries(project))
         {
-            project.task("zipWebDir",
-                    group: GroupNames.MODULE,
-                    description: "Create a zip file from the exploded module web directory",
-                    type: Zip,
-                    {
-                        baseName = project.name
-                        classifier = LabKey.CLIENT_LIBS_CLASSIFER
-                        from project.labkey.explodedModuleWebDir
-                        destinationDir project.file("${project.buildDir}/${project.libsDirName}")
-                    }
-            )
+            project.tasks.register("zipWebDir", Zip) {
+                Zip task ->
+                    task.group = GroupNames.MODULE
+                    task.description = "Create a zip file from the exploded module web directory"
+                    task.baseName = project.name
+                    task.classifier = LabKey.CLIENT_LIBS_CLASSIFER
+                    from project.labkey.explodedModuleWebDir
+                    task.destinationDir = project.file("${project.buildDir}/${project.libsDirName}")
+            }
         }
     }
 
@@ -400,14 +407,12 @@ class FileModule implements Plugin<Project>
         if (!AntBuild.isApplicable(project))
         {
             project.afterEvaluate {
-                Task pomFileTask = project.task("pomFile",
-                        group: GroupNames.PUBLISHING,
-                        description: "create the pom file for this project",
-                        type: PomFile,
-                        {PomFile pomFile ->
-                            pomFile.pomProperties = project.lkModule.modProperties
-                        }
-                )
+                project.tasks.register("pomFile", PomFile)  {
+                    PomFile pFile ->
+                        pFile.group = GroupNames.PUBLISHING
+                        pFile.description = "create the pom file for this project"
+                        pFile.pomProperties = project.lkModule.modProperties
+                }
                 project.publishing {
                     publications {
                         libs(MavenPublication) { pub ->
@@ -431,7 +436,7 @@ class FileModule implements Plugin<Project>
                                     dependsOn it
                                 }
                             }
-                            dependsOn pomFileTask
+                            dependsOn project.tasks.pomFile
                             publications('libs')
                         }
                     }

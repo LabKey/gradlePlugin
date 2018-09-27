@@ -89,11 +89,12 @@ class UiTest implements Plugin<Project>
     protected void addTasks(Project project)
     {
         project.logger.info("UiTest: addTask for ${project.path}")
-        project.task("uiTests",
-                group: GroupNames.VERIFICATION,
-                description: "Run UI (Selenium) tests for this module",
-                type: RunUiTest
-        )
+        project.tasks.register("uiTests", RunUiTest) {
+            RunUiTest task ->
+                task.group = GroupNames.VERIFICATION
+                task.description = "Run UI (Selenium) tests for this module"
+        }
+
         project.tasks.uiTests.mustRunAfter(project.project(":server").tasks.pickPg)
         project.tasks.uiTests.mustRunAfter(project.project(":server").tasks.pickMSSQL)
     }

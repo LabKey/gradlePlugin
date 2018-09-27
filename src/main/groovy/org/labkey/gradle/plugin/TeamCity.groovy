@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.JavaExecSpec
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
@@ -70,35 +71,32 @@ class TeamCity extends Tomcat
 
     private void addTasks(Project project)
     {
-        project.task("setTeamCityAgentPassword",
-                group: GroupNames.TEST_SERVER,
-                description: "Set the password for use in running tests",
-                {   Task task ->
-                    task.dependsOn(project.tasks.testJar)
-                    task.doLast {
-                        project.javaexec({ JavaExecSpec spec ->
-                            spec.main = "org.labkey.test.util.PasswordUtil"
-                            spec.classpath {
-                                [project.configurations.uiTestCompile, project.tasks.testJar]
-                            }
-                            spec.systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
-                            spec.args = ["set", "teamcity@labkey.test", "yekbal1!"]
-                        })
-                    }
+        project.tasks.register("setTeamCityAgentPassword") {
+            Task task ->
+                task.group = GroupNames.TEST_SERVER
+                task.description = "Set the password for use in running tests"
+                task.dependsOn(project.tasks.testJar)
+                task.doLast {
+                    project.javaexec({ JavaExecSpec spec ->
+                        spec.main = "org.labkey.test.util.PasswordUtil"
+                        spec.classpath {
+                            [project.configurations.uiTestCompile, project.tasks.testJar]
+                        }
+                        spec.systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
+                        spec.args = ["set", "teamcity@labkey.test", "yekbal1!"]
+                    })
                 }
-        )
+        }
 
-        project.task("cleanTestLogs",
-                group: GroupNames.TEST_SERVER,
-                description: "Removes log files from Tomcat and TeamCity",
-                {
-                    Task task ->
-                    task.dependsOn project.tasks.cleanLogs, project.tasks.cleanTemp
-                    task.doLast {
-                        project.delete "${project.projectDir}/${TEAMCITY_INFO_FILE}"
-                    }
+        project.tasks.register("cleanTestLogs") {
+            Task task ->
+                task.group = GroupNames.TEST_SERVER
+                task.description = "Removes log files from Tomcat and TeamCity"
+                task.dependsOn project.tasks.cleanLogs, project.tasks.cleanTemp
+                task.doLast {
+                    project.delete "${project.projectDir}/${TEAMCITY_INFO_FILE}"
                 }
-        )
+        }
 
 
         project.tasks.stopTomcat.dependsOn(project.tasks.debugClasses)
@@ -108,75 +106,69 @@ class TeamCity extends Tomcat
                 }
         )
 
-        project.task("killChrome",
-            group: GroupNames.TEST_SERVER,
-            description: "Kill Chrome processes",
-                {
-                    Task task ->
-                    task.doLast {
-                        killChrome(project)
-                    }
+        project.tasks.register("killChrome") {
+            Task task ->
+                task.group = GroupNames.TEST_SERVER
+                task.description = "Kill Chrome processes"
+                task.doLast {
+                    killChrome(project)
                 }
-        )
-
-        project.task("killFirefox",
-                group: GroupNames.TEST_SERVER,
-                description: "Kill Firefox processes",
-                {
-                    Task task ->
-                    task.doLast {
-                        killFirefox(project)
-                    }
-                }
-        )
-
-        if (project.findProject(":externalModules:labModules:SequenceAnalysis") != null)
-        {
-            project.task("createPipelineConfig",
-                    group: GroupNames.TEST_SERVER,
-                    description: "Create pipeline configs for running tests on the test server",
-                    type: Copy,
-                    {
-                        from project.project(":server").file(TEST_CONFIGS_DIR)
-                        include PIPELINE_CONFIG_FILE
-                        filter({ String line ->
-                            Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
-                            String newLine = line
-                            while (matcher.find())
-                            {
-                                if (matcher.group(1).equals("SEQUENCEANALYSIS_CODELOCATION") || matcher.group(1).equals("SEQUENCEANALYSIS_TOOLS"))
-                                    newLine = newLine.replace(matcher.group(), extension.getTeamCityProperty("additional.pipeline.tools"))
-                                else if (matcher.group(1).equals("SEQUENCEANALYSIS_EXTERNALDIR"))
-                                    newLine = newLine.replace(matcher.group(), project.project(":externalModules:labModules:SequenceAnalysis").file("pipeline_code/external").getAbsolutePath())
-                            }
-                            return newLine;
-
-                        })
-                        destinationDir = new File("${ServerDeployExtension.getServerDeployDirectory(project)}/config")
-                    }
-            )
         }
 
-        project.task("createNlpConfig",
-            group: GroupNames.TEST_SERVER,
-            description: "Create NLP engine configs for the test server",
-            type: Copy,
-                {
-                    from project.project(":server").file(TEST_CONFIGS_DIR)
-                    include NLP_CONFIG_FILE
-                    filter ({String line ->
+        project.tasks.register("killFirefox") {
+            Task task ->
+                task.group = GroupNames.TEST_SERVER
+                task.description = "Kill Firefox processes"
+                task.doLast {
+                    killFirefox(project)
+                }
+        }
+        if (project.findProject(":externalModules:labModules:SequenceAnalysis") != null)
+        {
+            project.tasks.register("createPipelineConfig", Copy) {
+                Copy task ->
+                    task.group = GroupNames.TEST_SERVER
+                    task.description = "Create pipeline configs for running tests on the test server"
+                    task.from project.project(":server").file(TEST_CONFIGS_DIR)
+                    task.include PIPELINE_CONFIG_FILE
+                    task.filter({ String line ->
                         Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
                         String newLine = line
                         while (matcher.find())
                         {
-                            if (matcher.group(1).equals("enginePath"))
-                                newLine = newLine.replace(matcher.group(), new File((String) project.labkey.externalDir, "nlp/nlp_engine.py").getAbsolutePath())
+                            if (matcher.group(1).equals("SEQUENCEANALYSIS_CODELOCATION") || matcher.group(1).equals("SEQUENCEANALYSIS_TOOLS"))
+                                newLine = newLine.replace(matcher.group(), extension.getTeamCityProperty("additional.pipeline.tools"))
+                            else if (matcher.group(1).equals("SEQUENCEANALYSIS_EXTERNALDIR"))
+                                newLine = newLine.replace(matcher.group(), project.project(":externalModules:labModules:SequenceAnalysis").file("pipeline_code/external").getAbsolutePath())
                         }
-                        return newLine
+                        return newLine;
+
+                    })
+                    task.destinationDir = new File("${ServerDeployExtension.getServerDeployDirectory(project)}/config")
+
+            }
+        }
+
+        project.tasks.register("createNlpConfig", Copy) {
+            Copy task ->
+                task.group = GroupNames.TEST_SERVER
+                task.description = "Create NLP engine configs for the test server"
+                task.from project.project(":server").file(TEST_CONFIGS_DIR)
+                task.include NLP_CONFIG_FILE
+                task.filter({ String line ->
+                    Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
+                    String newLine = line
+                    while (matcher.find())
+                    {
+                        if (matcher.group(1).equals("enginePath"))
+                            newLine = newLine.replace(matcher.group(), new File((String) project.labkey.externalDir, "nlp/nlp_engine.py").getAbsolutePath())
                     }
-                    )
-                    destinationDir = new File("${ServerDeployExtension.getServerDeployDirectory(project)}/config")
-                })
+                    return newLine
+                }
+                )
+                task.destinationDir = new File("${ServerDeployExtension.getServerDeployDirectory(project)}/config")
+
+        }
 
         if (project.findProject(":externalModules:labModules:SequenceAnalysis") != null)
         {
@@ -184,20 +176,19 @@ class TeamCity extends Tomcat
         }
         project.tasks.startTomcat.dependsOn(project.tasks.createNlpConfig)
 
-        project.task("validateConfiguration",
-                {
-                    doFirst
-                            {
-                                if (!extension.isValidForTestRun())
-                                    throw new GradleException("TeamCity configuration problem(s): ${extension.validationMessages.join('; ')}")
+        project.tasks.register("validateConfiguration") {
+            Task task ->
+                task.doFirst
+                        {
+                            if (!extension.isValidForTestRun())
+                                throw new GradleException("TeamCity configuration problem(s): ${extension.validationMessages.join('; ')}")
 
-                                project.logger.info("teamcity.build.branch.is_default: ${extension.getTeamCityProperty('teamcity.build.branch.is_default')}")
-                                project.logger.info("teamcity.build.branch: ${extension.getTeamCityProperty('teamcity.build.branch')}")
-                            }
-                })
+                            project.logger.info("teamcity.build.branch.is_default: ${extension.getTeamCityProperty('teamcity.build.branch.is_default')}")
+                            project.logger.info("teamcity.build.branch: ${extension.getTeamCityProperty('teamcity.build.branch')}")
+                        }
+        }
 
-
-        List<Task> ciTests = new ArrayList<>()
+        List<TaskProvider> ciTests = new ArrayList<>()
         for (DatabaseProperties properties : project.teamCity.databaseTypes)
         {
             String shortType = properties.shortType
@@ -207,90 +198,88 @@ class TeamCity extends Tomcat
             Task pickDbTask = project.tasks.findByName(pickDbTaskName)
             if (pickDbTask == null)
             {
-                pickDbTask = project.task(pickDbTaskName,
-                        group: GroupNames.TEST_SERVER,
-                        description: "Copy properties file for running tests for ${shortType}",
-                        type: PickDb,
-                        { PickDb task ->
-                            task.dbType = "${shortType}"
-                            task.dbPropertiesChanged = true
-                        }
-                )
+                project.tasks.register(pickDbTaskName, PickDb) {
+                    PickDb task ->
+                        task.group = GroupNames.TEST_SERVER
+                        task.description = "Copy properties file for running tests for ${shortType}"
+                        task.dbType = "${shortType}"
+                        task.dbPropertiesChanged = true
+                }
+                pickDbTask = project.tasks.getByName(pickDbTaskName)
             }
 
             String suffix = properties.dbTypeAndVersion.capitalize()
-            Task setUpDbTask = project.task("setUp${suffix}",
-                group: GroupNames.TEST_SERVER,
-                description: "Get database properties set up for running tests for ${suffix}",
-                type: DoThenSetup,
-                    {DoThenSetup task ->
-
-                        task.setDatabaseProperties(properties)
-                        task.dbPropertiesChanged = true
-                        task.fn = {
-                            properties.mergePropertiesFromFile()
-                            if (extension.dropDatabase) {
-                                if ((Boolean) extension.getTeamCityProperty("testValidationOnly")){
-                                    logger.info("The 'testValidationOnly' flag is true, not going to drop the database.")
-                                }
-                                else {
-                                    SqlUtils.dropDatabase(project, properties)
-                                }
+            String setUpTaskName = "setUp${suffix}"
+            project.tasks.register(setUpTaskName,DoThenSetup) {
+                DoThenSetup task ->
+                    task.group = GroupNames.TEST_SERVER
+                    task.description = "Get database properties set up for running tests for ${suffix}"
+                    task.setDatabaseProperties(properties)
+                    task.dbPropertiesChanged = true
+                    task.fn = {
+                        properties.mergePropertiesFromFile()
+                        if (extension.dropDatabase) {
+                            if (Boolean.parseBoolean( extension.getTeamCityProperty("testValidationOnly"))){
+                                logger.info("The 'testValidationOnly' flag is true, not going to drop the database.")
                             }
-                            properties.interpolateCompositeProperties()
+                            else {
+                                SqlUtils.dropDatabase(project, properties)
+                            }
                         }
-                        task.doLast {
-                            properties.writeDbProps()
-                        }
-                    },
-                dependsOn: [pickDbTask]
-            )
+                        properties.interpolateCompositeProperties()
+                    }
+                    task.doLast {
+                        properties.writeDbProps()
+                    }
+                    task.dependsOn (pickDbTask)
+            }
+
+            TaskProvider setUpDbTask = project.tasks.named(setUpTaskName)
 
             String undeployTaskName = "undeployModulesNotFor${properties.shortType.capitalize()}"
             Task undeployTask = project.tasks.findByName(undeployTaskName)
             if (undeployTask == null)
             {
-                undeployTask = project.task(undeployTaskName,
-                        group: GroupNames.DEPLOY,
-                        description: "Undeploy modules that are either not supposed to be built or are not supported by database ${properties.dbTypeAndVersion}",
-                        type: UndeployModules,
-                        {UndeployModules task ->
-                            task.dbType = properties.shortType
-                        }
-                )
-                undeployTask.mustRunAfter(project.project(":server").tasks.pickMSSQL)
-                undeployTask.mustRunAfter(project.project(":server").tasks.pickPg)
-                project.tasks.startTomcat.mustRunAfter(undeployTask)
+                project.tasks.register(undeployTaskName, UndeployModules) {
+                    UndeployModules task ->
+                        task.group = GroupNames.DEPLOY
+                        task.description = "Undeploy modules that are either not supposed to be built or are not supported by database ${properties.dbTypeAndVersion}"
+                        task.dbType = properties.shortType
+                        task.mustRunAfter(project.project(":server").tasks.pickMSSQL)
+                        task.mustRunAfter(project.project(":server").tasks.pickPg)
+                }
             }
+            TaskProvider undeployTaskProvider = project.tasks.named(undeployTaskName)
+            project.tasks.startTomcat.mustRunAfter(undeployTaskProvider)
 
             project.project(":server:test").tasks.startTomcat.mustRunAfter(setUpDbTask)
-            Task ciTestTask = project.task("ciTests" + properties.dbTypeAndVersion.capitalize(),
-                    group: GroupNames.TEST_SERVER,
-                    description: "Run a test suite for ${properties.dbTypeAndVersion} on the TeamCity server",
-                    type: RunTestSuite,
-                    dependsOn: [setUpDbTask, undeployTask],
-                    { RunTestSuite task ->
-                        task.dbProperties = properties
-                    }
-            )
-            ciTests.add(ciTestTask)
-            ciTestTask.mustRunAfter(project.tasks.validateConfiguration)
-            ciTestTask.mustRunAfter(project.tasks.cleanTestLogs)
-            ciTestTask.mustRunAfter(project.tasks.startTomcat)
+            String ciTestTaskName = "ciTests" + properties.dbTypeAndVersion.capitalize()
+            project.tasks.register(ciTestTaskName, RunTestSuite) {
+                RunTestSuite task ->
+                    task.group = GroupNames.TEST_SERVER
+                    task.description = "Run a test suite for ${properties.dbTypeAndVersion} on the TeamCity server"
+                    task.dependsOn(setUpDbTask, undeployTaskProvider)
+                    task.dbProperties = properties
+                    task.mustRunAfter(project.tasks.validateConfiguration)
+                    task.mustRunAfter(project.tasks.cleanTestLogs)
+                    task.mustRunAfter(project.tasks.startTomcat)
+            }
+
+            ciTests.add(project.tasks.named(ciTestTaskName))
+
         }
 
-        project.task("ciTests",
-            group: GroupNames.TEST_SERVER,
-            dependsOn: ciTests + project.tasks.validateConfiguration,
-            description: "Run a test suite on the TeamCity server",
-                {
-                    doLast
-                    {
+        project.tasks.register("ciTests") {
+            Task task ->
+                task.group = GroupNames.TEST_SERVER
+                task.dependsOn ( ciTests + project.tasks.validateConfiguration + project.tasks.startTomcat + project.tasks.cleanTestLogs)
+                task.description = "Run a test suite on the TeamCity server"
+                task.doLast(
+             {
                         killFirefox(project)
                     }
-                })
-        project.tasks.ciTests.dependsOn(project.tasks.startTomcat)
-        project.tasks.ciTests.dependsOn(project.tasks.cleanTestLogs)
+                )
+        }
         project.tasks.startTomcat.mustRunAfter(project.tasks.cleanTestLogs)
     }
 

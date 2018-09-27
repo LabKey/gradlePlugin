@@ -69,26 +69,25 @@ class Distribution implements Plugin<Project>
 
     private static void addTasks(Project project)
     {
-        project.task(
-                'cleanDist',
-                group: GroupNames.DISTRIBUTION,
-                type: Delete,
-                description: "Removes the distributions directory ${project.dist.dir}",
-                { DeleteSpec spec ->
+        project.tasks.register('cleanDist', Delete) {
+            Delete task ->
+                task.group = GroupNames.DISTRIBUTION
+                task.description = "Removes the distributions directory ${project.dist.dir}"
+                task.configure({ DeleteSpec spec ->
                     spec.delete project.dist.dir
-                }
-        )
-        project.task(
-                'clean',
-                group: GroupNames.BUILD,
-                type: Delete,
-                description: "Removes the distribution build directory ${project.buildDir} and distribution directory ${project.dist.dir}/${project.name}",
-                {
+                })
+        }
+
+        project.tasks.register('clean', Delete) {
+            Delete task ->
+                task.group = GroupNames.BUILD
+                task.description = "Removes the distribution build directory ${project.buildDir} and distribution directory ${project.dist.dir}/${project.name}"
+                task.configure ({
                     DeleteSpec spec ->
                         spec.delete project.buildDir
                         spec.delete "${project.dist.dir}/${project.name}"
-                }
-        )
+                })
+        }
     }
 
     private static void addTaskDependencies(Project project)
@@ -141,15 +140,13 @@ class Distribution implements Plugin<Project>
 
         project.afterEvaluate {
             String artifactId = getArtifactId(project)
-            project.task("pomFile",
-                    group: GroupNames.PUBLISHING,
-                    description: "create the pom file for this project",
-                    type: PomFile,
-                    {PomFile pomFile ->
-                        pomFile.artifactCategory = "distributions"
-                        pomFile.pomProperties = LabKeyExtension.getBasePomProperties(artifactId, project.dist.description)
-                    }
-            )
+            project.tasks.register("pomFile", PomFile)  {
+                PomFile pFile ->
+                    pFile.group = GroupNames.PUBLISHING
+                    pFile.description = "create the pom file for this project"
+                    pFile.artifactCategory = "distributions"
+                    pFile.pomProperties = LabKeyExtension.getBasePomProperties(artifactId, project.dist.description)
+            }
             project.publishing {
                 publications {
                     distributions(MavenPublication) { pub ->

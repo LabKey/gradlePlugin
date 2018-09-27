@@ -63,7 +63,7 @@ class Api implements Plugin<Project>
                 }
     }
 
-    private void addDependencies(Project project)
+    private static void addDependencies(Project project)
     {
         project.dependencies
                 {
@@ -75,27 +75,27 @@ class Api implements Plugin<Project>
 
     private static void addApiJarTask(Project project)
     {
-        Task apiJar = project.task("apiJar",
-                group: GroupNames.API,
-                type: Jar,
-                description: "produce jar file for api",
-                {Jar jar ->
-                    jar.classifier CLASSIFIER
-                    jar.from project.sourceSets.api.output
-                    jar.baseName = "${project.name}_api"
-                    jar.destinationDir = project.file(project.labkey.explodedModuleLibDir)
-                })
-        project.tasks.processApiResources.enabled = false
-        apiJar.dependsOn(project.apiClasses)
-        if (project.hasProperty('jsp2Java'))
-            project.tasks.jsp2Java.dependsOn(apiJar)
+         project.tasks.register("apiJar", Jar) {
+             Jar jar ->
+                 jar.group = GroupNames.API
+                 jar.description = "produce jar file for api"
+                 jar.classifier CLASSIFIER
+                 jar.from project.sourceSets.api.output
+                 jar.baseName = "${project.name}_api"
+                 jar.destinationDir = project.file(project.labkey.explodedModuleLibDir)
+                 jar.dependsOn(project.apiClasses)
+         }
 
-        project.tasks.assemble.dependsOn(apiJar)
+        project.tasks.processApiResources.enabled = false
+        if (project.hasProperty('jsp2Java'))
+            project.tasks.jsp2Java.dependsOn(project.tasks.apiJar)
+
+        project.tasks.assemble.dependsOn(project.tasks.apiJar)
 
         if (LabKeyExtension.isDevMode(project))
         {
             // we put all API jar files into a special directory for the RecompilingJspClassLoader's classpath
-            apiJar.doLast {
+            project.tasks.apiJar.doLast {
                 project.copy { CopySpec copy ->
                     copy.from project.file(project.labkey.explodedModuleLibDir)
                     copy.into "${project.rootProject.buildDir}/${MODULES_API_DIR}"

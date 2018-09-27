@@ -17,7 +17,6 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Jar
@@ -25,6 +24,7 @@ import org.labkey.gradle.plugin.extension.XmlBeansExtension
 import org.labkey.gradle.task.SchemaCompile
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
+
 /**
  * Class that will convert xsd files into a jar file
  */
@@ -85,59 +85,60 @@ class XmlBeans implements Plugin<Project>
         }
     }
 
-    private void addTasks(Project project)
+    private static void addTasks(Project project)
     {
-        Task schemasCompile = project.task('schemasCompile',
-                group: GroupNames.XML_SCHEMA,
-                type: SchemaCompile,
-                description: "compile XML schemas from directory '$project.xmlBeans.schemasDir' into Java classes"
-        )
-        schemasCompile.onlyIf {
-            isApplicable(project)
-        }
-
-        // remove the directories containing the generated java files and the compiled classes when we have to make changes.
-        project.tasks.schemasCompile.doFirst( {SchemaCompile task ->
-            project.delete(task.getSrcGenDir())
-            project.delete(task.getClassesDir())
-        })
-
-        Task schemasJar = project.task('schemasJar',
-                group: GroupNames.XML_SCHEMA,
-                type: Jar,
-                description: "produce schemas jar file from directory '$project.xmlBeans.classDir'",
-                {Jar jar ->
-                    jar.classifier CLASSIFIER
-                    jar.from "$project.buildDir/$project.xmlBeans.classDir"
-                    jar.exclude '**/*.java'
-                    jar.baseName = project.name.equals("schemas") ? "schemas": "${project.name}_schemas"
-                    jar.destinationDir = project.file(project.labkey.explodedModuleLibDir)
-                }
-        )
-        schemasJar.dependsOn(project.tasks.schemasCompile)
-        schemasJar.onlyIf
-                {
+        project.tasks.register('schemasCompile', SchemaCompile) {
+            SchemaCompile task ->
+                task.group = GroupNames.XML_SCHEMA
+                task.description = "compile XML schemas from directory '$project.xmlBeans.schemasDir' into Java classes"
+                task.onlyIf {
                     isApplicable(project)
                 }
+                // remove the directories containing the generated java files and the compiled classes when we have to make changes.
+                task.doFirst( {
+                    project.delete(task.getSrcGenDir())
+                    project.delete(task.getClassesDir())
+                })
+        }
 
-        project.task("cleanSchemasJar",
-                group: GroupNames.XML_SCHEMA,
-                type: Delete,
-                description: "remove schema jar file",
-                { DeleteSpec del ->
-                    del.delete "$schemasJar.destinationDir/$schemasJar.archiveName"
-                }
-        )
+        project.tasks.register('schemasJar', Jar) {
+            Jar task ->
+                task.group = GroupNames.XML_SCHEMA
+                task.description = "produce schemas jar file from directory '$project.xmlBeans.classDir'"
+                task.classifier = CLASSIFIER
+                task.from "$project.buildDir/$project.xmlBeans.classDir"
+                task.exclude '**/*.java'
+                task.baseName = project.name.equals("schemas") ? "schemas" : "${project.name}_schemas"
+                task.destinationDir = project.file(project.labkey.explodedModuleLibDir)
+                task.dependsOn(project.tasks.schemasCompile)
+                task.onlyIf
+                        {
+                            isApplicable(project)
+                        }
+        }
 
-        project.task("cleanSchemasCompile",
-                group: GroupNames.XML_SCHEMA,
-                type: Delete,
-                description: "remove source and class files generated from xsd files",
+        project.tasks.register("cleanSchemasJar", Delete) {
+            Delete task ->
+                task.group = GroupNames.XML_SCHEMA
+                task.description = "remove schema jar file"
+                task.configure (
+            { DeleteSpec del ->
+                        del.delete "$project.tasks.schemasJar.destinationDir/$project.tasks.schemasJar.archiveName"
+                    }
+                )
+        }
+
+        project.tasks.register("cleanSchemasCompile", Delete) {
+                Delete task ->
+                    task.group = GroupNames.XML_SCHEMA
+                    task.description = "remove source and class files generated from xsd files"
+                    task.configure (
                 {DeleteSpec del ->
-                    del.delete "$project.buildDir/$project.xmlBeans.classDir",
-                                "$project.labkey.srcGenDir/$project.xmlBeans.classDir"
-                }
-        )
+                            del.delete "$project.buildDir/$project.xmlBeans.classDir",
+                                         "$project.labkey.srcGenDir/$project.xmlBeans.classDir"
+                        }
+                    )
+        }
     }
 }
 
