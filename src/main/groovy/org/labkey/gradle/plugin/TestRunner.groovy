@@ -101,7 +101,7 @@ class TestRunner extends UiTest
 
             compile project.files("${System.properties['java.home']}/../lib/tools.jar")
             compile "org.seleniumhq.selenium:selenium-server:${project.seleniumVersion}"
-            compile "com.googlecode.sardine:sardine:${project.sardineVersion}"
+            compile "com.googlecode.sardine:sardine:${project.sardineVersion}" /*Required for <=18.2. TODO: Remove once 18.3 is the earliest supported release*/
             compile "junit:junit:${project.junitVersion}"
             compile "org.reflections:reflections:${project.reflectionsVersion}"
         }
