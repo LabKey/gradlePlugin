@@ -8,6 +8,14 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
+### version 1.3.3
+*Release*: ???
+(Earliest compatible LabKey version: 18.2)
+
+* [Issue 35442](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=35442) - throw exception if tomcat directory is not present or not writeable when copying jars there
+* add descriptions for our custom configurations (for use in task that shows all configurations)
+* update to allow schemas project to be merged into the api project
+* update pattern for jar checking to account for words in the release version (e.g., Spring's 4.3.0.RELEASE)
 
 ### version 1.3.2
 *Release*: 29 Aug 2019
