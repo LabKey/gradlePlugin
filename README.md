@@ -12,6 +12,8 @@ but also make certain assumptions that you may not want to impose on your module
 *Release*: 18 Oct 2018
 (Earliest compatible LabKey version: 18.2)
 
+* add ability to enable ldap sync configuration in labkey.xml with -PenableLdapSync.  This will uncomment a stanza in the labkey.xml
+that is surrounded by &lt;`--@@ldapSyncConfig@@` and `@@ldapSyncConfig@@`--&gt;
 * [Issue 35442](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=35442) - throw exception if tomcat directory is not present or not writeable when copying jars there
 * add descriptions for our custom configurations (for use in task that shows all configurations)
 * update to allow schemas project to be merged into the api project

@@ -75,7 +75,6 @@ class DoThenSetup extends DefaultTask
 
         if (!labkeyXmlUpToDate(appDocBase))
         {
-            //ant setup copy portions. Setting jdbc props is now handled by pick_db and bootstrap.
             Properties configProperties = databaseProperties.getConfigProperties()
             configProperties.setProperty("appDocBase", appDocBase)
             boolean isNextLineComment = false
@@ -91,6 +90,15 @@ class DoThenSetup extends DefaultTask
                     {
                         newLine = newLine.replace("<!--@@jmsConfig@@", "");
                         newLine = newLine.replace("@@jmsConfig@@-->", "");
+                        return newLine;
+                    }
+                    // If we want to automatically enable an LDAP Sync that is hardcoded in the labkey.xml
+                    // for testing purposes, this will uncomment that stanza if the enableLdapSync
+                    // property is defined.
+                    if (project.hasProperty('enableLdapSync'))
+                    {
+                        newLine = newLine.replace("<!--@@ldapSyncConfig@@", "");
+                        newLine = newLine.replace("@@ldapSyncConfig@@-->", "");
                         return newLine;
                     }
                     if (isNextLineComment || newLine.contains("<!--"))
