@@ -93,6 +93,9 @@ class DoThenSetup extends DefaultTask
                         newLine = newLine.replace("@@jmsConfig@@-->", "");
                         return newLine;
                     }
+                    // If we want to automatically enable an LDAP Sync that is hardcoded in the labkey.xml
+                    // for testing purposes, this will uncomment that stanza if the enableLdapSync
+                    // property is defined.
                     if (project.hasProperty('enableLdapSync'))
                     {
                         newLine = newLine.replace("<!--@@ldapSyncConfig@@", "");
