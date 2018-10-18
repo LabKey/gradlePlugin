@@ -46,6 +46,7 @@ class WriteDependenciesFile extends DefaultTask
                 transitive = false
             }
         }
+        project.configurations.externalsNotTrans.setDescription("Direct external dependencies (not including transitive dependencies)")
         onlyIf {
             !project.configurations.externalsNotTrans.isEmpty()
         }

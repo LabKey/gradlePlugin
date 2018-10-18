@@ -166,8 +166,10 @@ class JavaModule extends FileModule
 //        }
 
 
-        FileCollection externalFiles = getTrimmedExternalFiles(project)
-        FileCollection allJars = externalFiles
+        // We do this afterEvaluate to allow all dependencies to be declared before checking
+        project.afterEvaluate( {
+            FileCollection externalFiles = (project.path == BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api")) ? project.configurations.external : getTrimmedExternalFiles(project)
+            FileCollection allJars = externalFiles
 
         project.tasks.register("copyExternalLibs", Copy) {
             Copy task ->

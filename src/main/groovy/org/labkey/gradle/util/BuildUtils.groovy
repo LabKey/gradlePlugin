@@ -85,7 +85,7 @@ class BuildUtils
 
     public static final List<String> EXTERNAL_MODULE_DIRS = ["externalModules/scharp"] + EHR_EXTERNAL_MODULE_DIRS
 
-    // matches on: name-X.Y.Z-SNAPSHOT.jar, name-X.Y.Z-SNAPSHOT-classifier.jar, name-X.Y.Z_branch-SNAPSHOT.jar, name-X.Y.Z_branch-SNAPSHOT-classifier.extension name-X.Y.Z.extension
+    // matches on: name-X.Y.Z-SNAPSHOT.jar, name-X.Y.Z.word[-SNAPSHOT][-classifier].jar, name-X.Y.Z-SNAPSHOT-classifier.jar, name-X.Y.Z_branch-SNAPSHOT.jar, name-X.Y.Z_branch-SNAPSHOT-classifier.extension name-X.Y.Z.extension
     // Groups are:
     //    1: name
     //    2: version (including dash, numbers, dots, snapshot and branch and classification)
@@ -95,7 +95,7 @@ class BuildUtils
     //    6: snapshot (including -)
     //    7: classifier (including -)
     //    8: extension
-    public static final Pattern VERSIONED_ARTIFACT_NAME_PATTERN = Pattern.compile("^(.*?)(-(\\d+(\\.\\d+)*(_.+)?(-SNAPSHOT)?)(-\\w+)?)?\\.([^.]+)")
+    public static final Pattern VERSIONED_ARTIFACT_NAME_PATTERN = Pattern.compile("^(.*?)(-(\\d+(\\.\\w+)*(_.+)?(-SNAPSHOT)?)(-\\w+)?)?\\.([^.]+)")
     public static final int ARTIFACT_NAME_INDEX = 1
     public static final int ARTIFACT_VERSION_INDEX = 2
     public static final int ARTIFACT_CLASSIFIER_INDEX = 7
