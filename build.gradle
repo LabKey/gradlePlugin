@@ -1,3 +1,7 @@
+// N.B.  Whenever the gradlePlugis are compiled, you will see a warning about 
+//  "An illegal reflective access operation has occurred"
+// until this issue is resolved: https://issues.apache.org/jira/browse/GROOVY-8339
+// and Gradle is updated to whatever version of groovy has that fix.
 import java.nio.file.Paths
 
 apply plugin: "groovy"
