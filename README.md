@@ -9,7 +9,7 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 ### version 1.3.3
-*Release*: ???
+*Release*: 18 Oct 2018
 (Earliest compatible LabKey version: 18.2)
 
 * [Issue 35442](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=35442) - throw exception if tomcat directory is not present or not writeable when copying jars there
