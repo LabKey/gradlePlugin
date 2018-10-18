@@ -9,7 +9,7 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 ### version 1.3.3
-*Release*: ???
+*Release*: 18 Oct 2018
 (Earliest compatible LabKey version: 18.2)
 
 * add ability to enable ldap sync configuration in labkey.xml with -PenableLdapSync.  This will uncomment a stanza in the labkey.xmo
