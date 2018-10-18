@@ -75,7 +75,6 @@ class DoThenSetup extends DefaultTask
 
         if (!labkeyXmlUpToDate(appDocBase))
         {
-            // Setting jdbc props is now handled by pick_db and bootstrap.
             Properties configProperties = databaseProperties.getConfigProperties()
             configProperties.setProperty("appDocBase", appDocBase)
             boolean isNextLineComment = false
