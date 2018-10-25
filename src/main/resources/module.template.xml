@@ -27,6 +27,8 @@
 
         <property name="vcsRevision" value="@@VcsRevision@@"/>
         <property name="vcsUrl" value="@@VcsURL@@"/>
+        <property name="vcsBranch" value="@@VcsBranch@@"/>
+        <property name="vcsTag" value="@@VcsTag@@"/>
         <property name="buildUser" value="@@BuildUser@@"/>
         <property name="buildTime" value="@@BuildTime@@"/>
         <property name="buildOS" value="@@BuildOS@@"/>
