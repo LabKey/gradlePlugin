@@ -14,6 +14,8 @@ but also make certain assumptions that you may not want to impose on your module
 
 * When copying the labkey.xml file to the tomcat conf directory, don't throw an exception if the directory does not exist but the user can create it (via the copy)
 * Add VcsBranch and VcsTag to module properties xml file
+* Handle alpha branch names for naming distributions (releaseX.Y.Z-alpha.W)
+* Properly translate artifact versions with a patch version (X.Y.Z) to LabKey module version (X.Y)
 
 ### version 1.3.3
 *Release*: 18 Oct 2018
