@@ -8,7 +8,7 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
-### version 1.3.4
+### version 1.3.5
 *Release*: 29 Oct 2018
 (Earliest compatible LabKey version: 18.3)
 
@@ -18,6 +18,13 @@ but also make certain assumptions that you may not want to impose on your module
 * Properly translate artifact versions with a patch version (X.Y.Z) to LabKey module version (X.Y)
 * Removed TestRunner dependency on sardine.
 
+### version 1.3.4
+*Release*: 29 Oct 2018
+(Earliest compatible LabKey version: 18.2)
+
+(Accidental no-change release)
+
+(Earliest compatible LabKey version: 18.3)
 ### version 1.3.3
 *Release*: 18 Oct 2018
 (Earliest compatible LabKey version: 18.2)
