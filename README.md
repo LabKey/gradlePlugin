@@ -24,7 +24,6 @@ but also make certain assumptions that you may not want to impose on your module
 
 (Accidental no-change release)
 
-(Earliest compatible LabKey version: 18.3)
 ### version 1.3.3
 *Release*: 18 Oct 2018
 (Earliest compatible LabKey version: 18.2)
