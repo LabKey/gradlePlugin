@@ -81,11 +81,8 @@ class JavaModule extends FileModule
                 project.apply plugin: 'org.labkey.gwt'
 
             if (NpmRun.isApplicable(project))
-            {
-                // This brings in nodeSetup and npmInstall tasks.  See https://github.com/srs/gradle-node-plugin
-                project.apply plugin: 'com.moowork.node'
                 project.apply plugin: 'org.labkey.npmRun'
-            }
+
 
             if (UiTest.isApplicable(project))
             {
