@@ -44,7 +44,7 @@ buildscript {
 
 apply plugin: 'maven-publish'
 
-project.version = "1.3.5-SNAPSHOT"
+project.version = "1.3.5"
 
 if (project.file("moduleTemplate").exists())
 {
