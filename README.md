@@ -16,6 +16,7 @@ but also make certain assumptions that you may not want to impose on your module
 * Add VcsBranch and VcsTag to module properties xml file
 * Handle alpha branch names for naming distributions (releaseX.Y.Z-alpha.W)
 * Properly translate artifact versions with a patch version (X.Y.Z) to LabKey module version (X.Y)
+* Removed TestRunner dependency on sardine.
 
 ### version 1.3.3
 *Release*: 18 Oct 2018
