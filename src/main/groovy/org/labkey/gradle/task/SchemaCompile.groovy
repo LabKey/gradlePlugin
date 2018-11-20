@@ -53,7 +53,8 @@ class SchemaCompile extends DefaultTask {
     )
     ant.xmlbean(
             schema: getSchemasDir(),
-            javasource: project.sourceCompatibility,
+            // N.B. Later versions of Java not currently supported and introduce warnings like: warning: [dep-ann] deprecated item is not annotated with @Deprecated
+            javasource: "1.8",
             srcgendir: getSrcGenDir(),
             classgendir: getClassesDir(),
             classpath: project.configurations.xmlbeans.asPath,
