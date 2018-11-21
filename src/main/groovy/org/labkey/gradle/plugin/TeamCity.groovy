@@ -462,15 +462,18 @@ class TeamCity extends Tomcat
                 int port = Integer.parseInt(debugPort);
                 if (Bootstrap.virtualMachineManager().attachingConnectors().isEmpty())
                     throw new GradleException("No AttachingConnectors at all for virualMachine ${Bootstrap.virtualMachineManager().toString()}")
+                boolean found = false;
                 for (AttachingConnector connector : Bootstrap.virtualMachineManager().attachingConnectors())
                 {
                     println("Found connector ${connector.name()} with class ${connector.getClass().getName()}");
                     if ("com.sun.jdi.SocketAttach".equals(connector.name()))
                     {
+                        found = true;
                         connect(connector, port);
                     }
                 }
-                throw new GradleException("No SocketAttachingConnector found!");
+                if (!found)
+                    throw new GradleException("No SocketAttach connector found!");
             }
             catch (NumberFormatException e)
             {
