@@ -12,6 +12,7 @@ but also make certain assumptions that you may not want to impose on your module
 *Release*: ???
 (Earliest compatible LabKey version: 18.3)
 
+* Move ThreadDumpAndKill functionality into TeamCity plugin, where it is used
 * Change schemaCompile task to target Java 1.8 instead of project sourceCompatibility property to avoid warnings
 * [Issue 36034](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36034) - eliminate copying of api jar into WEB-INF/lib
 * [Issue 35902](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=35902) - make undeployModule work for file-based modules

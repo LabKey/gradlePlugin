@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 LabKey Corporation
+ * Copyright (c) 2016-2018 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,15 @@
  */
 package org.labkey.gradle.plugin
 
+import com.sun.jdi.AbsentInformationException
+import com.sun.jdi.IncompatibleThreadStateException
+import com.sun.jdi.ObjectReference
+import com.sun.jdi.StackFrame
+import com.sun.jdi.ThreadReference
+import com.sun.jdi.VirtualMachine
+import com.sun.jdi.connect.Connector
+import com.sun.jdi.connect.AttachingConnector
+import com.sun.jdi.connect.IllegalConnectorArgumentsException
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -104,7 +113,7 @@ class TeamCity extends Tomcat
         project.tasks.stopTomcat.dependsOn(project.tasks.debugClasses)
         project.tasks.stopTomcat.doLast (
                 {
-                    ensureShutdownViaTDAK(project)
+                    ensureShutdown(project)
                 }
         )
 
@@ -349,122 +358,123 @@ class TeamCity extends Tomcat
                     }
         }
     }
-//
-//    private static void connect(SocketAttachingConnector connector, int port) throws IllegalConnectorArgumentsException, IOException, IncompatibleThreadStateException
-//    {
-//        Map<String, Connector.Argument> arguments = connector.defaultArguments();
-//        arguments.get("hostname").setValue("localhost");
-//        arguments.get("port").setValue(Integer.toString(port));
-//        println("Attempting to shutdown Tomcat on debug port: " + port);
-//        try
-//        {
-//            VirtualMachine vm = connector.attach(arguments);
-//            vm.suspend();
-//            for (ThreadReference threadReference : vm.allThreads())
-//            {
-//                dumpThread(threadReference);
-//                println();
-//            }
-//            vm.resume();
-//            vm.exit(1);
-//            println("Killed remote VM");
-//        }
-//        catch (ConnectException e)
-//        {
-//            e.printStackTrace();
-//            println("Unable to connect to VM at localhost:" + port + ", VM may already be shut down");
-//        }
-//    }
-//
-//    private static void dumpThread(ThreadReference threadReference) throws IncompatibleThreadStateException
-//    {
-//        println("Thread '" + threadReference.name() + "', status = " + getStatus(threadReference));
-//        ObjectReference objectRef = threadReference.currentContendedMonitor();
-//        if (objectRef != null)
-//        {
-//            StringBuilder line = new StringBuilder();
-//            line.append("\t\tAttempting to acquire monitor for ");
-//            line.append(objectRef.referenceType().name());
-//            line.append("@");
-//            line.append(objectRef.uniqueID());
-//            if (objectRef.owningThread() != null)
-//            {
-//                line.append(" held by thread '");
-//                line.append(objectRef.owningThread().name());
-//                line.append("'");
-//            }
-//            println(line);
-//        }
-//        for (ObjectReference ownedMonitor : threadReference.ownedMonitors())
-//        {
-//            println("\t\tHolding monitor for " + ownedMonitor.referenceType().name() + "@" + ownedMonitor.uniqueID());
-//        }
-//        for (StackFrame stackFrame : threadReference.frames())
-//        {
-//            StringBuilder line = new StringBuilder();
-//            line.append("\t");
-//            line.append(stackFrame.location().declaringType().name());
-//            line.append(".").append(stackFrame.location().method().name());
-//            line.append("(");
-//            try
-//            {
-//                line.append(stackFrame.location().sourceName());
-//            }
-//            catch (AbsentInformationException ignore)
-//            {
-//                line.append("UnknownSource");
-//            }
-//            line.append(":").append(stackFrame.location().lineNumber());
-//            line.append(")");
-//            println(line.toString());
-//        }
-//    }
-//
-//    private static String getStatus(ThreadReference threadReference)
-//    {
-//        switch (threadReference.status())
-//        {
-//            case ThreadReference.THREAD_STATUS_MONITOR:
-//                return "WAITING FOR MONITOR";
-//            case ThreadReference.THREAD_STATUS_NOT_STARTED:
-//                return "NOT STARTED";
-//            case ThreadReference.THREAD_STATUS_RUNNING:
-//                return "RUNNING";
-//            case ThreadReference.THREAD_STATUS_SLEEPING:
-//                return "SLEEPING";
-//            case ThreadReference.THREAD_STATUS_WAIT:
-//                return "WAITING";
-//            case ThreadReference.THREAD_STATUS_ZOMBIE:
-//                return "ZOMBIE";
-//            default:
-//                return "UNKNOWN";
-//        }
-//    }
-//
-//    private void ensureShutdown(Project project)
-//    {
-//        String debugPort = extension.getTeamCityProperty("tomcat.debug")
-//        if (!debugPort.isEmpty())
-//        {
-//            project.logger.debug("Ensuring shutdown using port ${debugPort}")
-//            try
-//            {
-//                int port = Integer.parseInt(debugPort);
-//                for (AttachingConnector connector : Bootstrap.virtualMachineManager().attachingConnectors())
-//                {
-//                    if (connector instanceof SocketAttachingConnector)
-//                    {
-//                        connect((SocketAttachingConnector)connector, port);
-//                    }
-//                }
-//                throw new GradleException("No SocketAttachingConnector found!");
-//            }
-//            catch (NumberFormatException e)
-//            {
-//                throw new GradleException("Invalid port number: ${debugPort}", e)
-//            }
-//        }
-//    }
+
+    private static void connect(AttachingConnector connector, int port) throws IllegalConnectorArgumentsException, IOException, IncompatibleThreadStateException
+    {
+        Map<String, Connector.Argument> arguments = connector.defaultArguments();
+        arguments.get("hostname").setValue("localhost");
+        arguments.get("port").setValue(Integer.toString(port));
+        println("Attempting to shutdown Tomcat on debug port: " + port);
+        try
+        {
+            VirtualMachine vm = connector.attach(arguments);
+            vm.suspend();
+            for (ThreadReference threadReference : vm.allThreads())
+            {
+                dumpThread(threadReference);
+                println();
+            }
+            vm.resume();
+            vm.exit(1);
+            println("Killed remote VM");
+        }
+        catch (ConnectException e)
+        {
+            e.printStackTrace();
+            println("Unable to connect to VM at localhost:" + port + ", VM may already be shut down");
+        }
+    }
+
+    private static void dumpThread(ThreadReference threadReference) throws IncompatibleThreadStateException
+    {
+        println("Thread '" + threadReference.name() + "', status = " + getStatus(threadReference));
+        ObjectReference objectRef = threadReference.currentContendedMonitor();
+        if (objectRef != null)
+        {
+            StringBuilder line = new StringBuilder();
+            line.append("\t\tAttempting to acquire monitor for ");
+            line.append(objectRef.referenceType().name());
+            line.append("@");
+            line.append(objectRef.uniqueID());
+            if (objectRef.owningThread() != null)
+            {
+                line.append(" held by thread '");
+                line.append(objectRef.owningThread().name());
+                line.append("'");
+            }
+            println(line);
+        }
+        for (ObjectReference ownedMonitor : threadReference.ownedMonitors())
+        {
+            println("\t\tHolding monitor for " + ownedMonitor.referenceType().name() + "@" + ownedMonitor.uniqueID());
+        }
+        for (StackFrame stackFrame : threadReference.frames())
+        {
+            StringBuilder line = new StringBuilder();
+            line.append("\t");
+            line.append(stackFrame.location().declaringType().name());
+            line.append(".").append(stackFrame.location().method().name());
+            line.append("(");
+            try
+            {
+                line.append(stackFrame.location().sourceName());
+            }
+            catch (AbsentInformationException ignore)
+            {
+                line.append("UnknownSource");
+            }
+            line.append(":").append(stackFrame.location().lineNumber());
+            line.append(")");
+            println(line.toString());
+        }
+    }
+
+    private static String getStatus(ThreadReference threadReference)
+    {
+        switch (threadReference.status())
+        {
+            case ThreadReference.THREAD_STATUS_MONITOR:
+                return "WAITING FOR MONITOR";
+            case ThreadReference.THREAD_STATUS_NOT_STARTED:
+                return "NOT STARTED";
+            case ThreadReference.THREAD_STATUS_RUNNING:
+                return "RUNNING";
+            case ThreadReference.THREAD_STATUS_SLEEPING:
+                return "SLEEPING";
+            case ThreadReference.THREAD_STATUS_WAIT:
+                return "WAITING";
+            case ThreadReference.THREAD_STATUS_ZOMBIE:
+                return "ZOMBIE";
+            default:
+                return "UNKNOWN";
+        }
+    }
+
+    private void ensureShutdown(Project project)
+    {
+        String debugPort = extension.getTeamCityProperty("tomcat.debug")
+        if (!debugPort.isEmpty())
+        {
+            project.logger.debug("Ensuring shutdown using port ${debugPort}")
+            try
+            {
+                int port = Integer.parseInt(debugPort);
+                for (AttachingConnector connector : Boo9otstrap.virtualMachineManager().attachingConnectors())
+                {
+                    // Hack so class will build on JDK 11. TODO: Something less hacky.
+                    if ("com.sun.tools.jdi.SocketAttachingConnector".equals(connector.getClass().getName()))
+                    {
+                        connect(connector, port);
+                    }
+                }
+                throw new GradleException("No SocketAttachingConnector found!");
+            }
+            catch (NumberFormatException e)
+            {
+                throw new GradleException("Invalid port number: ${debugPort}", e)
+            }
+        }
+    }
 
     private void ensureShutdownViaTDAK(Project project)
     {
