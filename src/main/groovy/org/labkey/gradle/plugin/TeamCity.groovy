@@ -462,8 +462,9 @@ class TeamCity extends Tomcat
                 int port = Integer.parseInt(debugPort);
                 for (AttachingConnector connector : Bootstrap.virtualMachineManager().attachingConnectors())
                 {
+                    println("Found connector ${connector.name()} with class ${connector.getClass().getName()}");
                     // Hack so class will build on JDK 11. TODO: Something less hacky.
-                    if ("com.sun.tools.jdi.SocketAttachingConnector".equals(connector.getClass().getName()))
+                    if ("com.sun.jdi.SocketAttach".equals(connector.getClass().getName()))
                     {
                         connect(connector, port);
                     }
