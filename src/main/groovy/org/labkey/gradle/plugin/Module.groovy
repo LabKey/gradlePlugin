@@ -45,7 +45,7 @@ class Module extends JavaModule
                     // the api module's pom file because we cannot specify a version, since we rely on the local tomcat version.
                     // Therefore, when relying on the api jar file not built from source, we require this extra definition;
                     // it will not find the tomcat jar files without this.
-                    local project.fileTree(dir: "${project.ext.tomcatDir}/lib", includes: ['*.jar'], excludes: ['servlet-api.jar', 'mail.jar'])
+                    implementation project.fileTree(dir: "${project.ext.tomcatDir}/lib", includes: ['*.jar'], excludes: ['servlet-api.jar', 'mail.jar'])
 
                     BuildUtils.addLabKeyDependency(project: project, config: "compile", depProjectPath: BuildUtils.getProjectPath(project.gradle, "internalProjectPath", ":server:internal"), depVersion: project.labkeyVersion)
                     BuildUtils.addLabKeyDependency(project: project, config: "compile", depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteapiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
