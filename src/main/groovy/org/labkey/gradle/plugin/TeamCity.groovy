@@ -459,21 +459,22 @@ class TeamCity extends Tomcat
             project.logger.debug("Ensuring shutdown using port ${debugPort}")
             try
             {
-                int port = Integer.parseInt(debugPort);
-                if (Bootstrap.virtualMachineManager().attachingConnectors().isEmpty())
-                    throw new GradleException("No AttachingConnectors at all for virualMachine ${Bootstrap.virtualMachineManager().toString()}")
-                boolean found = false;
+                AttachingConnector socketConnector = null;
                 for (AttachingConnector connector : Bootstrap.virtualMachineManager().attachingConnectors())
                 {
-                    println("Found connector ${connector.name()} with class ${connector.getClass().getName()}");
+                    project.logger.debug("Found connector ${connector.name()} with class ${connector.getClass().getName()}");
                     if ("com.sun.jdi.SocketAttach".equals(connector.name()))
                     {
-                        found = true;
-                        connect(connector, port);
+                        socketConnector = connector;
                     }
                 }
-                if (!found)
-                    throw new GradleException("No SocketAttach connector found!");
+                if (socketConnector == null)
+                    throw new GradleException("No SocketAttach connector found!")
+                else
+                {
+                    int port = Integer.parseInt(debugPort)
+                    connect(connector, port)
+                }
             }
             catch (NumberFormatException e)
             {
