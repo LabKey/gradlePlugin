@@ -16,6 +16,7 @@
 package org.labkey.gradle.plugin
 
 import com.sun.jdi.AbsentInformationException
+import com.sun.jdi.Bootstrap
 import com.sun.jdi.IncompatibleThreadStateException
 import com.sun.jdi.ObjectReference
 import com.sun.jdi.StackFrame
@@ -459,7 +460,7 @@ class TeamCity extends Tomcat
             try
             {
                 int port = Integer.parseInt(debugPort);
-                for (AttachingConnector connector : Boo9otstrap.virtualMachineManager().attachingConnectors())
+                for (AttachingConnector connector : Bootstrap.virtualMachineManager().attachingConnectors())
                 {
                     // Hack so class will build on JDK 11. TODO: Something less hacky.
                     if ("com.sun.tools.jdi.SocketAttachingConnector".equals(connector.getClass().getName()))
