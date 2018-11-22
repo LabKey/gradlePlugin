@@ -473,7 +473,7 @@ class TeamCity extends Tomcat
                 else
                 {
                     int port = Integer.parseInt(debugPort)
-                    connect(connector, port)
+                    connect(socketConnector, port)
                 }
             }
             catch (NumberFormatException e)
