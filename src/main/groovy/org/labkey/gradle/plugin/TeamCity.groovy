@@ -114,7 +114,10 @@ class TeamCity extends Tomcat
         project.tasks.stopTomcat.dependsOn(project.tasks.debugClasses)
         project.tasks.stopTomcat.doLast (
                 {
-                    ensureShutdown(project)
+                    if (project.hasProperty("useTDAK"))
+                        ensureShutdownViaTDAK(project)
+                    else
+                        ensureShutdown(project)
                 }
         )
 
