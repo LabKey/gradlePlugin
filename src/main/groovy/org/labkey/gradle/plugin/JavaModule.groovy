@@ -103,7 +103,6 @@ class JavaModule extends FileModule
                            // but don't need to show up in the dependencies.txt and jars.txt
                     compile.extendsFrom(external)
                     implementation.extendsFrom(external)
-                    api.extendsFrom(labkey)
                     compile.extendsFrom(labkey)
                     compile.extendsFrom(local)
                 }
