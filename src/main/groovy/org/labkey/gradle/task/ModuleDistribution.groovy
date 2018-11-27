@@ -253,33 +253,38 @@ class ModuleDistribution extends DefaultTask
                     exclude(name: "bootstrap.jar")
                 }
 
-                if (includeMassSpecBinaries)
-                {
-                    tarfileset(dir: "${project.rootProject.projectDir}/external/windows/msinspect",
-                            prefix: "${archivePrefix}/bin") {
-                        include(name: "**/*.jar")
-                        exclude(name: "**/.svn")
+                tarfileset(dir: "${project.rootProject.projectDir}/external/windows/",
+                        prefix: "${archivePrefix}/bin") {
+                    exclude(name: "**/.svn")
+                    include(name: "core/**/*")
+                    if (includeMassSpecBinaries)
+                    {
+                        include(name: "tpp/**/*")
+                        include(name: "comet/**/*")
+                        include(name: "msinspect/**/*")
+                        include(name: "labkey/**/*")
+                        include(name: "pwiz/**/*")
                     }
                 }
 
                 tarfileset(dir: staging.pipelineLibDir,
-                        prefix: "${archivePrefix}/pipeline-lib") {
-                }
+                        prefix: "${archivePrefix}/pipeline-lib")
 
-                tarfileset(file: "${project.buildDir}/manual-upgrade.sh", prefix: archivePrefix, mode: 744)
+                tarfileset(dir: "${project.buildDir}/",
+                        prefix: archivePrefix,
+                        mode: 744) {
+                    include(name: "manual-upgrade.sh")
+                }
 
                 tarfileset(dir: distExtension.archiveDataDir,
                         prefix: archivePrefix) {
                     include(name: "README.txt")
                 }
                 tarfileset(dir: project.buildDir,
-                        prefix: getArchivePrefix()) {
+                        prefix: archivePrefix) {
                     include(name: "VERSION")
                     include(name: "labkeywebapp/**")
                     include(name: "nlp/**")
-                }
-                tarfileset(dir: project.buildDir,
-                        prefix: archivePrefix) {
                     include(name: "labkey.xml")
                 }
             }
@@ -314,32 +319,34 @@ class ModuleDistribution extends DefaultTask
                         prefix: "${archivePrefix}/modules") {
                     include(name: "*.module")
                 }
-                // this exclusion is necessary because for some reason when buildFromSource=false,
-                // the tomcat bootstrap jar is included in the staged libraries and the LabKey bootstrap jar is not.
-                // Not sure why.
                 zipfileset(dir: staging.tomcatLibDir, prefix: "${archivePrefix}/tomcat-lib") {
+                    // this exclusion is necessary because for some reason when buildFromSource=false,
+                    // the tomcat bootstrap jar is included in the staged libraries and the LabKey bootstrap jar is not.
+                    // Not sure why.
                     exclude(name: "bootstrap.jar")
                 }
 
-                zipfileset(dir: staging.pipelineLibDir,
-                        prefix: "${archivePrefix}/pipeline-lib")
-                zipfileset(dir: "${project.rootProject.projectDir}/external/windows/core",
+                zipfileset(dir: "${project.rootProject.projectDir}/external/windows/",
                         prefix: "${archivePrefix}/bin") {
-                    include(name: "**/*")
                     exclude(name: "**/.svn")
-                }
-
-                if (includeMassSpecBinaries)
-                {
-                    zipfileset(dir: "${project.rootProject.projectDir}/external/windows/",
-                            prefix: "${archivePrefix}/bin") {
-                        exclude(name: "**/.svn")
+                    include(name: "core/**/*")
+                    if (includeMassSpecBinaries)
+                    {
                         include(name: "tpp/**/*")
                         include(name: "comet/**/*")
                         include(name: "msinspect/**/*")
                         include(name: "labkey/**/*")
                         include(name: "pwiz/**/*")
                     }
+                }
+
+                zipfileset(dir: staging.pipelineLibDir,
+                        prefix: "${archivePrefix}/pipeline-lib")
+
+                zipfileset(dir: "${project.buildDir}/",
+                        prefix: "${archivePrefix}",
+                        filemode: 744){
+                    include(name: "manual-upgrade.sh")
                 }
 
                 zipfileset(dir: distExtension.archiveDataDir,
@@ -352,11 +359,6 @@ class ModuleDistribution extends DefaultTask
                     include(name: "labkeywebapp/**")
                     include(name: "nlp/**")
                     include(name: "labkey.xml")
-                }
-                zipfileset(dir: "${project.buildDir}/",
-                        prefix: "${archivePrefix}",
-                        filemode: 744){
-                    include(name: "manual-upgrade.sh")
                 }
             }
         }
