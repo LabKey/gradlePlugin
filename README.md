@@ -9,7 +9,7 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 ### version 1.3.6
-*Release*: ???
+*Release*: 28 Nov 2018
 (Earliest compatible LabKey version: 18.3)
 
 * Move ThreadDumpAndKill functionality into TeamCity plugin, where it is used
@@ -17,6 +17,7 @@ but also make certain assumptions that you may not want to impose on your module
 * [Issue 36034](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36034) - eliminate copying of api jar into WEB-INF/lib
 * [Issue 35902](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=35902) - make undeployModule work for file-based modules
 * Add 'extraCatalinaOpts' property to pass additional startup options to Tomcat
+* [Issue 36171](}https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36171) - make the contents of the .tar.gz and .zip distributions identical
 
 ### version 1.3.5
 *Release*: 29 Oct 2018
