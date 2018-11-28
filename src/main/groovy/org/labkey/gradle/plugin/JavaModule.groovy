@@ -97,13 +97,12 @@ class JavaModule extends FileModule
         super.addConfigurations(project)
         project.configurations
                 {
-                    // We will use these when moving away from the deprecated compile configuration from Gradle
-//                    local.extendsFrom(implementation)
-//                    external.extendsFrom(api)
+                    external.extendsFrom(api)
                     local
                     labkey // use this configuration for dependencies to labkey API jars that are needed for a module
                            // but don't need to show up in the dependencies.txt and jars.txt
                     compile.extendsFrom(external)
+                    implementation.extendsFrom(external)
                     compile.extendsFrom(labkey)
                     compile.extendsFrom(local)
                 }

@@ -55,17 +55,6 @@ class LabKeyExtension
     String ext3Dir = "ext-3.4.1"
     String ext4Dir = "ext-4.2.1"
 
-    /**
-     * @param project the project in question
-     * @return true if the project given is one of the modules whose jar file needs to be in the labkeyWebapp/WEB-INF/lib directory
-     * at startup
-     */
-    static Boolean isBootstrapModule(Project project)
-    {
-
-        return [BuildUtils.getProjectPath(project.gradle, "schemasProjectPath", ":schemas"), BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java")].contains(project.path)
-    }
-
     static String getDeployModeName(Project project)
     {
         if (isDevMode(project))

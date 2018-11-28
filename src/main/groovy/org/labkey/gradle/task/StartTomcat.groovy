@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
+
 /**
  * Created by susanh on 11/15/16.
  */
@@ -75,7 +76,11 @@ class StartTomcat extends DefaultTask
                 optsList.add("-DsequencePipelineEnabled=${TeamCityExtension.getTeamCityProperty(project, "sequencePipelineEnabled", false)}")
             }
 
-            String catalinaOpts = optsList.join(" ")
+            if (project.hasProperty("extraCatalinaOpts"))
+                optsList.add(project.property("extraCatalinaOpts"))
+
+            String catalinaOpts = optsList.join(" ").replaceAll("\\s+", " ")
+
             project.logger.debug("setting CATALINA_OPTS to ${catalinaOpts}")
             env(
                     key: "CATALINA_OPTS",

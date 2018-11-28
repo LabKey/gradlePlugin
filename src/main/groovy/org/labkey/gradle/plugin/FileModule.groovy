@@ -240,14 +240,6 @@ class FileModule implements Plugin<Project>
                             copy.from moduleFile
                             copy.into ServerDeployExtension.getModulesDeployDirectory(project)
                         }
-                        if (LabKeyExtension.isBootstrapModule(project))
-                        {
-                            project.copy
-                                    { CopySpec copy ->
-                                        copy.from project.tasks.jar
-                                        copy.into "${project.rootProject.buildDir}/deploy/labkeyWebapp/WEB-INF/lib"
-                                    }
-                        }
                     }
                 }
 
