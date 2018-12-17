@@ -165,6 +165,7 @@ class Jsp implements Plugin<Project>
                 }
         )
                 .doFirst {
+            project.logger.debug("Deleting ${project.buildDir}/${project.jspCompile.classDir}")
             project.delete "${project.buildDir}/${project.jspCompile.classDir}"
         }
         if (project.hasProperty('apiJar'))
