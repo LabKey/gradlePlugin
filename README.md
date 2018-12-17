@@ -13,6 +13,7 @@ but also make certain assumptions that you may not want to impose on your module
 (Earliest compatible LabKey version: 18.3)
 
 * [Issue 36261](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36261) - always include source path as module property
+* remove obsolete tools.jar from TestRunner dependencies
 
 ### version 1.3.6
 *Release*: 28 Nov 2018

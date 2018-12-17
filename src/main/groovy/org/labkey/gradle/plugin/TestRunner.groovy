@@ -99,7 +99,6 @@ class TestRunner extends UiTest
             compile "org.aspectj:aspectjrt:${project.aspectjVersion}"
             compile "org.aspectj:aspectjtools:${project.aspectjVersion}"
 
-            compile project.files("${System.properties['java.home']}/../lib/tools.jar")
             compile "org.seleniumhq.selenium:selenium-server:${project.seleniumVersion}"
             compile "junit:junit:${project.junitVersion}"
             compile "org.reflections:reflections:${project.reflectionsVersion}"
