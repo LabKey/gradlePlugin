@@ -114,10 +114,7 @@ class TeamCity extends Tomcat
         project.tasks.stopTomcat.dependsOn(project.tasks.debugClasses)
         project.tasks.stopTomcat.doLast (
                 {
-                    if (project.hasProperty("useTDAK"))
-                        ensureShutdownViaTDAK(project)
-                    else
-                        ensureShutdown(project)
+                    ensureShutdown(project)
                 }
         )
 
@@ -483,21 +480,6 @@ class TeamCity extends Tomcat
             {
                 throw new GradleException("Invalid port number: ${debugPort}", e)
             }
-        }
-    }
-
-    private void ensureShutdownViaTDAK(Project project)
-    {
-        tring debugPort = extension.getTeamCityProperty("tomcat.debug")
-        if (!debugPort.isEmpty())
-        {
-            project.logger.debug("Ensuring shutdown using port ${debugPort}")
-            project.javaexec({ JavaExecSpec spec ->
-                spec.main = "org.labkey.test.debug.ThreadDumpAndKill"
-                spec.classpath { [project.sourceSets.debug.output.classesDir, project.configurations.debugCompile] }
-                spec.args = [debugPort]
-                spec.ignoreExitValue = true
-            })
         }
     }
 }
