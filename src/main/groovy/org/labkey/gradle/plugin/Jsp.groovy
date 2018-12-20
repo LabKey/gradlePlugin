@@ -27,6 +27,8 @@ import org.labkey.gradle.task.JspCompile2Java
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
+import java.text.SimpleDateFormat
+
 /**
  * Used to generate the jsp jar file for a module.
  */
@@ -157,24 +159,38 @@ class Jsp implements Plugin<Project>
                 group: GroupNames.JSP,
                 type: JspCompile2Java,
                 description: "compile jsp files into Java classes",
-                {
-                    inputs.files copyJsps
-                    inputs.files copyResourceJsps
-                    inputs.files copyTags
-                    outputs.dir "${project.buildDir}/${project.jspCompile.classDir}"
+                {Task task ->
+                    project.logger.info("${project.path} Output directory for jsp2Java: ${project.buildDir}/${project.jspCompile.classDir}")
+                    copyJsps.outputs.files.forEach( {File it ->
+                        String modDate = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(new Date(it.lastModified()))
+                        project.logger.info("${project.path} copyJspFiles listing for ${it} ${modDate}")
+                        if (it.isDirectory())
+                        {
+                            File[] list = it.listFiles()
+                            for (int i = 0; i < list.length; i++)
+                            {
+                                modDate = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(
+                                        new Date(list[i].lastModified()));
+                                project.logger.info("\t${list[i].getAbsolutePath()}: ${modDate}")
+                            }
+                        }
+                    })
+
+                    task.inputs.files copyJsps
+                    task.inputs.files copyResourceJsps
+                    task.inputs.files copyTags
+                    task.outputs.dir "${project.buildDir}/${project.jspCompile.classDir}"
                 }
         )
                 .doFirst {
-            project.logger.debug("Deleting ${project.buildDir}/${project.jspCompile.classDir}")
+            project.logger.info("Deleting ${project.buildDir}/${project.jspCompile.classDir}")
             project.delete "${project.buildDir}/${project.jspCompile.classDir}"
         }
         if (project.hasProperty('apiJar'))
             jspCompileTask.dependsOn('apiJar')
         jspCompileTask.dependsOn('jar')
 
-        project.tasks.compileJspJava {
-            dependsOn jspCompileTask
-        }
+        project.tasks.compileJspJava.dependsOn(jspCompileTask)
 
         Task jspJar = project.task('jspJar',
                 group: GroupNames.JSP,

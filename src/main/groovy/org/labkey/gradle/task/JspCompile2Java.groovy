@@ -25,16 +25,19 @@ class JspCompile2Java extends DefaultTask
 {
     @TaskAction
     void compile() {
+
         File uriRoot = new File("${project.buildDir}/${project.jspCompile.tempDir}/webapp")
+        project.logger.info("${project.path} Compiling jsps to Java into ${uriRoot.getAbsolutePath()}")
         if (!uriRoot.exists())
-            uriRoot.mkdirs();
+            if (!uriRoot.mkdirs())
+                project.logger.error("${project.path}: problem creating directory ${uriRoot.getAbsolutePath()}")
         ant.taskdef(
                 name: 'jasper',
                 classname: 'org.apache.jasper.JspC',
                 classpath: project.configurations.jspCompile.asPath
         )
         ant.jasper(
-                uriroot: "${project.buildDir}/${project.jspCompile.tempDir}/webapp",
+                uriroot: "${uriRoot.getAbsolutePath()}",
                 outputDir: "${project.buildDir}/${project.jspCompile.classDir}",
                 package: "org.labkey.jsp.compiled",
                 compilerTargetVM: project.targetCompatibility,
