@@ -12,6 +12,7 @@ but also make certain assumptions that you may not want to impose on your module
 *Release*: ???
 (Earliest compatible LabKey version: 18.3)
 
+* [Issue 36309](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36309) - Fix problem with JSP classes files not being generated
 * [Issue 36261](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36261) - always include source path as module property
 * remove obsolete tools.jar from TestRunner dependencies
 
