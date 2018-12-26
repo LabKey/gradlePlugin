@@ -44,6 +44,10 @@ class JspCompile2Java extends DefaultTask
         if (!uriRoot.exists())
             if (!uriRoot.mkdirs())
                 project.logger.error("${project.path}: problem creating directory ${uriRoot.getAbsolutePath()}")
+        File classesDir = getClassesDirectory()
+        if (!classesDir.exists())
+            if (!classesDir.mkdirs())
+                project.logger.error("${project.path}: problem creating directory ${classesDir.getAbsolutePath()}")
         ant.taskdef(
                 name: 'jasper',
                 classname: 'org.apache.jasper.JspC',
