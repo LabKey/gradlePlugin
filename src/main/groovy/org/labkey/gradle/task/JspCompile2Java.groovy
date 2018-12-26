@@ -16,6 +16,7 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -23,10 +24,22 @@ import org.gradle.api.tasks.TaskAction
  */
 class JspCompile2Java extends DefaultTask
 {
+    @OutputDirectory
+    File getClassesDirectory()
+    {
+        return new File("${project.buildDir}/${project.jspCompile.classDir}")
+    }
+
+    @OutputDirectory
+    File getWebAppDirectory()
+    {
+        return new File("${project.buildDir}/${project.jspCompile.tempDir}/webapp")
+    }
+
     @TaskAction
     void compile() {
 
-        File uriRoot = new File("${project.buildDir}/${project.jspCompile.tempDir}/webapp")
+        File uriRoot = getWebAppDirectory()
         project.logger.info("${project.path} Compiling jsps to Java into ${uriRoot.getAbsolutePath()}")
         if (!uriRoot.exists())
             if (!uriRoot.mkdirs())
@@ -38,7 +51,7 @@ class JspCompile2Java extends DefaultTask
         )
         ant.jasper(
                 uriroot: "${uriRoot.getAbsolutePath()}",
-                outputDir: "${project.buildDir}/${project.jspCompile.classDir}",
+                outputDir: getClassesDirectory(),
                 package: "org.labkey.jsp.compiled",
                 compilerTargetVM: project.targetCompatibility,
                 compilerSourceVM: project.sourceCompatibility,
