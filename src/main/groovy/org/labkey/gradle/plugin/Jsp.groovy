@@ -83,10 +83,10 @@ class Jsp implements Plugin<Project>
     {
         project.configurations
                 {
-                    jspCompile
+                    jspImplementation
                     jsp
                 }
-        project.configurations.getByName('jspCompile') {
+        project.configurations.getByName('jspImplementation') {
             resolutionStrategy {
                 force "javax.servlet:servlet-api:${project.servletApiVersion}"
             }
@@ -97,15 +97,15 @@ class Jsp implements Plugin<Project>
     {
         project.dependencies
                 {
-                    jspCompile  'org.apache.tomcat:jasper',
+                    jspImplementation  'org.apache.tomcat:jasper',
                         'org.apache.tomcat:jsp-api',
                         'org.apache.tomcat:tomcat-juli'
-                    jspCompile project.fileTree(dir: "${project.tomcatDir}/lib", includes: ['*.jar'])
-                    BuildUtils.addLabKeyDependency(project: project, config: "jspCompile", depProjectPath: BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api"), depVersion: project.labkeyVersion)
-                    BuildUtils.addLabKeyDependency(project: project, config: "jspCompile", depProjectPath: BuildUtils.getProjectPath(project.gradle, "internalProjectPath", ":server:internal"), depVersion: project.labkeyVersion)
-                    jspCompile project.files(project.tasks.jar)
+                    jspImplementation project.fileTree(dir: "${project.tomcatDir}/lib", includes: ['*.jar'])
+                    BuildUtils.addLabKeyDependency(project: project, config: "jspImplementation", depProjectPath: BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api"), depVersion: project.labkeyVersion)
+                    BuildUtils.addLabKeyDependency(project: project, config: "jspImplementation", depProjectPath: BuildUtils.getProjectPath(project.gradle, "internalProjectPath", ":server:internal"), depVersion: project.labkeyVersion)
+                    jspImplementation project.files(project.tasks.jar)
                     if (project.hasProperty('apiJar'))
-                        jspCompile project.files(project.tasks.apiJar)
+                        jspImplementation project.files(project.tasks.apiJar)
 
                     jsp     'org.apache.tomcat:jasper',
                             'org.apache.tomcat:bootstrap',
@@ -207,7 +207,7 @@ class Jsp implements Plugin<Project>
         jspJar.dependsOn(project.tasks.compileJspJava)
 
         project.artifacts {
-            jspCompile jspJar
+            jspImplementation jspJar
         }
         project.tasks.assemble.dependsOn(jspJar)
     }
