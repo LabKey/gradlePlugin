@@ -96,14 +96,14 @@ class TestRunner extends UiTest
         super.addDependencies(project)
         project.dependencies {
             aspectj "org.aspectj:aspectjtools:${project.aspectjVersion}"
-            compile "org.aspectj:aspectjrt:${project.aspectjVersion}"
-            compile "org.aspectj:aspectjtools:${project.aspectjVersion}"
+            implementation "org.aspectj:aspectjrt:${project.aspectjVersion}"
+            implementation "org.aspectj:aspectjtools:${project.aspectjVersion}"
 
-            compile "org.seleniumhq.selenium:selenium-server:${project.seleniumVersion}"
-            compile "junit:junit:${project.junitVersion}"
-            compile "org.reflections:reflections:${project.reflectionsVersion}"
+            implementation "org.seleniumhq.selenium:selenium-server:${project.seleniumVersion}"
+            implementation "junit:junit:${project.junitVersion}"
+            implementation "org.reflections:reflections:${project.reflectionsVersion}"
         }
-        BuildUtils.addLabKeyDependency(project: project, config: "compile", depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
+        BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
     }
 
 
@@ -225,7 +225,6 @@ class TestRunner extends UiTest
     {
         project.logger.debug("TestRunner: addTestSuiteTask for ${project.path}");
         project.task("uiTests",
-                overwrite: true, // replace the task that would run all of the tests
                 group: GroupNames.VERIFICATION,
                 description: "Run a LabKey test suite as defined by ${project.file(testRunnerExt.propertiesFile)} and overridden on the command line by -P<prop>=<value>",
                 type: RunTestSuite

@@ -77,25 +77,25 @@ class UiTest implements Plugin<Project>
     protected void addDependencies(Project project)
     {
         if (project.path != ":server:test")
-            BuildUtils.addLabKeyDependency(project: project, config: 'uiTestCompile', depProjectPath: ":server:test", depVersion: project.labkeyVersion)
+            BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: ":server:test", depVersion: project.labkeyVersion)
 
         String schemasProjectPath = BuildUtils.getProjectPath(project.gradle, "schemasProjectPath", ":schemas")
         if (project.findProject(schemasProjectPath) != null)
-            BuildUtils.addLabKeyDependency(project: project, config: 'uiTestCompile', depProjectPath: schemasProjectPath, depVersion: project.labkeyVersion)
-        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestCompile', depProjectPath: BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api"), depVersion: project.labkeyVersion)
-        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestCompile', depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
+            BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: schemasProjectPath, depVersion: project.labkeyVersion)
+        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api"), depVersion: project.labkeyVersion)
+        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
     }
 
     protected void addTasks(Project project)
     {
         project.logger.info("UiTest: addTask for ${project.path}")
-        project.task("uiTests",
+        project.task("moduleUiTests",
                 group: GroupNames.VERIFICATION,
                 description: "Run UI (Selenium) tests for this module",
                 type: RunUiTest
         )
-        project.tasks.uiTests.mustRunAfter(project.project(":server").tasks.pickPg)
-        project.tasks.uiTests.mustRunAfter(project.project(":server").tasks.pickMSSQL)
+        project.tasks.moduleUiTests.mustRunAfter(project.project(":server").tasks.pickPg)
+        project.tasks.moduleUiTests.mustRunAfter(project.project(":server").tasks.pickMSSQL)
     }
 
     protected void addArtifacts(Project project)
