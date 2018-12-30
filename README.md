@@ -15,6 +15,9 @@ but also make certain assumptions that you may not want to impose on your module
 * [Issue 36309](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36309) - Fix problem with JSP classes files not being generated
 * [Issue 36261](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36261) - always include source path as module property
 * remove obsolete tools.jar from TestRunner dependencies
+* Use implementation configuration for declaring dependencies instead of deprecated 'compile' dependency
+* Rename task for running module UI tests to moduleUiTests since replacing tasks, as we were doing for the uiTest task in TaskRunner, is 
+deprecated functionality.
 
 ### version 1.3.6
 *Release*: 28 Nov 2018
