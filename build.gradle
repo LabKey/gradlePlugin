@@ -81,7 +81,7 @@ publishing {
 }
 
 
-if (project.hasProperty('artifactory_contextUrl') && project.hasProperty('artifactory_user') && project.hasProperty('artifactory_password'))
+if (project.hasProperty("doPublishing") && project.hasProperty('artifactory_contextUrl') && project.hasProperty('artifactory_user') && project.hasProperty('artifactory_password'))
 {
     apply plugin: 'com.jfrog.artifactory'
     artifactory {
@@ -99,11 +99,6 @@ if (project.hasProperty('artifactory_contextUrl') && project.hasProperty('artifa
                 publishIvy = false
             }
         }
-//        resolve {
-//            repository {
-//                repoKey = project.version.endsWith('-SNAPSHOT') ? 'plugins-snapshot-local' : "plugins-release"
-//            }
-//        }
     }
 }
 
