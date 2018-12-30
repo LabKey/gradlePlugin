@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.task
 
+import org.apache.commons.io.FileUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -40,18 +41,31 @@ class JspCompile2Java extends DefaultTask
     void compile() {
 
         File uriRoot = getWebAppDirectory()
-        project.logger.info("${project.path} Compiling jsps to Java into ${uriRoot.getAbsolutePath()}")
+        project.logger.info("${project.path} Compiling jsps to Java from ${uriRoot.getAbsolutePath()}")
         if (!uriRoot.exists())
+        {
+            project.logger.info("${project.path} creating ${uriRoot.getAbsolutePath()}")
             if (!uriRoot.mkdirs())
                 project.logger.error("${project.path}: problem creating directory ${uriRoot.getAbsolutePath()}")
+        }
+        else
+        {
+            String[] extensions = ["jsp"]
+            project.logger.info("${project.path}: Jsp files in ${uriRoot.getAbsolutePath()}")
+            FileUtils.listFiles(uriRoot, extensions, true).forEach({
+                File file ->
+                    project.logger.info(file.getAbsolutePath())
+            });
+        }
         File classesDir = getClassesDirectory()
+
         if (!classesDir.exists())
             if (!classesDir.mkdirs())
-                project.logger.error("${project.path}: problem creating directory ${classesDir.getAbsolutePath()}")
+                project.logger.error("${project.path}: problem creating output directory ${classesDir.getAbsolutePath()}")
         ant.taskdef(
                 name: 'jasper',
                 classname: 'org.apache.jasper.JspC',
-                classpath: project.configurations.jspCompile.asPath
+                classpath: project.configurations.jspCompileClasspath.asPath
         )
         ant.jasper(
                 uriroot: "${uriRoot.getAbsolutePath()}",
