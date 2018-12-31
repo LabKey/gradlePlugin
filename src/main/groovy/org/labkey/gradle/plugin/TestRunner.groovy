@@ -96,14 +96,12 @@ class TestRunner extends UiTest
         super.addDependencies(project)
         project.dependencies {
             aspectj "org.aspectj:aspectjtools:${project.aspectjVersion}"
-            implementation "org.aspectj:aspectjrt:${project.aspectjVersion}"
-            implementation "org.aspectj:aspectjtools:${project.aspectjVersion}"
-
-            implementation "org.seleniumhq.selenium:selenium-server:${project.seleniumVersion}"
-            implementation "junit:junit:${project.junitVersion}"
-            implementation "org.reflections:reflections:${project.reflectionsVersion}"
+            uiTestRuntimeOnly "org.aspectj:aspectjrt:${project.aspectjVersion}"
+            uiTestImplementation "org.aspectj:aspectjtools:${project.aspectjVersion}"
+            uiTestImplementation "org.seleniumhq.selenium:selenium-server:${project.seleniumVersion}"
+            uiTestImplementation "org.reflections:reflections:${project.reflectionsVersion}"
         }
-        BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
+        BuildUtils.addLabKeyDependency(project: project, config: "uiTestRuntimeOnly", depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
     }
 
 
@@ -140,7 +138,7 @@ class TestRunner extends UiTest
                                 project.javaexec({
                                     main = "org.labkey.test.util.PasswordUtil"
                                     classpath {
-                                        [project.configurations.uiTestCompile, project.tasks.testJar]
+                                        [project.configurations.uiTestRuntimeClasspath, project.tasks.testJar]
                                     }
                                     systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
                                     args = ["ensure"]
@@ -259,7 +257,7 @@ class TestRunner extends UiTest
                     destdir: "${project.buildDir}/classes/java/uiTest/",
                     source: project.sourceCompatibility,
                     target: project.targetCompatibility,
-                    classpath: project.configurations.uiTestCompile.asPath,
+                    classpath: project.configurations.uiTestRuntimeClasspath.asPath,
                     {
                         project.sourceSets.uiTest.java.srcDirs.each {
                             src(path: it)
