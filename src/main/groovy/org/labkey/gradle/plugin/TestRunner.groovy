@@ -117,7 +117,7 @@ class TestRunner extends UiTest
                         project.javaexec({
                             main = "org.labkey.test.util.PasswordUtil"
                             classpath {
-                                [project.configurations.uiTestCompile, project.tasks.testJar]
+                                [project.configurations.uiTestRuntimeClasspath, project.tasks.testJar]
                             }
                             systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
                             args = ["set"]
