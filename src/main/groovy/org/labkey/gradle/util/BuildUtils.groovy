@@ -108,7 +108,6 @@ class BuildUtils
                 getProjectPath(gradle, "apiProjectPath", ":server:api"),
                 getProjectPath(gradle, "bootstrapProjectPath", ":server:bootstrap"),
                 getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:java"),
-                getProjectPath(gradle, "schemasProjectPath", ":schemas"), // does no harm if this project no longer exists
                 getProjectPath(gradle, "internalProjectPath", ":server:internal"),
         ] + BASE_MODULES
     }
@@ -216,6 +215,16 @@ class BuildUtils
     static boolean shouldBuildClientLibsFromSource(Project project)
     {
         return whyNotBuildFromSource(project, BUILD_CLIENT_LIBS_FROM_SOURCE_PROP).isEmpty()
+    }
+
+    static boolean isApi(Project project)
+    {
+        return project.path.equals(getProjectPath(project.gradle, "apiProjectPath", ":server:api"))
+    }
+
+    static boolean isBaseModule(Project project)
+    {
+        return getBaseModules().contains(project.path)
     }
 
     static boolean isGitModule(Project project)
