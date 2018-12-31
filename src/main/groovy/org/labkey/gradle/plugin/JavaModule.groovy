@@ -95,6 +95,8 @@ class JavaModule extends FileModule
     protected void addConfigurations(Project project)
     {
         super.addConfigurations(project)
+        List<String> baseModules = BuildUtils.getBaseModules()
+        boolean isApi = BuildUtils.isApi(project)
         project.configurations
                 {
                     external.extendsFrom(api)
@@ -105,9 +107,18 @@ class JavaModule extends FileModule
                     implementation.extendsFrom(external)
                     compile.extendsFrom(labkey)
                     compile.extendsFrom(local)
+                    if (!isApi)
+                        externalExcludes.extendsFrom(project.project(":server:api").configurations.external)
+                    // base modules should remove everything included by api, but all others should exclude api and what's included by the base modules
+                    if (!baseModules.contains(project.path))
+                        baseModules.forEach({
+                            path -> externalExcludes.extendsFrom(project.project(path).configurations.external)
+                        })
                 }
         project.configurations.local.setDescription("For compile dependencies that are not needed at runtime (deprecated; use implementation)")
         project.configurations.labkey.setDescription("Dependencies on LabKey API jars that are needed for a module when the full module is not required")
+        if (!isApi)
+            project.configurations.externalExcludes.setDescription("Dependencies that come from the base modules that can therefore be excluded from other modules")
     }
 
     protected void setJavaBuildProperties(Project project)
@@ -164,7 +175,7 @@ class JavaModule extends FileModule
 
         // We do this afterEvaluate to allow all dependencies to be declared before checking
         project.afterEvaluate( {
-            FileCollection externalFiles = (project.path == BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api")) ? project.configurations.external : getTrimmedExternalFiles(project)
+            FileCollection externalFiles = getTrimmedExternalFiles(project)
             FileCollection allJars = externalFiles
 
             Task copyExternalDependencies = project.task("copyExternalLibs",
@@ -242,26 +253,12 @@ class JavaModule extends FileModule
         config = labkeyConfig == null ? config : (config == null ? labkeyConfig : config + labkeyConfig)
 
         // trim nothing from api
-        String apiProjectPath = BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api")
-        if (project.path.equals(apiProjectPath))
+        if (BuildUtils.isApi(project))
             return config
-        // base modules should remove everything included by api
-        else if (BuildUtils.getBaseModules(project.gradle).contains(project.path))
+        else // all other modules should remove everything in the externalExcludes configuration
         {
-            return config - project.project(BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api")).configurations.external
+            return config - project.configurations.externalExcludes
         }
-        else // all other modules should remove everything in the base modules
-        {
-            for (String path : BuildUtils.getBaseModules(project.gradle))
-            {
-                FileCollection otherExternal = project.project(path).configurations.external
-                if (otherExternal != null)
-                {
-                    config = config - otherExternal
-                }
-            }
-        }
-        return config
     }
 }
 
