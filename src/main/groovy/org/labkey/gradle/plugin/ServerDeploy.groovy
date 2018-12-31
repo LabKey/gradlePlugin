@@ -172,7 +172,7 @@ class ServerDeploy implements Plugin<Project>
                 linkContainer.mkdirs()
 
                 // default to core project path for backward compatibility.  npmSetup introduced for :server in 18.3
-                Project npmLinkProject = project.project(BuildUtils.getProjectPath(project.gradle, "nodeBinProjectPath", ":server:modules:core"))
+                Project npmLinkProject = project.project(BuildUtils.getNodeBinProjectPath(project.gradle))
                 Path npmLinkPath = Paths.get("${linkContainer.getPath()}/npm")
                 String npmDirName = "npm-v${project.npmVersion}"
                 Path npmTargetPath = Paths.get("${npmLinkProject.buildDir}/${project.npmWorkDirectory}/${npmDirName}")

@@ -55,7 +55,7 @@ class XmlBeans implements Plugin<Project>
                     xmlbeans
                     xmlSchema // Used for declaring artifacts
                 }
-        String schemasProjectPath = BuildUtils.getProjectPath(project.gradle, "schemasProjectPath", ":schemas")
+        String schemasProjectPath = BuildUtils.getSchemasProjectPath(project.gradle)
         if (project.findProject(schemasProjectPath) != null && project.findProject(schemasProjectPath).projectDir.exists())
         {
             if (!project.path.equals(schemasProjectPath))
@@ -65,7 +65,7 @@ class XmlBeans implements Plugin<Project>
         }
         else
         {
-            String apiProjectPath = BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api")
+            String apiProjectPath = BuildUtils.getApiProjectPath(project.gradle)
 
             if (!project.path.equals(apiProjectPath) && project.project(apiProjectPath).configurations.findByName("xmlbeans") != null)
             {

@@ -101,7 +101,7 @@ class TestRunner extends UiTest
             uiTestImplementation "org.seleniumhq.selenium:selenium-server:${project.seleniumVersion}"
             uiTestImplementation "org.reflections:reflections:${project.reflectionsVersion}"
         }
-        BuildUtils.addLabKeyDependency(project: project, config: "uiTestRuntimeOnly", depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
+        BuildUtils.addLabKeyDependency(project: project, config: "uiTestRuntimeOnly", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
     }
 
 

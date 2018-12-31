@@ -79,11 +79,11 @@ class UiTest implements Plugin<Project>
         if (project.path != ":server:test")
             BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: ":server:test", depVersion: project.labkeyVersion)
 
-        String schemasProjectPath = BuildUtils.getProjectPath(project.gradle, "schemasProjectPath", ":schemas")
+        String schemasProjectPath = BuildUtils.getSchemasProjectPath(project.gradle)
         if (project.findProject(schemasProjectPath) != null)
             BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: schemasProjectPath, depVersion: project.labkeyVersion)
-        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api"), depVersion: project.labkeyVersion)
-        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
+        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: BuildUtils.getApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
+        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
     }
 
     protected void addTasks(Project project)

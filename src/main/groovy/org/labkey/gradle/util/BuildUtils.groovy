@@ -105,10 +105,10 @@ class BuildUtils
     static List<String> getBaseModules(Gradle gradle)
     {
         return [
-                getProjectPath(gradle, "apiProjectPath", ":server:api"),
-                getProjectPath(gradle, "bootstrapProjectPath", ":server:bootstrap"),
-                getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:java"),
-                getProjectPath(gradle, "internalProjectPath", ":server:internal"),
+                getApiProjectPath(gradle),
+                getBootstrapProjectPath(gradle),
+                getRemoteApiProjectPath(gradle),
+                getInternalProjectPath(gradle),
         ] + BASE_MODULES
     }
 
@@ -219,12 +219,38 @@ class BuildUtils
 
     static boolean isApi(Project project)
     {
-        return project.path.equals(getProjectPath(project.gradle, "apiProjectPath", ":server:api"))
+        return project.path.equals(getApiProjectPath(project.gradle))
     }
 
-    static boolean isBaseModule(Project project)
+    static String getApiProjectPath(Gradle gradle)
     {
-        return getBaseModules().contains(project.path)
+        return getProjectPath(gradle, "apiProjectPath", ":server:api")
+    }
+
+    static String getBootstrapProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "bootstrapProjectPath", ":server:bootstrap")
+    }
+
+    static String getInternalProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "internalProjectPath", ":server:internal")
+    }
+
+    static String getNodeBinProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "nodeBinProjectPath", ":server:modules:core")
+    }
+
+    static String getRemoteApiProjectPath(Gradle gradle)
+    {
+
+        return getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:java")
+    }
+
+    static String getSchemasProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "schemasProjectPath", ":schemas")
     }
 
     static boolean isGitModule(Project project)
@@ -516,11 +542,11 @@ class BuildUtils
         }
 
         String moduleName
-        if (projectPath.endsWith(getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java").substring(1)))
+        if (projectPath.endsWith(getRemoteApiProjectPath(project.gradle).substring(1)))
         {
             moduleName = "labkey-client-api"
         }
-        else if (projectPath.equals(getProjectPath(project.gradle, "bootstrapProjectPath", ":server:bootstrap")))
+        else if (projectPath.equals(getBootstrapProjectPath(project.gradle)))
         {
             moduleName = ServerBootstrap.JAR_BASE_NAME
         }
