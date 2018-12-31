@@ -95,7 +95,6 @@ class JavaModule extends FileModule
     protected void addConfigurations(Project project)
     {
         super.addConfigurations(project)
-        List<String> baseModules = BuildUtils.getBaseModules()
         boolean isApi = BuildUtils.isApi(project)
         project.configurations
                 {
@@ -108,17 +107,27 @@ class JavaModule extends FileModule
                     compile.extendsFrom(labkey)
                     compile.extendsFrom(local)
                     if (!isApi)
-                        externalExcludes.extendsFrom(project.project(":server:api").configurations.external)
-                    // base modules should remove everything included by api, but all others should exclude api and what's included by the base modules
-                    if (!baseModules.contains(project.path))
-                        baseModules.forEach({
-                            path -> externalExcludes.extendsFrom(project.project(path).configurations.external)
-                        })
+                        dedupe.extendsFrom(project.project(BuildUtils.getApiProjectPath(project.gradle)).configurations.external)
+                    // Previously, when we accessed project's external configurations directly in the getTrimmedExternalFiles method,
+                    // we had excluded the external dependencies from the other base modules as well, but this causes problems when
+                    // we attempt to do this here as well.  It's likely a problem with order of evaluation. Since there aren't actually
+                    // that many external dependencies from the base modules aside from api, I'm opting to punt on this for now.
+//                    // base modules should remove everything included by api, but all others should exclude api and what's included by the base modules
+//                    if (!baseModules.contains(project.path))
+//                    {
+//                        baseModules.forEach({
+//                            path -> dedupe.extendsFrom(project.project(path).configurations.external)
+//                        })
+//                    }
                 }
         project.configurations.local.setDescription("For compile dependencies that are not needed at runtime (deprecated; use implementation)")
         project.configurations.labkey.setDescription("Dependencies on LabKey API jars that are needed for a module when the full module is not required")
         if (!isApi)
-            project.configurations.externalExcludes.setDescription("Dependencies that come from the base modules that can therefore be excluded from other modules")
+        {
+            // FIXME this is a horrible, terrible, no good, very bad hack, but without it, dedupe (somehow) contains the same as external and thus does not do its job
+            project.configurations.dedupe.files.size()
+            project.configurations.dedupe.setDescription("Dependencies that come from the base modules that can therefore be excluded from other modules")
+        }
     }
 
     protected void setJavaBuildProperties(Project project)
@@ -255,9 +264,9 @@ class JavaModule extends FileModule
         // trim nothing from api
         if (BuildUtils.isApi(project))
             return config
-        else // all other modules should remove everything in the externalExcludes configuration
+        else // all other modules should remove everything in the dedupe configuration
         {
-            return config - project.configurations.externalExcludes
+            return config - project.configurations.dedupe
         }
     }
 }
