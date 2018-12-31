@@ -56,7 +56,7 @@ class UiTest implements Plugin<Project>
     protected void addConfigurations(Project project)
     {
         project.configurations {
-            uiTestCompile.extendsFrom(compile)
+            uiTestImplementation.extendsFrom(implementation)
         }
     }
 

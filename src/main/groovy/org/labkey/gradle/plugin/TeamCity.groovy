@@ -89,7 +89,7 @@ class TeamCity extends Tomcat
                         project.javaexec({ JavaExecSpec spec ->
                             spec.main = "org.labkey.test.util.PasswordUtil"
                             spec.classpath {
-                                [project.configurations.uiTestCompile, project.tasks.testJar]
+                                [project.configurations.uiTestRuntimeClasspath, project.tasks.testJar]
                             }
                             spec.systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
                             spec.args = ["set", "teamcity@labkey.test", "yekbal1!"]
