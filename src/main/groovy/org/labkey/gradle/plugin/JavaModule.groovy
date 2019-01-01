@@ -95,23 +95,17 @@ class JavaModule extends FileModule
     protected void addConfigurations(Project project)
     {
         super.addConfigurations(project)
-        boolean isApi = BuildUtils.isApi(project)
+//        boolean isApi = BuildUtils.isApi(project)
         project.configurations
                 {
                     external.extendsFrom(api)
-                    local
                     labkey // use this configuration for dependencies to labkey API jars that are needed for a module
                            // but don't need to show up in the dependencies.txt and jars.txt
                     compile.extendsFrom(external)
                     implementation.extendsFrom(external)
                     compile.extendsFrom(labkey)
-                    compile.extendsFrom(local)
-                    if (!isApi)
-                        dedupe.extendsFrom(project.project(BuildUtils.getApiProjectPath(project.gradle)).configurations.external)
-                    // Previously, when we accessed project's external configurations directly in the getTrimmedExternalFiles method,
-                    // we had excluded the external dependencies from the other base modules as well, but this causes problems when
-                    // we attempt to do this here as well.  It's likely a problem with order of evaluation. Since there aren't actually
-                    // that many external dependencies from the base modules aside from api, I'm opting to punt on this for now.
+//                    if (!isApi)
+//                        dedupe.extendsFrom(project.project(BuildUtils.getApiProjectPath(project.gradle)).configurations.external)
 //                    // base modules should remove everything included by api, but all others should exclude api and what's included by the base modules
 //                    if (!baseModules.contains(project.path))
 //                    {
@@ -120,14 +114,11 @@ class JavaModule extends FileModule
 //                        })
 //                    }
                 }
-        project.configurations.local.setDescription("For compile dependencies that are not needed at runtime (deprecated; use implementation)")
-        project.configurations.labkey.setDescription("Dependencies on LabKey API jars that are needed for a module when the full module is not required")
-        if (!isApi)
-        {
-            // FIXME this is a horrible, terrible, no good, very bad hack, but without it, dedupe (somehow) contains the same as external and thus does not do its job
-            project.configurations.dedupe.files.size()
-            project.configurations.dedupe.setDescription("Dependencies that come from the base modules that can therefore be excluded from other modules")
-        }
+        project.configurations.labkey.setDescription("Dependencies on LabKey API jars that are needed for a module when the full module is not required.  These don't need to be declared in jars.txt.")
+//        if (!isApi)
+//        {
+//            project.configurations.dedupe.setDescription("Dependencies that come from the base modules that can therefore be excluded from other modules")
+//        }
     }
 
     protected void setJavaBuildProperties(Project project)
@@ -250,6 +241,12 @@ class JavaModule extends FileModule
      * project is the api module, all jars in its external configuration are included.
      * @param project the project whose external dependencies are to be removed
      * @return the collection of files that contain the dependencies
+     *
+     * FIXME The method of accessing the other projects' external configuration is now deemed unsafe.
+     * Attemps to use the method recommended in the Gradle docs of extending from a configuration of the
+     * other project have, thus far, been unsuccessful.  Instead, extending from api's external actually
+     * brings in the current project's external dependencies, which means we eliminate just the files we
+     * need to keep.  This may have something to do with order of evaluation.
      */
     static FileCollection getTrimmedExternalFiles(Project project)
     {
@@ -261,13 +258,33 @@ class JavaModule extends FileModule
 
         config = labkeyConfig == null ? config : (config == null ? labkeyConfig : config + labkeyConfig)
 
-        // trim nothing from api
+//        // trim nothing from api
+//        if (BuildUtils.isApi(project))
+//            return config
+//        else // all other modules should remove everything in the dedupe configuration
+//        {
+//            return config - project.configurations.dedupe
+//        }
+
         if (BuildUtils.isApi(project))
             return config
-        else // all other modules should remove everything in the dedupe configuration
+        // base modules should remove everything included by api
+        else if (BuildUtils.getBaseModules(project.gradle).contains(project.path))
         {
-            return config - project.configurations.dedupe
+            return config - project.project(BuildUtils.getApiProjectPath(project.gradle)).configurations.external
         }
+        else // all other modules should remove everything in the base modules
+        {
+            for (String path : BuildUtils.getBaseModules(project.gradle))
+            {
+                FileCollection otherExternal = project.project(path).configurations.external
+                if (otherExternal != null)
+                {
+                    config = config - otherExternal
+                }
+            }
+        }
+        return config
     }
 }
 
