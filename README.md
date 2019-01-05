@@ -19,6 +19,7 @@ but also make certain assumptions that you may not want to impose on your module
 * Rename task for running module UI tests to moduleUiTests since replacing tasks, as we were doing for the uiTest task in TaskRunner, is 
 deprecated functionality.
 * Remove obsolete 'local' configuration 
+* [Issue 36309](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36309) - make output directory for jsp2Java class explicit
 
 ### version 1.3.6
 *Release*: 28 Nov 2018
