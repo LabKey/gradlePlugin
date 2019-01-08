@@ -98,7 +98,8 @@ class JavaModule extends FileModule
 //        boolean isApi = BuildUtils.isApi(project)
         project.configurations
                 {
-                    external.extendsFrom(api)
+                    external
+                    api.extendsFrom(external)
                     labkey // use this configuration for dependencies to labkey API jars that are needed for a module
                            // but don't need to show up in the dependencies.txt and jars.txt
                     compile.extendsFrom(external)
@@ -178,6 +179,7 @@ class JavaModule extends FileModule
             FileCollection externalFiles = getTrimmedExternalFiles(project)
             FileCollection allJars = externalFiles
 
+//            project.println("${project.path}: have ${externalFiles.size()} external files to copy")
             Task copyExternalDependencies = project.task("copyExternalLibs",
                     group: GroupNames.MODULE,
                     type: Copy,
