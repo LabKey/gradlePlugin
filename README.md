@@ -8,6 +8,47 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
+### version 1.4
+*Release*: ???
+(Earliest compatible LabKey version: 19.1)
+
+* [Issue 36309](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36309) - Fix problem with JSP classes files not being generated
+* [Issue 36261](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36261) - always include source path as module property
+* Remove obsolete tools.jar from TestRunner dependencies
+* Use implementation and runtimeOnly configurations for declaring dependencies instead of deprecated 'compile' dependency
+* Rename task for running module UI tests to moduleUiTests since replacing tasks, as we were doing for the uiTest task in TaskRunner, is 
+deprecated functionality.
+* Remove obsolete 'local' configuration 
+* [Issue 36309](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36309) - make output directory for jsp2Java class explicit
+* Start using [task configuration avoidance](https://blog.gradle.org/preview-avoiding-task-configuration-time) to improve configuration time for tasks
+
+### version 1.3.6
+*Release*: 28 Nov 2018
+(Earliest compatible LabKey version: 18.3)
+
+* Move ThreadDumpAndKill functionality into TeamCity plugin, where it is used
+* Change schemaCompile task to target Java 1.8 instead of project sourceCompatibility property to avoid warnings
+* [Issue 36034](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36034) - eliminate copying of api jar into WEB-INF/lib
+* [Issue 35902](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=35902) - make undeployModule work for file-based modules
+* Add 'extraCatalinaOpts' property to pass additional startup options to Tomcat
+* [Issue 36171](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36171) - make the contents of the .tar.gz and .zip distributions identical
+
+### version 1.3.5
+*Release*: 29 Oct 2018
+(Earliest compatible LabKey version: 18.3)
+
+* When copying the labkey.xml file to the tomcat conf directory, don't throw an exception if the directory does not exist but the user can create it (via the copy)
+* Add VcsBranch and VcsTag to module properties xml file
+* Handle alpha branch names for naming distributions (releaseX.Y.Z-alpha.W)
+* Properly translate artifact versions with a patch version (X.Y.Z) to LabKey module version (X.Y)
+* Removed TestRunner dependency on sardine.
+
+### version 1.3.4
+*Release*: 29 Oct 2018
+(Earliest compatible LabKey version: 18.2)
+
+(Accidental no-change release)
+
 ### version 1.3.3
 *Release*: 18 Oct 2018
 (Earliest compatible LabKey version: 18.2)

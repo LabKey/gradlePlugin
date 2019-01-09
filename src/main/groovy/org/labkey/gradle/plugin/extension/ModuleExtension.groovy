@@ -121,8 +121,7 @@ class ModuleExtension
         modProperties.setProperty("BuildOS", System.getProperty("os.name"))
         modProperties.setProperty("BuildTime", SimpleDateFormat.getDateTimeInstance().format(new Date()))
         modProperties.setProperty("BuildPath", project.buildDir.getAbsolutePath())
-        if (LabKeyExtension.isDevMode(project))
-            modProperties.setProperty("SourcePath", project.projectDir.getAbsolutePath())
+        modProperties.setProperty("SourcePath", project.projectDir.getAbsolutePath())
         modProperties.setProperty("ResourcePath", "") // TODO  _project.getResources().... ???
         boolean isExternalModule = project.projectDir.getAbsolutePath().contains("externalModules")
         if (modProperties.getProperty("ConsolidateScripts") == null)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 LabKey Corporation
+ * Copyright (c) 2016-2018 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,16 +97,12 @@ class TestRunner extends UiTest
         super.addDependencies(project)
         project.dependencies {
             aspectj "org.aspectj:aspectjtools:${project.aspectjVersion}"
-            compile "org.aspectj:aspectjrt:${project.aspectjVersion}"
-            compile "org.aspectj:aspectjtools:${project.aspectjVersion}"
-
-            compile project.files("${System.properties['java.home']}/../lib/tools.jar")
-            compile "org.seleniumhq.selenium:selenium-server:${project.seleniumVersion}"
-            compile "com.googlecode.sardine:sardine:${project.sardineVersion}" /*Required for <=18.2. TODO: Remove once 18.3 is the earliest supported release*/
-            compile "junit:junit:${project.junitVersion}"
-            compile "org.reflections:reflections:${project.reflectionsVersion}"
+            uiTestRuntimeOnly "org.aspectj:aspectjrt:${project.aspectjVersion}"
+            uiTestImplementation "org.aspectj:aspectjtools:${project.aspectjVersion}"
+            uiTestImplementation "org.seleniumhq.selenium:selenium-server:${project.seleniumVersion}"
+            uiTestImplementation "org.reflections:reflections:${project.reflectionsVersion}"
         }
-        BuildUtils.addLabKeyDependency(project: project, config: "compile", depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
+        BuildUtils.addLabKeyDependency(project: project, config: "uiTestRuntimeOnly", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
     }
 
 
@@ -122,7 +118,7 @@ class TestRunner extends UiTest
                     project.javaexec({
                         main = "org.labkey.test.util.PasswordUtil"
                         classpath {
-                            [project.configurations.uiTestCompile, project.tasks.testJar]
+                            [project.configurations.uiTestRuntimeClasspath, project.tasks.testJar]
                         }
                         systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
                         args = ["set"]
@@ -141,7 +137,7 @@ class TestRunner extends UiTest
                     project.javaexec({
                         main = "org.labkey.test.util.PasswordUtil"
                         classpath {
-                            [project.configurations.uiTestCompile, project.tasks.testJar]
+                            [project.configurations.uiTestRuntimeClasspath, project.tasks.testJar]
                         }
                         systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
                         args = ["ensure"]
@@ -153,7 +149,7 @@ class TestRunner extends UiTest
 
     private void addDataFileTasks(Project project)
     {
-        List<File> directories = new ArrayList<>();
+        List<File> directories = new ArrayList<>()
 
         project.rootProject.allprojects({ Project p ->
             File dataDir = p.file("test/sampledata")
@@ -230,12 +226,11 @@ class TestRunner extends UiTest
         project.logger.debug("TestRunner: addTestSuiteTask for ${project.path}")
         // Using project.tasks.register here cause an error:
         // Cannot add task 'uiTests' as a task with that name already exists
-        project.task("uiTests",
-                overwrite: true, // replace the task that would run all of the tests
-                group: GroupNames.VERIFICATION,
-                description: "Run a LabKey test suite as defined by ${project.file(testRunnerExt.propertiesFile)} and overridden on the command line by -P<prop>=<value>",
-                type: RunTestSuite
-        )
+        project.tasks.register("uiTests", RunTestSuite) {
+            RunTestSuite task ->
+                task.group = GroupNames.VERIFICATION
+                task.description = "Run a LabKey test suite as defined by ${project.file(testRunnerExt.propertiesFile)} and overridden on the command line by -P<prop>=<value> "
+        }
     }
 
     private void addJarTask(Project project)
@@ -265,7 +260,7 @@ class TestRunner extends UiTest
                     destdir: "${project.buildDir}/classes/java/uiTest/",
                     source: project.sourceCompatibility,
                     target: project.targetCompatibility,
-                    classpath: project.configurations.uiTestCompile.asPath,
+                    classpath: project.configurations.uiTestRuntimeClasspath.asPath,
                     {
                         project.sourceSets.uiTest.java.srcDirs.each {
                             src(path: it)

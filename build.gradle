@@ -26,12 +26,17 @@ repositories {
 }
 
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
-    compile "org.apache.commons:commons-lang3:${commonsLang3Version}"
-    compile "commons-io:commons-io:${commonsIoVersion}"
-    compile "com.yahoo.platform.yui:yuicompressor:${yuiCompressorVersion}"
-    compile 'org.ajoberstar:grgit:2.3.0'
+    implementation gradleApi()
+    implementation localGroovy()
+    implementation "org.apache.commons:commons-lang3:${commonsLang3Version}"
+    implementation "commons-io:commons-io:${commonsIoVersion}"
+    implementation "com.yahoo.platform.yui:yuicompressor:${yuiCompressorVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    implementation "org.apache.httpcomponents:httpcore:${httpcoreVersion}"
+    implementation "org.apache.httpcomponents:httpclient:${httpclientVersion}"
+    implementation "org.json:json:${jsonVersion}"
+    implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}"
+    implementation "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
 }
 
 buildscript {
@@ -40,9 +45,11 @@ buildscript {
     }
     dependencies {
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${buildInfoExtractorGradleVersion}"
+        classpath "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
     }
 }
 
+apply plugin: "org.ajoberstar.grgit"
 apply plugin: 'maven-publish'
 
 project.version = "1.4.0-SNAPSHOT"
@@ -80,7 +87,7 @@ publishing {
 }
 
 
-if (project.hasProperty('artifactory_contextUrl') && project.hasProperty('artifactory_user') && project.hasProperty('artifactory_password'))
+if (project.hasProperty("doPublishing") && project.hasProperty('artifactory_contextUrl') && project.hasProperty('artifactory_user') && project.hasProperty('artifactory_password'))
 {
     apply plugin: 'com.jfrog.artifactory'
     artifactory {
@@ -98,11 +105,6 @@ if (project.hasProperty('artifactory_contextUrl') && project.hasProperty('artifa
                 publishIvy = false
             }
         }
-//        resolve {
-//            repository {
-//                repoKey = project.version.endsWith('-SNAPSHOT') ? 'plugins-snapshot-local' : "plugins-release"
-//            }
-//        }
     }
 }
 

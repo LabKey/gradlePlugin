@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 LabKey Corporation
+ * Copyright (c) 2016-2018 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,9 +67,9 @@ class Api implements Plugin<Project>
     {
         project.dependencies
                 {
-                    BuildUtils.addLabKeyDependency(project: project, config: 'apiCompile', depProjectPath: BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api"))
-                    BuildUtils.addLabKeyDependency(project: project, config: 'apiCompile', depProjectPath: BuildUtils.getProjectPath(project.gradle, "internalProjectPath", ":server:internal"))
-                    BuildUtils.addLabKeyDependency(project: project, config: "apiCompile", depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
+                    BuildUtils.addLabKeyDependency(project: project, config: 'apiImplementation', depProjectPath: BuildUtils.getApiProjectPath(project.gradle))
+                    BuildUtils.addLabKeyDependency(project: project, config: 'apiImplementation', depProjectPath: BuildUtils.getInternalProjectPath(project.gradle))
+                    BuildUtils.addLabKeyDependency(project: project, config: "apiImplementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
                 }
     }
 

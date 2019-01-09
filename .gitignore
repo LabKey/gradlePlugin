@@ -1,5 +1,9 @@
 .gradle
 build/
+out/
+
+# Ignore zip file created by build
+src/main/resources/moduleTemplate.zip
 
 # Ignore Gradle GUI config
 gradle-app.setting

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 LabKey Corporation
+ * Copyright (c) 2016-2018 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,16 +174,16 @@ class ServerDeploy implements Plugin<Project>
                         File linkContainer = new File("${project.rootDir}/${project.npmWorkDirectory}")
                         linkContainer.mkdirs()
 
-                        // default to core project path for backward compatibility.  npmSetup introduced for :server in 18.3
-                        Project npmLinkProject = project.project(BuildUtils.getProjectPath(project.gradle, "nodeBinProjectPath", ":server:modules:core"))
-                        Path npmLinkPath = Paths.get("${linkContainer.getPath()}/npm")
-                        String npmDirName = "npm-v${project.npmVersion}"
-                        Path npmTargetPath = Paths.get("${npmLinkProject.buildDir}/${project.npmWorkDirectory}/${npmDirName}")
-                        if (!Files.isSymbolicLink(npmLinkPath) || !Files.readSymbolicLink(npmLinkPath).getFileName().toString().equals(npmDirName))
-                        {
-                            // if the symbolic link exists, we want to replace it
-                            if (Files.isSymbolicLink(npmLinkPath))
-                                Files.delete(npmLinkPath)
+                // default to core project path for backward compatibility.  npmSetup introduced for :server in 18.3
+                Project npmLinkProject = project.project(BuildUtils.getNodeBinProjectPath(project.gradle))
+                Path npmLinkPath = Paths.get("${linkContainer.getPath()}/npm")
+                String npmDirName = "npm-v${project.npmVersion}"
+                Path npmTargetPath = Paths.get("${npmLinkProject.buildDir}/${project.npmWorkDirectory}/${npmDirName}")
+                if (!Files.isSymbolicLink(npmLinkPath) || !Files.readSymbolicLink(npmLinkPath).getFileName().toString().equals(npmDirName))
+                {
+                    // if the symbolic link exists, we want to replace it
+                    if (Files.isSymbolicLink(npmLinkPath))
+                        Files.delete(npmLinkPath)
 
                             Files.createSymbolicLink(npmLinkPath, npmTargetPath)
                         }

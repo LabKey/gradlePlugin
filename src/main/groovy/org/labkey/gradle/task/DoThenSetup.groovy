@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 LabKey Corporation
+ * Copyright (c) 2016-2018 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,14 +60,33 @@ class DoThenSetup extends DefaultTask
 //        return files
 //    }
 
+    private boolean canCreate(File file)
+    {
+        file = file.getParentFile()
+
+        while (file != null)
+        {
+            if (file.exists())
+            {
+                return file.canWrite() && file.canRead()
+            }
+            file = file.getParentFile()
+        }
+        return false
+    }
 
     @TaskAction
     void setup() {
         File tomcatConfDir = project.file(project.ext.tomcatConfDir)
-        if (!tomcatConfDir.isDirectory())
-            throw new GradleException("No such file or directory: ${tomcatConfDir.absolutePath}")
-        if (!tomcatConfDir.canWrite() || !tomcatConfDir.canRead())
-            throw new GradleException("Directory ${tomcatConfDir.absolutePath} does not have proper permissions")
+        if (tomcatConfDir.exists())
+        {
+            if (!tomcatConfDir.isDirectory())
+                throw new GradleException("No such directory: ${tomcatConfDir.absolutePath}")
+            if (!tomcatConfDir.canWrite() || !tomcatConfDir.canRead())
+                throw new GradleException("Directory ${tomcatConfDir.absolutePath} does not have proper permissions")
+        }
+        else if (!canCreate(tomcatConfDir))
+            throw new GradleException("Insufficient permissions to create ${tomcatConfDir.absolutePath}")
 
         getFn().run()
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 LabKey Corporation
+ * Copyright (c) 2016-2018 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ class SpringConfig implements Plugin<Project>
         // Issue 30155: without this, the spring xml files will not find the classes in the api jar
         if (BuildUtils.isIntellij())
         {
-            project.dependencies.add("springImplementation", project.project(BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api")).tasks.jar.outputs.files)
+            project.dependencies.add("springImplementation", project.project(BuildUtils.getApiProjectPath(project.gradle)).tasks.jar.outputs.files)
             if (project.tasks.findByName("jar") != null)
                 project.dependencies.add("springImplementation", project.tasks.jar.outputs.files)
             if (project.tasks.findByName("apiJar") != null)

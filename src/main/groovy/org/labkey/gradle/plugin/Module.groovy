@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 LabKey Corporation
+ * Copyright (c) 2016-2018 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,16 +45,16 @@ class Module extends JavaModule
                     // the api module's pom file because we cannot specify a version, since we rely on the local tomcat version.
                     // Therefore, when relying on the api jar file not built from source, we require this extra definition;
                     // it will not find the tomcat jar files without this.
-                    local project.fileTree(dir: "${project.ext.tomcatDir}/lib", includes: ['*.jar'], excludes: ['servlet-api.jar', 'mail.jar'])
+                    implementation project.fileTree(dir: "${project.ext.tomcatDir}/lib", includes: ['*.jar'], excludes: ['servlet-api.jar', 'mail.jar'])
 
-                    BuildUtils.addLabKeyDependency(project: project, config: "compile", depProjectPath: BuildUtils.getProjectPath(project.gradle, "internalProjectPath", ":server:internal"), depVersion: project.labkeyVersion)
-                    BuildUtils.addLabKeyDependency(project: project, config: "compile", depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteapiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
-                    compile 'org.apache.tomcat:jsp-api'
-                    compile 'org.apache.tomcat:jasper'
+                    BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getInternalProjectPath(project.gradle), depVersion: project.labkeyVersion)
+                    BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
+                    implementation 'org.apache.tomcat:jsp-api'
+                    implementation 'org.apache.tomcat:jasper'
                     if (XmlBeans.isApplicable(project))
-                        compile project.files(project.tasks.schemasJar)
+                        implementation project.files(project.tasks.schemasJar)
                     if (Api.isApplicable(project))
-                        compile project.files(project.tasks.apiJar)
+                        implementation project.files(project.tasks.apiJar)
                 }
     }
 }

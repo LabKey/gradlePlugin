@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 LabKey Corporation
+ * Copyright (c) 2016-2018 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ class BuildUtils
     public static final String TEST_MODULES_DIR = "server/test/modules"
 
     // the set of modules required for minimal LabKey server functionality
-    // (aside from the bootstrap, api, internal, schemas and remoteapi projects
+    // (aside from the bootstrap, api, internal, and remoteapi projects
     // whose paths are parameterized in the settings.gradle file)
     private static final List<String> BASE_MODULES =
             [
@@ -105,11 +105,10 @@ class BuildUtils
     static List<String> getBaseModules(Gradle gradle)
     {
         return [
-                getProjectPath(gradle, "apiProjectPath", ":server:api"),
-                getProjectPath(gradle, "bootstrapProjectPath", ":server:bootstrap"),
-                getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:java"),
-                getProjectPath(gradle, "schemasProjectPath", ":schemas"), // does no harm if this project no longer exists
-                getProjectPath(gradle, "internalProjectPath", ":server:internal"),
+                getApiProjectPath(gradle),
+                getBootstrapProjectPath(gradle),
+                getRemoteApiProjectPath(gradle),
+                getInternalProjectPath(gradle),
         ] + BASE_MODULES
     }
 
@@ -218,6 +217,42 @@ class BuildUtils
         return whyNotBuildFromSource(project, BUILD_CLIENT_LIBS_FROM_SOURCE_PROP).isEmpty()
     }
 
+    static boolean isApi(Project project)
+    {
+        return project.path.equals(getApiProjectPath(project.gradle))
+    }
+
+    static String getApiProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "apiProjectPath", ":server:api")
+    }
+
+    static String getBootstrapProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "bootstrapProjectPath", ":server:bootstrap")
+    }
+
+    static String getInternalProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "internalProjectPath", ":server:internal")
+    }
+
+    static String getNodeBinProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "nodeBinProjectPath", ":server:modules:core")
+    }
+
+    static String getRemoteApiProjectPath(Gradle gradle)
+    {
+
+        return getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:java")
+    }
+
+    static String getSchemasProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "schemasProjectPath", ":schemas")
+    }
+
     static boolean isGitModule(Project project)
     {
         return project.file(".git").exists()
@@ -266,10 +301,11 @@ class BuildUtils
         if (project.hasProperty("versioning"))
         {
             String rootBranch = project.rootProject.versioning.info.branchId
+            String lowerBranch = rootBranch.toLowerCase()
 
             if (!["trunk", "master", "develop", "none"].contains(rootBranch))
             {
-                if (rootBranch.toLowerCase().startsWith("sprint"))
+                if (lowerBranch.startsWith("sprint"))
                 {
                     version = version.replace("-SNAPSHOT", "")
                     version += "Sprint"
@@ -278,9 +314,17 @@ class BuildUtils
                         project.logger.error("Root branch name '${rootBranch}' not as expected.  Distribution name may not be as expected.");
                     else
                         version += nameParts[2]
-
                 }
-                else if (rootBranch.toLowerCase().startsWith("release") &&
+                else if (lowerBranch.matches(".*-alpha.*"))
+                {
+                    version = version.replace("-SNAPSHOT", "")
+                    String[] nameParts = rootBranch.split("-")
+                    if (nameParts.length < 2)
+                        project.logger.error("Root branch name '${rootBranch}' not as expected.  Distribution name may not be as expected.");
+                    else
+                        version += "-" + nameParts[nameParts.length-1]
+                }
+                else if (lowerBranch.startsWith("release") &&
                         project.labkeyVersion.contains("-SNAPSHOT"))
                 {
                     version = version.replace("-SNAPSHOT", "Beta");
@@ -324,6 +368,12 @@ class BuildUtils
         return version
     }
 
+    /**
+     * Returns a module version to be used as a LabKey Module property.  This must be a decimal
+     * number (e.g., 19.1), so we use only the first two parts of the artifact version number
+     * @param project The project whose artifact version is to be translated to a LabKey module version
+     * @return the LabKey module version string
+     */
     static String getLabKeyModuleVersion(Project project)
     {
         String version = project.version
@@ -331,6 +381,9 @@ class BuildUtils
         Matcher matcher = Pattern.compile("([^_-]+)[_-].*").matcher(version)
         if (matcher.matches())
             version = matcher.group(1)
+        String[] versionParts = version.split("\\.")
+        if (versionParts.size() > 2)
+            version = versionParts[0] + "." + versionParts[1]
         return version
     }
 
@@ -340,11 +393,17 @@ class BuildUtils
         if (project.plugins.hasPlugin("org.labkey.versioning"))
         {
             ret.setProperty("VcsURL", project.versioning.info.url)
+            if (project.versioning.info.branch != null)
+                ret.setProperty("VcsBranch", project.versioning.info.branch)
+            if (project.versioning.info.tag != null)
+               ret.setProperty("VcsTag", project.versioning.info.tag)
             ret.setProperty("VcsRevision", project.versioning.info.commit)
             ret.setProperty("BuildNumber", (String) TeamCityExtension.getTeamCityProperty(project, "build.number", project.versioning.info.build))
         }
         else
         {
+            ret.setProperty("VcsBranch", "Unknown")
+            ret.setProperty("VcsTag", "Unknown")
             ret.setProperty("VcsURL", "Unknown")
             ret.setProperty("VcsRevision", "Unknown")
             ret.setProperty("BuildNumber", "Unknown")
@@ -483,11 +542,11 @@ class BuildUtils
         }
 
         String moduleName
-        if (projectPath.endsWith(getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java").substring(1)))
+        if (projectPath.endsWith(getRemoteApiProjectPath(project.gradle).substring(1)))
         {
             moduleName = "labkey-client-api"
         }
-        else if (projectPath.equals(getProjectPath(project.gradle, "bootstrapProjectPath", ":server:bootstrap")))
+        else if (projectPath.equals(getBootstrapProjectPath(project.gradle)))
         {
             moduleName = ServerBootstrap.JAR_BASE_NAME
         }

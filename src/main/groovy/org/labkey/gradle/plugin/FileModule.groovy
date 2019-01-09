@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 LabKey Corporation
+ * Copyright (c) 2017-2018 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -243,14 +243,6 @@ class FileModule implements Plugin<Project>
                         project.copy { CopySpec copy ->
                             copy.from moduleFile
                             copy.into ServerDeployExtension.getModulesDeployDirectory(project)
-                        }
-                        if (LabKeyExtension.isBootstrapModule(project))
-                        {
-                            project.copy
-                                    { CopySpec copy ->
-                                        copy.from project.tasks.jar
-                                        copy.into "${project.rootProject.buildDir}/deploy/labkeyWebapp/WEB-INF/lib"
-                                    }
                         }
                     }
                 }

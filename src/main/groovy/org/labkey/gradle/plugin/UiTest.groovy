@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 LabKey Corporation
+ * Copyright (c) 2016-2018 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ class UiTest implements Plugin<Project>
     protected void addConfigurations(Project project)
     {
         project.configurations {
-            uiTestCompile.extendsFrom(compile)
+            uiTestImplementation.extendsFrom(implementation)
         }
     }
 
@@ -77,26 +77,26 @@ class UiTest implements Plugin<Project>
     protected void addDependencies(Project project)
     {
         if (project.path != ":server:test")
-            BuildUtils.addLabKeyDependency(project: project, config: 'uiTestCompile', depProjectPath: ":server:test", depVersion: project.labkeyVersion)
+            BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: ":server:test", depVersion: project.labkeyVersion)
 
-        String schemasProjectPath = BuildUtils.getProjectPath(project.gradle, "schemasProjectPath", ":schemas")
+        String schemasProjectPath = BuildUtils.getSchemasProjectPath(project.gradle)
         if (project.findProject(schemasProjectPath) != null)
-            BuildUtils.addLabKeyDependency(project: project, config: 'uiTestCompile', depProjectPath: schemasProjectPath, depVersion: project.labkeyVersion)
-        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestCompile', depProjectPath: BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api"), depVersion: project.labkeyVersion)
-        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestCompile', depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
+            BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: schemasProjectPath, depVersion: project.labkeyVersion)
+        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: BuildUtils.getApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
+        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
     }
 
     protected void addTasks(Project project)
     {
         project.logger.info("UiTest: addTask for ${project.path}")
-        project.tasks.register("uiTests", RunUiTest) {
+        project.tasks.register("moduleUiTests", RunUiTest) {
             RunUiTest task ->
                 task.group = GroupNames.VERIFICATION
                 task.description = "Run UI (Selenium) tests for this module"
         }
 
-        project.tasks.uiTests.mustRunAfter(project.project(":server").tasks.pickPg)
-        project.tasks.uiTests.mustRunAfter(project.project(":server").tasks.pickMSSQL)
+        project.tasks.moduleUiTests.mustRunAfter(project.project(":server").tasks.pickPg)
+        project.tasks.moduleUiTests.mustRunAfter(project.project(":server").tasks.pickMSSQL)
     }
 
     protected void addArtifacts(Project project)

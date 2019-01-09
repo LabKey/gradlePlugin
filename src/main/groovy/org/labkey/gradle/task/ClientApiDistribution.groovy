@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 LabKey Corporation
+ * Copyright (c) 2017-2018 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ class ClientApiDistribution extends DefaultTask
 
     private void createJavaDocs()
     {
-        Project javaDocsProject = project.project(BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"))
+        Project javaDocsProject = project.project(BuildUtils.getRemoteApiProjectPath(project.gradle))
         project.copy({CopySpec copy ->
             copy.from javaDocsProject.tasks.fatJar
             copy.into javaDir
@@ -179,7 +179,7 @@ class ClientApiDistribution extends DefaultTask
     {
         //Create a stable file names so that TeamCity can serve it up directly through its own UI
         ant.zip(destfile:"${project.dist.dir}/TeamCity-ClientAPI-Java-Docs.zip") {
-            zipfileset(dir: project.project(BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java")).tasks.javadoc.destinationDir)
+            zipfileset(dir: project.project(BuildUtils.getRemoteApiProjectPath(project.gradle)).tasks.javadoc.destinationDir)
         }
 
         ant.zip(destfile: "${project.dist.dir}/TeamCity-${CLIENT_API_JSDOC}.zip") {
