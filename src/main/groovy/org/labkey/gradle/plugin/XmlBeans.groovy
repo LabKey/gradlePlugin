@@ -69,7 +69,7 @@ class XmlBeans implements Plugin<Project>
 
             if (!project.path.equals(apiProjectPath) && project.project(apiProjectPath).configurations.findByName("xmlbeans") != null)
             {
-                BuildUtils.addLabKeyDependency(project: project, config: 'xmlbeans', depProjectPath: apiProjectPath, depProjectConfig: 'xmlbeans', depVersion: project.labkeyVersion)
+                BuildUtils.addLabKeyDependency(project: project, config: 'xmlbeans', depProjectPath: apiProjectPath, depProjectConfig: 'xmlSchema', depVersion: project.labkeyVersion)
             }
         }
         project.dependencies
