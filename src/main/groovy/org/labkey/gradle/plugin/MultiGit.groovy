@@ -498,12 +498,7 @@ class MultiGit implements Plugin<Project>
                 task.doLast({
                     Map<String, Repository> repos = this.getRepositoriesViaSearch(project)
                     StringBuilder builder = new StringBuilder()
-                    builder.append("Data for ${repos.size()} git repositories")
-                    if (project.hasProperty(TOPICS_PROPERTY))
-                    {
-                        builder.append(project.hasProperty(ALL_TOPICS_PROPERTY) ? " with all of the topics: " : " with any of the topics: ")
-                        builder.append(project.property(TOPICS_PROPERTY))
-                    }
+                    builder.append(getEchoHeader(repos, project))
                     builder.append("\n")
                     for (Repository repo : repos.values().sort({Repository rep -> rep.getProjectPath()}))
                     {
@@ -516,10 +511,15 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitBranches")  {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) Show the current branches for each of the repos in which there is an enlistment"
+                task.description = "(incubating) Show the current branches for each of the repos in which there is an enlistment. " +
+                        "Use the properties ${TOPICS_PROPERTY}, ${ALL_TOPICS_PROPERTY}, and ${INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering." +
+                        "N.B. This task relies on accurate tagging of the Git repositories so it can determine the expected enlistment directory."
                 task.doLast({
                     Map<String, Repository> repos = this.getRepositoriesViaSearch(project)
-                    StringBuilder builder = new StringBuilder("The current branches for each of the git repositories:\n")
+
+                    StringBuilder builder = new StringBuilder(getEchoHeader(repos, project))
+                        .append("\n\n")
+                        .append("The current branches for each of the git repositories:\n")
                     Map<String, Set<String>> branches = new HashMap<>()
                     for (Repository repo : repos.values().sort({Repository rep -> rep.getProjectPath()}))
                     {
@@ -532,21 +532,23 @@ class MultiGit implements Plugin<Project>
                             builder.append("${repo.projectPath} - ${branchName}\n")
                         }
                     }
-                    println("The projects enlisted in each branch:")
+                    builder.append("\n")
+                    builder.append("The projects enlisted in each branch:\n")
                     branches.keySet().forEach({
                         String key ->
-                            println("${key} - ${branches.get(key)}")
+                            builder.append("${key} - ${branches.get(key)}\n")
                     })
 
-                    println()
                     println(builder.toString())
                 })
         }
 
-        project.tasks.register("gitCheckout")  {
+        project.tasks.register("gitCheckout") {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) For all repositories with a current enlistment, perform a git checkout for the branch provided by the 'branch' property (e.g., -Pbranch=release18.3).  If no such branch exists for a repository, leaves the enlistment as is."
+                task.description = "(incubating) For all repositories with a current enlistment, perform a git checkout for the branch provided by the 'branch' property (e.g., -Pbranch=release18.3).  " +
+                        "If no such branch exists for a repository, leaves the enlistment as is.  " +
+                        "Use the properties ${TOPICS_PROPERTY}, ${ALL_TOPICS_PROPERTY}, and ${INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering."
                 task.doLast({
                     if (!project.hasProperty('branch'))
                         throw new GradleException("Property 'branch' must be defined.")
@@ -554,6 +556,7 @@ class MultiGit implements Plugin<Project>
                     String remoteBranch = "origin/${branchName}"
                     List<Repository> toUpdate = new ArrayList<>()
                     Map<String, Repository> repositories = getRepositoriesViaSearch(project)
+                    project.logger.quiet(getEchoHeader(repositories, project))
                     repositories.values().forEach({
                         Repository repository ->
                             if (repository.enlistmentDir.exists())
@@ -566,10 +569,10 @@ class MultiGit implements Plugin<Project>
                                 boolean hasBranch = branches.stream().anyMatch({
                                     Branch branch ->
                                         branch.name == remoteBranch
-                                } )
+                                })
                                 if (hasBranch)
-                                    if (grgit.branch.current.name != branchName)
-                                       toUpdate.push(repository)
+                                    if (grgit.branch.current().name != branchName)
+                                        toUpdate.push(repository)
                                     else
                                         project.logger.quiet("${repository.projectPath}: already on branch '" + branchName + "'. No checkout required.")
                                 else
@@ -581,7 +584,6 @@ class MultiGit implements Plugin<Project>
                             repository.enlist(branchName)
                     })
                 })
-
         }
 
         project.tasks.register("enlist") {
@@ -608,6 +610,17 @@ class MultiGit implements Plugin<Project>
         // TODO Add tasks for releasing
         // - branch
         // - release
+    }
+
+    private String getEchoHeader(Map<String, Repository> repositories, Project project)
+    {
+        StringBuilder builder = new StringBuilder("Data for ${repositories.size()} git repositories")
+        if (project.hasProperty(TOPICS_PROPERTY))
+        {
+            builder.append(project.hasProperty(ALL_TOPICS_PROPERTY) ? " with all of the topics: " : " with any of the topics: ")
+            builder.append(project.property(TOPICS_PROPERTY))
+        }
+        return builder.toString()
     }
 
     private void enlist(Map<String, Repository> repositories, Repository repository, Set<String> enlisted)
