@@ -449,10 +449,8 @@ class FileModule implements Plugin<Project>
                 if (project.configurations.findByName("modules") != null)
                     project.configurations.modules.dependencies.each {
                         Dependency dep ->
-                            if (dep instanceof ProjectDependency)
+                            if (dep instanceof ProjectDependency && dep.dependencyProject.getProjectDir().exists())
                             {
-                                if (!dep.dependencyProject.getProjectDir().exists())
-                                    throw new GradleException("Cannot find project for " + dep.dependencyProject.getPath());
                                 ProjectDependency projectDep = (ProjectDependency) dep
                                 BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: projectDep.dependencyProject.getPath(), depProjectConfig: 'published', depExtension: 'module')
                             }

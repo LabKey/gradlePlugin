@@ -21,6 +21,7 @@ deprecated functionality.
 * [Issue 36309](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36309) - make output directory for jsp2Java class explicit
 * Start using [task configuration avoidance](https://blog.gradle.org/preview-avoiding-task-configuration-time) to improve configuration time for tasks
 * Add property to run UI tests with additional JVM options (`uiTestJvmOpts`)
+* No longer throw exception if a `modules` configuration dependency is declared for a project in the settings file but for which there is no enlistment
 
 ### version 1.3.6
 *Release*: 28 Nov 2018
