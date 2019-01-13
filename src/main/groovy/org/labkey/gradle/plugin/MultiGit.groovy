@@ -427,7 +427,7 @@ class MultiGit implements Plugin<Project>
     private static final String GITHUB_GRAPHQL_ENDPOINT = "https://api.github.com/graphql"
     private static final String TOPICS_PROPERTY = "gitTopics"
     private static final String ALL_TOPICS_PROPERTY = "requireAllTopics"
-    private static final String INCLUDE_ARCHRIVED_PROPERTY = "includeArchived"
+    private static final String INCLUDE_ARCHIVED_PROPERTY = "includeArchived"
 
     @Override
     void apply(Project project)
@@ -492,8 +492,9 @@ class MultiGit implements Plugin<Project>
             Task task ->
                 task.group = "VCS"
                 task.description = "(incubating) List all Git repositories. Use -Pverbose to show more details. Use -P${TOPICS_PROPERTY} to filter to modules with certain topics.  " +
-                        "This can be a comma-separated list of topics.  By default, all repositories with any of these topics will be listed.  " +
-                        "Use -P${ALL_TOPICS_PROPERTY} to specify that all topics must be present."
+                        "This can be a comma-separated list of topics (e.g., labkey-module,labkey-client-api).  By default, all repositories with any of these topics will be listed.  " +
+                        "Use -P${ALL_TOPICS_PROPERTY} to specify that all topics must be present.  " +
+                        "By default, only repositories that have not been archived are listed.  Use -P${INCLUDE_ARCHIVED_PROPERTY} to also include archived repositories."
                 task.doLast({
                     Map<String, Repository> repos = this.getRepositoriesViaSearch(project)
                     StringBuilder builder = new StringBuilder()
@@ -545,7 +546,7 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitCheckout")  {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) For all repositories with a current enlistment, check out the branch provided by the 'branch' property (e.g., -Pbranch=release18.3).  If no such branch exists for a repository, leaves the enlistment as is."
+                task.description = "(incubating) For all repositories with a current enlistment, perform a git checkout for the branch provided by the 'branch' property (e.g., -Pbranch=release18.3).  If no such branch exists for a repository, leaves the enlistment as is."
                 task.doLast({
                     if (!project.hasProperty('branch'))
                         throw new GradleException("Property 'branch' must be defined.")
@@ -587,7 +588,7 @@ class MultiGit implements Plugin<Project>
             Task task ->
                 task.group = "VCS"
 //                task.description = "(incubating) Enlist in a all of the git modules specified by the 'enlistmentSet' property.  The value of enlistmentSet may be a distribution, a module, or 'all' (default) "
-                task.description = "(incubating) Enlist in a all of the git modules used for a running LabKey server."
+                task.description = "(incubating) Enlist in all of the git modules used for a running LabKey server."
                 task.doLast({
                     // get all the repositories
                     Map<String, Repository> repositories = getRepositoriesViaSearch(project)
@@ -651,19 +652,14 @@ class MultiGit implements Plugin<Project>
         return System.getenv('GIT_ACCESS_TOKEN');
     }
 
-    private static String getQueryString()
-    {
-        return "query { organization(login:\"LabKey\") { repositories(first:100, orderBy: {direction: ASC, field: NAME}) { nodes { description name url isArchived isPrivate repositoryTopics(first: 10) { edges { node { topic { name } } } } } } } }"
-    }
-
-    private static String getQuerySearchString(boolean onlyActive, String repoTopics = "", String prevEndCursor = null)
+    private static String getQuerySearchString(boolean includeArchived, String repoTopics = "", String prevEndCursor = null)
     {
         String queryString = "org:LabKey "
-        if (onlyActive)
+        if (!includeArchived)
             queryString += " archived:false "
         queryString += repoTopics
         String cursorString = prevEndCursor == null ? "after:null" : "after:\"${prevEndCursor}\""
-        return "query {search(query: \"${queryString}\", type:REPOSITORY, first:10, ${cursorString} ) {  " +
+        return "query {search(query: \"${queryString}\", type:REPOSITORY, first:100, ${cursorString} ) {  " +
                 " repositoryCount " +
                 "    pageInfo {" +
                 "      endCursor" +
@@ -721,7 +717,7 @@ class MultiGit implements Plugin<Project>
         }
     }
 
-    private Map<String, Repository> getAllRepositories(Project project, boolean onlyActive, String filterString)
+    private Map<String, Repository> getAllRepositories(Project project, boolean includeArchived, String filterString)
     {
 
         boolean hasNextPage = true
@@ -730,7 +726,7 @@ class MultiGit implements Plugin<Project>
 
         while (hasNextPage)
         {
-            Map<String, Object> rawData = makeRequest(getQuerySearchString(onlyActive, filterString, endCursor))
+            Map<String, Object> rawData = makeRequest(getQuerySearchString(includeArchived, filterString, endCursor))
             Map<String, Object> pageInfo = getMap(rawData, ['data', 'search', 'pageInfo']);
             hasNextPage = (Boolean) pageInfo.get('hasNextPage')
             endCursor = (String) pageInfo.get('endCursor')
@@ -757,7 +753,7 @@ class MultiGit implements Plugin<Project>
 
     private Map<String, Repository> getRepositoriesViaSearch(Project project) throws IOException
     {
-        boolean onlyActive = !project.hasProperty(INCLUDE_ARCHRIVED_PROPERTY)
+        boolean includeArchived = !project.hasProperty(INCLUDE_ARCHIVED_PROPERTY)
         boolean requireAllTopics = project.hasProperty(ALL_TOPICS_PROPERTY)
 
         Map<String, Repository> repositories = new TreeMap<>()
@@ -767,13 +763,13 @@ class MultiGit implements Plugin<Project>
         if (requireAllTopics || topicFilters.isEmpty())
         {
             String filterString = topicFilters.stream().map({topic -> topic.trim()}).collect(Collectors.joining(" topic:"))
-            repositories = getAllRepositories(project, onlyActive, filterString)
+            repositories = getAllRepositories(project, includeArchived, filterString)
         }
         else
         {
             topicFilters.forEach({
                 topic ->
-                    repositories.putAll(getAllRepositories(project, onlyActive, "topic:${topic.trim()}"))
+                    repositories.putAll(getAllRepositories(project, includeArchived, "topic:${topic.trim()}"))
             })
         }
 
