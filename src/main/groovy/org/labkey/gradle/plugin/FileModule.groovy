@@ -158,7 +158,7 @@ class FileModule implements Plugin<Project>
                         Dependency dep -> moduleDependencies += dep.getName()
                     }
                     if (!moduleDependencies.isEmpty())
-                        project.lkModule.setPropertyValue("ModuleDependencies", moduleDependencies.join(", "))
+                        project.lkModule.setPropertyValue(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY, moduleDependencies.join(", "))
                     project.mkdir(project.labkey.explodedModuleConfigDir)
                     OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(moduleXmlFile))
 

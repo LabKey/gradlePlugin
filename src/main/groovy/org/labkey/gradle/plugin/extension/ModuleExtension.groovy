@@ -28,6 +28,7 @@ class ModuleExtension
 {
     private static final String ENLISTMENT_PROPERTIES = "enlistment.properties"
     public static final String MODULE_PROPERTIES_FILE = "module.properties"
+    public static final String MODULE_DEPENDENCIES_PROPERTY = "ModuleDependencies"
     private Properties modProperties
     private Project project
 
