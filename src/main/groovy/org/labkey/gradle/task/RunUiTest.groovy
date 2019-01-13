@@ -62,6 +62,9 @@ class RunUiTest extends Test
                                     "-Xrunjdwp:transport=dt_socket,server=y,suspend=${testExt.getTestConfig("debugSuspendSelenium")},address=${getDebugPort()}",
                                     "-Dfile.encoding=UTF-8"]
 
+        if (project.hasProperty("uiTestJvmOpts"))
+            jvmArgsList.add(project.property("uiTestJvmOpts"))
+
         TomcatExtension tomcat = project.extensions.findByType(TomcatExtension.class)
 
         if (tomcat != null && !tomcat.trustStore.isEmpty() && !tomcat.trustStorePassword.isEmpty())
