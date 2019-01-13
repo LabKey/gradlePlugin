@@ -18,11 +18,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ProjectDependency
 import org.json.JSONObject
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.util.PropertiesUtils
+
+import java.util.stream.Collectors
 
 class MultiGit implements Plugin<Project>
 {
@@ -57,7 +58,7 @@ class MultiGit implements Plugin<Project>
 
         Repository(String name)
         {
-            this.name = name;
+            this.name = name
         }
 
         Repository(Project rootProject, String name, String url, Boolean isPrivate, Boolean isArchived, List<String> topics)
@@ -249,6 +250,7 @@ class MultiGit implements Plugin<Project>
             if (git == null)
             {
                 rootProject.logger.info("${this.getName()}: Cloning repository into ${directory}")
+                // TODO pay attention to dry-run?
 //                    git = Grgit.clone({
 //                        dir = directory
 //                        uri = this.getUrl()
@@ -315,9 +317,32 @@ class MultiGit implements Plugin<Project>
             }
         }
 
-        DependencySet getModuleDependencies()
+        List<String> getModuleDependencies()
         {
-            return project != null ? project.configurations.modules.dependencies : null
+            // TODO might wnat to reconsider this.  Requires the project be in the settings file.
+            if (project == null)
+                return []
+
+            List<String> moduleNames = []
+            if (project.configurations.findByName('modules') != null)
+            {
+                project.configurations.modules.dependencies.forEach({
+                    Dependency dep ->
+                        moduleNames.add(dep.getName())
+                })
+            }
+            else if (project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
+            {
+                Properties props = new Properties()
+                props.load(new FileInputStream(project.file(ModuleExtension.MODULE_PROPERTIES_FILE)))
+                if (props.hasProperty(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY))
+                {
+                    for (String name : ((String) props.get(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY)).split(","))
+                        moduleNames.add(name.strip())
+                }
+            }
+
+            return moduleNames;
         }
 
         Project getProject()
@@ -400,6 +425,9 @@ class MultiGit implements Plugin<Project>
 
     private Project project;
     private static final String GITHUB_GRAPHQL_ENDPOINT = "https://api.github.com/graphql"
+    private static final String TOPICS_PROPERTY = "gitTopics"
+    private static final String ALL_TOPICS_PROPERTY = "requireAllTopics"
+    private static final String INCLUDE_ARCHRIVED_PROPERTY = "includeArchived"
 
     @Override
     void apply(Project project)
@@ -410,7 +438,7 @@ class MultiGit implements Plugin<Project>
 
     private static Map<String, Object> getMap(Map<String, Object> data, List<String> path)
     {
-        Map<String, Object> current = data;
+        Map<String, Object> current = data
 
         for (String step: path)
         {
@@ -425,6 +453,9 @@ class MultiGit implements Plugin<Project>
         return (List<Map<String, Object>>) current.get(finalKey)
     }
 
+    // enlist in all of the repositories that make up LabKey server
+    // enlist in all of the projects currently included (can point to a settings file that lists project individually and get an enlistment that way)
+    // OR do a recursive enlistment by reading module.properties files
     Collection<Repository> getEnlistmentBaseSet(Map<String, Repository> repositories)
     {
         Set<Repository> baseRepos = new HashSet<Repository>()
@@ -440,8 +471,6 @@ class MultiGit implements Plugin<Project>
         String[] enlistmentSet = project.hasProperty("enlistmentSet") ? ((String) project.property("enlistmentSet")).split(",")  : null
         if (enlistmentSet == null || enlistmentSet.contains("all"))
             return repositories.values()
-
-
 
         // TODO If given a distribution project as the enlistmentSet, find the project's distribution dependencies (recursively)
         // Will need to detect the :distributions prefix and get an enlistment in that repo to start if not available
@@ -462,11 +491,19 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitRepoList") {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) List all Git repositories. Use -Pverbose to show more details."
+                task.description = "(incubating) List all Git repositories. Use -Pverbose to show more details. Use -P${TOPICS_PROPERTY} to filter to modules with certain topics.  " +
+                        "This can be a comma-separated list of topics.  By default, all repositories with any of these topics will be listed.  " +
+                        "Use -P${ALL_TOPICS_PROPERTY} to specify that all topics must be present."
                 task.doLast({
-//                    Map<String, Repository> repos = this.getRepositories()
                     Map<String, Repository> repos = this.getRepositoriesViaSearch(project)
-                    StringBuilder builder = new StringBuilder();
+                    StringBuilder builder = new StringBuilder()
+                    builder.append("Data for ${repos.size()} git repositories")
+                    if (project.hasProperty(TOPICS_PROPERTY))
+                    {
+                        builder.append(project.hasProperty(ALL_TOPICS_PROPERTY) ? " with all of the topics: " : " with any of the topics: ")
+                        builder.append(project.property(TOPICS_PROPERTY))
+                    }
+                    builder.append("\n")
                     for (Repository repo : repos.values().sort({Repository rep -> rep.getProjectPath()}))
                     {
                         builder.append("${repo.toString(project.hasProperty('verbose'))}\n")
@@ -474,13 +511,6 @@ class MultiGit implements Plugin<Project>
                     println(builder.toString())
                 })
         }
-
-        // gitRepoList - list the available repositories
-        // gitEnlistAll - finds all the available repositories and enlists in all of them.
-        //              If given a distribution path, will enlist in the modules within the distribution (that have SNAPSHOT versions?)
-        //              If given a module and the transitive flag, will enlist in all the repositories for modules the given module depends on
-        // gitCheckoutAll - Checks out a given branch for all repositories that have that branch.
-        // showBranches - list all the current branches for human scrutiny
 
         project.tasks.register("gitBranches")  {
             Task task ->
@@ -553,8 +583,6 @@ class MultiGit implements Plugin<Project>
 
         }
 
-
-
         project.tasks.register("enlist") {
             Task task ->
                 task.group = "VCS"
@@ -576,7 +604,7 @@ class MultiGit implements Plugin<Project>
         }
 
         //
-        // TODO Releasing
+        // TODO Add tasks for releasing
         // - branch
         // - release
     }
@@ -597,18 +625,20 @@ class MultiGit implements Plugin<Project>
             // So how do you bootstrap?  I want to start with a minimal enlistment and end up with an
             // enlistment that includes all the repos I need for a given distribution
             repository.getModuleDependencies().forEach({
-                Dependency dep ->
-                    project.logger.quiet("Adding ${dep.getName()} to enlistments")
+                String name ->
+                    project.logger.quiet("Adding ${name} to enlistments")
                     // N.B. This relies on the name of the repository being the same as the name of the Gradle project
-                    if (repositories.containsKey(dep.getName()))
-                        enlist(repositories, repositories.get(dep.getName()), enlisted)
+                    if (repositories.containsKey(name))
+                    {
+                        enlist(repositories, (Repository) repositories.get(name), enlisted)
+                    }
                     else
                     {
                         // TODO refine this
-                        Repository svnRepo = new Repository(dep.getName())
+                        Repository svnRepo = new Repository(name)
                         svnRepo.setIsSvn(true)
                         if (!project.findProject(svnRepo.getProjectPath()))
-                            project.logger.quiet("No repository found for dependency '${dep.getName()}'.  I hope that's in svn.")
+                            project.logger.quiet("No repository found for dependency '${name}'.  I hope that's in svn.")
                     }
             })
             // TODO what about bootstrap and labkey-client-api?
@@ -626,17 +656,14 @@ class MultiGit implements Plugin<Project>
         return "query { organization(login:\"LabKey\") { repositories(first:100, orderBy: {direction: ASC, field: NAME}) { nodes { description name url isArchived isPrivate repositoryTopics(first: 10) { edges { node { topic { name } } } } } } } }"
     }
 
-    private static String getQuerySearchString(boolean includeClientApi, boolean includeModules, boolean onlyActive)
+    private static String getQuerySearchString(boolean onlyActive, String repoTopics = "", String prevEndCursor = null)
     {
-        // TODO paging
         String queryString = "org:LabKey "
         if (onlyActive)
             queryString += " archived:false "
-        if (includeModules)
-            queryString += " topic:labkey-module"
-        if (includeClientApi)
-            queryString += " topic:labkey-client-api"
-        return "query {search(query: \"${queryString}\", type:REPOSITORY, first:100) {  " +
+        queryString += repoTopics
+        String cursorString = prevEndCursor == null ? "after:null" : "after:\"${prevEndCursor}\""
+        return "query {search(query: \"${queryString}\", type:REPOSITORY, first:10, ${cursorString} ) {  " +
                 " repositoryCount " +
                 "    pageInfo {" +
                 "      endCursor" +
@@ -694,57 +721,69 @@ class MultiGit implements Plugin<Project>
         }
     }
 
-    private Map<String, Repository> getRepositoriesViaSearch(Project project, String[] searchTopics) throws IOException
+    private Map<String, Repository> getAllRepositories(Project project, boolean onlyActive, String filterString)
     {
-        boolean onlyActive = !project.hasProperty('includeArchived') || !(Boolean) project.property('includeArchived')
-        // TODO this invites more generality; not using this for now since we don't have tags on most repositories
-//        boolean includeModules = !project.hasProperty('repoTags') || ((String) project.property('repoTags')).contains("labkey-module")
-        Map<String, Object> rawData = makeRequest(getQuerySearchString(false, true, onlyActive))
-        // TODO collect for individual tags separately
-        // TODO loop through pages
 
+        boolean hasNextPage = true
+        String endCursor = null
         Map<String, Repository> repositories = new TreeMap<>()
 
-        List<Map<String, Object>> searchResults = getMapList(rawData, ['data', 'search'], "edges");
-        for (Map<String, Object> nodeMap: searchResults)
+        while (hasNextPage)
         {
-            Map<String, Object> node = (Map<String, Object>) nodeMap.get('node')
-            String name = node.get('name')
-            String description = (node.get('description') != null) ? node.get('description') : ''
-            List<String> topics = getRepositoryTopics(node);
+            Map<String, Object> rawData = makeRequest(getQuerySearchString(onlyActive, filterString, endCursor))
+            Map<String, Object> pageInfo = getMap(rawData, ['data', 'search', 'pageInfo']);
+            hasNextPage = (Boolean) pageInfo.get('hasNextPage')
+            endCursor = (String) pageInfo.get('endCursor')
 
-            Repository repository = new Repository(project, name, (String) node.get('url'), (Boolean) node.get('isPrivate'), (Boolean) node.get('isArchived'), topics)
+            List<Map<String, Object>> searchResults = getMapList(rawData, ['data', 'search'], "edges");
+            for (Map<String, Object> nodeMap: searchResults)
+            {
+                Map<String, Object> node = (Map<String, Object>) nodeMap.get('node')
+                String name = node.get('name')
+                String description = (node.get('description') != null) ? node.get('description') : ''
+                List<String> topics = getRepositoryTopics(node)
 
-            if (!StringUtils.isEmpty(description) && StringUtils.isEmpty(repository.getDescription()))
-                repository.setDescription(description)
-            setLicenseInfo(repository, node)
+                Repository repository = new Repository(project, name, (String) node.get('url'), (Boolean) node.get('isPrivate'), (Boolean) node.get('isArchived'), topics)
 
-            repositories.put(repository.getName(), repository)
+                if (!StringUtils.isEmpty(description) && StringUtils.isEmpty(repository.getDescription()))
+                    repository.setDescription(description)
+                setLicenseInfo(repository, node)
+
+                repositories.put(repository.getName(), repository)
+            }
         }
-
         return repositories;
     }
 
-
-    private Map<String, Repository> getRepositories() throws IOException
+    private Map<String, Repository> getRepositoriesViaSearch(Project project) throws IOException
     {
-        Map<String, Object> rawData = makeRequest(getQueryString())
+        boolean onlyActive = !project.hasProperty(INCLUDE_ARCHRIVED_PROPERTY)
+        boolean requireAllTopics = project.hasProperty(ALL_TOPICS_PROPERTY)
 
         Map<String, Repository> repositories = new TreeMap<>()
 
-        List<Map<String, Object>> nodes = getMapList(rawData, ['data', 'organization', 'repositories'], "nodes");
-        for (Map<String, Object> node: nodes)
+        List<String> topicFilters = project.hasProperty(TOPICS_PROPERTY) ?
+                ((String) project.property(TOPICS_PROPERTY)).split(",")  : []
+        if (requireAllTopics || topicFilters.isEmpty())
         {
-            String name = node.get('name')
-            String description = (node.get('description') != null) ? node.get('description') : ''
-            repositories.put(name.toLowerCase(), new Repository(name, description, (String) node.get('url'), (Boolean) node.get('isPrivate')))
+            String filterString = topicFilters.stream().map({topic -> topic.trim()}).collect(Collectors.joining(" topic:"))
+            repositories = getAllRepositories(project, onlyActive, filterString)
         }
+        else
+        {
+            topicFilters.forEach({
+                topic ->
+                    repositories.putAll(getAllRepositories(project, onlyActive, "topic:${topic.trim()}"))
+            })
+        }
+
         return repositories
     }
 
     private static Map<String, Object> makeRequest(String queryString) throws IOException
     {
         CloseableHttpClient httpClient = HttpClients.createDefault();
+        Map<String, Object> rawData
 
         try
         {
@@ -761,11 +800,11 @@ class MultiGit implements Plugin<Project>
                 ResponseHandler<String> handler = new BasicResponseHandler()
                 String contents = handler.handleResponse(response)
                 ObjectMapper mapper = new ObjectMapper()
-                return mapper.readValue(contents, Map.class)
+                rawData = mapper.readValue(contents, Map.class)
             }
             catch (Exception re)
             {
-                throw new GradleException("Problem retrieving response from query", re);
+                throw new GradleException("Problem retrieving response from query '${queryString}'", re);
             }
             finally
             {
@@ -774,11 +813,17 @@ class MultiGit implements Plugin<Project>
         }
         catch (Exception e)
         {
-            throw new GradleException("Problem executing request for repository data", e)
+            throw new GradleException("Problem executing request for repository data with query '${queryString}'", e)
         }
         finally
         {
             httpClient.close()
         }
+        if (rawData == null)
+            throw new GradleException("No data retrieved with query '${queryString}'")
+        if (rawData != null && rawData.containsKey("errors"))
+            throw new GradleException("Problem retrieving repository with query, '${queryString}': ${rawData.get('errors')}")
+
+        return rawData
     }
 }
