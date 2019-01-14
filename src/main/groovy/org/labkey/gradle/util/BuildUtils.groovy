@@ -272,7 +272,7 @@ class BuildUtils
             // at the root and we want to use that version for consistency with the SVN modules
             if (branch.equalsIgnoreCase("master"))
                 return project.rootProject.version
-            else if (["trunk", "develop", "none"].contains(branch))
+            else if (["trunk", "develop", "none"].contains(branch) || branch.toLowerCase().matches("release.*-snapshot"))
                 return project.labkeyVersion
             else
             {

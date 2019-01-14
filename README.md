@@ -10,7 +10,7 @@ but also make certain assumptions that you may not want to impose on your module
 ## Release Notes
 ### version 1.4
 *Release*: ???
-(Earliest compatible LabKey version: 19.1)
+(Earliest compatible LabKey version: 18.3)
 
 * [Issue 36261](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36261) - always include source path as module property
 * Remove obsolete tools.jar from TestRunner dependencies
@@ -22,6 +22,7 @@ deprecated functionality.
 * Start using [task configuration avoidance](https://blog.gradle.org/preview-avoiding-task-configuration-time) to improve configuration time for tasks
 * Add property to run UI tests with additional JVM options (`uiTestJvmOpts`)
 * No longer throw exception if a `modules` configuration dependency is declared for a project in the settings file but there is no enlistment for that project
+* [Issue 36527](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36527) - Don't add branch name to artifact version if on release snapshot branch
 
 ### version 1.3.6
 *Release*: 28 Nov 2018
