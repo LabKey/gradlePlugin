@@ -18,7 +18,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ProjectDependency
 import org.json.JSONObject
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.util.PropertiesUtils
@@ -36,7 +35,10 @@ class MultiGit implements Plugin<Project>
             gradlePlugin,
             serverModule,
             serverModuleContainer,
-            other
+            other,
+            svnModule, // This should be removed eventually
+            svnCustomModule, // This should be removed eventually
+            svnExternalModule // this should be removed eventually
         }
 
         private String name
@@ -48,7 +50,7 @@ class MultiGit implements Plugin<Project>
         private Boolean isExternal = false
         private Boolean isArchived = false
         private Boolean isSvn = false
-        private Type type = Type.clientLibrary
+        private Type type = Type.other
         private Project project
         private File enlistmentDir
         private Project rootProject
@@ -56,9 +58,20 @@ class MultiGit implements Plugin<Project>
         private String dependencies
         private String supportedDatabases = "mssql,pgsql"
 
-        Repository(String name)
+        Repository(Project rootProject, String name, Boolean isSvn)
         {
             this.name = name
+            this.isSvn = isSvn
+            if (isSvn)
+            {
+                if (rootProject.file("server/modules/${name}").exists())
+                    this.setType(Type.svnModule)
+                else if (rootProject.file("server/customModules/${name}").exists())
+                    this.setType(Type.svnCustomModule)
+                else if (rootProject.file("externalModules/${name}").exists())
+                    this.setType(Type.svnExternalModule)
+            }
+            setProject(rootProject)
         }
 
         Repository(Project rootProject, String name, String url, Boolean isPrivate, Boolean isArchived, List<String> topics)
@@ -249,12 +262,12 @@ class MultiGit implements Plugin<Project>
 
             if (git == null)
             {
-                rootProject.logger.info("${this.getName()}: Cloning repository into ${directory}")
-                // TODO pay attention to dry-run?
-//                    git = Grgit.clone({
-//                        dir = directory
-//                        uri = this.getUrl()
-//                    })
+                String url = this.getUrl()
+                rootProject.logger.quiet("${this.getName()}: Cloning repository into ${directory}")
+                git = Grgit.clone({
+                    dir = directory
+                    uri = url
+                })
             }
 
             if (!StringUtils.isEmpty(branchName))
@@ -276,7 +289,13 @@ class MultiGit implements Plugin<Project>
                 case Type.gradlePlugin:
                     return ":buildSrc"
                 case Type.serverModule:
-                    return isExternal ? ":externalModules" : isSvn ? ":server:modules" : ":server:optionalModules"
+                    return isExternal ? ":externalModules" : ":server:optionalModules"
+                case Type.svnModule:
+                    return ":server:modules"
+                case Type.svnCustomModule:
+                    return ":server:customModules"
+                case Type.svnExternalModule:
+                    return ":externalModules"
             }
             return "";
         }
@@ -317,9 +336,11 @@ class MultiGit implements Plugin<Project>
             }
         }
 
+        // Hmmm. This doesn't really work as intended for a few reasons:
+        //  - if the project is not in the settings file, it will be null
+        //  - the ModuleDependencies property in the module.properties file list modules, which does not include the path required to get to that module (e.g., modules/base/some_module)
         List<String> getModuleDependencies()
         {
-            // TODO might wnat to reconsider this.  Requires the project be in the settings file.
             if (project == null)
                 return []
 
@@ -453,36 +474,32 @@ class MultiGit implements Plugin<Project>
         return (List<Map<String, Object>>) current.get(finalKey)
     }
 
-    // enlist in all of the repositories that make up LabKey server
+    // enlist in all of the repositories that make up LabKey server (moduleSet=all or no moduleSet provided)
     // enlist in all of the projects currently included (can point to a settings file that lists project individually and get an enlistment that way)
-    // OR do a recursive enlistment by reading module.properties files
+    // enlist in a set of modules filtered by gitHub topics.
     Collection<Repository> getEnlistmentBaseSet(Map<String, Repository> repositories)
     {
-        Set<Repository> baseRepos = new HashSet<Repository>()
-
-        Project distProject = project.project(":distributions:bio")
-        distProject.configurations.distribution.dependencies.forEach({
-            Dependency dep ->
-                println("${dep.group} ${dep.name} ${dep.version}")
-                if (dep instanceof ProjectDependency)
-                    println(((ProjectDependency) dep).dependencyProject.path)
-        })
-
-        String[] enlistmentSet = project.hasProperty("enlistmentSet") ? ((String) project.property("enlistmentSet")).split(",")  : null
-        if (enlistmentSet == null || enlistmentSet.contains("all"))
+        if (!project.hasProperty('moduleSet') || project.property('moduleSet') == 'all')
             return repositories.values()
 
-        // TODO If given a distribution project as the enlistmentSet, find the project's distribution dependencies (recursively)
-        // Will need to detect the :distributions prefix and get an enlistment in that repo to start if not available
-        //
-        // if given a regular project as the module set, find the modules dependencies (recursively)
-        for (String name : enlistmentSet)
-        {
-            if (!repositories.containsKey(name))
-                project.logger.error("No repository named '${name}'")
-            else
-                baseRepos.add(repositories.get(name))
-        }
+        Set<Repository> baseRepos = new HashSet<Repository>()
+        project.subprojects({
+            Project sub ->
+                String[] pathParts = sub.path.split(":")
+
+                boolean found = false
+                // We walk backwards because the project names must be unique, but intermediate directories (e.g., optionalModules) may have
+                // separate git repos.
+                for (int i = pathParts.size()-1; i >= 0 && !found; i--)
+                {
+                    if (repositories.containsKey(pathParts[i]))
+                    {
+                        baseRepos.add(repositories.get(pathParts[i]))
+                        found = true
+                    }
+                }
+        })
+
         return baseRepos;
     }
 
@@ -512,7 +529,7 @@ class MultiGit implements Plugin<Project>
             Task task ->
                 task.group = "VCS"
                 task.description = "(incubating) Show the current branches for each of the repos in which there is an enlistment. " +
-                        "Use the properties ${TOPICS_PROPERTY}, ${ALL_TOPICS_PROPERTY}, and ${INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering." +
+                        "Use the properties ${TOPICS_PROPERTY}, ${ALL_TOPICS_PROPERTY}, and ${INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering. " +
                         "N.B. This task relies on accurate tagging of the Git repositories so it can determine the expected enlistment directory."
                 task.doLast({
                     Map<String, Repository> repos = this.getRepositoriesViaSearch(project)
@@ -586,18 +603,25 @@ class MultiGit implements Plugin<Project>
                 })
         }
 
-        project.tasks.register("enlist") {
+        // TODO support the -Pbranch property.  Almost there, but for the case that the branch does not exist.
+        project.tasks.register("gitEnlist") {
             Task task ->
                 task.group = "VCS"
-//                task.description = "(incubating) Enlist in a all of the git modules specified by the 'enlistmentSet' property.  The value of enlistmentSet may be a distribution, a module, or 'all' (default) "
-                task.description = "(incubating) Enlist in all of the git modules used for a running LabKey server."
+                task.description = "(incubating) Enlist in all of the git modules used for a running LabKey server.  " +
+                        "Use the properties ${TOPICS_PROPERTY}, ${ALL_TOPICS_PROPERTY}, and ${INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering the repository set. " +
+                        "If a moduleSet property is specified, enlist in only the modules included by that module set. Using -PmoduleSet=all is the same as providing no module set property."
                 task.doLast({
                     // get all the repositories
                     Map<String, Repository> repositories = getRepositoriesViaSearch(project)
                     // get the starting point for enlistment
                     Collection<Repository> baseSet = getEnlistmentBaseSet(repositories)
+                    project.logger.quiet(getEchoHeader(repositories, project))
+                    project.logger.quiet("Finding enlistments starting with: " +
+                            "${baseSet.stream().map( {repository -> repository.getProjectPath()}).collect(Collectors.joining(", "))}" +
+                            "\n")
                     // initialize the container for the repos we've already visited
                     Set<String> enlisted = new HashSet<>()
+                    enlisted.add("optionalModules") // add this separately because you don't actually want this repository in a normal enlistment
                     // do recursive enlistment for all the base repositories
                     baseSet.forEach({
                         Repository repository ->
@@ -614,7 +638,7 @@ class MultiGit implements Plugin<Project>
 
     private String getEchoHeader(Map<String, Repository> repositories, Project project)
     {
-        StringBuilder builder = new StringBuilder("Data for ${repositories.size()} git repositories")
+        StringBuilder builder = new StringBuilder("Considering ${repositories.size()} git repositories")
         if (project.hasProperty(TOPICS_PROPERTY))
         {
             builder.append(project.hasProperty(ALL_TOPICS_PROPERTY) ? " with all of the topics: " : " with any of the topics: ")
@@ -623,40 +647,45 @@ class MultiGit implements Plugin<Project>
         return builder.toString()
     }
 
-    private void enlist(Map<String, Repository> repositories, Repository repository, Set<String> enlisted)
+    private void enlist(Map<String, Repository> repositories, Repository repository, Set<String> enlisted, String branch = null)
     {
-        project.logger.quiet("Enlisting in ${repository.getName()}")
         if (!enlisted.contains(repository.getName()))
         {
             enlisted.add(repository.getName())
             if (!repository.haveEnlistment())
             {
-                repository.enlist()
+                project.logger.quiet("Enlisting in ${repository.getName()} in directory ${repository.getEnlistmentDir()}")
+                repository.enlist(branch)
                 if (repository.getProject() == null)
                     repository.setProject(project)
+            }
+            else
+            {
+                project.logger.quiet("Already have enlistment for ${repository.getName()} in directory ${repository.getEnlistmentDir()}")
             }
             // Hmmm.  Can't get module dependencies when the project is not included in settings.gradle,
             // So how do you bootstrap?  I want to start with a minimal enlistment and end up with an
             // enlistment that includes all the repos I need for a given distribution
             repository.getModuleDependencies().forEach({
                 String name ->
-                    project.logger.quiet("Adding ${name} to enlistments")
-                    // N.B. This relies on the name of the repository being the same as the name of the Gradle project
-                    if (repositories.containsKey(name))
+                    if (!enlisted.contains(name))
                     {
-                        enlist(repositories, (Repository) repositories.get(name), enlisted)
-                    }
-                    else
-                    {
-                        // TODO refine this
-                        Repository svnRepo = new Repository(name)
-                        svnRepo.setIsSvn(true)
-                        if (!project.findProject(svnRepo.getProjectPath()))
-                            project.logger.quiet("No repository found for dependency '${name}'.  I hope that's in svn.")
+                        project.logger.quiet("Adding ${name} to possible enlistments")
+                        // N.B. This relies on the name of the repository being the same as the name of the Gradle project
+                        if (repositories.containsKey(name))
+                        {
+                            enlist(repositories, (Repository) repositories.get(name), enlisted, branch)
+                        }
+                        else
+                        {
+                            Repository svnRepo = new Repository(project, name, true)
+                            if (svnRepo.getEnlistmentDir().exists())
+                                project.logger.quiet("Already have svn enlistment for ${svnRepo.getName()} in ${svnRepo.getEnlistmentDir()}")
+                            else
+                                project.logger.warn("WARNING: No repository found for dependency '${svnRepo.getProjectPath()}'.")
+                        }
                     }
             })
-            // TODO what about bootstrap and labkey-client-api?
-            // TODO capture somewhere the projects that need to be added to settings.gradle
         }
     }
 
