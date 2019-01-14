@@ -686,7 +686,7 @@ class MultiGit implements Plugin<Project>
                 String name ->
                     if (!enlisted.contains(name))
                     {
-                        project.logger.quiet("Adding ${name} to possible enlistments")
+                        project.logger.quiet("Adding dependency ${name} to possible enlistments")
                         // N.B. This relies on the name of the repository being the same as the name of the Gradle project
                         if (repositories.containsKey(name))
                         {
