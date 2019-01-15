@@ -24,6 +24,16 @@ deprecated functionality.
 * No longer throw exception if a `modules` configuration dependency is declared for a project in the settings file but there is no enlistment for that project
 * [Issue 36527](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36527) - Don't add branch name to artifact version if on release snapshot branch
 
+
+### version 1.3.8
+*Release*: 14 Jan 2019
+(Earliest compatible LabKey version: 18.3)
+
+* [Issue 36427](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36527) - Don't add branch name to artifact version if on release snapshot branch
+
+### version 1.3.7
+(skipped)
+
 ### version 1.3.6
 *Release*: 28 Nov 2018
 (Earliest compatible LabKey version: 18.3)
