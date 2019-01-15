@@ -8,6 +8,16 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
+
+### version 1.3.8
+*Release*: ???
+(Earliest compatible LabKey version: 18.3)
+
+* [Issue 36427](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36527) - Don't add branch name to artifact version if on release snapshot branch
+
+### version 1.3.7
+(skipped)
+
 ### version 1.3.6
 *Release*: 28 Nov 2018
 (Earliest compatible LabKey version: 18.3)
