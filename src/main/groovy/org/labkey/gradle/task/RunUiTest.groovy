@@ -22,6 +22,8 @@ import org.gradle.api.tasks.testing.Test
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
+import org.labkey.gradle.util.BuildUtils
+
 /**
  * Class that sets up jvmArgs and our standard output options
  */
@@ -91,9 +93,9 @@ class RunUiTest extends Test
         systemProperty "user.home", System.getProperty('user.home')
         systemProperty "tomcat.home", project.ext.tomcatDir
         systemProperty "test.credentials.file", "${project.projectDir}/test.credentials.json"
-        if (project.findProject(":server:test") != null)
+        if (project.findProject(BuildUtils.getTestProjectPath(project.gradle)) != null)
         {
-            Project testProject = project.project(":server:test")
+            Project testProject = project.project(BuildUtils.getTestProjectPath(project.gradle))
             if (SystemUtils.IS_OS_WINDOWS)
             {
                 if (SystemUtils.OS_ARCH.equals("amd64"))

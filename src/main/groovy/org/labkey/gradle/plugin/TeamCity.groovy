@@ -38,6 +38,7 @@ import org.labkey.gradle.task.DoThenSetup
 import org.labkey.gradle.task.PickDb
 import org.labkey.gradle.task.RunTestSuite
 import org.labkey.gradle.task.UndeployModules
+import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PropertiesUtils
@@ -261,7 +262,7 @@ class TeamCity extends Tomcat
             TaskProvider undeployTaskProvider = project.tasks.named(undeployTaskName)
             project.tasks.startTomcat.mustRunAfter(undeployTaskProvider)
 
-            project.project(":server:test").tasks.startTomcat.mustRunAfter(setUpDbTask)
+            project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startTomcat.mustRunAfter(setUpDbTask)
             String ciTestTaskName = "ciTests" + properties.dbTypeAndVersion.capitalize()
             project.tasks.register(ciTestTaskName, RunTestSuite) {
                 RunTestSuite task ->

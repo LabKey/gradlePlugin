@@ -97,12 +97,7 @@ class TestRunner extends UiTest
         super.addDependencies(project)
         project.dependencies {
             aspectj "org.aspectj:aspectjtools:${project.aspectjVersion}"
-            uiTestRuntimeOnly "org.aspectj:aspectjrt:${project.aspectjVersion}"
-            uiTestImplementation "org.aspectj:aspectjtools:${project.aspectjVersion}"
-            uiTestImplementation "org.seleniumhq.selenium:selenium-server:${project.seleniumVersion}"
-            uiTestImplementation "org.reflections:reflections:${project.reflectionsVersion}"
         }
-        BuildUtils.addLabKeyDependency(project: project, config: "uiTestRuntimeOnly", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
     }
 
 

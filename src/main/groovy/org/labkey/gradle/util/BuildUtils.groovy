@@ -41,7 +41,6 @@ class BuildUtils
     public static final String OPTIONAL_MODULES_DIR = "server/optionalModules"
     public static final String EXTERNAL_MODULES_DIR = "externalModules"
 
-    public static final String TEST_MODULE = ":server:test"
     public static final String TEST_MODULES_DIR = "server/test/modules"
 
     // the set of modules required for minimal LabKey server functionality
@@ -129,7 +128,7 @@ class BuildUtils
     static void includeTestModules(Settings settings, File rootDir)
     {
         settings.include ":sampledata:qc"
-        settings.include TEST_MODULE
+        settings.include getTestProjectPath(settings.gradle)
         includeModules(settings, rootDir, [TEST_MODULES_DIR], [])
         // TODO get rid of this when we decide whether to move dumbster
         File dumbsterDir = new File(rootDir, "server/modules/dumbster")
@@ -251,6 +250,11 @@ class BuildUtils
     static String getSchemasProjectPath(Gradle gradle)
     {
         return getProjectPath(gradle, "schemasProjectPath", ":schemas")
+    }
+
+    static String getTestProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "testProjectPath", ":server:test")
     }
 
     static boolean isGitModule(Project project)
