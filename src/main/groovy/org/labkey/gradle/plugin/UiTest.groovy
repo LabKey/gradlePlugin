@@ -93,10 +93,9 @@ class UiTest implements Plugin<Project>
             RunUiTest task ->
                 task.group = GroupNames.VERIFICATION
                 task.description = "Run UI (Selenium) tests for this module"
+                task.mustRunAfter(project.project(":server").tasks.pickPg)
+                task.mustRunAfter(project.project(":server").tasks.pickMSSQL)
         }
-
-        project.tasks.moduleUiTests.mustRunAfter(project.project(":server").tasks.pickPg)
-        project.tasks.moduleUiTests.mustRunAfter(project.project(":server").tasks.pickMSSQL)
     }
 
     protected void addArtifacts(Project project)
