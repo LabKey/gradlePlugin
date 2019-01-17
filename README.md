@@ -9,8 +9,8 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 ### version 1.4
-*Release*: ???
-(Earliest compatible LabKey version: 18.3)
+*Release*: 17 Jan 2019
+(Earliest compatible LabKey version: 19.1)
 
 * [Issue 36261](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36261) - always include source path as module property
 * Remove obsolete tools.jar from TestRunner dependencies
