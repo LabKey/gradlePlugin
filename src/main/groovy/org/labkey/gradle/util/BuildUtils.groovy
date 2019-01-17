@@ -41,7 +41,6 @@ class BuildUtils
     public static final String OPTIONAL_MODULES_DIR = "server/optionalModules"
     public static final String EXTERNAL_MODULES_DIR = "externalModules"
 
-    public static final String TEST_MODULE = ":server:test"
     public static final String TEST_MODULES_DIR = "server/test/modules"
 
     // the set of modules required for minimal LabKey server functionality
@@ -105,11 +104,10 @@ class BuildUtils
     static List<String> getBaseModules(Gradle gradle)
     {
         return [
-                getProjectPath(gradle, "apiProjectPath", ":server:api"),
-                getProjectPath(gradle, "bootstrapProjectPath", ":server:bootstrap"),
-                getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:java"),
-                getProjectPath(gradle, "schemasProjectPath", ":schemas"), // does no harm if this project no longer exists
-                getProjectPath(gradle, "internalProjectPath", ":server:internal"),
+                getApiProjectPath(gradle),
+                getBootstrapProjectPath(gradle),
+                getRemoteApiProjectPath(gradle),
+                getInternalProjectPath(gradle),
         ] + BASE_MODULES
     }
 
@@ -130,7 +128,7 @@ class BuildUtils
     static void includeTestModules(Settings settings, File rootDir)
     {
         settings.include ":sampledata:qc"
-        settings.include TEST_MODULE
+        settings.include getTestProjectPath(settings.gradle)
         includeModules(settings, rootDir, [TEST_MODULES_DIR], [])
         // TODO get rid of this when we decide whether to move dumbster
         File dumbsterDir = new File(rootDir, "server/modules/dumbster")
@@ -216,6 +214,47 @@ class BuildUtils
     static boolean shouldBuildClientLibsFromSource(Project project)
     {
         return whyNotBuildFromSource(project, BUILD_CLIENT_LIBS_FROM_SOURCE_PROP).isEmpty()
+    }
+
+    static boolean isApi(Project project)
+    {
+        return project.path.equals(getApiProjectPath(project.gradle))
+    }
+
+    static String getApiProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "apiProjectPath", ":server:api")
+    }
+
+    static String getBootstrapProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "bootstrapProjectPath", ":server:bootstrap")
+    }
+
+    static String getInternalProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "internalProjectPath", ":server:internal")
+    }
+
+    static String getNodeBinProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "nodeBinProjectPath", ":server:modules:core")
+    }
+
+    static String getRemoteApiProjectPath(Gradle gradle)
+    {
+
+        return getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:java")
+    }
+
+    static String getSchemasProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "schemasProjectPath", ":schemas")
+    }
+
+    static String getTestProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "testProjectPath", ":server:test")
     }
 
     static boolean isGitModule(Project project)
@@ -507,11 +546,11 @@ class BuildUtils
         }
 
         String moduleName
-        if (projectPath.endsWith(getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java").substring(1)))
+        if (projectPath.endsWith(getRemoteApiProjectPath(project.gradle).substring(1)))
         {
             moduleName = "labkey-client-api"
         }
-        else if (projectPath.equals(getProjectPath(project.gradle, "bootstrapProjectPath", ":server:bootstrap")))
+        else if (projectPath.equals(getBootstrapProjectPath(project.gradle)))
         {
             moduleName = ServerBootstrap.JAR_BASE_NAME
         }

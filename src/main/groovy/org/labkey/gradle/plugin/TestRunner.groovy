@@ -17,6 +17,7 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.task.RunTestSuite
@@ -96,65 +97,54 @@ class TestRunner extends UiTest
         super.addDependencies(project)
         project.dependencies {
             aspectj "org.aspectj:aspectjtools:${project.aspectjVersion}"
-            compile "org.aspectj:aspectjrt:${project.aspectjVersion}"
-            compile "org.aspectj:aspectjtools:${project.aspectjVersion}"
-
-            compile project.files("${System.properties['java.home']}/../lib/tools.jar")
-            compile "org.seleniumhq.selenium:selenium-server:${project.seleniumVersion}"
-            compile "junit:junit:${project.junitVersion}"
-            compile "org.reflections:reflections:${project.reflectionsVersion}"
         }
-        BuildUtils.addLabKeyDependency(project: project, config: "compile", depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
     }
 
 
     private void addPasswordTasks(Project project)
     {
 
-        project.task("setPassword",
-                group: GroupNames.TEST,
-                description: "Set the password for use in running tests",
-                {
-                    dependsOn(project.tasks.testJar)
-                    doFirst({
-                        project.javaexec({
-                            main = "org.labkey.test.util.PasswordUtil"
-                            classpath {
-                                [project.configurations.uiTestCompile, project.tasks.testJar]
-                            }
-                            systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
-                            args = ["set"]
-                            standardInput = System.in
-                        })
+        project.tasks.register("setPassword") {
+            Task task ->
+                task.group = GroupNames.TEST
+                task.description = "Set the password for use in running tests"
+                task.dependsOn(project.tasks.testJar)
+                task.doFirst({
+                    project.javaexec({
+                        main = "org.labkey.test.util.PasswordUtil"
+                        classpath {
+                            [project.configurations.uiTestRuntimeClasspath, project.tasks.testJar]
+                        }
+                        systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
+                        args = ["set"]
+                        standardInput = System.in
                     })
-                }
-        )
+                })
+        }
 
 
-        project.task("ensurePassword",
-                group: GroupNames.TEST,
-                description: "Ensure that the password property used for running tests has been set",
-                {
-                    dependsOn(project.tasks.testJar)
-                    doFirst(
-                            {
-                                project.javaexec({
-                                    main = "org.labkey.test.util.PasswordUtil"
-                                    classpath {
-                                        [project.configurations.uiTestCompile, project.tasks.testJar]
-                                    }
-                                    systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
-                                    args = ["ensure"]
-                                    standardInput = System.in
-                                })
-                            })
-                }
-        )
+        project.tasks.register("ensurePassword") {
+            Task task ->
+                task.group = GroupNames.TEST
+                task.description = "Ensure that the password property used for running tests has been set"
+                task.dependsOn(project.tasks.testJar)
+                task.doFirst({
+                    project.javaexec({
+                        main = "org.labkey.test.util.PasswordUtil"
+                        classpath {
+                            [project.configurations.uiTestRuntimeClasspath, project.tasks.testJar]
+                        }
+                        systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
+                        args = ["ensure"]
+                        standardInput = System.in
+                    })
+                })
+        }
     }
 
     private void addDataFileTasks(Project project)
     {
-        List<File> directories = new ArrayList<>();
+        List<File> directories = new ArrayList<>()
 
         project.rootProject.allprojects({ Project p ->
             File dataDir = p.file("test/sampledata")
@@ -166,35 +156,35 @@ class TestRunner extends UiTest
 
         File sampleDataFile = new File("${project.buildDir}/sampledata.dirs")
 
-        project.task("writeSampleDataFile",
-                group: GroupNames.TEST,
-                description: "Produce the file with all sampledata directories for use in running tests",
-                {
-                    inputs.files directories
-                    outputs.file sampleDataFile
-                }
-        ).doLast({
-            List<String> dirNames = new ArrayList<>();
+        project.tasks.register("writeSampleDataFile") {
+            Task task ->
+                task.group = GroupNames.TEST
+                task.description = "Produce the file with all sampledata directories for use in running tests"
+                task.inputs.files directories
+                task.outputs.file sampleDataFile
+                task..doLast({
+                    List<String> dirNames = new ArrayList<>();
 
-            directories.each({File file ->
-                dirNames.add(file.getAbsolutePath())
-            })
+                    directories.each({File file ->
+                        dirNames.add(file.getAbsolutePath())
+                    })
 
-            FileOutputStream outputStream = new FileOutputStream(sampleDataFile);
-            Writer writer = null
-            try
-            {
-                writer = new OutputStreamWriter(outputStream);
-                dirNames.add("${project.rootDir}/sampledata")
-                dirNames.add("${project.rootDir}/server/test/data")
-                writer.write(String.join(";", dirNames))
-            }
-            finally
-            {
-                if (writer != null)
-                    writer.close();
-            }
-        })
+                    FileOutputStream outputStream = new FileOutputStream(sampleDataFile);
+                    Writer writer = null
+                    try
+                    {
+                        writer = new OutputStreamWriter(outputStream);
+                        dirNames.add("${project.rootDir}/sampledata")
+                        dirNames.add("${project.rootDir}/server/test/data")
+                        writer.write(String.join(";", dirNames))
+                    }
+                    finally
+                    {
+                        if (writer != null)
+                            writer.close();
+                    }
+                })
+        }
     }
 
     private void addExtensionsTasks(Project project)
@@ -202,51 +192,55 @@ class TestRunner extends UiTest
         File extensionsDir = project.file("chromeextensions")
         if (extensionsDir.exists())
         {
-            List<Task> extensionsZipTasks = new ArrayList<>();
+            List<TaskProvider> extensionsZipTasks = new ArrayList<>();
             extensionsDir.eachDir({
                 File dir ->
 
-                    def extensionTask = project.task("package" + dir.getName().capitalize(),
-                            description: "Package the ${dir.getName()} chrome extension used for testing",
-                            type: Zip,
-                            {
-                                archiveName = "${dir.getName()}.zip"
-                                from dir
-                                destinationDir = new File("${project.buildDir}/chromextensions")
-                            })
-                    extensionsZipTasks.add(extensionTask)
+                    String extensionTaskName = "package" + dir.getName().capitalize()
+                    project.tasks.register(extensionTaskName, Zip) {
+                        Zip task ->
+                            task.description = "Package the ${dir.getName()} chrome extension used for testing"
+                            task.archiveName = "${dir.getName()}.zip"
+                            task.from dir
+                            task.destinationDir = new File("${project.buildDir}/chromextensions")
+                    }
+
+                    extensionsZipTasks.add(project.tasks.named(extensionTaskName))
             })
-            project.task("packageChromeExtensions",
-                    description: "Package all chrome extensions used for testing",
-                    dependsOn: extensionsZipTasks)
+            project.tasks.register("packageChromeExtensions") {
+                Task task ->
+                    task.description = "Package all chrome extensions used for testing"
+                    task.dependsOn (extensionsZipTasks)
+            }
+
         }
     }
 
     private void addTestSuiteTask(Project project)
     {
-        project.logger.debug("TestRunner: addTestSuiteTask for ${project.path}");
-        project.task("uiTests",
-                overwrite: true, // replace the task that would run all of the tests
-                group: GroupNames.VERIFICATION,
-                description: "Run a LabKey test suite as defined by ${project.file(testRunnerExt.propertiesFile)} and overridden on the command line by -P<prop>=<value>",
-                type: RunTestSuite
-        )
+        project.logger.debug("TestRunner: addTestSuiteTask for ${project.path}")
+        // Using project.tasks.register here cause an error:
+        // Cannot add task 'uiTests' as a task with that name already exists
+        project.tasks.register("uiTests", RunTestSuite) {
+            RunTestSuite task ->
+                task.group = GroupNames.VERIFICATION
+                task.description = "Run a LabKey test suite as defined by ${project.file(testRunnerExt.propertiesFile)} and overridden on the command line by -P<prop>=<value> "
+        }
     }
 
     private void addJarTask(Project project)
     {
-        Task testJar = project.task("testJar",
-                group: GroupNames.BUILD,
-                type: Jar,
-                description: "produce jar file of test classes",
-                {
-                    from project.sourceSets.uiTest.output
-                    baseName "labkeyTest"
-                    version project.version
-                    destinationDir = new File("${project.buildDir}/libs")
-                })
+        project.tasks.register("testJar", Jar) {
+            Jar jar ->
+                jar.group = GroupNames.BUILD
+                jar.description = "produce jar file of test classes"
+                jar.from project.sourceSets.uiTest.output
+                jar.baseName = "labkeyTest"
+                jar.setVersion((String) project.version)
+                jar.destinationDir = new File("${project.buildDir}/libs")
+        }
         project.artifacts {
-            compile testJar
+            compile project.tasks.testJar
         }
     }
 
@@ -261,7 +255,7 @@ class TestRunner extends UiTest
                     destdir: "${project.buildDir}/classes/java/uiTest/",
                     source: project.sourceCompatibility,
                     target: project.targetCompatibility,
-                    classpath: project.configurations.uiTestCompile.asPath,
+                    classpath: project.configurations.uiTestRuntimeClasspath.asPath,
                     {
                         project.sourceSets.uiTest.java.srcDirs.each {
                             src(path: it)

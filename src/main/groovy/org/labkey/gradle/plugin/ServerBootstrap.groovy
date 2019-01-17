@@ -58,7 +58,7 @@ class ServerBootstrap implements Plugin<Project>
     {
         project.dependencies
                 {
-                    compile 'org.apache.tomcat:tomcat-api',
+                    implementation 'org.apache.tomcat:tomcat-api',
                             'org.apache.tomcat:catalina',
                             'org.apache.tomcat:tomcat-juli',
                             'org.apache.tomcat:tomcat-util'
@@ -68,7 +68,7 @@ class ServerBootstrap implements Plugin<Project>
     private void addTasks(Project project)
     {
         project.jar {
-            baseName ServerBootstrap.JAR_BASE_NAME
+            baseName = JAR_BASE_NAME
         }
         project.processResources.enabled = false
         project.jar.manifest {
@@ -87,25 +87,23 @@ class ServerBootstrap implements Plugin<Project>
             }
         }
 
-        Task createApiFilesList = project.task(
-                'createApiFilesList',
-                group: GroupNames.DEPLOY,
-                description: 'Create an index of the files in the application so extraneous files can be removed during bootstrapping',
-                type: JavaExec,
-                {
-                    main = "org.labkey.bootstrap.DirectoryFileListWriter"
-                    workingDir = project.staging.webappDir
-                    classpath {
+        project.tasks.register('createApiFilesList', JavaExec) {
+            JavaExec task ->
+                task.group = GroupNames.DEPLOY
+                task.description = 'Create an index of the files in the application so extraneous files can be removed during bootstrapping'
+                task.main = "org.labkey.bootstrap.DirectoryFileListWriter"
+                task.workingDir = project.staging.webappDir
+                task.classpath {
                         [
                                 project.jar
                         ]
                     }
-                    inputs.dir  project.staging.webappDir
-                    outputs.file  "${project.staging.webInfDir}/apiFiles.list"
-                }
-        )
-        createApiFilesList.mustRunAfter(project.project(":server").tasks.stageApp)
-        createApiFilesList.dependsOn(project.jar)
-        project.project(":server").tasks.deployApp.dependsOn(createApiFilesList)
+                task.inputs.dir  project.staging.webappDir
+                task.outputs.file  "${project.staging.webInfDir}/apiFiles.list"
+                task.mustRunAfter(project.project(":server").tasks.stageApp)
+                task.dependsOn(project.jar)
+        }
+
+        project.project(":server").tasks.deployApp.dependsOn(project.tasks.createApiFilesList)
     }
 }

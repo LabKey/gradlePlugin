@@ -44,11 +44,12 @@ class ModuleResources implements Plugin<Project>
 
     private void addTasks(Project project)
     {
-        Task writeDependenciesFile = project.task("writeDependenciesList",
-                type: WriteDependenciesFile,
-                description: "write a list of direct external dependencies that should be checked on the credits page"
-        )
-        project.tasks.processModuleResources.dependsOn(writeDependenciesFile)
+        project.tasks.register("writeDependenciesList", WriteDependenciesFile) {
+            Task task ->
+                task.description = "write a list of direct external dependencies that should be checked on the credits page"
+        }
+
+        project.tasks.processModuleResources.dependsOn(project.tasks.writeDependenciesList)
         project.tasks.clean.dependsOn(project.tasks.cleanWriteDependenciesList)
     }
 

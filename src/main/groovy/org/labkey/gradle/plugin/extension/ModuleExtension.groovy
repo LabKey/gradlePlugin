@@ -28,6 +28,7 @@ class ModuleExtension
 {
     private static final String ENLISTMENT_PROPERTIES = "enlistment.properties"
     public static final String MODULE_PROPERTIES_FILE = "module.properties"
+    public static final String MODULE_DEPENDENCIES_PROPERTY = "ModuleDependencies"
     private Properties modProperties
     private Project project
 
@@ -121,8 +122,7 @@ class ModuleExtension
         modProperties.setProperty("BuildOS", System.getProperty("os.name"))
         modProperties.setProperty("BuildTime", SimpleDateFormat.getDateTimeInstance().format(new Date()))
         modProperties.setProperty("BuildPath", project.buildDir.getAbsolutePath())
-        if (LabKeyExtension.isDevMode(project))
-            modProperties.setProperty("SourcePath", project.projectDir.getAbsolutePath())
+        modProperties.setProperty("SourcePath", project.projectDir.getAbsolutePath())
         modProperties.setProperty("ResourcePath", "") // TODO  _project.getResources().... ???
         boolean isExternalModule = project.projectDir.getAbsolutePath().contains("externalModules")
         if (modProperties.getProperty("ConsolidateScripts") == null)

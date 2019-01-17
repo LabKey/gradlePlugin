@@ -205,6 +205,8 @@ class DoThenSetup extends DefaultTask
                                     {
                                         replacestring(from: "mysql-connector-java", to: "mysql") // the Ant build used mysql.jar
                                         replacestring(from: "javax.mail", to: "mail") // the Ant build used mail.jar
+                                        replacestring(from: "jakarta.mail", to: "mail") // the Ant build used mail.jar
+                                        replacestring(from: "jakarta.activation", to: "javax.activation") // the Ant build used javax.activation.jar
                                     }
                         }
             }

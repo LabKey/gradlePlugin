@@ -21,6 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileTree
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.TaskProvider
 import org.labkey.gradle.util.GroupNames
 
 /**
@@ -56,39 +57,42 @@ class Antlr implements Plugin<Project>
         if (!antlrInput.isEmpty())
         {
             File outputDir = new File("${project.labkey.srcGenDir}/antlr/org/labkey/query/sql/antlr")
-            List<Task> antlrTasks = new ArrayList<>()
+            List<TaskProvider> antlrTasks = new ArrayList<>()
             antlrInput.files.each() {
                 File file ->
-                     Task antlrTask = project.task("antlr" + file.getName().substring(0, file.getName().indexOf(EXTENSION)),
-                            type: JavaExec,
-                            group: GroupNames.CODE_GENERATION,
-                            description: "Generate Java classes from " + file.getName(),
-                            {
-                                inputs.file(file)
-                                outputs.dir outputDir
+                    String taskName = "antlr" + file.getName().substring(0, file.getName().indexOf(EXTENSION))
+                    project.tasks.register(taskName, JavaExec) {
+                     JavaExec task ->
+                         task.group = GroupNames.CODE_GENERATION
+                         task.description = "Generate Java classes from " + file.getName()
+                         task.configure({
+                             inputs.file(file)
+                             outputs.dir outputDir
 
-                                // Workaround for incremental build (GRADLE-1483)
-                                outputs.upToDateSpec = new AndSpec()
+                             // Workaround for incremental build (GRADLE-1483)
+                             outputs.upToDateSpec = new AndSpec()
 
-                                main = 'org.antlr.Tool'
+                             main = 'org.antlr.Tool'
 
-                                classpath = project.configurations.antlr
+                             classpath = project.configurations.antlr
 
-                                args =
-                                    [
-                                        '-o', outputDir,
-                                        file.getPath()
-                                    ]
-                            }
-                    )
-                    antlrTasks.add(antlrTask)
+                             args =
+                                     [
+                                             '-o', outputDir,
+                                             file.getPath()
+                                     ]
+                         })
+                    }
+                    antlrTasks.add(project.tasks.named(taskName))
             }
-            Task antlrTask = project.task("antlr",
-                    group: GroupNames.CODE_GENERATION,
-                    description: "generate Java classes from all ${EXTENSION} files",
-                    dependsOn: antlrTasks
-            )
-            project.tasks.compileJava.dependsOn(antlrTask)
+            project.tasks.register("antlr") {
+                Task task ->
+                    task.group = GroupNames.CODE_GENERATION
+                    task.description = "generate Java classes from all ${EXTENSION} files"
+                    task.dependsOn ( antlrTasks )
+            }
+
+            project.tasks.compileJava.dependsOn(project.tasks.antlr)
         }
     }
 }

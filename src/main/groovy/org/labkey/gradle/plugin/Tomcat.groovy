@@ -15,9 +15,9 @@
  */
 package org.labkey.gradle.plugin
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.TomcatExtension
@@ -25,6 +25,7 @@ import org.labkey.gradle.plugin.extension.UiTestExtension
 import org.labkey.gradle.task.StartTomcat
 import org.labkey.gradle.task.StopTomcat
 import org.labkey.gradle.util.GroupNames
+
 /**
  * Plugin for starting and stopping tomcat
  */
@@ -47,45 +48,49 @@ class Tomcat implements Plugin<Project>
 
     private static void addTasks(Project project)
     {
-        project.task(
-                "startTomcat",
-                group: GroupNames.WEB_APPLICATION,
-                description: "Start the local Tomcat instance",
-                type: StartTomcat
-        )
-        project.task(
-                "stopTomcat",
-                group: GroupNames.WEB_APPLICATION,
-                description: "Stop the local Tomcat instance",
-                type: StopTomcat
-        )
-        project.task(
-                "cleanLogs",
-                group: GroupNames.WEB_APPLICATION,
-                description: "Delete logs from ${project.tomcatDir}",
-                type: Delete,
+        project.tasks.register("startTomcat", StartTomcat) {
+            StartTomcat task ->
+                task.group = GroupNames.WEB_APPLICATION
+                task.description = "Start the local Tomcat instance"
+        }
+
+        project.tasks.register(
+                "stopTomcat", StopTomcat) {
+            StopTomcat task ->
+                task.group = GroupNames.WEB_APPLICATION
+                task.description = "Stop the local Tomcat instance"
+        }
+
+        project.tasks.register("cleanLogs", Delete) {
+            Delete task ->
+                task.group = GroupNames.WEB_APPLICATION
+                task.description = "Delete logs from ${project.tomcatDir}"
+                task.configure(
                 {
                     DeleteSpec spec -> spec.delete project.fileTree("${project.tomcatDir}/logs")
-                }
-        )
-        Task cleanTempTask = project.task(
-                "cleanTemp",
-                group: GroupNames.WEB_APPLICATION,
-                description: "Delete temp files from ${project.tomcatDir}"
-        )
-        // Note that we use the AntBuilder here because a fileTree in Gradle is a set of FILES only.
-        // Deleting a file tree will delete all the leaves of the directory structure, but none of the
-        // directories.
-        cleanTempTask.doLast {
-            project.ant.delete(includeEmptyDirs: true, quiet: true)
+                    }
+                )
+        }
+
+        project.tasks.register("cleanTemp", DefaultTask) {
+            DefaultTask task ->
+                task.group = GroupNames.WEB_APPLICATION
+                task.description = "Delete temp files from ${project.tomcatDir}"
+                task.doLast(  {
+                    // Note that we use the AntBuilder here because a fileTree in Gradle is a set of FILES only.
+                    // Deleting a file tree will delete all the leaves of the directory structure, but none of the
+                    // directories.
+                    project.ant.delete(includeEmptyDirs: true, quiet: true)
                     {
                         fileset(dir: "${project.tomcatDir}/temp")
                                 {
                                     include(name: "**/*")
                                 }
                     }
-            new File("${project.tomcatDir}", "temp").mkdirs()
+                    new File("${project.tomcatDir}", "temp").mkdirs()
+                })
         }
+
     }
 }
 

@@ -34,36 +34,33 @@ class Database implements Plugin<Project>
         addBootstrapTask(project)
     }
 
-    private void addPickPgTask(Project project)
+    private static void addPickPgTask(Project project)
     {
-        project.task("pickPg",
-            group: GroupNames.DATABASE,
-            type: PickDb,
-            description: "Switch to PostgreSQL configuration",
-            {PickDb task ->
+        project.tasks.register("pickPg", PickDb) {
+            PickDb task ->
+                task.group = GroupNames.DATABASE
+                task.description = "Switch to PostgreSQL configuration"
                 task.dbType = "pg"
-            }
-        )
-    }
-    private void addPickMSSQLTask(Project project)
-    {
-        project.task("pickMSSQL",
-            group: GroupNames.DATABASE,
-            type: PickDb,
-            description: "Switch to SQL Server configuration",
-            {PickDb task ->
-                task.dbType = "mssql"
-            }
-        )
+        }
     }
 
-    private void addBootstrapTask(Project project)
+    private static void addPickMSSQLTask(Project project)
     {
-        project.task("bootstrap",
-            group: GroupNames.DATABASE,
-            type: Bootstrap,
-            description: "Switch to bootstrap database properties as defined in current db.config file"
-        )
+        project.tasks.register("pickMSSQL", PickDb) {
+            PickDb task ->
+                task.group = GroupNames.DATABASE
+                task.description = "Switch to SQL Server configuration"
+                task.dbType = "mssql"
+        }
+    }
+
+    private static void addBootstrapTask(Project project)
+    {
+        project.tasks.register("bootstrap", Bootstrap) {
+            Bootstrap task ->
+                task.group = GroupNames.DATABASE
+                task.description = "Switch to bootstrap database properties as defined in current db.config file"
+        }
     }
 }
 

@@ -93,10 +93,9 @@ class NpmRun implements Plugin<Project>
         }
     }
 
-    private void addTasks(Project project)
+    private static void addTasks(Project project)
     {
-
-        project.task("npmRunClean")
+        project.tasks.register("npmRunClean")
                 {Task task ->
                     task.group = GroupNames.NPM_RUN
                     task.description = "Runs 'npm run ${project.npmRun.clean}'"
@@ -105,7 +104,7 @@ class NpmRun implements Plugin<Project>
         if (project.tasks.findByName("clean") != null)
             project.tasks.clean.dependsOn(project.tasks.npmRunClean)
 
-        project.task("npmRunBuildProd")
+        project.tasks.register("npmRunBuildProd")
                 {Task task ->
                     task.group = GroupNames.NPM_RUN
                     task.description = "Runs 'npm run ${project.npmRun.buildProd}'"
@@ -116,7 +115,7 @@ class NpmRun implements Plugin<Project>
         addTaskInputOutput(project.tasks.npmRunBuildProd)
         addTaskInputOutput(project.tasks.getByName("npm_run_${project.npmRun.buildProd}"))
 
-        project.task("npmRunBuild")
+        project.tasks.register("npmRunBuild")
                 {Task task ->
                     task.group = GroupNames.NPM_RUN
                     task.description ="Runs 'npm run ${project.npmRun.buildDev}'"
@@ -140,17 +139,18 @@ class NpmRun implements Plugin<Project>
         }
         project.tasks.npmInstall.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
 
-        project.task("cleanNodeModules",
-                group:  GroupNames.NPM_RUN,
-                type: Delete,
-                description: "Removes ${project.file(NODE_MODULES_DIR)}",
-                { DeleteSpec delete ->
+        project.tasks.register("cleanNodeModules", Delete) {
+            Delete task ->
+                task.group =  GroupNames.NPM_RUN
+                task.description = "Removes ${project.file(NODE_MODULES_DIR)}"
+                task.configure({ DeleteSpec delete ->
                     delete.delete (project.file(NODE_MODULES_DIR))
-                }
-        )
+                })
+        }
+
     }
 
-    private void addTaskInputOutput(Task task)
+    private static void addTaskInputOutput(Task task)
     {
         if (task.project.file(NPM_PROJECT_FILE).exists())
             task.inputs.file task.project.file(NPM_PROJECT_FILE)

@@ -47,14 +47,14 @@ class Module extends JavaModule
                     // it will not find the tomcat jar files without this.
                     implementation project.fileTree(dir: "${project.ext.tomcatDir}/lib", includes: ['*.jar'], excludes: ['servlet-api.jar', 'mail.jar'])
 
-                    BuildUtils.addLabKeyDependency(project: project, config: "compile", depProjectPath: BuildUtils.getProjectPath(project.gradle, "internalProjectPath", ":server:internal"), depVersion: project.labkeyVersion)
-                    BuildUtils.addLabKeyDependency(project: project, config: "compile", depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteapiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
-                    compile 'org.apache.tomcat:jsp-api'
-                    compile 'org.apache.tomcat:jasper'
+                    BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getInternalProjectPath(project.gradle), depVersion: project.labkeyVersion)
+                    BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
+                    implementation 'org.apache.tomcat:jsp-api'
+                    implementation 'org.apache.tomcat:jasper'
                     if (XmlBeans.isApplicable(project))
-                        compile project.files(project.tasks.schemasJar)
+                        implementation project.files(project.tasks.schemasJar)
                     if (Api.isApplicable(project))
-                        compile project.files(project.tasks.apiJar)
+                        implementation project.files(project.tasks.apiJar)
                 }
     }
 }

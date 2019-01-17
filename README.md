@@ -8,12 +8,26 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
+### version 1.4
+*Release*: 17 Jan 2019
+(Earliest compatible LabKey version: 19.1)
+
+* [Issue 36261](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36261) - always include source path as module property
+* Remove obsolete tools.jar from TestRunner dependencies
+* Use implementation and runtimeOnly configurations for declaring dependencies instead of deprecated 'compile' dependency
+* Rename task for running module UI tests to moduleUiTests since replacing tasks, as we were doing for the uiTest task in TaskRunner, is 
+deprecated functionality.
+* Remove obsolete 'local' configuration 
+* [Issue 36309](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36309) - make output directory for jsp2Java class explicit
+* Start using [task configuration avoidance](https://blog.gradle.org/preview-avoiding-task-configuration-time) to improve configuration time for tasks
+* Add property to run UI tests with additional JVM options (`uiTestJvmOpts`)
+* No longer throw exception if a `modules` configuration dependency is declared for a project in the settings file but there is no enlistment for that project
 
 ### version 1.3.8
 *Release*: 14 Jan 2019
 (Earliest compatible LabKey version: 18.3)
 
-* [Issue 36427](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36527) - Don't add branch name to artifact version if on release snapshot branch
+* [Issue 36527](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36527) - Don't add branch name to artifact version if on release snapshot branch
 
 ### version 1.3.7
 (skipped)

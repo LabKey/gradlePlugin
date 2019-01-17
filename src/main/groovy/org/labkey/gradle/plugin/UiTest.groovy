@@ -39,7 +39,7 @@ class UiTest implements Plugin<Project>
 
         // TODO we might be able to get rid of the dependency on the :server:test project if we publish the test jar,
         // but some modules probably reach into the server/test directory in undocumented ways.
-        return project.hasProperty("enableUiTests") && project.file(TEST_SRC_DIR).exists() && project.findProject(":server:test") != null
+        return project.hasProperty("enableUiTests") && project.file(TEST_SRC_DIR).exists() && project.findProject(BuildUtils.getTestProjectPath(project.gradle)) != null
     }
 
     @Override
@@ -56,7 +56,7 @@ class UiTest implements Plugin<Project>
     protected void addConfigurations(Project project)
     {
         project.configurations {
-            uiTestCompile.extendsFrom(compile)
+            uiTestImplementation.extendsFrom(implementation)
         }
     }
 
@@ -76,26 +76,32 @@ class UiTest implements Plugin<Project>
 
     protected void addDependencies(Project project)
     {
-        if (project.path != ":server:test")
-            BuildUtils.addLabKeyDependency(project: project, config: 'uiTestCompile', depProjectPath: ":server:test", depVersion: project.labkeyVersion)
+        String testProjectPath = BuildUtils.getTestProjectPath(project.gradle)
+        if (project.findProject(testProjectPath) != null)
+        {
+            Project testProject = project.project(testProjectPath)
+            project.dependencies {
+                uiTestImplementation "org.seleniumhq.selenium:selenium-server:${testProject.seleniumVersion}"
+                uiTestRuntimeOnly "org.aspectj:aspectjrt:${testProject.aspectjVersion}"
+                uiTestImplementation "org.aspectj:aspectjtools:${testProject.aspectjVersion}"
+                uiTestImplementation "org.reflections:reflections:${testProject.reflectionsVersion}"
+            }
+        }
 
-        String schemasProjectPath = BuildUtils.getProjectPath(project.gradle, "schemasProjectPath", ":schemas")
-        if (project.findProject(schemasProjectPath) != null)
-            BuildUtils.addLabKeyDependency(project: project, config: 'uiTestCompile', depProjectPath: schemasProjectPath, depVersion: project.labkeyVersion)
-        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestCompile', depProjectPath: BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api"), depVersion: project.labkeyVersion)
-        BuildUtils.addLabKeyDependency(project: project, config: 'uiTestCompile', depProjectPath: BuildUtils.getProjectPath(project.gradle, "remoteApiProjectPath", ":remoteapi:java"), depVersion: project.labkeyVersion)
+        if (project.path != testProjectPath)
+            BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: testProjectPath, depVersion: project.labkeyVersion)
     }
 
     protected void addTasks(Project project)
     {
         project.logger.info("UiTest: addTask for ${project.path}")
-        project.task("uiTests",
-                group: GroupNames.VERIFICATION,
-                description: "Run UI (Selenium) tests for this module",
-                type: RunUiTest
-        )
-        project.tasks.uiTests.mustRunAfter(project.project(":server").tasks.pickPg)
-        project.tasks.uiTests.mustRunAfter(project.project(":server").tasks.pickMSSQL)
+        project.tasks.register("moduleUiTests", RunUiTest) {
+            RunUiTest task ->
+                task.group = GroupNames.VERIFICATION
+                task.description = "Run UI (Selenium) tests for this module"
+                task.mustRunAfter(project.project(":server").tasks.pickPg)
+                task.mustRunAfter(project.project(":server").tasks.pickMSSQL)
+        }
     }
 
     protected void addArtifacts(Project project)

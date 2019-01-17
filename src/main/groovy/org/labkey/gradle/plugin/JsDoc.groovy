@@ -40,34 +40,35 @@ class JsDoc implements Plugin<Project>
         addTasks(project)
     }
 
-    void addTasks(Project project)
+    private static void addTasks(Project project)
     {
-        Task jsdocTemplateTask = project.task('jsdocTemplate',
-                type: Copy,
-                description: "insert the proper version number into the JavaScript documentation",
-                { CopySpec copy ->
-                    copy.from project.file("${project.jsDoc.root}/templates/jsdoc")
-                    copy.filter( { String line ->
-                        Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line);
-                        String newLine = line;
-                        while (matcher.find())
-                        {
-                            if (matcher.group(1).equals("product.version"))
-                                newLine = newLine.replace(matcher.group(), (String) project.version)
-                        }
-                        return newLine;
+        project.tasks.register('jsdocTemplate', Copy) {
+            Copy task ->
+                task.description = "insert the proper version number into the JavaScript documentation"
+                task.configure
+                        { CopySpec copy ->
+                            copy.from project.file("${project.jsDoc.root}/templates/jsdoc")
+                            copy.filter( { String line ->
+                                Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line);
+                                String newLine = line;
+                                while (matcher.find())
+                                {
+                                    if (matcher.group(1).equals("product.version"))
+                                        newLine = newLine.replace(matcher.group(), (String) project.version)
+                                }
+                                return newLine;
 
-                    })
-                    destinationDir = new File((String) "${project.jsDoc.root}/templates/jsdoc_substituted")
-                }
-        )
-        Task jsDocTask = project.task(
-                "jsdoc",
-                group: GroupNames.DOCUMENTATION,
-                type: CreateJsDocs,
-                description: 'Generating Client API docs'
-        )
-        jsDocTask.dependsOn(jsdocTemplateTask)
+                            })
+                            copy.destinationDir = new File((String) "${project.jsDoc.root}/templates/jsdoc_substituted")
+                        }
+        }
+
+         project.tasks.register("jsdoc", CreateJsDocs) {
+             CreateJsDocs task ->
+                 task.group = GroupNames.DOCUMENTATION
+                 task.description = 'Generating Client API docs'
+                 task.dependsOn(project.tasks.jsdocTemplate)
+         }
     }
 }
 

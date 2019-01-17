@@ -36,12 +36,13 @@ class CoreScripts implements Plugin<Project>
 
     private void addTasks(Project project)
     {
-        Task task = project.task("serverSideJS",
-                group: GroupNames.CODE_GENERATION,
-                description: "Concatenate javascript files for use on the server side",
-                type: ServerSideJS
-        )
+        project.tasks.register("serverSideJS", ServerSideJS) {
+            ServerSideJS task ->
+                task.group = GroupNames.CODE_GENERATION
+                task.description ="Concatenate javascript files for use on the server side"
+        }
+
         if (project.hasProperty("processModuleResources"))
-            project.tasks.processModuleResources.dependsOn(task)
+            project.tasks.processModuleResources.dependsOn(project.tasks.serverSideJS)
     }
 }

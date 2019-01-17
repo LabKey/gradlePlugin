@@ -48,16 +48,15 @@ class ClientLibraries implements Plugin<Project>
 
     private static void addTasks(Project project)
     {
-        Task compressLibsTask = project.task("compressClientLibs",
-                group: GroupNames.CLIENT_LIBRARIES,
-                type: ClientLibsCompress,
-                description: 'create minified, compressed javascript file using .lib.xml sources',
-                dependsOn: project.tasks.processResources,
-                {ClientLibsCompress task ->
-                    task.xmlFiles = getLibXmlFiles(project)
-                }
-        )
-        project.tasks.assemble.dependsOn(compressLibsTask)
+        project.tasks.register("compressClientLibs", ClientLibsCompress) {
+            ClientLibsCompress task ->
+                task.group = GroupNames.CLIENT_LIBRARIES
+                task.description = 'create minified, compressed javascript file using .lib.xml sources'
+                task.dependsOn ( project.tasks.processResources )
+                task.xmlFiles = getLibXmlFiles(project)
+        }
+
+        project.tasks.assemble.dependsOn(project.tasks.compressClientLibs)
     }
 }
 

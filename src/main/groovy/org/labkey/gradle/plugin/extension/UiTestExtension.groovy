@@ -17,6 +17,7 @@ package org.labkey.gradle.plugin.extension
 
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.PropertiesUtils
 
@@ -81,9 +82,9 @@ class UiTestExtension
             project.logger.info("Got databaseType ${this.config.get("databaseType")} from config file.")
         }
 
-        if (project.findProject(":server:test") != null)
+        if (project.findProject(BuildUtils.getTestProjectPath(project.gradle)) != null)
         // read test.properties file
-            PropertiesUtils.readProperties(project.project(":server:test").file(propertiesFile), this.config)
+            PropertiesUtils.readProperties(project.project(BuildUtils.getTestProjectPath(project.gradle)).file(propertiesFile), this.config)
         // if the test.properties file is not available, all properties will need to be provided via project properties
         for (String name : config.propertyNames())
         {

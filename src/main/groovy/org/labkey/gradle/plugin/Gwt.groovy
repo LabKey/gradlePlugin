@@ -106,34 +106,34 @@ class Gwt implements Plugin<Project>
         gwtModuleClasses.entrySet().each {
              gwtModuleClass ->
 
-                Task compileTask = project.task(
-                        'compileGwt' + gwtModuleClass.getKey(),
-                        group: GroupNames.GWT,
-                        type: JavaExec,
-                        description: "compile GWT source files for " + gwtModuleClass.getKey()  + " into JS",
-                        { JavaExec java ->
-                            GString extrasDir = "${project.buildDir}/${project.gwt.extrasDir}"
-                            String outputDir = project.labkey.explodedModuleWebDir
+                String taskName ='compileGwt' + gwtModuleClass.getKey()
+                project.tasks.register(taskName, JavaExec) {
+                    JavaExec java ->
+                        java.group = GroupNames.GWT
+                        java.description = "compile GWT source files for " + gwtModuleClass.getKey() + " into JS"
 
-                            java.inputs.files(project.sourceSets.gwt.java.srcDirs)
+                        GString extrasDir = "${project.buildDir}/${project.gwt.extrasDir}"
+                        String outputDir = project.labkey.explodedModuleWebDir
 
-                            java.outputs.dir extrasDir
-                            java.outputs.dir outputDir
+                        java.inputs.files(project.sourceSets.gwt.java.srcDirs)
 
-                            // Workaround for incremental build (GRADLE-1483)
-                            java.outputs.upToDateSpec = new AndSpec()
+                        java.outputs.dir extrasDir
+                        java.outputs.dir outputDir
 
-                            java.doFirst {
-                                project.file(extrasDir).mkdirs()
-                                project.file(outputDir).mkdirs()
-                            }
+                        // Workaround for incremental build (GRADLE-1483)
+                        java.outputs.upToDateSpec = new AndSpec()
 
-                            if (!LabKeyExtension.isDevMode(project))
-                            {
-                                java.doLast new GzipAction()
-                            }
+                        java.doFirst {
+                            project.file(extrasDir).mkdirs()
+                            project.file(outputDir).mkdirs()
+                        }
 
-                            java.main = 'com.google.gwt.dev.Compiler'
+                        if (!LabKeyExtension.isDevMode(project))
+                        {
+                            java.doLast new GzipAction()
+                        }
+
+                        java.main = 'com.google.gwt.dev.Compiler'
 
                             def paths = []
                             if (!project.gwt.allBrowserCompile)
@@ -147,42 +147,44 @@ class Gwt implements Plugin<Project>
                                     project.sourceSets.gwt.compileClasspath,       // Dep
                                     project.sourceSets.gwt.java.srcDirs           // Java source
                             ]
-                            String internalProjectPath = BuildUtils.getProjectPath(project.gradle, "internalProjectPath", ":server:internal")
+                            String internalProjectPath = BuildUtils.getInternalProjectPath(project.gradle)
                             if (project.findProject(internalProjectPath) != null && project.project(internalProjectPath).file(project.gwt.srcDir).exists())
                                 paths += [project.project(internalProjectPath).file(project.gwt.srcDir)]
                             else
-                                paths += [project.project(BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api")).file(project.gwt.srcDir)]
+                                paths += [project.project(BuildUtils.getApiProjectPath(project.gradle)).file(project.gwt.srcDir)]
                             java.classpath paths
 
-                            java.args =
-                                    [
-                                            '-war', outputDir,
-                                            '-style', project.gwt.style,
-                                            '-logLevel', project.gwt.logLevel,
-                                            '-extra', extrasDir,
-                                            '-deploy', extrasDir,
-                                            '-localWorkers', 4,
-                                            gwtModuleClass.getValue()
-                                    ]
-                            if (project.gwt.draftCompile)
-                                java.args.add('-draftCompile')
-                            java.jvmArgs =
-                                    [
-                                            '-Xss1024k',
-                                            '-Djava.awt.headless=true'
-                                    ]
+                        java.args =
+                                [
+                                        '-war', outputDir,
+                                        '-style', project.gwt.style,
+                                        '-logLevel', project.gwt.logLevel,
+                                        '-extra', extrasDir,
+                                        '-deploy', extrasDir,
+                                        '-localWorkers', 4,
+                                        gwtModuleClass.getValue()
+                                ]
+                        if (project.gwt.draftCompile)
+                            java.args.add('-draftCompile')
+                        java.jvmArgs =
+                                [
+                                        '-Xss1024k',
+                                        '-Djava.awt.headless=true'
+                                ]
 
-                            java.maxHeapSize = '512m'
-                        }
-                )
-                gwtTasks.add(compileTask)
+                        java.maxHeapSize = '512m'
+
+                }
+                gwtTasks.add(project.tasks.named(taskName))
         }
-        def compileGwt = project.task("compileGwt",
-                dependsOn: gwtTasks,
-                description: 'compile all GWT source files into JS',
-                group: GroupNames.GWT
-        )
-        project.tasks.classes.dependsOn(compileGwt)
+        project.tasks.register("compileGwt") {
+            Task task ->
+                task.dependsOn (gwtTasks)
+                task.description = 'compile all GWT source files into JS'
+                task.group = GroupNames.GWT
+        }
+
+        project.tasks.classes.dependsOn(project.tasks.compileGwt)
     }
 
     private static Map<String, String> getGwtModuleClasses(Project project)

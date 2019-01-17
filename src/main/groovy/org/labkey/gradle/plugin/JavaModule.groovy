@@ -95,19 +95,33 @@ class JavaModule extends FileModule
     protected void addConfigurations(Project project)
     {
         super.addConfigurations(project)
+//        boolean isApi = BuildUtils.isApi(project)
         project.configurations
                 {
-                    external.extendsFrom(api)
-                    local
+                    external
+                    api.extendsFrom(external)
                     labkey // use this configuration for dependencies to labkey API jars that are needed for a module
                            // but don't need to show up in the dependencies.txt and jars.txt
                     compile.extendsFrom(external)
                     implementation.extendsFrom(external)
                     compile.extendsFrom(labkey)
-                    compile.extendsFrom(local)
+// This doesn't work as expected.  When the dedupe configuration is used, it is the configuration for THIS project, not for the api project.
+// https://discuss.gradle.org/t/extending-from-other-projects-configuration/30041
+//                    if (!isApi)
+//                        dedupe.extendsFrom(project.project(BuildUtils.getApiProjectPath(project.gradle)).configurations.external)
+//                    // base modules should remove everything included by api, but all others should exclude api and what's included by the base modules
+//                    if (!baseModules.contains(project.path))
+//                    {
+//                        baseModules.forEach({
+//                            path -> dedupe.extendsFrom(project.project(path).configurations.external)
+//                        })
+//                    }
                 }
-        project.configurations.local.setDescription("For compile dependencies that are not needed at runtime (deprecated; use implementation)")
-        project.configurations.labkey.setDescription("Dependencies on LabKey API jars that are needed for a module when the full module is not required")
+        project.configurations.labkey.setDescription("Dependencies on LabKey API jars that are needed for a module when the full module is not required.  These don't need to be declared in jars.txt.")
+//        if (!isApi)
+//        {
+//            project.configurations.dedupe.setDescription("Dependencies that come from the base modules that can therefore be excluded from other modules")
+//        }
     }
 
     protected void setJavaBuildProperties(Project project)
@@ -163,24 +177,25 @@ class JavaModule extends FileModule
 
 
         // We do this afterEvaluate to allow all dependencies to be declared before checking
-        project.afterEvaluate( {
-            FileCollection externalFiles = (project.path == BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api")) ? project.configurations.external : getTrimmedExternalFiles(project)
+        project.afterEvaluate({
+            FileCollection externalFiles = getTrimmedExternalFiles(project)
             FileCollection allJars = externalFiles
 
-            Task copyExternalDependencies = project.task("copyExternalLibs",
-                    group: GroupNames.MODULE,
-                    type: Copy,
-                    description: "copy the dependencies declared in the 'external' configuration into the lib directory of the built module",
-                    { CopySpec copy ->
-                        copy.from externalFiles
-                        copy.into "${project.labkey.explodedModuleDir}/lib"
-                        copy.include "*.jar"
-                    }
-            )
+            project.tasks.register("copyExternalLibs", Copy) {
+                Copy task ->
+                    task.group = GroupNames.MODULE
+                    task.description = "copy the dependencies declared in the 'external' configuration into the lib directory of the built module"
+                    task.configure
+                            { CopySpec copy ->
+                                copy.from externalFiles
+                                copy.into "${project.labkey.explodedModuleDir}/lib"
+                                copy.include "*.jar"
+                            }
+            }
 
             if (project.tasks.findByName("module") != null)
             {
-                project.tasks.module.dependsOn(copyExternalDependencies)
+                project.tasks.module.dependsOn(project.tasks.copyExternalLibs)
                 if (project.file("src").exists())
                 {
                     project.tasks.module.dependsOn(project.tasks.jar)
@@ -202,24 +217,22 @@ class JavaModule extends FileModule
                     allJars = allJars + project.tasks.schemasJar.outputs.files
                 }
             }
-
-            Task checkJarVersions = project.task(
-                    "checkModuleJarVersions",
-                    group: GroupNames.MODULE,
-                    type: CheckForVersionConflicts,
-                    description: "Check for conflicts in version numbers of jar files to be included in the module and files already in the build directory ${project.labkey.explodedModuleDir}/lib." +
-                            "  Default action on detecting a conflict is to fail.  Use -PversionConflictAction=[delete|fail|warn] to change this behavior.  The value 'delete' will cause the " +
-                            "conflicting version(s) in the ${project.labkey.explodedModuleDir}/lib directory to be removed.",
+            project.tasks.register(
+                    "checkModuleJarVersions", CheckForVersionConflicts)
                     { CheckForVersionConflicts task ->
+
+                        task.group = GroupNames.MODULE
+                        task.description = "Check for conflicts in version numbers of jar files to be included in the module and files already in the build directory ${project.labkey.explodedModuleDir}/lib." +
+                                "Default action on detecting a conflict is to fail.  Use -PversionConflictAction=[delete|fail|warn] to change this behavior.  The value 'delete' will cause the " +
+                                "conflicting version(s) in the ${project.labkey.explodedModuleDir}/lib directory to be removed."
                         task.directory = new File("${project.labkey.explodedModuleDir}/lib")
                         task.extension = "jar"
                         task.cleanTask = "${project.path}:clean"
                         task.collection = allJars
                     }
-            )
 
-            copyExternalDependencies.dependsOn(checkJarVersions)
-            project.project(":server").tasks.checkVersionConflicts.dependsOn(checkJarVersions)
+            project.tasks.copyExternalLibs.dependsOn(project.tasks.checkModuleJarVersions)
+            project.project(":server").tasks.checkVersionConflicts.dependsOn(project.tasks.checkModuleJarVersions)
         })
     }
 
@@ -230,6 +243,12 @@ class JavaModule extends FileModule
      * project is the api module, all jars in its external configuration are included.
      * @param project the project whose external dependencies are to be removed
      * @return the collection of files that contain the dependencies
+     *
+     * FIXME The method of accessing the other projects' external configuration is now deemed unsafe.
+     * Attemps to use the method recommended in the Gradle docs of extending from a configuration of the
+     * other project have, thus far, been unsuccessful.  Instead, extending from api's external actually
+     * brings in the current project's external dependencies, which means we eliminate just the files we
+     * need to keep.  This may have something to do with order of evaluation.
      */
     static FileCollection getTrimmedExternalFiles(Project project)
     {
@@ -241,14 +260,20 @@ class JavaModule extends FileModule
 
         config = labkeyConfig == null ? config : (config == null ? labkeyConfig : config + labkeyConfig)
 
-        // trim nothing from api
-        String apiProjectPath = BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api")
-        if (project.path.equals(apiProjectPath))
+//        // trim nothing from api
+//        if (BuildUtils.isApi(project))
+//            return config
+//        else // all other modules should remove everything in the dedupe configuration
+//        {
+//            return config - project.configurations.dedupe
+//        }
+
+        if (BuildUtils.isApi(project))
             return config
         // base modules should remove everything included by api
         else if (BuildUtils.getBaseModules(project.gradle).contains(project.path))
         {
-            return config - project.project(BuildUtils.getProjectPath(project.gradle, "apiProjectPath", ":server:api")).configurations.external
+            return config - project.project(BuildUtils.getApiProjectPath(project.gradle)).configurations.external
         }
         else // all other modules should remove everything in the base modules
         {
