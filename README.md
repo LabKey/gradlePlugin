@@ -12,6 +12,8 @@ but also make certain assumptions that you may not want to impose on your module
 *Release*: ??
 (Earliest compatible LabKey version: 19.1)
 
+* Remove Windows installer
+
 ### version 1.4
 *Release*: 17 Jan 2019
 (Earliest compatible LabKey version: 19.1)

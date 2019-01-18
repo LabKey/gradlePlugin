@@ -15,14 +15,12 @@
  */
 package org.labkey.gradle.task
 
-import org.apache.commons.io.FilenameUtils
-import org.apache.commons.lang3.SystemUtils
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
-import org.gradle.process.ExecSpec
 import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.plugin.extension.StagingExtension
 import org.labkey.gradle.util.BuildUtils
@@ -32,7 +30,6 @@ import java.nio.file.Files
 
 class ModuleDistribution extends DefaultTask
 {
-    Boolean includeWindowsInstaller = false
     Boolean includeZipArchive = false
     Boolean includeTarGZArchive = false
     Boolean makeDistribution = true // set to false for just an archive of modules
@@ -73,8 +70,6 @@ class ModuleDistribution extends DefaultTask
             distFiles.add(new File(getTarArchivePath()))
         if (includeZipArchive)
             distFiles.add(new File(getZipArchivePath()))
-        if (includeWindowsInstaller && SystemUtils.IS_OS_WINDOWS)
-            distFiles.add(new File(getDistributionDir(), getWindowsInstallerName()))
         if (makeDistribution)
         {
             distFiles.add(getDistributionFile())
@@ -131,7 +126,6 @@ class ModuleDistribution extends DefaultTask
         if (makeDistribution)
         {
             copyLibXml()
-            packageInstallers()
         }
         packageArchives()
     }
@@ -139,7 +133,7 @@ class ModuleDistribution extends DefaultTask
     private void copyLibXml()
     {
         Properties copyProps = new Properties()
-        //The Windows installer only supports Postgres, which it also installs.
+        // Pre-configure labkey.xml to work with postgresql
         copyProps.put("jdbcURL", "jdbc:postgresql://localhost/labkey")
         copyProps.put("jdbcDriverClassName", "org.postgresql.Driver")
 
@@ -154,36 +148,6 @@ class ModuleDistribution extends DefaultTask
         }
     }
 
-    private void packageInstallers()
-    {
-        if (includeWindowsInstaller && SystemUtils.IS_OS_WINDOWS) {
-//            project.copy {
-//                CopySpec copy ->
-//                    copy.from(getModulesDir())
-//                    copy.into("${project.rootProject.buildDir}/distModules")
-//                    copy.include("*.module")
-//            }
-
-            project.exec
-            { ExecSpec spec ->
-                spec.commandLine FilenameUtils.separatorsToSystem("${distExtension.installerSrcDir}/nsis2.46/makensis.exe")
-                spec.args = [
-                        "/DPRODUCT_VERSION=\"${project.version}\"",
-                        "/DPRODUCT_REVISION=\"${project.rootProject.vcsRevision}\"",
-                        FilenameUtils.separatorsToSystem("${distExtension.installerSrcDir}/labkey_installer.nsi")
-                ]
-            }
-
-            project.copy
-            { CopySpec copy ->
-                copy.from("${project.buildDir}/..") // makensis puts the installer into build/installer without the project name subdirectory
-                copy.include("Setup_includeJRE.exe")
-                copy.into(getDistributionDir())
-                copy.rename("Setup_includeJRE.exe", getWindowsInstallerName())
-            }
-        }
-    }
-
     private void packageArchives()
     {
         if (includeTarGZArchive)
@@ -194,11 +158,6 @@ class ModuleDistribution extends DefaultTask
         {
             zipArchives()
         }
-    }
-
-    String getWindowsInstallerName()
-    {
-        return "${getVersionPrefix()}-Setup.exe"
     }
 
     String getArtifactId()
