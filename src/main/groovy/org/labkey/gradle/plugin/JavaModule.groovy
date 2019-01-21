@@ -107,6 +107,7 @@ class JavaModule extends FileModule
                     compile.extendsFrom(labkey)
 // This doesn't work as expected.  When the dedupe configuration is used, it is the configuration for THIS project, not for the api project.
 // https://discuss.gradle.org/t/extending-from-other-projects-configuration/30041
+// https://github.com/gradle/gradle/issues/8275
 //                    if (!isApi)
 //                        dedupe.extendsFrom(project.project(BuildUtils.getApiProjectPath(project.gradle)).configurations.external)
 //                    // base modules should remove everything included by api, but all others should exclude api and what's included by the base modules
