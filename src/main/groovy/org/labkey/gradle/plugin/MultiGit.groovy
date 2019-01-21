@@ -779,10 +779,12 @@ class MultiGit implements Plugin<Project>
 
         while (hasNextPage)
         {
-            Map<String, Object> rawData = makeRequest(getQuerySearchString(includeArchived, filterString, endCursor))
+            project.logger.info("getAllRepositories - includeArchived: ${includeArchived}, filterString: '${filterString}'")
+            Map<String, Object> rawData = makeRequest(project, getQuerySearchString(includeArchived, filterString, endCursor))
             Map<String, Object> pageInfo = getMap(rawData, ['data', 'search', 'pageInfo']);
             hasNextPage = (Boolean) pageInfo.get('hasNextPage')
             endCursor = (String) pageInfo.get('endCursor')
+            project.logger.info("hasNextPage ${hasNextPage} endCursor ${endCursor}")
 
             List<Map<String, Object>> searchResults = getMapList(rawData, ['data', 'search'], "edges");
             for (Map<String, Object> nodeMap: searchResults)
@@ -829,11 +831,11 @@ class MultiGit implements Plugin<Project>
         return repositories
     }
 
-    private static Map<String, Object> makeRequest(String queryString) throws IOException
+    private static Map<String, Object> makeRequest(Project project, String queryString) throws IOException
     {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         Map<String, Object> rawData
-
+        project.logger.info("Making request with queryString '${queryString}'")
         try
         {
             HttpPost httpPost = new HttpPost(GITHUB_GRAPHQL_ENDPOINT);
@@ -848,6 +850,7 @@ class MultiGit implements Plugin<Project>
             {
                 ResponseHandler<String> handler = new BasicResponseHandler()
                 String contents = handler.handleResponse(response)
+                project.logger.info("Response contents ${contents}")
                 ObjectMapper mapper = new ObjectMapper()
                 rawData = mapper.readValue(contents, Map.class)
             }
