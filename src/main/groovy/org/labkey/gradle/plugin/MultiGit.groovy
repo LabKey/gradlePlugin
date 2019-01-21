@@ -50,7 +50,6 @@ class MultiGit implements Plugin<Project>
             clientLibrary,
             gradlePlugin,
             serverModule,
-            serverModuleContainer,
             other,
             svnModule, // This should be removed eventually
             svnCustomModule, // This should be removed eventually
@@ -101,11 +100,7 @@ class MultiGit implements Plugin<Project>
             {
                 this.setIsExternal(true)
             }
-            if (topics.contains("labkey-module-container"))
-            {
-                this.setType(Type.serverModuleContainer)
-            }
-            else if (topics.contains("labkey-module"))
+            if (topics.contains("labkey-module"))
             {
                 this.setType(Type.serverModule)
             }
@@ -327,7 +322,7 @@ class MultiGit implements Plugin<Project>
             }
             else
             {
-                enlistmentDir = rootProject.file(path.replaceAll(":", File.separator).substring(1))
+                enlistmentDir = rootProject.file(path.substring(1).replaceAll(":", File.separator))
             }
             if (enlistmentDir.exists())
             {
