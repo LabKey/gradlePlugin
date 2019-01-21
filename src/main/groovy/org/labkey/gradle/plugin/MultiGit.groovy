@@ -322,6 +322,7 @@ class MultiGit implements Plugin<Project>
             }
             else
             {
+                rootProject.logger.info("getting enlistment directory from path '${path}'")
                 enlistmentDir = rootProject.file(path.substring(1).replaceAll(":", File.separator))
             }
             if (enlistmentDir.exists())
