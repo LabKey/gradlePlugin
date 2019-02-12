@@ -200,9 +200,10 @@ class TestRunner extends UiTest
                     project.tasks.register(extensionTaskName, Zip) {
                         Zip task ->
                             task.description = "Package the ${dir.getName()} chrome extension used for testing"
-                            task.archiveName = "${dir.getName()}.zip"
+                            task.archiveBaseName = dir.getName()
+                            task.archiveExtension = "zip"
                             task.from dir
-                            task.destinationDir = new File("${project.buildDir}/chromextensions")
+                            task.destinationDirectory = new File("${project.buildDir}/chromextensions")
                     }
 
                     extensionsZipTasks.add(project.tasks.named(extensionTaskName))
@@ -235,9 +236,9 @@ class TestRunner extends UiTest
                 jar.group = GroupNames.BUILD
                 jar.description = "produce jar file of test classes"
                 jar.from project.sourceSets.uiTest.output
-                jar.baseName = "labkeyTest"
-                jar.setVersion((String) project.version)
-                jar.destinationDir = new File("${project.buildDir}/libs")
+                jar.archiveBaseName = "labkeyTest"
+                jar.archiveVersion.set((String) project.version)
+                jar.destinationDirectory = new File("${project.buildDir}/libs")
         }
         project.artifacts {
             compile project.tasks.testJar

@@ -105,11 +105,11 @@ class XmlBeans implements Plugin<Project>
             Jar task ->
                 task.group = GroupNames.XML_SCHEMA
                 task.description = "produce schemas jar file from directory '$project.xmlBeans.classDir'"
-                task.classifier = CLASSIFIER
+                task.archiveClassifier = CLASSIFIER
                 task.from "$project.buildDir/$project.xmlBeans.classDir"
                 task.exclude '**/*.java'
-                task.baseName = project.name.equals("schemas") ? "schemas" : "${project.name}_schemas"
-                task.destinationDir = project.file(project.labkey.explodedModuleLibDir)
+                task.archiveBaseName = project.name.equals("schemas") ? "schemas" : "${project.name}_schemas"
+                task.destinationDirectory = project.file(project.labkey.explodedModuleLibDir)
                 task.dependsOn(project.tasks.schemasCompile)
                 task.onlyIf
                         {

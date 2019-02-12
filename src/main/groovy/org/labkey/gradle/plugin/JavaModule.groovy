@@ -132,7 +132,7 @@ class JavaModule extends FileModule
         addSourceSets(project)
 
         project.jar { Jar jar ->
-            jar.baseName = project.name
+            jar.archiveBaseName = project.name
         }
     }
 

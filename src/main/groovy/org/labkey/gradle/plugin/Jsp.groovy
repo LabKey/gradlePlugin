@@ -201,10 +201,10 @@ class Jsp implements Plugin<Project>
              Jar jar ->
                  jar.group = GroupNames.JSP
                  jar.description = "produce jar file of jsps"
-                 jar.classifier = CLASSIFIER
+                 jar.archiveClassifier = CLASSIFIER
                  jar.from project.sourceSets.jsp.output
-                 jar.baseName = "${project.name}${BASE_NAME_EXTENSION}"
-                 jar.destinationDir = project.file(project.labkey.explodedModuleLibDir)
+                 jar.archiveBaseName = "${project.name}${BASE_NAME_EXTENSION}"
+                 jar.destinationDirectory = project.file(project.labkey.explodedModuleLibDir)
                  jar.dependsOn(project.tasks.compileJspJava)
          }
 
