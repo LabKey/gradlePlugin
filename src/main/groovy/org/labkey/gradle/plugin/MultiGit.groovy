@@ -664,18 +664,7 @@ class MultiGit implements Plugin<Project>
 
         private String getQueryString(String filterString = "")
         {
-            String dateString = ""
-//            if (startDate != null || endDate != null)
-//            {
-//                dateString = "pushed:"
-//                if (startDate == null)
-//                    dateString += "<=${dateRangeFormat.format(endDate)}"
-//                else if (endDate == null)
-//                    dateString += ">=${dateRangeFormat.format(startDate)}"
-//                else
-//                    dateString += "${dateRangeFormat.format(startDate)}..${dateRangeFormat.format(endDate)}"
-//            }
-            String queryString = "org:LabKey ${filterString} ${dateString} "
+            String queryString = "org:LabKey ${filterString} "
             if (!includeArchived)
                 queryString += " archived:false "
             return "\"${queryString}\", type:REPOSITORY, first:${REPO_PAGE_SIZE} "
