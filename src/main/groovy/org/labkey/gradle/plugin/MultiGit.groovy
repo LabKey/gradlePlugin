@@ -22,6 +22,7 @@ import org.json.JSONObject
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.util.PropertiesUtils
 
+import java.text.SimpleDateFormat
 import java.util.stream.Collectors
 
 /**
@@ -42,6 +43,114 @@ import java.util.stream.Collectors
  */
 class MultiGit implements Plugin<Project>
 {
+    class PullRequest
+    {
+        private String author
+        private String title
+        private String updatedAt
+        private String state
+        private String url
+        private String headRefName // name of the branch
+        private String baseRefName //where it was merged to
+
+        String getAuthor()
+        {
+            return author
+        }
+
+        void setAuthor(String author)
+        {
+            this.author = author
+        }
+
+        String getTitle()
+        {
+            return title
+        }
+
+        void setTitle(String title)
+        {
+            this.title = title
+        }
+
+        String getUpdatedAt()
+        {
+            return updatedAt
+        }
+
+        void setUpdatedAt(String updatedAt)
+        {
+            this.updatedAt = updatedAt
+        }
+
+        String getState()
+        {
+            return state
+        }
+
+        void setState(String state)
+        {
+            this.state = state
+        }
+
+        String getUrl()
+        {
+            return url
+        }
+
+        void setUrl(String url)
+        {
+            this.url = url
+        }
+
+        String getHeadRefName()
+        {
+            return headRefName
+        }
+
+        void setHeadRefName(String headRefName)
+        {
+            this.headRefName = headRefName
+        }
+
+        String getBaseRefName()
+        {
+            return baseRefName
+        }
+
+        void setBaseRefName(String baseRefName)
+        {
+            this.baseRefName = baseRefName
+        }
+
+        String toString()
+        {
+            return toString("listing")
+        }
+
+        String toString(String format)
+        {
+            StringBuilder builder = new StringBuilder()
+            if (format == null || format.equals("listing"))
+            {
+                builder.append("Author: ${this.author}; ")
+                builder.append("HeadRef: ${this.headRefName}; ")
+                builder.append("BaseRef: ${this.baseRefName}; ")
+                builder.append("State: ${this.state}; ")
+                builder.append("Url: ${this.url}; ")
+                builder.append("UpdatedAt: ${this.updatedAt}; ")
+                builder.append("Title: ${this.title}")
+            }
+            else if (format.equals("tsv"))
+                builder.append("${this.author}\t${this.getHeadRefName()}\t${this.getBaseRefName()}\t${this.getState()}\t${this.getUrl()}\t${this.getUpdatedAt()}\t${this.getTitle()}")
+            return builder.toString()
+        }
+
+        static String getTsvHeader()
+        {
+            return "Author\tHeadRef\tBaseRef\tState\tUrl\tUpdatedAt\tTitle"
+        }
+    }
 
     class Repository
     {
@@ -72,6 +181,7 @@ class MultiGit implements Plugin<Project>
         private Properties moduleProperties
         private String dependencies
         private String supportedDatabases = "mssql,pgsql"
+        private List<PullRequest> pullRequests
 
         Repository(Project rootProject, String name, Boolean isSvn)
         {
@@ -398,11 +508,22 @@ class MultiGit implements Plugin<Project>
             this.type = type
         }
 
+        List<PullRequest> getPullRequests()
+        {
+            return pullRequests
+        }
+
+        void setPullRequests(List<PullRequest> pullRequests)
+        {
+            this.pullRequests = pullRequests
+        }
+
         Branch getCurrentBranch()
         {
             Grgit git = getGit();
             return git != null ?  git.branch.current : null
         }
+
         String toString()
         {
             return toString(false)
@@ -445,7 +566,16 @@ class MultiGit implements Plugin<Project>
                 if (this.dependencies != null)
                     builder.append("\tModule Dependencies: ${this.getDependencies()}\n")
                 builder.append("\tRepoURL: ${this.getUrl()}\n")
-                builder.append("\tSupported Databases: ${this.supportedDatabases}")
+                builder.append("\tSupported Databases: ${this.supportedDatabases}\n")
+                List<PullRequest> prs = this.getPullRequests()
+                if (prs != null && !prs.isEmpty())
+                {
+                    builder.append("\tPull Requests:\n")
+                    for (PullRequest pr : prs)
+                    {
+                        builder.append("\t\t${pr.toString()}\n")
+                    }
+                }
             }
             else
             {
@@ -456,11 +586,349 @@ class MultiGit implements Plugin<Project>
         }
     }
 
+    class RepositoryQuery
+    {
+        private static final String GITHUB_GRAPHQL_ENDPOINT = "https://api.github.com/graphql"
+        public static final String TOPICS_PROPERTY = "gitTopics"
+        public static final String ALL_TOPICS_PROPERTY = "requireAllTopics"
+        public static final String INCLUDE_PRS_PROPERTY = "includePullRequests"
+        public static final String INCLUDE_ARCHIVED_PROPERTY = "includeArchived"
+        public static final String PR_STATES_PROPERTY = "prStates"
+        public static final String BASE_BRANCH_PROPERTY = "baseBranch"
+        public static final String START_DATE_PROPERTY = "startDate"
+        public static final String END_DATE_PROPERTY = "endDate"
+        public static final int REPO_PAGE_SIZE = 100
+        public static final int PR_PAGE_SIZE = 20
+        private static final SimpleDateFormat updatedAtFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        private static final SimpleDateFormat dateRangeFormat = new SimpleDateFormat("yyyy-MM-dd")
+
+
+        private boolean includeLicenseInfo = false
+        private boolean includeTopics = false
+        private boolean includePullRequests = false
+        private boolean includeArchived = false
+        private boolean requireAllTopics = false
+        private Date startDate
+        private Date endDate
+        private String baseRef
+        private String prStates
+        private List<String> topicFilters
+
+        RepositoryQuery(Project project)
+        {
+            includeArchived = project.hasProperty(INCLUDE_ARCHIVED_PROPERTY)
+            includePullRequests = project.hasProperty(INCLUDE_PRS_PROPERTY)
+            requireAllTopics = project.hasProperty(ALL_TOPICS_PROPERTY)
+            prStates = project.hasProperty(PR_STATES_PROPERTY) ? project.property(PR_STATES_PROPERTY) : null
+            startDate = project.hasProperty(START_DATE_PROPERTY) ? dateRangeFormat.parse((String) project.property(START_DATE_PROPERTY)) : null
+            endDate = project.hasProperty(END_DATE_PROPERTY) ? dateRangeFormat.parse((String) project.property(END_DATE_PROPERTY)) : null
+            baseRef = project.hasProperty(BASE_BRANCH_PROPERTY) ? project.property(BASE_BRANCH_PROPERTY) : null
+            topicFilters = project.hasProperty(TOPICS_PROPERTY) ?
+                    ((String) project.property(TOPICS_PROPERTY)).split(",")  : []
+        }
+
+        boolean getIncludeLicenseInfo()
+        {
+            return includeLicenseInfo
+        }
+
+        void setIncludeLicenseInfo(boolean includeLicenseInfo)
+        {
+            this.includeLicenseInfo = includeLicenseInfo
+        }
+
+        boolean getIncludeTopics()
+        {
+            return includeTopics
+        }
+
+        void setIncludeTopics(boolean includeTopics)
+        {
+            this.includeTopics = includeTopics
+        }
+
+        boolean getIncludePullRequests()
+        {
+            return includePullRequests
+        }
+
+        void setIncludePullRequests(boolean includePullRequests)
+        {
+            this.includePullRequests = includePullRequests
+        }
+
+        private static String getAuthorizationToken()
+        {
+            return System.getenv('GIT_ACCESS_TOKEN');
+        }
+
+        private String getQueryString(String filterString = "")
+        {
+            String dateString = ""
+//            if (startDate != null || endDate != null)
+//            {
+//                dateString = "pushed:"
+//                if (startDate == null)
+//                    dateString += "<=${dateRangeFormat.format(endDate)}"
+//                else if (endDate == null)
+//                    dateString += ">=${dateRangeFormat.format(startDate)}"
+//                else
+//                    dateString += "${dateRangeFormat.format(startDate)}..${dateRangeFormat.format(endDate)}"
+//            }
+            String queryString = "org:LabKey ${filterString} ${dateString} "
+            if (!includeArchived)
+                queryString += " archived:false "
+            return "\"${queryString}\", type:REPOSITORY, first:${REPO_PAGE_SIZE} "
+        }
+
+        private getRepositorySelectors()
+        {
+            String selectors =
+                    " repositoryCount " +
+                            "    pageInfo {" +
+                            "      endCursor" +
+                            "      hasNextPage" +
+                            "      startCursor" +
+                            "    }" +
+                            " edges { " +
+                            "   node { " +
+                            "       ... on Repository { " +
+                            "           name " +
+                            "           description " +
+                            "           isArchived " +
+                            "           isPrivate " +
+                            "           url "
+            if (includeLicenseInfo)
+                selectors +=
+                        "           licenseInfo {" +
+                                "               name" +
+                                "           }"
+            if (includeTopics)
+                selectors +=
+                        "           repositoryTopics(first: 10) {" +
+                                "               edges {" +
+                                "                   node {" +
+                                "                       topic {" +
+                                "                           name" +
+                                "                       }" +
+                                "                   }" +
+                                "               }" +
+                                "           }"
+            if (includePullRequests)
+            {
+                String baseRefFilter  = baseRef == null ? "" : ", baseRefName: \"${baseRef}\""
+                String statesFilter = prStates == null ? "" : ", states: [${prStates.toUpperCase()}]"
+
+                String pullRequestFilter = "first:${PR_PAGE_SIZE} ${statesFilter} ${baseRefFilter}, orderBy: {field: UPDATED_AT, direction: DESC} "
+                selectors +=
+                        "          pullRequests(${pullRequestFilter}) {" +
+                                "           totalCount" +
+                                "           pageInfo {" +
+                                "              hasPreviousPage" +
+                                "           } " +
+                                "           nodes { " +
+                                "               author {" +
+                                "                   login " +
+                                "               }" +
+                                "               updatedAt" +
+                                "               state" +
+                                "               title" +
+                                "               url" +
+                                "               headRefName" +
+                                "               baseRefName" +
+                                "           } " +
+                                "  } "
+            }
+            selectors +=
+                    "       } " +
+                    "   }  " +
+                    "} "
+            return selectors
+        }
+
+
+        private String getSearchString(String filterString, String prevEndCursor = null)
+        {
+            String cursorString = prevEndCursor == null ? "after:null" : "after:\"${prevEndCursor}\""
+            return "query {\n" +
+                    "  search(query: ${getQueryString(filterString)} ${cursorString}){" +
+                    "    ${getRepositorySelectors()}" +
+                    "  } " +
+                    "}"
+
+        }
+
+        private static List<String> getRepositoryTopics(Map<String, Object> node)
+        {
+            List<String> names = new ArrayList<>()
+            if (node.containsKey("repositoryTopics"))
+            {
+                List<Map<String, Object>> topicEdges = getMapList(node, ['repositoryTopics'], 'edges')
+                for (Map<String, Object> topicEdge : topicEdges)
+                {
+                    Map<String, Object> topicMap = getMap(topicEdge, ['node', 'topic'])
+                    names.push(((String) topicMap.get('name')).toLowerCase())
+                }
+            }
+            return names;
+        }
+
+        private void setLicenseInfo(Repository repository, Map<String, Object> node)
+        {
+            if (repository.getLicenseName() == null)
+            {
+                Map<String, Object> licenseInfo = (Map<String, Object>) node.get('licenseInfo')
+                if (licenseInfo != null)
+                {
+                    repository.setLicenseName((String) licenseInfo.get('name'))
+                }
+            }
+        }
+
+        private boolean isInDateRange(Date updatedDate)
+        {
+            if (startDate == null && endDate == null)
+                return true
+            if (startDate != null && updatedDate.before(startDate))
+                return false
+            if (endDate != null && updatedDate.after(endDate))
+                return false
+
+            return true
+        }
+
+        private void setPullRequestInfo(Repository repository, Map<String, Object> node)
+        {
+            List<PullRequest> pullRequests = new ArrayList<>()
+            List<Map<String, Object>> prNodes = getMapList(node, ['pullRequests'], 'nodes')
+            for (Map<String, Object> prNode : prNodes)
+            {
+                Date updatedDate = updatedAtFormat.parse((String) prNode.get("updatedAt"))
+                if (isInDateRange(updatedDate))
+                {
+                    PullRequest pr = new PullRequest()
+                    pr.setTitle((String) prNode.get("title"))
+                    pr.setState((String) prNode.get("state"))
+                    pr.setUpdatedAt((String) prNode.get('updatedAt'))
+                    pr.setUrl((String) prNode.get("url"))
+                    pr.setBaseRefName((String) prNode.get('baseRefName'))
+                    pr.setHeadRefName((String) prNode.get('headRefName'))
+                    Map<String, Object> author = (Map<String, Object>) prNode.get("author")
+                    pr.setAuthor((String) author.get('login'))
+                    pullRequests.push(pr)
+                }
+            }
+            repository.setPullRequests(pullRequests)
+        }
+
+        private Map<String, Repository> getAllRepositories(Project project, String filterString)
+        {
+
+            boolean hasNextPage = true
+            String endCursor = null
+            Map<String, Repository> repositories = new TreeMap<>()
+
+            while (hasNextPage)
+            {
+                project.logger.info("getAllRepositories - includeArchived: ${includeArchived}, filterString: '${filterString}'")
+                Map<String, Object> rawData = makeRequest(project, getSearchString(filterString, endCursor))
+                Map<String, Object> pageInfo = getMap(rawData, ['data', 'search', 'pageInfo']);
+                hasNextPage = (Boolean) pageInfo.get('hasNextPage')
+                endCursor = (String) pageInfo.get('endCursor')
+                project.logger.info("hasNextPage ${hasNextPage} endCursor ${endCursor}")
+
+                List<Map<String, Object>> searchResults = getMapList(rawData, ['data', 'search'], "edges");
+                for (Map<String, Object> nodeMap: searchResults)
+                {
+                    Map<String, Object> node = (Map<String, Object>) nodeMap.get('node')
+                    String name = node.get('name')
+                    String description = (node.get('description') != null) ? node.get('description') : ''
+                    List<String> topics = getRepositoryTopics(node)
+
+                    Repository repository = new Repository(project, name, (String) node.get('url'), (Boolean) node.get('isPrivate'), (Boolean) node.get('isArchived'), topics)
+
+                    if (!StringUtils.isEmpty(description) && StringUtils.isEmpty(repository.getDescription()))
+                        repository.setDescription(description)
+                    setLicenseInfo(repository, node)
+                    // TODO pageInfo for pullRequests
+                    setPullRequestInfo(repository, node)
+
+                    repositories.put(repository.getName(), repository)
+                }
+            }
+            return repositories;
+        }
+
+        Map<String, Repository> execute() throws IOException
+        {
+            Map<String, Repository> repositories = new TreeMap<>()
+
+            if (requireAllTopics || topicFilters.isEmpty())
+            {
+                String filterString = topicFilters.stream().map({topic -> topic.trim()}).collect(Collectors.joining(" topic:"))
+                repositories = getAllRepositories(project, filterString)
+            }
+            else
+            {
+                topicFilters.forEach({
+                    topic ->
+                        repositories.putAll(getAllRepositories(project, "topic:${topic.trim()}"))
+                })
+            }
+
+            return repositories
+        }
+
+        private static Map<String, Object> makeRequest(Project project, String queryString) throws IOException
+        {
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            Map<String, Object> rawData
+            project.logger.info("Making request with queryString '${queryString}'")
+            try
+            {
+                HttpPost httpPost = new HttpPost(GITHUB_GRAPHQL_ENDPOINT);
+                httpPost.setHeader("Authorization", "Bearer " + getAuthorizationToken())
+
+                Map<String, String> requestObject = new HashMap<>()
+                requestObject.put("query", queryString)
+                httpPost.setEntity(new StringEntity(JSONObject.valueToString(requestObject), ContentType.APPLICATION_JSON))
+
+                CloseableHttpResponse response = httpClient.execute(httpPost)
+                try
+                {
+                    ResponseHandler<String> handler = new BasicResponseHandler()
+                    String contents = handler.handleResponse(response)
+                    project.logger.info("Response contents ${contents}")
+                    ObjectMapper mapper = new ObjectMapper()
+                    rawData = mapper.readValue(contents, Map.class)
+                }
+                catch (Exception re)
+                {
+                    throw new GradleException("Problem retrieving response from query '${queryString}'", re);
+                }
+                finally
+                {
+                    response.close();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new GradleException("Problem executing request for repository data with query '${queryString}'", e)
+            }
+            finally
+            {
+                httpClient.close()
+            }
+            if (rawData == null)
+                throw new GradleException("No data retrieved with query '${queryString}'")
+            if (rawData != null && rawData.containsKey("errors"))
+                throw new GradleException("Problem retrieving repository with query, '${queryString}': ${rawData.get('errors')}")
+
+            return rawData
+        }
+    }
+
     private Project project;
-    private static final String GITHUB_GRAPHQL_ENDPOINT = "https://api.github.com/graphql"
-    private static final String TOPICS_PROPERTY = "gitTopics"
-    private static final String ALL_TOPICS_PROPERTY = "requireAllTopics"
-    private static final String INCLUDE_ARCHIVED_PROPERTY = "includeArchived"
 
     @Override
     void apply(Project project)
@@ -520,12 +988,16 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitRepoList") {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) List all Git repositories. Use -Pverbose to show more details. Use -P${TOPICS_PROPERTY} to filter to modules with certain topics.  " +
+                task.description = "(incubating) List all Git repositories. Use -Pverbose to show more details. Use -P${RepositoryQuery.TOPICS_PROPERTY} to filter to modules with certain topics.  " +
                         "This can be a comma-separated list of topics (e.g., labkey-module,labkey-client-api).  By default, all repositories with any of these topics will be listed.  " +
-                        "Use -P${ALL_TOPICS_PROPERTY} to specify that all topics must be present.  " +
-                        "By default, only repositories that have not been archived are listed.  Use -P${INCLUDE_ARCHIVED_PROPERTY} to also include archived repositories."
+                        "Use -P${RepositoryQuery.ALL_TOPICS_PROPERTY} to specify that all topics must be present.  " +
+                        "By default, only repositories that have not been archived are listed.  Use -P${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} to also include archived repositories." +
+                        "Use -P${RepositoryQuery.INCLUDE_PRS_PROPERTY} in conjunction with -Pverbose to include info on pull requests.  Use the properties as in the 'listPullRequests' tasks to filter the pull requests."
                 task.doLast({
-                    Map<String, Repository> repos = this.getRepositoriesViaSearch(project)
+                    RepositoryQuery query = new RepositoryQuery(project)
+                    query.setIncludeLicenseInfo(true)
+                    query.setIncludeTopics(true)
+                    Map<String, Repository> repos = query.execute()
                     StringBuilder builder = new StringBuilder()
                     builder.append(getEchoHeader(repos, project))
                     builder.append("\n")
@@ -541,10 +1013,12 @@ class MultiGit implements Plugin<Project>
             Task task ->
                 task.group = "VCS"
                 task.description = "(incubating) Show the current branches for each of the repos in which there is an enlistment. " +
-                        "Use the properties ${TOPICS_PROPERTY}, ${ALL_TOPICS_PROPERTY}, and ${INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering. " +
+                        "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering. " +
                         "N.B. This task relies on accurate tagging of the Git repositories so it can determine the expected enlistment directory."
                 task.doLast({
-                    Map<String, Repository> repos = this.getRepositoriesViaSearch(project)
+                    RepositoryQuery query = new RepositoryQuery(project)
+                    query.setIncludeTopics(true)
+                    Map<String, Repository> repos = query.execute()
 
                     StringBuilder builder = new StringBuilder(getEchoHeader(repos, project))
                         .append("\n\n")
@@ -577,14 +1051,16 @@ class MultiGit implements Plugin<Project>
                 task.group = "VCS"
                 task.description = "(incubating) For all repositories with a current enlistment, perform a git checkout for the branch provided by the 'branch' property (e.g., -Pbranch=release18.3).  " +
                         "If no such branch exists for a repository, leaves the enlistment as is.  " +
-                        "Use the properties ${TOPICS_PROPERTY}, ${ALL_TOPICS_PROPERTY}, and ${INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering."
+                        "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering."
                 task.doLast({
                     if (!project.hasProperty('branch'))
                         throw new GradleException("Property 'branch' must be defined.")
                     String branchName = (String) project.property('branch')
                     String remoteBranch = "origin/${branchName}"
                     List<Repository> toUpdate = new ArrayList<>()
-                    Map<String, Repository> repositories = getRepositoriesViaSearch(project)
+                    RepositoryQuery query = new RepositoryQuery(project)
+                    query.setIncludeTopics(true)
+                    Map<String, Repository> repositories = query.execute()
                     project.logger.quiet(getEchoHeader(repositories, project))
                     repositories.values().forEach({
                         Repository repository ->
@@ -620,11 +1096,12 @@ class MultiGit implements Plugin<Project>
             Task task ->
                 task.group = "VCS"
                 task.description = "(incubating) Enlist in all of the git modules used for a running LabKey server.  " +
-                        "Use the properties ${TOPICS_PROPERTY}, ${ALL_TOPICS_PROPERTY}, and ${INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering the repository set. " +
+                        "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering the repository set. " +
                         "If a moduleSet property is specified, enlist in only the modules included by that module set. Using -PmoduleSet=all is the same as providing no module set property."
                 task.doLast({
-                    // get all the repositories
-                    Map<String, Repository> repositories = getRepositoriesViaSearch(project)
+                    RepositoryQuery query = new RepositoryQuery(project)
+                    query.setIncludeTopics(true)
+                    Map<String, Repository> repositories = query.execute()
                     // get the starting point for enlistment
                     Collection<Repository> baseSet = getEnlistmentBaseSet(repositories)
                     project.logger.quiet(getEchoHeader(repositories, project))
@@ -642,6 +1119,32 @@ class MultiGit implements Plugin<Project>
                 })
         }
 
+        project.tasks.register("listPullRequests") {
+            Task task ->
+                task.group = "VCS"
+                task.description = "(incubating) Lists the pull requests for a set of modules... TODO" +
+                        "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering the repository set. " +
+                        "Use ${RepositoryQuery.BASE_BRANCH_PROPERTY} to sepcify the base for the pull requests (default: develop)." +
+                        "Use -P${RepositoryQuery.PR_STATES_PROPERTY}=[MERGED|CLOSED|OPEN] to specify the state(s) of the pull requests to show (default: all). " +
+                        "Use -P${RepositoryQuery.START_DATE_PROPERTY}=YYYY-MM-DD and -P${RepositoryQuery.END_DATE_PROPERTY}=YYYY-MM-DD to filter by pull dates"
+
+                        task.doLast( {
+                    // get all the repositories
+                    RepositoryQuery query = new RepositoryQuery(project)
+                    query.setIncludePullRequests(true)
+                    Map<String, Repository> repositories = query.execute()
+                    project.logger.quiet(getEchoHeader(repositories, project))
+                    project.logger.quiet("Repository\t" + PullRequest.getTsvHeader())
+                    for (Repository repo : repositories.values())
+                    {
+                        for (PullRequest pr : repo.getPullRequests())
+                        {
+                            project.logger.quiet("${repo.getName()}\t${pr.toString('tsv')}")
+                        }
+                    }
+                })
+        }
+
         //
         // TODO Add tasks for releasing
         // - branch
@@ -651,10 +1154,10 @@ class MultiGit implements Plugin<Project>
     private String getEchoHeader(Map<String, Repository> repositories, Project project)
     {
         StringBuilder builder = new StringBuilder("Considering ${repositories.size()} git repositories")
-        if (project.hasProperty(TOPICS_PROPERTY))
+        if (project.hasProperty(RepositoryQuery.TOPICS_PROPERTY))
         {
-            builder.append(project.hasProperty(ALL_TOPICS_PROPERTY) ? " with all of the topics: " : " with any of the topics: ")
-            builder.append(project.property(TOPICS_PROPERTY))
+            builder.append(project.hasProperty(RepositoryQuery.ALL_TOPICS_PROPERTY) ? " with all of the topics: " : " with any of the topics: ")
+            builder.append(project.property(RepositoryQuery.TOPICS_PROPERTY))
         }
         return builder.toString()
     }
@@ -701,182 +1204,5 @@ class MultiGit implements Plugin<Project>
         }
     }
 
-    private static String getAuthorizationToken()
-    {
-        return System.getenv('GIT_ACCESS_TOKEN');
-    }
 
-    private static String getQuerySearchString(boolean includeArchived, String repoTopics = "", String prevEndCursor = null)
-    {
-        String queryString = "org:LabKey "
-        if (!includeArchived)
-            queryString += " archived:false "
-        queryString += repoTopics
-        String cursorString = prevEndCursor == null ? "after:null" : "after:\"${prevEndCursor}\""
-        return "query {search(query: \"${queryString}\", type:REPOSITORY, first:100, ${cursorString} ) {  " +
-                " repositoryCount " +
-                "    pageInfo {" +
-                "      endCursor" +
-                "      hasNextPage" +
-                "      startCursor" +
-                "    }" +
-                " edges { " +
-                "   node { " +
-                "       ... on Repository { " +
-                "           name " +
-                "           description " +
-                "           isArchived " +
-                "           isPrivate " +
-                "           licenseInfo {" +
-                "               name" +
-                "           }" +
-                "           url " +
-                "           repositoryTopics(first: 10) {" +
-                "               edges {" +
-                "                   node {" +
-                "                       topic {" +
-                "                           name" +
-                "                       }" +
-                "                   }" +
-                "               }" +
-                "           }" +
-                "       } " +
-                "   }  " +
-                "} " +
-            "}     " +
-        "}"
-    }
-
-    private static List<String> getRepositoryTopics(Map<String, Object> node)
-    {
-        List<String> names = new ArrayList<>()
-        List<Map<String, Object>> topicEdges = getMapList(node, ['repositoryTopics'], 'edges')
-        for (Map<String, Object> topicEdge : topicEdges)
-        {
-            Map<String, Object> topicMap = getMap(topicEdge, ['node', 'topic'])
-            names.push(((String) topicMap.get('name')).toLowerCase())
-        }
-        return names;
-    }
-
-    private void setLicenseInfo(Repository repository, Map<String, Object> node)
-    {
-        if (repository.getLicenseName() == null)
-        {
-            Map<String, Object> licenseInfo = (Map<String, Object>) node.get('licenseInfo')
-            if (licenseInfo != null)
-            {
-                repository.setLicenseName((String) licenseInfo.get('name'))
-            }
-        }
-    }
-
-    private Map<String, Repository> getAllRepositories(Project project, boolean includeArchived, String filterString)
-    {
-
-        boolean hasNextPage = true
-        String endCursor = null
-        Map<String, Repository> repositories = new TreeMap<>()
-
-        while (hasNextPage)
-        {
-            project.logger.info("getAllRepositories - includeArchived: ${includeArchived}, filterString: '${filterString}'")
-            Map<String, Object> rawData = makeRequest(project, getQuerySearchString(includeArchived, filterString, endCursor))
-            Map<String, Object> pageInfo = getMap(rawData, ['data', 'search', 'pageInfo']);
-            hasNextPage = (Boolean) pageInfo.get('hasNextPage')
-            endCursor = (String) pageInfo.get('endCursor')
-            project.logger.info("hasNextPage ${hasNextPage} endCursor ${endCursor}")
-
-            List<Map<String, Object>> searchResults = getMapList(rawData, ['data', 'search'], "edges");
-            for (Map<String, Object> nodeMap: searchResults)
-            {
-                Map<String, Object> node = (Map<String, Object>) nodeMap.get('node')
-                String name = node.get('name')
-                String description = (node.get('description') != null) ? node.get('description') : ''
-                List<String> topics = getRepositoryTopics(node)
-
-                Repository repository = new Repository(project, name, (String) node.get('url'), (Boolean) node.get('isPrivate'), (Boolean) node.get('isArchived'), topics)
-
-                if (!StringUtils.isEmpty(description) && StringUtils.isEmpty(repository.getDescription()))
-                    repository.setDescription(description)
-                setLicenseInfo(repository, node)
-
-                repositories.put(repository.getName(), repository)
-            }
-        }
-        return repositories;
-    }
-
-    private Map<String, Repository> getRepositoriesViaSearch(Project project) throws IOException
-    {
-        boolean includeArchived = !project.hasProperty(INCLUDE_ARCHIVED_PROPERTY)
-        boolean requireAllTopics = project.hasProperty(ALL_TOPICS_PROPERTY)
-
-        Map<String, Repository> repositories = new TreeMap<>()
-
-        List<String> topicFilters = project.hasProperty(TOPICS_PROPERTY) ?
-                ((String) project.property(TOPICS_PROPERTY)).split(",")  : []
-        if (requireAllTopics || topicFilters.isEmpty())
-        {
-            String filterString = topicFilters.stream().map({topic -> topic.trim()}).collect(Collectors.joining(" topic:"))
-            repositories = getAllRepositories(project, includeArchived, filterString)
-        }
-        else
-        {
-            topicFilters.forEach({
-                topic ->
-                    repositories.putAll(getAllRepositories(project, includeArchived, "topic:${topic.trim()}"))
-            })
-        }
-
-        return repositories
-    }
-
-    private static Map<String, Object> makeRequest(Project project, String queryString) throws IOException
-    {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        Map<String, Object> rawData
-        project.logger.info("Making request with queryString '${queryString}'")
-        try
-        {
-            HttpPost httpPost = new HttpPost(GITHUB_GRAPHQL_ENDPOINT);
-            httpPost.setHeader("Authorization", "Bearer " + getAuthorizationToken())
-
-            Map<String, String> requestObject = new HashMap<>()
-            requestObject.put("query", queryString)
-            httpPost.setEntity(new StringEntity(JSONObject.valueToString(requestObject), ContentType.APPLICATION_JSON))
-
-            CloseableHttpResponse response = httpClient.execute(httpPost)
-            try
-            {
-                ResponseHandler<String> handler = new BasicResponseHandler()
-                String contents = handler.handleResponse(response)
-                project.logger.info("Response contents ${contents}")
-                ObjectMapper mapper = new ObjectMapper()
-                rawData = mapper.readValue(contents, Map.class)
-            }
-            catch (Exception re)
-            {
-                throw new GradleException("Problem retrieving response from query '${queryString}'", re);
-            }
-            finally
-            {
-                response.close();
-            }
-        }
-        catch (Exception e)
-        {
-            throw new GradleException("Problem executing request for repository data with query '${queryString}'", e)
-        }
-        finally
-        {
-            httpClient.close()
-        }
-        if (rawData == null)
-            throw new GradleException("No data retrieved with query '${queryString}'")
-        if (rawData != null && rawData.containsKey("errors"))
-            throw new GradleException("Problem retrieving repository with query, '${queryString}': ${rawData.get('errors')}")
-
-        return rawData
-    }
 }
