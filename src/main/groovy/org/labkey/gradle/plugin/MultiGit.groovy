@@ -595,8 +595,8 @@ class MultiGit implements Plugin<Project>
         public static final String INCLUDE_ARCHIVED_PROPERTY = "includeArchived"
         public static final String PR_STATES_PROPERTY = "prStates"
         public static final String BASE_BRANCH_PROPERTY = "baseBranch"
-        public static final String START_DATE_PROPERTY = "startDate"
-        public static final String END_DATE_PROPERTY = "endDate"
+        public static final String START_DATE_PROPERTY = "prStartDate"
+        public static final String END_DATE_PROPERTY = "prEndDate"
         public static final int REPO_PAGE_SIZE = 100
         public static final int PR_PAGE_SIZE = 20
         private static final SimpleDateFormat updatedAtFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
