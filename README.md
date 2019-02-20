@@ -13,9 +13,9 @@ but also make certain assumptions that you may not want to impose on your module
 (Earliest compatible LabKey version: 19.1)
 
 * Remove Windows installer
-* Update naming for alpha branches
+* Update naming for alpha branches (formerly known as sprint branches)
 * Convert to non-deprecated properties for artifact-producing tasks 
-* (incubating) Add task for lising pull request info on a set of git repositories
+* (incubating) Add task for listing pull request info on a set of git repositories
 
 ### version 1.4
 *Release*: 17 Jan 2019
