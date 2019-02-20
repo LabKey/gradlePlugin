@@ -9,7 +9,7 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 ### version 1.4.1
-*Release*: ??
+*Release*: 20 Feb 2019
 (Earliest compatible LabKey version: 19.1)
 
 * Remove Windows installer
