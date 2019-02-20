@@ -79,10 +79,10 @@ class Api implements Plugin<Project>
              Jar jar ->
                  jar.group = GroupNames.API
                  jar.description = "produce jar file for api"
-                 jar.classifier CLASSIFIER
+                 jar.archiveClassifier = CLASSIFIER
                  jar.from project.sourceSets.api.output
-                 jar.baseName = "${project.name}_api"
-                 jar.destinationDir = project.file(project.labkey.explodedModuleLibDir)
+                 jar.archiveBaseName = "${project.name}_api"
+                 jar.destinationDirectory = project.file(project.labkey.explodedModuleLibDir)
                  jar.dependsOn(project.apiClasses)
          }
 

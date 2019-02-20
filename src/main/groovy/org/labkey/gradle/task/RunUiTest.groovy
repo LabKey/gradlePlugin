@@ -89,7 +89,6 @@ class RunUiTest extends Test
         systemProperty "failure.output.dir", "${project.buildDir}/${LOG_DIR}"
         systemProperty "labkey.root", project.rootProject.projectDir
         systemProperty "project.root", project.rootProject.projectDir
-
         systemProperty "user.home", System.getProperty('user.home')
         systemProperty "tomcat.home", project.ext.tomcatDir
         systemProperty "test.credentials.file", "${project.projectDir}/test.credentials.json"

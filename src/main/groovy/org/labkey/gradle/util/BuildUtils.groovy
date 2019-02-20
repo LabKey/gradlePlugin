@@ -272,7 +272,7 @@ class BuildUtils
         if (project.hasProperty("versioning"))
         {
             String branch = project.versioning.info.branchId
-            // When a git module is on the "master" branch in git, this corresponds to the sprint branch
+            // When a git module is on the "master" branch in git, this corresponds to the alpha branch
             // at the root and we want to use that version for consistency with the SVN modules
             if (branch.equalsIgnoreCase("master"))
                 return project.rootProject.version
@@ -290,8 +290,9 @@ class BuildUtils
     /**
      * Gets the versioning string to be inserted into distribution artifacts.  This string has a slightly different
      * format depending on the branch in which the distributions are created:
-     *     Trunk - 17.3-SNAPSHOT (Current LabKey version)
-     *     Sprint - 17.3Sprint3-46992.4 (<labkey release version>Sprint<sprint number>-<VCSRevision>.<BuildNumber>)
+     *     Trunk - 19.1-SNAPSHOT-62300.800 (<Current labkeyVersion>-<VCSRevision>.<BuildCounter>)
+     *     Sprint (deprecated) - 17.3Sprint3-46992.4 (<labkey release version>Sprint<sprint number>-<VCSRevision>.<BuildNumber>)
+     *     Alpha - 19.1Alpha3-62239.3 (<labkey release version>Alpha<sprint number>-<VCSRevision>.<BuildCounter>)
      *     Beta - 17.3Beta-47540.6 (<labkey release version>Beta-<VCSRevision>.<BuildNumber>)
      *     (Beta means we are in a release branch, but have not yet released and updated from the snapshot version)
      *     Release - 17.3-47926.26 (<labkey release version>-<VCSRevision>.<BuildNumber>)
@@ -309,7 +310,8 @@ class BuildUtils
 
             if (!["trunk", "master", "develop", "none"].contains(rootBranch))
             {
-                if (lowerBranch.startsWith("sprint"))
+                // TODO: Remove sprint branch naming in 19.2. Sprint branches became 'alpha' branches in 19.1Alpha3
+                if (lowerBranch.startsWith("sprint")) /* e.g. sprint_19.1_2 */
                 {
                     version = version.replace("-SNAPSHOT", "")
                     version += "Sprint"
@@ -319,17 +321,18 @@ class BuildUtils
                     else
                         version += nameParts[2]
                 }
-                else if (lowerBranch.matches(".*-alpha.*"))
+                else if (lowerBranch.startsWith("alpha")) /* e.g. alpha_19.1_3 */
                 {
                     version = version.replace("-SNAPSHOT", "")
-                    String[] nameParts = rootBranch.split("-")
-                    if (nameParts.length < 2)
+                    version += "Alpha"
+                    String[] nameParts = rootBranch.split("_")
+                    if (nameParts.length != 3)
                         project.logger.error("Root branch name '${rootBranch}' not as expected.  Distribution name may not be as expected.");
                     else
-                        version += "-" + nameParts[nameParts.length-1]
+                        version += nameParts[2]
                 }
                 else if (lowerBranch.startsWith("release") &&
-                        project.labkeyVersion.contains("-SNAPSHOT"))
+                        project.labkeyVersion.contains("-SNAPSHOT")) /* e.g. release18.3-SNAPSHOT */
                 {
                     version = version.replace("-SNAPSHOT", "Beta");
                 }
@@ -362,7 +365,7 @@ class BuildUtils
         if (project.hasProperty("versioning"))
         {
             String branch = project.versioning.info.branchId
-            // When a git module is on the "master" branch in git, this corresponds to the sprint branch
+            // When a git module is on the "master" branch in git, this corresponds to the alpha branch
             // at the root and we want to use that version for consistency with the SVN modules
             if (branch.equalsIgnoreCase("master"))
             {

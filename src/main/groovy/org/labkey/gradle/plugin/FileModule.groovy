@@ -205,10 +205,10 @@ class FileModule implements Plugin<Project>
                     jar.exclude '**/*.uptodate'
                     jar.exclude "META-INF/${project.name}/**"
                     jar.exclude 'gwt-unitCache/**'
-                    jar.baseName = project.name
-                    jar.version = BuildUtils.getModuleFileVersion(project)
-                    jar.extension = 'module'
-                    jar.destinationDir = project.buildDir
+                    jar.archiveBaseName = project.name
+                    jar.archiveVersion = BuildUtils.getModuleFileVersion(project)
+                    jar.archiveExtension = 'module'
+                    jar.destinationDirectory = project.buildDir
             }
 
             Task moduleFile = project.tasks.module
@@ -284,10 +284,10 @@ class FileModule implements Plugin<Project>
                 Zip task ->
                     task.group = GroupNames.MODULE
                     task.description = "Create a zip file from the exploded module web directory"
-                    task.baseName = project.name
-                    task.classifier = LabKey.CLIENT_LIBS_CLASSIFER
+                    task.archiveBaseName = project.name
+                    task.archiveClassifier = LabKey.CLIENT_LIBS_CLASSIFER
                     from project.labkey.explodedModuleWebDir
-                    task.destinationDir = project.file("${project.buildDir}/${project.libsDirName}")
+                    task.destinationDirectory = project.file("${project.buildDir}/${project.libsDirName}")
             }
         }
     }
