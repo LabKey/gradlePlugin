@@ -37,6 +37,8 @@ class BuildUtils
     public static final String BUILD_FROM_SOURCE_PROP = "buildFromSource"
     public static final String BUILD_CLIENT_LIBS_FROM_SOURCE_PROP = "buildClientLibsFromSource"
     public static final String SERVER_MODULES_DIR = "server/modules"
+    public static final String PLATFORM_MODULES_DIR = "server/modules/platform"
+    public static final String COMMON_ASSAYS_MODULES_DIR = "server/modules/commonAssays"
     public static final String CUSTOM_MODULES_DIR = "server/customModules"
     public static final String OPTIONAL_MODULES_DIR = "server/optionalModules"
     public static final String EXTERNAL_MODULES_DIR = "externalModules"
@@ -54,9 +56,12 @@ class BuildUtils
     ]
 
     // a set of directory paths in which to look for module directories
-    public static final List<String> SERVER_MODULE_DIRS = [SERVER_MODULES_DIR,
-                                                           CUSTOM_MODULES_DIR,
-                                                           OPTIONAL_MODULES_DIR
+    public static final List<String> SERVER_MODULE_DIRS = [
+            SERVER_MODULES_DIR,
+            PLATFORM_MODULES_DIR,
+            COMMON_ASSAYS_MODULES_DIR,
+            CUSTOM_MODULES_DIR,
+            OPTIONAL_MODULES_DIR,
     ]
 
     public static final List<String> EHR_EXTERNAL_MODULE_DIRS = [
