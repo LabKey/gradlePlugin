@@ -10,6 +10,11 @@ but also make certain assumptions that you may not want to impose on your module
 ## Release Notes
 ### version 1.4.2
 *Release*: ??
+(Earliest compatible LabKey version: 19.1)
+
+* Add ability to get base modules from a different location using the `platformProjectPath` property to
+support some reorganization of the modules into git repositories.
+
 
 ### version 1.4.1
 *Release*: 20 Feb 2019
