@@ -223,6 +223,18 @@ class BuildUtils
         return getProjectPath(gradle, "platformProjectPath", ":server:modules")
     }
 
+
+    static String getCommonAssayModuleProjectPath(Gradle gradle, String name)
+    {
+        return "${getCommonAssaysProjectPath(gradle)}:${name}".toString();
+    }
+
+    // The gradle path to the project containing the common assays
+    static String getCommonAssaysProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "commonAssaysProjectPath", ":server:modules")
+    }
+
     static boolean isApi(Project project)
     {
         return project.path.equals(getApiProjectPath(project.gradle))
