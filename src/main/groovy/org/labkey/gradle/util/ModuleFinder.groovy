@@ -73,8 +73,13 @@ class ModuleFinder extends SimpleFileVisitor<Path>
         return p.path.toLowerCase().contains(":distributions")
     }
 
+    static boolean isModuleContainer(Project p)
+    {
+        return p.path.equals(BuildUtils.getCommonAssaysProjectPath(p.gradle)) || p.path.equals(BuildUtils.getPlatformProjectPath(p.gradle))
+    }
+
     static boolean isPotentialModule(Project p)
     {
-        return !p.name.startsWith(".") && !p.name.toLowerCase().equals("test") && !isDistributionProject(p)
+        return !p.name.startsWith(".") && !p.name.toLowerCase().equals("test") && !isDistributionProject(p) && !isModuleContainer(p)
     }
 }

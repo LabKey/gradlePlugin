@@ -37,26 +37,13 @@ class BuildUtils
     public static final String BUILD_FROM_SOURCE_PROP = "buildFromSource"
     public static final String BUILD_CLIENT_LIBS_FROM_SOURCE_PROP = "buildClientLibsFromSource"
     public static final String SERVER_MODULES_DIR = "server/modules"
+    public static final String PLATFORM_MODULES_DIR = "server/modules/platform"
+    public static final String COMMON_ASSAYS_MODULES_DIR = "server/modules/commonAssays"
     public static final String CUSTOM_MODULES_DIR = "server/customModules"
     public static final String OPTIONAL_MODULES_DIR = "server/optionalModules"
     public static final String EXTERNAL_MODULES_DIR = "externalModules"
 
     public static final String TEST_MODULES_DIR = "server/test/modules"
-
-    // the set of modules required for minimal LabKey server functionality
-    // (aside from the bootstrap, api, internal, and remoteapi projects
-    // whose paths are parameterized in the settings.gradle file)
-    private static final List<String> BASE_MODULES =
-            [
-                    ":server:modules:announcements",
-                    ":server:modules:audit",
-                    ":server:modules:core",
-                    ":server:modules:experiment",
-                    ":server:modules:filecontent",
-                    ":server:modules:pipeline",
-                    ":server:modules:query",
-                    ":server:modules:wiki"
-            ]
 
     public static final List<String> EHR_MODULE_NAMES = [
             "EHR_ComplianceDB",
@@ -69,9 +56,12 @@ class BuildUtils
     ]
 
     // a set of directory paths in which to look for module directories
-    public static final List<String> SERVER_MODULE_DIRS = [SERVER_MODULES_DIR,
-                                                           CUSTOM_MODULES_DIR,
-                                                           OPTIONAL_MODULES_DIR
+    public static final List<String> SERVER_MODULE_DIRS = [
+            SERVER_MODULES_DIR,
+            PLATFORM_MODULES_DIR,
+            COMMON_ASSAYS_MODULES_DIR,
+            CUSTOM_MODULES_DIR,
+            OPTIONAL_MODULES_DIR,
     ]
 
     public static final List<String> EHR_EXTERNAL_MODULE_DIRS = [
@@ -108,7 +98,15 @@ class BuildUtils
                 getBootstrapProjectPath(gradle),
                 getRemoteApiProjectPath(gradle),
                 getInternalProjectPath(gradle),
-        ] + BASE_MODULES
+                getPlatformModuleProjectPath(gradle, "announcements"),
+                getPlatformModuleProjectPath(gradle, "audit"),
+                getPlatformModuleProjectPath(gradle, "core"),
+                getPlatformModuleProjectPath(gradle, "experiment"),
+                getPlatformModuleProjectPath(gradle, "filecontent"),
+                getPlatformModuleProjectPath(gradle, "pipeline"),
+                getPlatformModuleProjectPath(gradle, "query"),
+                getPlatformModuleProjectPath(gradle, "wiki")
+        ]
     }
 
     /**
@@ -216,6 +214,32 @@ class BuildUtils
         return whyNotBuildFromSource(project, BUILD_CLIENT_LIBS_FROM_SOURCE_PROP).isEmpty()
     }
 
+    static String getPlatformModuleProjectPath(Gradle gradle, String name)
+    {
+        // without the toString call below, you get the following error:
+        // Caused by: java.lang.ArrayStoreException: arraycopy: element type mismatch: can not cast one of the elements of
+        // java.lang.Object[] to the type of the destination array, java.lang.String
+        return "${getPlatformProjectPath(gradle)}:${name}".toString();
+    }
+
+    // The gradle path to the project containing the platform (base) modules (e.g., core)
+    static String getPlatformProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "platformProjectPath", ":server:modules")
+    }
+
+
+    static String getCommonAssayModuleProjectPath(Gradle gradle, String name)
+    {
+        return "${getCommonAssaysProjectPath(gradle)}:${name}".toString();
+    }
+
+    // The gradle path to the project containing the common assays
+    static String getCommonAssaysProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "commonAssaysProjectPath", ":server:modules")
+    }
+
     static boolean isApi(Project project)
     {
         return project.path.equals(getApiProjectPath(project.gradle))
@@ -238,7 +262,7 @@ class BuildUtils
 
     static String getNodeBinProjectPath(Gradle gradle)
     {
-        return getProjectPath(gradle, "nodeBinProjectPath", ":server:modules:core")
+        return getProjectPath(gradle, "nodeBinProjectPath", getPlatformModuleProjectPath(gradle, "core"))
     }
 
     static String getRemoteApiProjectPath(Gradle gradle)
