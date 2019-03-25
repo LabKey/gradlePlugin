@@ -37,7 +37,7 @@ class SpringConfig implements Plugin<Project>
     {
         _dirName = "${DIR_PREFIX}/${project.name}"
         project.apply plugin: 'java-base'
-
+        project.evaluationDependsOn(BuildUtils.getApiProjectPath(project.gradle))
         addSourceSet(project)
         addDependencies(project)
     }
