@@ -8,6 +8,12 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
+### version 1.4.3
+*Release*: 25 Mar 2019
+(Earliest compatible LabKey version: 19.1)
+
+* Fix evaluation ordering for SpringConfig plugin when doing IntelliJ gradle syncing.
+
 ### version 1.4.2
 *Release*: 20 Mar 2019
 (Earliest compatible LabKey version: 19.1)
