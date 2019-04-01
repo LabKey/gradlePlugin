@@ -442,6 +442,28 @@ class BuildUtils
         return ret
     }
 
+    // Default Tomcat libraries for building Java modules and server API
+    private static List TOMCAT_LIBS = [
+            'tomcat-api',
+            'tomcat-catalina',
+            'tomcat-jasper',
+            'tomcat-jsp-api',
+            'tomcat-util',
+            'tomcat-websocket-api',
+            'tomcat7-websocket'
+    ]
+
+    static void setTomcatLibs(List<String> libs)
+    {
+        TOMCAT_LIBS = new ArrayList(libs)
+    }
+
+    static void addTomcatBuildDependencies(Project project, String configuration)
+    {
+        for (String lib : TOMCAT_LIBS)
+            project.dependencies.add(configuration, "org.apache.tomcat:${lib}:${project.apacheTomcatVersion}")
+    }
+
     static void addLabKeyDependency(Map<String, Object> config)
     {
         if (config.get('transitive') != null)

@@ -95,19 +95,29 @@ class Jsp implements Plugin<Project>
     {
         project.dependencies
                 {
-                    jspImplementation  'org.apache.tomcat:jasper',
-                        'org.apache.tomcat:jsp-api',
-                        'org.apache.tomcat:tomcat-juli'
-                    jspImplementation project.fileTree(dir: "${project.tomcatDir}/lib", includes: ['*.jar'])
                     BuildUtils.addLabKeyDependency(project: project, config: "jspImplementation", depProjectPath: BuildUtils.getApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
                     BuildUtils.addLabKeyDependency(project: project, config: "jspImplementation", depProjectPath: BuildUtils.getInternalProjectPath(project.gradle), depVersion: project.labkeyVersion)
                     jspImplementation project.files(project.tasks.jar)
                     if (project.hasProperty('apiJar'))
                         jspImplementation project.files(project.tasks.apiJar)
+                    if (project.hasProperty('apacheTomcatVersion'))
+                    {
+                        BuildUtils.addTomcatBuildDependencies(project, "jspImplementation")
 
-                    jsp     'org.apache.tomcat:jasper',
-                            'org.apache.tomcat:bootstrap',
-                            'org.apache.tomcat:tomcat-juli'
+                        jsp ("org.apache.tomcat:tomcat-jasper:${project.apacheTomcatVersion}") { transitive = false }
+                        jsp ("org.apache.tomcat:tomcat-juli:${project.apacheTomcatVersion}") { transitive = false }
+                    }
+                    else // TODO: Remove once plugin no longer supports 19.1
+                    {
+                        jspImplementation 'org.apache.tomcat:jasper',
+                                'org.apache.tomcat:jsp-api',
+                                'org.apache.tomcat:tomcat-juli'
+                        jspImplementation project.fileTree(dir: "${project.tomcatDir}/lib", includes: ['*.jar'])
+
+                        jsp     'org.apache.tomcat:jasper',
+                                'org.apache.tomcat:bootstrap',
+                                'org.apache.tomcat:tomcat-juli'
+                    }
                 }
         // We need this declaration for IntelliJ to be able to find the .tld files, but if we include
         // it for the command line, there will be lots of warnings about .tld files on the classpath where
