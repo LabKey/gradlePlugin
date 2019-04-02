@@ -476,6 +476,8 @@ class BuildUtils
 
     static void addTomcatBuildDependencies(Project project, String configuration)
     {
+        if (!"${project.apacheTomcatVersion}".startsWith("7."))
+            TOMCAT_LIBS.replaceAll({it.replace('tomcat7-', 'tomcat-')})
         for (String lib : TOMCAT_LIBS)
             project.dependencies.add(configuration, "org.apache.tomcat:${lib}:${project.apacheTomcatVersion}")
     }
