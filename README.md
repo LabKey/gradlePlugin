@@ -13,6 +13,7 @@ but also make certain assumptions that you may not want to impose on your module
 _(Earliest compatible LabKey version: 19.1)_
 
 * 36138: Remove compile-time dependency on local tomcat installation 
+* Include module containers with `BuildUtils.includeModules` if specified
 
 ### version 1.4.4
 *Release*: 27 Mar 2019

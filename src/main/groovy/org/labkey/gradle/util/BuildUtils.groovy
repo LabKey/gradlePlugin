@@ -149,6 +149,11 @@ class BuildUtils
      */
     static void includeModules(Settings settings, File rootDir, List<String> moduleDirs, List<String> excludedModules)
     {
+        includeModules(settings, rootDir, moduleDirs, excludedModules, false)
+    }
+
+    static void includeModules(Settings settings, File rootDir, List<String> moduleDirs, List<String> excludedModules, Boolean includeModuleContainers)
+    {
         // find the directories in each of the moduleDirs that meet our selection criteria
         moduleDirs.each { String path ->
             if (path.contains("*"))
@@ -165,12 +170,23 @@ class BuildUtils
                 if (directory.exists())
                 {
                     String prefix = convertDirToPath(rootDir, directory)
-                    settings.include directory.listFiles().findAll { File f ->
+                    Collection<File> potentialModules = directory.listFiles().findAll { File f ->
                         // exclude non-directories, explicitly excluded names, and directories beginning with a .
-                        f.isDirectory() && !excludedModules.contains(f.getName()) &&  !(f.getName() =~ "^\\..*")
-                    }.collect {
+                        f.isDirectory() && !excludedModules.contains(f.getName()) &&  !(f.getName() =~ "^\\..*") && !f.getName().equals("node_modules")
+                    }
+                    settings.include potentialModules.collect {
                         (String) "${prefix}:${it.getName()}"
                     }.toArray(new String[0])
+
+                    if (includeModuleContainers)
+                    {
+                        List<String> potentialModuleContainers = potentialModules.findAll { File f ->
+                            !new File(f, 'module.properties').exists() && !f.getName().equals("test")
+                        }.collect {
+                            (String) "${path}/${it.getName()}"
+                        }
+                        includeModules(settings, rootDir, potentialModuleContainers, excludedModules, false)
+                    }
                 }
             }
         }
