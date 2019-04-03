@@ -20,6 +20,10 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.util.BuildUtils
 
+/**
+ * @deprecated  TODO: Remove once plugin no longer supports 19.1
+ */
+@Deprecated (forRemoval = true)
 class PipelineConfigDistribution extends DefaultTask
 {
     public static final String CLASSIFIER = "PipelineConfig"
