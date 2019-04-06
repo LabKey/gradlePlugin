@@ -38,8 +38,7 @@ class Gwt implements Plugin<Project>
 
     static boolean isApplicable(Project project)
     {
-        // HACK!  We should move the gwtsrc from internal to api, where it is actually referenced
-        return project.name != "internal" && project.file(SOURCE_DIR).exists()
+        return project.file(SOURCE_DIR).exists()
     }
 
     @Override
