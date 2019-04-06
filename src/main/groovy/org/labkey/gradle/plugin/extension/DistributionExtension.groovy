@@ -22,13 +22,13 @@ import org.gradle.api.Project
  */
 class DistributionExtension
 {
+    // the directory in which the file 'distribution' is placed, which contains the name of the distribution
+    // (used for mothership reporting and troubleshooting)
     public static final String DIST_FILE_DIR = "labkeywebapp/WEB-INF/classes"
     public static final String DIST_FILE_NAME = "distribution"
     public static final String VERSION_FILE_NAME = "VERSION"
 
     String dir = "${project.rootProject.projectDir}/dist"
-    String installerSrcDir = "${project.rootProject.projectDir}/server/installer"
-    String archiveDataDir = "${installerSrcDir}/archivedata"
     String artifactId
     String description
 

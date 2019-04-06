@@ -10,11 +10,12 @@ but also make certain assumptions that you may not want to impose on your module
 ## Release Notes
 ### version 1.4.5
 *Release*: ???
-_(Earliest compatible LabKey version: 19.1)_
+(Earliest compatible LabKey version: 19.1)
 
-* 36138: Remove compile-time dependency on local tomcat installation 
+* [Issue 36138](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36138) - Remove compile-time dependency on local tomcat installation 
 * Include module containers with `BuildUtils.includeModules` if specified
-* 37055: Deprecate pipeline configuration distribution type
+* [Issue 37055](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=37055) - Deprecate pipeline configuration distribution type
+* [Issue 36814](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36814) - Move distribution resources out of server directory
 
 ### version 1.4.4
 *Release*: 27 Mar 2019

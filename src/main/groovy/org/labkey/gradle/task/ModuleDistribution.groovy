@@ -18,6 +18,7 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
@@ -235,12 +236,9 @@ class ModuleDistribution extends DefaultTask
                     include(name: "manual-upgrade.sh")
                 }
 
-                tarfileset(dir: distExtension.archiveDataDir,
-                        prefix: archivePrefix) {
-                    include(name: "README.txt")
-                }
                 tarfileset(dir: project.buildDir,
                         prefix: archivePrefix) {
+                    include(name: "README.txt")
                     include(name: "VERSION")
                     include(name: "labkeywebapp/**")
                     include(name: "nlp/**")
@@ -308,12 +306,9 @@ class ModuleDistribution extends DefaultTask
                     include(name: "manual-upgrade.sh")
                 }
 
-                zipfileset(dir: distExtension.archiveDataDir,
-                        prefix: "${archivePrefix}") {
-                    include(name: "README.txt")
-                }
                 zipfileset(dir: "${project.buildDir}/",
                         prefix: "${archivePrefix}") {
+                    include(name: "README.txt")
                     include(name: "VERSION")
                     include(name: "labkeywebapp/**")
                     include(name: "nlp/**")
@@ -337,13 +332,19 @@ class ModuleDistribution extends DefaultTask
     {
         writeDistributionFile()
         writeVersionFile()
-        // copy the manual-update script to the build directory so we can fix the line endings.
-        project.copy({CopySpec copy ->
-            copy.from(distExtension.archiveDataDir)
-            copy.include "manual-upgrade.sh"
-            copy.into project.buildDir
+        project.copy({ CopySpec copy ->
+            // This seems a very convoluted way to get to the zip file in the jar file.  Using the classLoader did not
+            // work as expected, however.  Following the example from here:
+            // https://discuss.gradle.org/t/gradle-plugin-copy-directory-tree-with-files-from-resources/12767/7
+            FileTree jarTree = project.zipTree(getClass().getProtectionDomain().getCodeSource().getLocation().toExternalForm())
+            File zipFile = jarTree.matching({
+                include "distributionResources.zip"
+            }).singleFile
+            FileTree zipTree = project.zipTree(zipFile);
+
+            copy.from(zipTree)
+            copy.into(project.buildDir)
         })
-        project.ant.fixcrlf (srcdir: project.buildDir, includes: "manual-upgrade.sh VERSION", eol: "unix")
     }
 
     File getDistributionFile()
