@@ -17,6 +17,7 @@ package org.labkey.gradle.util
 
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Project
+import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.labkey.gradle.plugin.Api
@@ -29,6 +30,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+
 /**
  * Static utility methods and constants for use in the build and settings scripts.
  */
@@ -698,5 +700,17 @@ class BuildUtils
     static String getProjectPath(Gradle gradle, String propertyName, String defaultValue)
     {
         return gradle.hasProperty(propertyName) ? gradle.getProperty(propertyName) : defaultValue
+    }
+
+    static FileTree getResourcesZipTree(Project project, String zipFileName)
+    {
+        // This seems a very convoluted way to get to the zip file in the jar file.  Using the classLoader did not
+        // work as expected, however.  Following the example from here:
+        // https://discuss.gradle.org/t/gradle-plugin-copy-directory-tree-with-files-from-resources/12767/7
+        FileTree jarTree = project.zipTree(getClass().getProtectionDomain().getCodeSource().getLocation().toExternalForm())
+        File zipFile = jarTree.matching({
+            include zipFileName
+        }).singleFile
+        return project.zipTree(zipFile);
     }
 }
