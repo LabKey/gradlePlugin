@@ -847,7 +847,8 @@ class MultiGit implements Plugin<Project>
                         repository.setDescription(description)
                     setLicenseInfo(repository, node)
                     // TODO pageInfo for pullRequests
-                    setPullRequestInfo(repository, node)
+                    if (includePullRequests)
+                        setPullRequestInfo(repository, node)
 
                     repositories.put(repository.getName(), repository)
                 }
