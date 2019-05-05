@@ -205,9 +205,9 @@ class FileModule implements Plugin<Project>
                     jar.exclude '**/*.uptodate'
                     jar.exclude "META-INF/${project.name}/**"
                     jar.exclude 'gwt-unitCache/**'
-                    jar.archiveBaseName = project.name
-                    jar.archiveVersion = BuildUtils.getModuleFileVersion(project)
-                    jar.archiveExtension = 'module'
+                    jar.archiveBaseName.set(project.name)
+                    jar.archiveVersion.set(BuildUtils.getModuleFileVersion(project))
+                    jar.archiveExtension.set('module')
                     jar.destinationDirectory = project.buildDir
             }
 
@@ -284,8 +284,8 @@ class FileModule implements Plugin<Project>
                 Zip task ->
                     task.group = GroupNames.MODULE
                     task.description = "Create a zip file from the exploded module web directory"
-                    task.archiveBaseName = project.name
-                    task.archiveClassifier = LabKey.CLIENT_LIBS_CLASSIFER
+                    task.archiveBaseName.set(project.name)
+                    task.archiveClassifier.set(LabKey.CLIENT_LIBS_CLASSIFER)
                     from project.labkey.explodedModuleWebDir
                     task.destinationDirectory = project.file("${project.buildDir}/${project.libsDirName}")
             }
