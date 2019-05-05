@@ -69,7 +69,7 @@ class PomFile extends DefaultTask
                         // FIXME it's possible to have external dependencies but no dependencies.
                         // add in the dependencies from the external configuration as well
                         def dependenciesNode = asNode().dependencies.first()
-                        project.configurations.api.dependencies.each {
+                        project.configurations.api.allDependencies.each {
                             def version = it.version
                             if (it instanceof DefaultProjectDependency)
                             {
