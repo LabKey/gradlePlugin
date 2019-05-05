@@ -16,9 +16,11 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.ServerBootstrap
+import org.labkey.gradle.util.BuildUtils
 
 /**
  * This task creates a pom file in a location that artifactory expects it when publishing.  It is meant to
@@ -67,11 +69,17 @@ class PomFile extends DefaultTask
                         // FIXME it's possible to have external dependencies but no dependencies.
                         // add in the dependencies from the external configuration as well
                         def dependenciesNode = asNode().dependencies.first()
-                        project.configurations.external.dependencies.each {
+                        project.configurations.api.dependencies.each {
+                            def version = it.version
+                            if (it instanceof DefaultProjectDependency)
+                            {
+                                DefaultProjectDependency dep = (DefaultProjectDependency) it
+                                version += BuildUtils.getClassifier(dep.targetConfiguration)
+                            }
                             def depNode = dependenciesNode.appendNode("dependency")
                             depNode.appendNode("groupId", it.group)
                             depNode.appendNode("artifactId", it.name)
-                            depNode.appendNode("version", it.version)
+                            depNode.appendNode("version", version)
                             depNode.appendNode("scope", "compile")
                         }
                     }
