@@ -70,16 +70,18 @@ class PomFile extends DefaultTask
                         // add in the dependencies from the external configuration as well
                         def dependenciesNode = asNode().dependencies.first()
                         project.configurations.api.allDependencies.each {
-                            def version = it.version
+                            def classifier = ""
                             if (it instanceof DefaultProjectDependency)
                             {
                                 DefaultProjectDependency dep = (DefaultProjectDependency) it
-                                version += BuildUtils.getClassifier(dep.targetConfiguration)
+                                classifier = BuildUtils.getClassifier(dep.targetConfiguration)
                             }
                             def depNode = dependenciesNode.appendNode("dependency")
                             depNode.appendNode("groupId", it.group)
                             depNode.appendNode("artifactId", it.name)
-                            depNode.appendNode("version", version)
+                            depNode.appendNode("version", it.version)
+                            if (classifier.length() > 0)
+                                depNode.appendNode("classifier", classifier)
                             depNode.appendNode("scope", "compile")
                         }
                     }
