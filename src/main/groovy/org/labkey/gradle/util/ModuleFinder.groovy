@@ -75,7 +75,11 @@ class ModuleFinder extends SimpleFileVisitor<Path>
 
     static boolean isModuleContainer(Project p)
     {
-        return p.path.equals(BuildUtils.getCommonAssaysProjectPath(p.gradle)) || p.path.equals(BuildUtils.getPlatformProjectPath(p.gradle))
+        // N.B.  We put this property in the ExtraPropertiesExtension 'ext' because this does
+        // not cause the subprojects to also have this property.  Just using a gradle property will
+        // cause all subprojects to also have the property, which means none of the container's modules
+        // would be seen as potential modules.
+        return p.ext.has('moduleContainer') || p.path.equals(BuildUtils.getCommonAssaysProjectPath(p.gradle)) || p.path.equals(BuildUtils.getPlatformProjectPath(p.gradle))
     }
 
     static boolean isPotentialModule(Project p)
