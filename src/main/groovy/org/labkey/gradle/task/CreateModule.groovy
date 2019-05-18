@@ -144,7 +144,15 @@ class CreateModule extends DefaultTask
 
         project.copy({ CopySpec copy ->
 
-            copy.from(BuildUtils.getResourcesZipTree(project, "moduleTemplate.zip"))
+            // This seems a very convoluted way to get to the zip file in the jar file.  Using the classLoader did not
+            // work as expected, however.  Following the example from here:
+            // https://discuss.gradle.org/t/gradle-plugin-copy-directory-tree-with-files-from-resources/12767/7
+            FileTree jarTree = project.zipTree(getClass().getProtectionDomain().getCodeSource().getLocation().toExternalForm())
+            File zipFile = jarTree.matching({
+                include "moduleTemplate.zip"
+            }).singleFile
+
+            copy.from(project.zipTree(zipFile))
             copy.into(moduleDestinationFile)
             if (hasManagedSchema)
             {
