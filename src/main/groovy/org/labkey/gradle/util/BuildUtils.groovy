@@ -24,6 +24,7 @@ import org.labkey.gradle.plugin.Api
 import org.labkey.gradle.plugin.Jsp
 import org.labkey.gradle.plugin.ServerBootstrap
 import org.labkey.gradle.plugin.XmlBeans
+import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 
 import java.nio.file.Files
@@ -42,6 +43,7 @@ class BuildUtils
     public static final String PLATFORM_MODULES_DIR = "server/modules/platform"
     public static final String COMMON_ASSAYS_MODULES_DIR = "server/modules/commonAssays"
     public static final String CUSTOM_MODULES_DIR = "server/customModules"
+    public static final String CUSTOM_MODULES_GIT_DIR = "server/modules/customModules"
     public static final String OPTIONAL_MODULES_DIR = "server/optionalModules"
     public static final String EXTERNAL_MODULES_DIR = "externalModules"
 
@@ -64,6 +66,7 @@ class BuildUtils
             COMMON_ASSAYS_MODULES_DIR,
             CUSTOM_MODULES_DIR,
             OPTIONAL_MODULES_DIR,
+            CUSTOM_MODULES_GIT_DIR
     ]
 
     public static final List<String> EHR_EXTERNAL_MODULE_DIRS = [
@@ -183,7 +186,7 @@ class BuildUtils
                     if (includeModuleContainers)
                     {
                         List<String> potentialModuleContainers = potentialModules.findAll { File f ->
-                            !new File(f, 'module.properties').exists() && !f.getName().equals("test")
+                            !new File(f, ModuleExtension.MODULE_PROPERTIES_FILE).exists() && !f.getName().equals("test")
                         }.collect {
                             (String) "${path}/${it.getName()}"
                         }
