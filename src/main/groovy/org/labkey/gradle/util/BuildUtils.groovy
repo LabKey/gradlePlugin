@@ -17,7 +17,6 @@ package org.labkey.gradle.util
 
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Project
-import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.labkey.gradle.plugin.Api
@@ -47,7 +46,6 @@ class BuildUtils
     public static final String OPTIONAL_MODULES_DIR = "server/optionalModules"
     public static final String EXTERNAL_MODULES_DIR = "externalModules"
 
-    public static final String TEST_MODULES_DIR = "server/test/modules"
 
     public static final List<String> EHR_MODULE_NAMES = [
             "EHR_ComplianceDB",
@@ -132,13 +130,11 @@ class BuildUtils
     {
         settings.include ":sampledata:qc"
         settings.include getTestProjectPath(settings.gradle)
-        includeModules(settings, rootDir, [TEST_MODULES_DIR], [])
+        includeModules(settings, rootDir, ["${convertPathToRelativeDir(getTestProjectPath(settings.gradle))}/modules"], [])
         // TODO get rid of this when we decide whether to move dumbster
         File dumbsterDir = new File(rootDir, "server/modules/dumbster")
         if (dumbsterDir.exists())
             settings.include ":server:modules:dumbster"
-        else
-            settings.include ":server:test:modules:dumbster"
     }
 
     static void includeModules(Settings settings, List<String> modules)
@@ -195,7 +191,11 @@ class BuildUtils
                 }
             }
         }
+    }
 
+    static String convertPathToRelativeDir(String path) {
+        String relativePath = path.startsWith(":") ? path.substring(1) : path;
+        relativePath.replace(":", "/");
     }
 
     static String convertDirToPath(File rootDir, File directory)
