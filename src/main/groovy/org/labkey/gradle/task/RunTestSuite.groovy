@@ -20,6 +20,7 @@ import org.gradle.api.file.CopySpec
 import org.labkey.gradle.plugin.TeamCity
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.DatabaseProperties
+
 /**
  * Class that sets our test/Runner.class as the junit test suite and configures a bunch of system properties for
  * running these suites of tests.
@@ -33,6 +34,7 @@ class RunTestSuite extends RunUiTest
         project.logger.info("RunTestSuite: constructor");
         scanForTestClasses = false
         include "org/labkey/test/Runner.class"
+        // TODO: Remove when 19.2 is no longer supported. Dependency is now declared in `qc/build.gradle`
         if (project.findProject(":sampledata:qc") != null)
             dependsOn(project.project(":sampledata:qc").tasks.jar)
         dependsOn(project.tasks.writeSampleDataFile)
@@ -42,8 +44,6 @@ class RunTestSuite extends RunUiTest
             dependsOn(project.project(':tools:Rpackages:install'))
         if (!project.getPlugins().hasPlugin(TeamCity.class) && project.tasks.findByName('packageChromeExtensions') != null)
             dependsOn(project.tasks.packageChromeExtensions)
-        if (project.findProject(":tools:Rpackages:install") != null)
-            dependsOn(project.project(':tools:Rpackages:install'))
         if (project.getPlugins().hasPlugin(TeamCity.class))
         {
             dependsOn(project.tasks.killChrome)
