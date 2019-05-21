@@ -180,6 +180,8 @@ class FileModule implements Plugin<Project>
         Task moduleXmlTask = project.tasks.moduleXml
         if (project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
             moduleXmlTask.inputs.file(project.file(ModuleExtension.MODULE_PROPERTIES_FILE))
+        else
+            project.logger.info("${project.path} - ${ModuleExtension.MODULE_PROPERTIES_FILE} not found so not added as input to 'moduleXml'")
         moduleXmlTask.outputs.file(moduleXmlFile)
 
         // This is added because Intellij started creating this "out" directory when you build through IntelliJ.

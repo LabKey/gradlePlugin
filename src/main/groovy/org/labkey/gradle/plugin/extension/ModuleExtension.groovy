@@ -73,6 +73,8 @@ class ModuleExtension
     void setModuleProperties(Project project)
     {
         File propertiesFile = project.file(MODULE_PROPERTIES_FILE)
+        if (!propertiesFile.exists())
+            project.logger.info("${project.path} - no ${MODULE_PROPERTIES_FILE} found")
         this.modProperties = new Properties()
         PropertiesUtils.readProperties(propertiesFile, this.modProperties)
 
