@@ -348,10 +348,12 @@ class BuildUtils
     static String getDistributionVersion(Project project)
     {
         String version = project.labkeyVersion
+        project.logger.info("${project.path} version ${version}")
         if (project.hasProperty("versioning"))
         {
             String rootBranch = project.rootProject.versioning.info.branchId
             String lowerBranch = rootBranch.toLowerCase()
+            project.logger.info("${project.path} rootBranch ${rootBranch}")
 
             if (!["trunk", "master", "develop", "none"].contains(rootBranch))
             {
@@ -384,6 +386,7 @@ class BuildUtils
             }
             // on trunk at the root and a feature branch in the project (rare, but possible, I guess)
             String branch = project.versioning.info.branchId
+            project.logger.info("${project.path} branch ${branch}, version so far ${version}, vcsRevision ${project.rootProject.vcsRevision}")
             if (!["trunk", "master", "develop", "none"].contains(branch))
                 version = version.replace("-SNAPSHOT", "_${branch}-SNAPSHOT")
             version += "-" + project.rootProject.vcsRevision
@@ -400,6 +403,7 @@ class BuildUtils
                     version += ".${numberParts[numberParts.length-1]}"
                 }
             }
+            project.logger.info("${project.path} version ${version}")
         }
         return version
     }
