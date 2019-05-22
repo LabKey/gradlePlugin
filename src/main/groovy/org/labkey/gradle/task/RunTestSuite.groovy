@@ -34,7 +34,7 @@ class RunTestSuite extends RunUiTest
         project.logger.info("RunTestSuite: constructor");
         scanForTestClasses = false
         include "org/labkey/test/Runner.class"
-        // TODO: Remove when 19.2 is no longer supported. Dependency is now declared in `qc/build.gradle`
+        // TODO: Remove when 19.1 is no longer supported. Dependency is now declared in `qc/build.gradle`
         if (project.findProject(":sampledata:qc") != null)
             dependsOn(project.project(":sampledata:qc").tasks.jar)
         dependsOn(project.tasks.writeSampleDataFile)
