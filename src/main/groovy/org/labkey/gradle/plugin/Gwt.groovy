@@ -38,8 +38,7 @@ class Gwt implements Plugin<Project>
 
     static boolean isApplicable(Project project)
     {
-        // HACK!  We should move the gwtsrc from internal to api, where it is actually referenced
-        return project.name != "internal" && project.file(SOURCE_DIR).exists()
+        return project.file(SOURCE_DIR).exists()
     }
 
     @Override
@@ -135,24 +134,25 @@ class Gwt implements Plugin<Project>
 
                         java.main = 'com.google.gwt.dev.Compiler'
 
-                            def paths = []
-                            if (!project.gwt.allBrowserCompile)
-                            {
-                                String gwtBrowser = project.gwtBrowser
-                                if (StringUtils.isEmpty(gwtBrowser))
-                                    gwtBrowser = "gwt-user-chrome"
-                                paths += ["${project.rootProject.rootDir}/external/lib/build/${gwtBrowser}"]
-                            }
-                            paths += [
-                                    project.sourceSets.gwt.compileClasspath,       // Dep
-                                    project.sourceSets.gwt.java.srcDirs           // Java source
-                            ]
-                            String internalProjectPath = BuildUtils.getInternalProjectPath(project.gradle)
-                            if (project.findProject(internalProjectPath) != null && project.project(internalProjectPath).file(project.gwt.srcDir).exists())
-                                paths += [project.project(internalProjectPath).file(project.gwt.srcDir)]
-                            else
-                                paths += [project.project(BuildUtils.getApiProjectPath(project.gradle)).file(project.gwt.srcDir)]
-                            java.classpath paths
+                        def paths = []
+
+                        if (!project.gwt.allBrowserCompile)
+                        {
+                            String gwtBrowser = project.gwtBrowser
+                            if (StringUtils.isEmpty(gwtBrowser))
+                                gwtBrowser = "gwt-user-chrome"
+                            paths += ["${project.rootProject.rootDir}/external/lib/build/${gwtBrowser}"]
+                        }
+                        paths += [
+                                project.sourceSets.gwt.compileClasspath,       // Dep
+                                project.sourceSets.gwt.java.srcDirs           // Java source
+                        ]
+                        String internalProjectPath = BuildUtils.getInternalProjectPath(project.gradle)
+                        if (project.findProject(internalProjectPath) != null && project.project(internalProjectPath).file(project.gwt.srcDir).exists())
+                            paths += [project.project(internalProjectPath).file(project.gwt.srcDir)]
+                        else
+                            paths += [project.project(BuildUtils.getApiProjectPath(project.gradle)).file(project.gwt.srcDir)]
+                        java.classpath paths
 
                         java.args =
                                 [

@@ -159,6 +159,7 @@ class MultiGit implements Plugin<Project>
             clientLibrary,
             gradlePlugin,
             serverModule,
+            serverModuleContainer,
             other,
             svnModule, // This should be removed eventually
             svnCustomModule, // This should be removed eventually
@@ -210,7 +211,11 @@ class MultiGit implements Plugin<Project>
             {
                 this.setIsExternal(true)
             }
-            if (topics.contains("labkey-module"))
+            if (topics.contains('labkey-module-container'))
+            {
+                this.setType(Type.serverModuleContainer)
+            }
+            else if (topics.contains("labkey-module"))
             {
                 this.setType(Type.serverModule)
             }
@@ -411,6 +416,8 @@ class MultiGit implements Plugin<Project>
                     return ":buildSrc"
                 case Type.serverModule:
                     return isExternal ? ":externalModules" : ":server:optionalModules"
+                case Type.serverModuleContainer:
+                    return ':server:modules'
                 case Type.svnModule:
                     return ":server:modules"
                 case Type.svnCustomModule:
@@ -840,7 +847,8 @@ class MultiGit implements Plugin<Project>
                         repository.setDescription(description)
                     setLicenseInfo(repository, node)
                     // TODO pageInfo for pullRequests
-                    setPullRequestInfo(repository, node)
+                    if (includePullRequests)
+                        setPullRequestInfo(repository, node)
 
                     repositories.put(repository.getName(), repository)
                 }

@@ -18,10 +18,10 @@ package org.labkey.gradle.plugin
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.JavaExec
 import org.labkey.gradle.util.GroupNames
+
 /**
  * Adds tasks for building the bootstrap jar file, copying it to the tomcat directory and creating the api file list
  * used during startup to remove unused jar files from the deployment.
@@ -58,10 +58,20 @@ class ServerBootstrap implements Plugin<Project>
     {
         project.dependencies
                 {
-                    implementation 'org.apache.tomcat:tomcat-api',
-                            'org.apache.tomcat:catalina',
-                            'org.apache.tomcat:tomcat-juli',
-                            'org.apache.tomcat:tomcat-util'
+                    if (project.hasProperty('apacheTomcatVersion'))
+                    {
+                        implementation "org.apache.tomcat:tomcat-api:${project.apacheTomcatVersion}"
+                        implementation "org.apache.tomcat:tomcat-catalina:${project.apacheTomcatVersion}"
+                        implementation "org.apache.tomcat:tomcat-juli:${project.apacheTomcatVersion}"
+                        implementation "org.apache.tomcat:tomcat-util:${project.apacheTomcatVersion}"
+                    }
+                    else // TODO: Remove once plugin no longer supports 19.1
+                    {
+                        implementation 'org.apache.tomcat:tomcat-api',
+                                'org.apache.tomcat:catalina',
+                                'org.apache.tomcat:tomcat-juli',
+                                'org.apache.tomcat:tomcat-util'
+                    }
                 }
     }
 

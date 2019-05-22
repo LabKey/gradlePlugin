@@ -8,6 +8,19 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
+### version 1.4.5
+*Release*: ???
+(Earliest compatible LabKey version: 19.1)
+
+* [Issue 36138](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36138) - Remove compile-time dependency on local tomcat installation 
+* Include module containers with `BuildUtils.includeModules` if specified
+* [Issue 37055](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=37055) - Deprecate pipeline configuration distribution type
+* [Issue 36814](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36814) - Move distribution resources out of server directory
+* [Issue 37308](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=37308) - Make sure published pom file contains any classifiers in the verison number
+* Update ModuleFinder.isModuleContainer method to look for a property on the project that would desginate it as a container.
+* Remove hard-coded reference to `server/test/modules` directory
+* (Incubating) Enable yarn for NPM plugin configuration if yarnVersion and yarnWorkDirectory properties are defined 
+
 ### version 1.4.4
 *Release*: 27 Mar 2019
 (Earliest compatible LabKey version: 19.1)

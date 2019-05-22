@@ -23,12 +23,14 @@ import org.labkey.gradle.plugin.Api
 import org.labkey.gradle.plugin.Jsp
 import org.labkey.gradle.plugin.ServerBootstrap
 import org.labkey.gradle.plugin.XmlBeans
+import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+
 /**
  * Static utility methods and constants for use in the build and settings scripts.
  */
@@ -40,10 +42,10 @@ class BuildUtils
     public static final String PLATFORM_MODULES_DIR = "server/modules/platform"
     public static final String COMMON_ASSAYS_MODULES_DIR = "server/modules/commonAssays"
     public static final String CUSTOM_MODULES_DIR = "server/customModules"
+    public static final String CUSTOM_MODULES_GIT_DIR = "server/modules/customModules"
     public static final String OPTIONAL_MODULES_DIR = "server/optionalModules"
     public static final String EXTERNAL_MODULES_DIR = "externalModules"
 
-    public static final String TEST_MODULES_DIR = "server/test/modules"
 
     public static final List<String> EHR_MODULE_NAMES = [
             "EHR_ComplianceDB",
@@ -62,6 +64,7 @@ class BuildUtils
             COMMON_ASSAYS_MODULES_DIR,
             CUSTOM_MODULES_DIR,
             OPTIONAL_MODULES_DIR,
+            CUSTOM_MODULES_GIT_DIR
     ]
 
     public static final List<String> EHR_EXTERNAL_MODULE_DIRS = [
@@ -125,15 +128,16 @@ class BuildUtils
      */
     static void includeTestModules(Settings settings, File rootDir)
     {
-        settings.include ":sampledata:qc"
+        if (new File(rootDir, "sampledata/qc").exists())
+            settings.include ":sampledata:qc" // TODO: Remove when 19.2 is no longer supported
+        else
+            settings.include "${getTestProjectPath(settings.gradle)}:data:qc"
         settings.include getTestProjectPath(settings.gradle)
-        includeModules(settings, rootDir, [TEST_MODULES_DIR], [])
-        // TODO get rid of this when we decide whether to move dumbster
+        includeModules(settings, rootDir, ["${convertPathToRelativeDir(getTestProjectPath(settings.gradle))}/modules"], [])
+        // TODO Remove when 19.2 is no longer supported. Dumbster moved into test modules
         File dumbsterDir = new File(rootDir, "server/modules/dumbster")
         if (dumbsterDir.exists())
             settings.include ":server:modules:dumbster"
-        else
-            settings.include ":server:test:modules:dumbster"
     }
 
     static void includeModules(Settings settings, List<String> modules)
@@ -148,6 +152,11 @@ class BuildUtils
      * @param excludedModules - a list of directory names that are to be excluded from the build configuration (e.g., movies)
      */
     static void includeModules(Settings settings, File rootDir, List<String> moduleDirs, List<String> excludedModules)
+    {
+        includeModules(settings, rootDir, moduleDirs, excludedModules, false)
+    }
+
+    static void includeModules(Settings settings, File rootDir, List<String> moduleDirs, List<String> excludedModules, Boolean includeModuleContainers)
     {
         // find the directories in each of the moduleDirs that meet our selection criteria
         moduleDirs.each { String path ->
@@ -165,16 +174,31 @@ class BuildUtils
                 if (directory.exists())
                 {
                     String prefix = convertDirToPath(rootDir, directory)
-                    settings.include directory.listFiles().findAll { File f ->
+                    Collection<File> potentialModules = directory.listFiles().findAll { File f ->
                         // exclude non-directories, explicitly excluded names, and directories beginning with a .
-                        f.isDirectory() && !excludedModules.contains(f.getName()) &&  !(f.getName() =~ "^\\..*")
-                    }.collect {
+                        f.isDirectory() && !excludedModules.contains(f.getName()) &&  !(f.getName() =~ "^\\..*") && !f.getName().equals("node_modules")
+                    }
+                    settings.include potentialModules.collect {
                         (String) "${prefix}:${it.getName()}"
                     }.toArray(new String[0])
+
+                    if (includeModuleContainers)
+                    {
+                        List<String> potentialModuleContainers = potentialModules.findAll { File f ->
+                            !new File(f, ModuleExtension.MODULE_PROPERTIES_FILE).exists() && !f.getName().equals("test")
+                        }.collect {
+                            (String) "${path}/${it.getName()}"
+                        }
+                        includeModules(settings, rootDir, potentialModuleContainers, excludedModules, false)
+                    }
                 }
             }
         }
+    }
 
+    static String convertPathToRelativeDir(String path) {
+        String relativePath = path.startsWith(":") ? path.substring(1) : path;
+        relativePath.replace(":", "/");
     }
 
     static String convertDirToPath(File rootDir, File directory)
@@ -327,10 +351,12 @@ class BuildUtils
     static String getDistributionVersion(Project project)
     {
         String version = project.labkeyVersion
+        project.logger.info("${project.path} version ${version}")
         if (project.hasProperty("versioning"))
         {
             String rootBranch = project.rootProject.versioning.info.branchId
             String lowerBranch = rootBranch.toLowerCase()
+            project.logger.info("${project.path} rootBranch ${rootBranch}")
 
             if (!["trunk", "master", "develop", "none"].contains(rootBranch))
             {
@@ -363,6 +389,7 @@ class BuildUtils
             }
             // on trunk at the root and a feature branch in the project (rare, but possible, I guess)
             String branch = project.versioning.info.branchId
+            project.logger.info("${project.path} branch ${branch}, version so far ${version}, vcsRevision ${project.rootProject.vcsRevision}")
             if (!["trunk", "master", "develop", "none"].contains(branch))
                 version = version.replace("-SNAPSHOT", "_${branch}-SNAPSHOT")
             version += "-" + project.rootProject.vcsRevision
@@ -379,6 +406,7 @@ class BuildUtils
                     version += ".${numberParts[numberParts.length-1]}"
                 }
             }
+            project.logger.info("${project.path} version ${version}")
         }
         return version
     }
@@ -440,6 +468,30 @@ class BuildUtils
             ret.setProperty("BuildNumber", "Unknown")
         }
         return ret
+    }
+
+    // Default Tomcat libraries for building Java modules and server API
+    private static List TOMCAT_LIBS = [
+            'tomcat-api',
+            'tomcat-catalina',
+            'tomcat-jasper',
+            'tomcat-jsp-api',
+            'tomcat-util',
+            'tomcat-websocket-api',
+            'tomcat7-websocket'
+    ]
+
+    static void setTomcatLibs(List<String> libs)
+    {
+        TOMCAT_LIBS = new ArrayList(libs)
+    }
+
+    static void addTomcatBuildDependencies(Project project, String configuration)
+    {
+        if (!"${project.apacheTomcatVersion}".startsWith("7."))
+            TOMCAT_LIBS.replaceAll({it.replace('tomcat7-', 'tomcat-')})
+        for (String lib : TOMCAT_LIBS)
+            project.dependencies.add(configuration, "org.apache.tomcat:${lib}:${project.apacheTomcatVersion}")
     }
 
     static void addLabKeyDependency(Map<String, Object> config)
@@ -557,20 +609,25 @@ class BuildUtils
         }
     }
 
+    static String getClassifier(String projectConfig) {
+        if (projectConfig == null)
+            return ""
+
+        if ('apiCompile'.equals(projectConfig))
+            return "${Api.CLASSIFIER}"
+        else if ('xmlSchema'.equals(projectConfig))
+            return "${XmlBeans.CLASSIFIER}"
+        else if ('jspCompile'.equals(projectConfig))
+            return "${Jsp.CLASSIFIER}"
+        // TODO when can the following be removed?
+        else if ('transformCompile'.equals(projectConfig)) // special business for CNPRC's distribution so it can include the genetics transform jar file
+            return "transform"
+        return ""
+    }
+
     static String getLabKeyArtifactName(Project project, String projectPath, String projectConfig, String version, String extension)
     {
-        String classifier = ''
-        if (projectConfig != null)
-        {
-            if ('apiCompile'.equals(projectConfig))
-                classifier = ":${Api.CLASSIFIER}"
-            else if ('xmlSchema'.equals(projectConfig))
-                classifier = ":${XmlBeans.CLASSIFIER}"
-            else if ('jspCompile'.equals(projectConfig))
-                classifier = ":${Jsp.CLASSIFIER}"
-            else if ('transformCompile'.equals(projectConfig)) // special business for CNPRC's distribution so it can include the genetics transform jar file
-                classifier = ":transform"
-        }
+        String classifier = getClassifier(projectConfig)
 
         String moduleName
         if (projectPath.endsWith(getRemoteApiProjectPath(project.gradle).substring(1)))
@@ -593,7 +650,7 @@ class BuildUtils
 
         String extensionString = extension == null ? "" : "@$extension"
 
-        return "org.labkey:${moduleName}${versionString}${classifier}${extensionString}"
+        return "org.labkey:${moduleName}${versionString}${(classifier.length() > 0 ? ':' + classifier : '')}${extensionString}"
 
     }
 

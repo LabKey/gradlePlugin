@@ -19,6 +19,7 @@ import org.gradle.api.Project
 
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
+
 /**
  * Finder for module directories that match a particular pattern.
  */
@@ -75,7 +76,8 @@ class ModuleFinder extends SimpleFileVisitor<Path>
 
     static boolean isModuleContainer(Project p)
     {
-        return p.path.equals(BuildUtils.getCommonAssaysProjectPath(p.gradle)) || p.path.equals(BuildUtils.getPlatformProjectPath(p.gradle))
+        // TODO remove the check for commonAssays and platform when we have added the properties to the container directories
+        return (p.findProperty("moduleContainer") && p.path.equals(p.property("moduleContainer"))) || p.path.equals(BuildUtils.getCommonAssaysProjectPath(p.gradle)) || p.path.equals(BuildUtils.getPlatformProjectPath(p.gradle))
     }
 
     static boolean isPotentialModule(Project p)

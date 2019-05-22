@@ -36,4 +36,5 @@ class GroupNames
     public static final String WEB_APPLICATION = "Web application"
     public static final String VERIFICATION = "Verification"
     public static final String XML_SCHEMA = "xmlSchema"
+    public static final String YARN = "Yarn"
 }

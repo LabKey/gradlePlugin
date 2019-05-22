@@ -68,8 +68,9 @@ class NpmRun implements Plugin<Project>
                 // Version of npm to use.
                 npmVersion = project.npmVersion
 
-            // Version of Yarn to use.
-//            yarnVersion = '0.16.1'
+            if (project.hasProperty('yarnVersion'))
+                // Version of Yarn to use.
+                yarnVersion = project.yarnVersion
 
             // Base URL for fetching node distributions (change if you have a mirror).
             if (project.hasProperty('nodeRepo'))
@@ -85,15 +86,64 @@ class NpmRun implements Plugin<Project>
             // Set the work directory for NPM
             npmWorkDir = project.file("${project.buildDir}/${project.npmWorkDirectory}/")
 
-            // Set the work directory for Yarn
-//            yarnWorkDir = file("${project.buildDir}/yarn")
+            if (project.hasProperty('yarnWorkDirectory'))
+                // Set the work directory for Yarn
+                yarnWorkDir = file("${project.buildDir}/${project.yarnWorkDirectory}")
 
             // Set the work directory where node_modules should be located
             nodeModulesDir = project.file("${project.projectDir}")
         }
     }
 
-    private static void addTasks(Project project)
+    // TODO this needs to be tested, but adding the stub now
+    private static void addYarnTasks(Project project)
+    {
+        project.tasks.register("yarnRunClean")
+                {Task task ->
+                    task.group = GroupNames.YARN
+                    task.description = "Runs 'yarn run ${project.npmRun.clean}'"
+                    task.dependsOn "yarn_run_${project.npmRun.clean}"
+                }
+        if (project.tasks.findByName("clean") != null)
+            project.tasks.clean.dependsOn(project.tasks.yarnRunClean)
+
+        project.tasks.register("yarnRunBuildProd")
+                {Task task ->
+                    task.group = GroupNames.YARN
+                    task.description = "Runs 'yarn run ${project.npmRun.buildProd}'"
+                    task.dependsOn "yarn_install"
+                    task.dependsOn "yarn_run_${project.npmRun.buildProd}"
+                    task.mustRunAfter "yarn_install"
+                }
+        addTaskInputOutput(project.tasks.yarnRunBuildProd)
+        addTaskInputOutput(project.tasks.getByName("yarn_run_${project.npmRun.buildProd}"))
+
+        project.tasks.register("yarnRunBuild")
+                {Task task ->
+                    task.group = GroupNames.YARN
+                    task.description ="Runs 'yarn run ${project.npmRun.buildDev}'"
+                    task.dependsOn "yarn_install"
+                    task.dependsOn "yarn_run_${project.npmRun.buildDev}"
+                    task.mustRunAfter "yarn_install"
+                }
+        addTaskInputOutput(project.tasks.yarnRunBuild)
+        addTaskInputOutput(project.tasks.getByName("yarn_run_${project.npmRun.buildDev}"))
+
+        String runCommand = LabKeyExtension.isDevMode(project) ? "yarnRunBuild" : "yarnRunBuildProd"
+        if (project.tasks.findByName("module") != null)
+            project.tasks.module.dependsOn(runCommand)
+        if (project.tasks.findByName("processModuleResources") != null)
+            project.tasks.processModuleResources.dependsOn(runCommand)
+
+        project.tasks.yarn_install {Task task ->
+            task.inputs.file project.file(NPM_PROJECT_FILE)
+            if (project.file(NPM_PROJECT_LOCK_FILE).exists())
+                task.inputs.file project.file(NPM_PROJECT_LOCK_FILE)
+        }
+        project.tasks.yarn_install.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
+    }
+
+    private static void addNpmTasks(Project project)
     {
         project.tasks.register("npmRunClean")
                 {Task task ->
@@ -138,6 +188,14 @@ class NpmRun implements Plugin<Project>
                 task.inputs.file project.file(NPM_PROJECT_LOCK_FILE)
         }
         project.tasks.npmInstall.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
+    }
+
+    private static void addTasks(Project project)
+    {
+        if (project.hasProperty('yarnVersion'))
+            addYarnTasks(project)
+        else
+            addNpmTasks(project)
 
         project.tasks.register("cleanNodeModules", Delete) {
             Delete task ->
