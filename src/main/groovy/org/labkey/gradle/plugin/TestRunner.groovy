@@ -20,10 +20,11 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
-import org.labkey.gradle.task.RunTestSuite
-import org.labkey.gradle.util.GroupNames
-import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.plugin.extension.TeamCityExtension
+import org.labkey.gradle.task.RunTestSuite
+import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.util.GroupNames
+
 /**
  * Created by susanh on 12/7/16.
  */
@@ -54,7 +55,7 @@ class TestRunner extends UiTest
         project.sourceSets {
             uiTest {
                 java {
-                    srcDirs = []
+                    srcDirs = [project.file("src")]
                     // we add the test/src directories from all projects because the test suites encompass tests
                     // across modules.
                     project.rootProject.allprojects { Project otherProj ->
@@ -62,9 +63,9 @@ class TestRunner extends UiTest
                         {
                             srcDirs += otherProj.file(TEST_SRC_DIR)
                         }
-                        else if (otherProj.file("test/test/src").exists())  // special case for labmodules and scharp directories
+                        else if (otherProj.file("test/${TEST_SRC_DIR}").exists())  // special case for labmodules and scharp directories
                         {
-                            srcDirs += otherProj.file("test/test/src")
+                            srcDirs += otherProj.file("test/${TEST_SRC_DIR}")
                         }
                     }
                 }
@@ -175,7 +176,7 @@ class TestRunner extends UiTest
                     {
                         writer = new OutputStreamWriter(outputStream);
                         dirNames.add("${project.rootDir}/sampledata")
-                        dirNames.add("${project.rootDir}/server/test/data")
+                        dirNames.add("${project.rootDir}/${BuildUtils.convertPathToRelativeDir(BuildUtils.getTestProjectPath(project.gradle))}/data")
                         writer.write(String.join(";", dirNames))
                     }
                     finally

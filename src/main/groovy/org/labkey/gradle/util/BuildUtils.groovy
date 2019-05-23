@@ -129,12 +129,12 @@ class BuildUtils
     static void includeTestModules(Settings settings, File rootDir)
     {
         if (new File(rootDir, "sampledata/qc").exists())
-            settings.include ":sampledata:qc" // TODO: Remove when 19.2 is no longer supported
+            settings.include ":sampledata:qc" // TODO: Remove when 19.1 is no longer supported
         else
             settings.include "${getTestProjectPath(settings.gradle)}:data:qc"
         settings.include getTestProjectPath(settings.gradle)
         includeModules(settings, rootDir, ["${convertPathToRelativeDir(getTestProjectPath(settings.gradle))}/modules"], [])
-        // TODO Remove when 19.2 is no longer supported. Dumbster moved into test modules
+        // TODO Remove when 19.1 is no longer supported. Dumbster moved into test modules
         File dumbsterDir = new File(rootDir, "server/modules/dumbster")
         if (dumbsterDir.exists())
             settings.include ":server:modules:dumbster"
