@@ -51,7 +51,7 @@ class RunTestSuite extends RunUiTest
 
             doLast( {
                 project.copy({ CopySpec copy ->
-                    copy.from "${project.tomcatDir}/logs"
+                    copy.from "${project.tomcat.catalinaHome}/logs"
                     copy.into "${project.buildDir}/logs/${dbProperties.dbTypeAndVersion}"
                 })
             })
@@ -72,6 +72,7 @@ class RunTestSuite extends RunUiTest
                 systemProperty "testRecentlyFailed", "${runRiskGroupTestsFirst.contains("recentlyFailed")}"
             }
             systemProperty "teamcity.buildType.id", project.teamcity['teamcity.buildType.id']
+            // TODO: Remove references to 'tomcat.home' once plugin doesn't support 19.1, should use CATALINA_HOME
             systemProperty "tomcat.home", project.teamcity["tomcat.home"]
             systemProperty "tomcat.port", project.teamcity["tomcat.port"]
             systemProperty "tomcat.debug", project.teamcity["tomcat.debug"]

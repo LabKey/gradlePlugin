@@ -342,19 +342,19 @@ class ServerDeploy implements Plugin<Project>
 
     private static void deleteTomcatLibs(Project project)
     {
-        Files.newDirectoryStream(Paths.get(project.tomcatDir, "lib"), "${ServerBootstrap.JAR_BASE_NAME}*.jar").each { Path path ->
+        Files.newDirectoryStream(Paths.get(project.tomcat.catalinaHome, "lib"), "${ServerBootstrap.JAR_BASE_NAME}*.jar").each { Path path ->
             project.delete path.toString()
         }
 
         project.configurations.tomcatJars.files.each {File jarFile ->
-            File libFile = new File("${project.tomcatDir}/lib/${jarFile.getName()}")
+            File libFile = new File("${project.tomcat.catalinaHome}/lib/${jarFile.getName()}")
             if (libFile.exists())
                 project.delete libFile.getAbsolutePath()
         }
 
         // Get rid of (un-versioned) jars that were deployed
         TOMCAT_LIB_UNVERSIONED_JARS.each{String name ->
-            File libFile = new File("${project.tomcatDir}/lib/${name}")
+            File libFile = new File("${project.tomcat.catalinaHome}/lib/${name}")
             if (libFile.exists())
                 project.delete libFile.getAbsolutePath()
         }
