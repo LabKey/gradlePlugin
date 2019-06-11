@@ -15,11 +15,15 @@
  */
 package org.labkey.gradle.plugin.extension
 
+import org.gradle.api.Project
+
 /**
  * Created by susanh on 4/23/17.
  */
 class TomcatExtension
 {
+    String catalinaHome
+    String tomcatConfDir
     String assertionFlag = "-ea" // set to -da to disable assertions and -ea to enable assertions
     String maxMemory = "1G"
     boolean recompileJsp = true
@@ -27,4 +31,42 @@ class TomcatExtension
     String trustStorePassword = ""
     String catalinaOpts = ""
     String debugPort = null // this is used for TeamCity catalina options
+
+    TomcatExtension(Project project)
+    {
+        setCatalinaDirs(project)
+    }
+
+    private void setCatalinaDirs(Project project)
+    {
+        if (System.getenv("CATALINA_HOME") != null)
+        {
+            this.catalinaHome = System.getenv("CATALINA_HOME")
+        }
+        else if (project.hasProperty("tomcatDir"))
+        {
+            this.catalinaHome = project.tomcatDir
+        }
+        else if (project.ext.hasProperty("tomcatDir"))
+        {
+            this.catalinaHome = project.ext.tomcatDir
+        }
+        else
+        {
+            this.catalinaHome = TeamCityExtension.getTeamCityProperty(project, "tomcat.home", null)
+        }
+
+        if (project.ext.hasProperty("tomcatConfDir"))
+        {
+            this.tomcatConfDir = project.ext.tomcatConfDir
+        }
+        else if (this.catalinaHome != null)
+        {
+            this.tomcatConfDir = "${this.catalinaHome}/conf/Catalina/localhost"
+        }
+        else
+        {
+            this.tomcatConfDir = null
+        }
+    }
 }

@@ -53,10 +53,10 @@ class DoThenSetup extends DefaultTask
 //        List<File> files = new ArrayList<>();
 //        for (String jar : ServerDeploy.TOMCAT_LIB_UNVERSIONED_JARS) {
 //            files.add(new File(project.staging.tomcatLibDir, jar))
-//            files.add(new File("${project.tomcatDir}/lib/${jar}"))
+//            files.add(new File("${project.tomcat.catalinaHome}/lib/${jar}"))
 //        }
 //        files.add(new File("${project.rootProject.buildDir}/labkey.xml"))
-//        files.add(new File("${project.ext.tomcatConfDir}/labkey.xml"))
+//        files.add(new File("${project.tomcat.tomcatConfDir}/labkey.xml"))
 //        return files
 //    }
 
@@ -77,7 +77,7 @@ class DoThenSetup extends DefaultTask
 
     @TaskAction
     void setup() {
-        File tomcatConfDir = project.file(project.ext.tomcatConfDir)
+        File tomcatConfDir = project.file(project.tomcat.tomcatConfDir)
         if (tomcatConfDir.exists())
         {
             if (!tomcatConfDir.isDirectory())
@@ -131,7 +131,7 @@ class DoThenSetup extends DefaultTask
 
             project.copy({ CopySpec copy ->
                 copy.from "${project.rootProject.buildDir}"
-                copy.into "${project.ext.tomcatConfDir}"
+                copy.into "${project.tomcat.tomcatConfDir}"
                 copy.include "labkey.xml"
             })
         }
@@ -151,7 +151,7 @@ class DoThenSetup extends DefaultTask
             return false;
 
         File dbPropFile = DatabaseProperties.getPickedConfigFile(project)
-        File tomcatLabkeyXml = new File("${project.ext.tomcatConfDir}", "labkey.xml")
+        File tomcatLabkeyXml = new File("${project.tomcat.tomcatConfDir}", "labkey.xml")
         if (!dbPropFile.exists() || !tomcatLabkeyXml.exists())
             return false
         if (dbPropFile.lastModified() < tomcatLabkeyXml.lastModified())
@@ -213,7 +213,7 @@ class DoThenSetup extends DefaultTask
 
         // Then copy them into the tomcat/lib directory
         project.ant.copy(
-                todir: "${project.tomcatDir}/lib",
+                todir: "${project.tomcat.catalinaHome}/lib",
                 preserveLastModified: true,
                 overwrite: true
         )

@@ -34,7 +34,7 @@ class Tomcat implements Plugin<Project>
     @Override
     void apply(Project project)
     {
-        project.extensions.create("tomcat", TomcatExtension)
+        project.extensions.create("tomcat", TomcatExtension, project)
         if (project.plugins.hasPlugin(TestRunner.class))
         {
             UiTestExtension testEx = (UiTestExtension) project.getExtensions().getByType(UiTestExtension.class)
@@ -64,10 +64,10 @@ class Tomcat implements Plugin<Project>
         project.tasks.register("cleanLogs", Delete) {
             Delete task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Delete logs from ${project.tomcatDir}"
+                task.description = "Delete logs from ${project.tomcat.catalinaHome}"
                 task.configure(
                 {
-                    DeleteSpec spec -> spec.delete project.fileTree("${project.tomcatDir}/logs")
+                    DeleteSpec spec -> spec.delete project.fileTree("${project.tomcat.catalinaHome}/logs")
                     }
                 )
         }
@@ -75,19 +75,19 @@ class Tomcat implements Plugin<Project>
         project.tasks.register("cleanTemp", DefaultTask) {
             DefaultTask task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Delete temp files from ${project.tomcatDir}"
+                task.description = "Delete temp files from ${project.tomcat.catalinaHome}"
                 task.doLast(  {
                     // Note that we use the AntBuilder here because a fileTree in Gradle is a set of FILES only.
                     // Deleting a file tree will delete all the leaves of the directory structure, but none of the
                     // directories.
                     project.ant.delete(includeEmptyDirs: true, quiet: true)
                     {
-                        fileset(dir: "${project.tomcatDir}/temp")
+                        fileset(dir: "${project.tomcat.catalinaHome}/temp")
                                 {
                                     include(name: "**/*")
                                 }
                     }
-                    new File("${project.tomcatDir}", "temp").mkdirs()
+                    new File("${project.tomcat.catalinaHome}", "temp").mkdirs()
                 })
         }
 
