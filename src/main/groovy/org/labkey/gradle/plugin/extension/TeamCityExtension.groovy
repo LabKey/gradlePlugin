@@ -42,9 +42,6 @@ class TeamCityExtension
     {
         if (getTeamCityProperty("suite").isEmpty())
             validationMessages.add("'suite' property not specified")
-        // TODO: Remove references to 'tomcat.home' once plugin doesn't support 19.1
-        if (project.tomcat.catalinaHome == null || project.tomcat.catalinaHome.isEmpty())
-            validationMessages.add("'tomcat.home' and 'CATALINA_HOME' are not specified")
         if (getTeamCityProperty("tomcat.port").isEmpty())
             validationMessages.add("'tomcat.port' property not specified")
         if (this.databaseTypes.isEmpty())

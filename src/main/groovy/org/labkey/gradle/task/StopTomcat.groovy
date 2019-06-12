@@ -27,6 +27,7 @@ class StopTomcat extends DefaultTask
     @TaskAction
     void exec()
     {
+        project.tomcat.validateCatalinaHome()
         project.javaexec( {
             JavaExecSpec java ->
                 java.main = "org.apache.catalina.startup.Bootstrap"

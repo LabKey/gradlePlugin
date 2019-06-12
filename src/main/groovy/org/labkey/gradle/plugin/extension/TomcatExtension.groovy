@@ -43,17 +43,15 @@ class TomcatExtension
 
     String getCatalinaHome()
     {
-        validateCatalinaHome()
         return catalinaHome
     }
 
     String getTomcatConfDir()
     {
-        validateCatalinaHome()
         return tomcatConfDir
     }
 
-    private void validateCatalinaHome()
+    void validateCatalinaHome()
     {
         String errorMsg = ""
         if (catalinaHome == null || catalinaHome.isEmpty())

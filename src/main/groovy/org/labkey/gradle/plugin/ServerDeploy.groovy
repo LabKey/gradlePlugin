@@ -342,6 +342,8 @@ class ServerDeploy implements Plugin<Project>
 
     private static void deleteTomcatLibs(Project project)
     {
+        project.tomcat.validateCatalinaHome()
+
         Files.newDirectoryStream(Paths.get(project.tomcat.catalinaHome, "lib"), "${ServerBootstrap.JAR_BASE_NAME}*.jar").each { Path path ->
             project.delete path.toString()
         }

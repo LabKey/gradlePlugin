@@ -77,6 +77,7 @@ class DoThenSetup extends DefaultTask
 
     @TaskAction
     void setup() {
+        project.tomcat.validateCatalinaHome()
         File tomcatConfDir = project.file(project.tomcat.tomcatConfDir)
         if (tomcatConfDir.exists())
         {

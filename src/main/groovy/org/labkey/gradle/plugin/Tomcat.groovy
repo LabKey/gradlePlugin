@@ -34,19 +34,23 @@ class Tomcat implements Plugin<Project>
     @Override
     void apply(Project project)
     {
-        project.extensions.create("tomcat", TomcatExtension, project)
+        TomcatExtension tomcat = project.extensions.findByType(TomcatExtension.class)
+        if (tomcat == null)
+        {
+            tomcat = project.extensions.create("tomcat", TomcatExtension, project)
+        }
         if (project.plugins.hasPlugin(TestRunner.class))
         {
             UiTestExtension testEx = (UiTestExtension) project.getExtensions().getByType(UiTestExtension.class)
-            project.tomcat.assertionFlag = Boolean.valueOf(testEx.getTestConfig("disableAssertions")) ? "-da" : "-ea"
+            tomcat.assertionFlag = Boolean.valueOf(testEx.getTestConfig("disableAssertions")) ? "-da" : "-ea"
         }
-        project.tomcat.catalinaOpts = "-Dproject.root=${project.rootProject.projectDir.absolutePath}"
+        tomcat.catalinaOpts = "-Dproject.root=${project.rootProject.projectDir.absolutePath}"
 
-        addTasks(project)
+        addTasks(project, tomcat)
     }
 
 
-    private static void addTasks(Project project)
+    private static void addTasks(Project project, TomcatExtension tomcat)
     {
         project.tasks.register("startTomcat", StartTomcat) {
             StartTomcat task ->
@@ -64,10 +68,11 @@ class Tomcat implements Plugin<Project>
         project.tasks.register("cleanLogs", Delete) {
             Delete task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Delete logs from ${project.tomcat.catalinaHome}"
+                task.description = "Delete logs from ${tomcat.catalinaHome}"
+                task.doFirst {tomcat.validateCatalinaHome()}
                 task.configure(
                 {
-                    DeleteSpec spec -> spec.delete project.fileTree("${project.tomcat.catalinaHome}/logs")
+                    DeleteSpec spec -> spec.delete project.fileTree("${tomcat.catalinaHome}/logs")
                     }
                 )
         }
@@ -75,19 +80,20 @@ class Tomcat implements Plugin<Project>
         project.tasks.register("cleanTemp", DefaultTask) {
             DefaultTask task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Delete temp files from ${project.tomcat.catalinaHome}"
+                task.description = "Delete temp files from ${tomcat.catalinaHome}"
+                task.doFirst {tomcat.validateCatalinaHome()}
                 task.doLast(  {
                     // Note that we use the AntBuilder here because a fileTree in Gradle is a set of FILES only.
                     // Deleting a file tree will delete all the leaves of the directory structure, but none of the
                     // directories.
                     project.ant.delete(includeEmptyDirs: true, quiet: true)
                     {
-                        fileset(dir: "${project.tomcat.catalinaHome}/temp")
+                        fileset(dir: "${tomcat.catalinaHome}/temp")
                                 {
                                     include(name: "**/*")
                                 }
                     }
-                    new File("${project.tomcat.catalinaHome}", "temp").mkdirs()
+                    new File("${tomcat.catalinaHome}", "temp").mkdirs()
                 })
         }
 

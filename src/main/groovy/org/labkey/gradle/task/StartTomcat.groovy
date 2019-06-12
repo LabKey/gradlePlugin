@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
+import org.labkey.gradle.plugin.extension.TomcatExtension
 
 /**
  * Created by susanh on 11/15/16.
@@ -29,6 +30,8 @@ class StartTomcat extends DefaultTask
     @TaskAction
     void action()
     {
+        project.tomcat.validateCatalinaHome()
+
         // we need to create the logs directory if it doesn't exist because Tomcat won't start without it,
         // and, annoyingly, this is not seen as an error for this action.
         if (!project.file("${project.tomcat.catalinaHome}/logs").exists())
