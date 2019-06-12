@@ -49,12 +49,15 @@ class RunTestSuite extends RunUiTest
             dependsOn(project.tasks.killChrome)
             dependsOn(project.tasks.ensurePassword)
 
-            doLast( {
-                project.copy({ CopySpec copy ->
-                    copy.from "${project.tomcat.catalinaHome}/logs"
-                    copy.into "${project.buildDir}/logs/${dbProperties.dbTypeAndVersion}"
+            if (project.tomcat.catalinaHome != null)
+            {
+                doLast( {
+                    project.copy({ CopySpec copy ->
+                        copy.from "${project.tomcat.catalinaHome}/logs"
+                        copy.into "${project.buildDir}/logs/${dbProperties.dbTypeAndVersion}"
+                    })
                 })
-            })
+            }
         }
     }
 

@@ -47,7 +47,7 @@ class Distribution implements Plugin<Project>
         // We add the TeamCity extension here if it doesn't exist because we will use the build
         // number property from TeamCity in the distribution artifact names, if present.
         TeamCityExtension teamCityExt  = project.getExtensions().findByType(TeamCityExtension.class)
-        if (teamCityExt == null)
+        if (TeamCityExtension.isOnTeamCity(project) && teamCityExt == null)
             project.extensions.create("teamCity", TeamCityExtension, project)
 
         // we depend on tasks from the server project, so it needs to have been evaluated first
