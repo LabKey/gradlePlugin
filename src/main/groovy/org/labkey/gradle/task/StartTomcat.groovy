@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
+import org.labkey.gradle.plugin.extension.TomcatExtension
 
 /**
  * Created by susanh on 11/15/16.
@@ -29,17 +30,19 @@ class StartTomcat extends DefaultTask
     @TaskAction
     void action()
     {
+        project.tomcat.validateCatalinaHome()
+
         // we need to create the logs directory if it doesn't exist because Tomcat won't start without it,
         // and, annoyingly, this is not seen as an error for this action.
-        if (!project.file("${project.tomcatDir}/logs").exists())
-            project.mkdir("${project.tomcatDir}/logs")
+        if (!project.file("${project.tomcat.catalinaHome}/logs").exists())
+            project.mkdir("${project.tomcat.catalinaHome}/logs")
         if (SystemUtils.IS_OS_UNIX)
         {
-            project.ant.chmod(dir: "${project.tomcatDir}/bin", includes: "**/*.sh", perm: "ug+rx")
+            project.ant.chmod(dir: "${project.tomcat.catalinaHome}/bin", includes: "**/*.sh", perm: "ug+rx")
         }
         project.ant.exec(
                 spawn: true,
-                dir: SystemUtils.IS_OS_WINDOWS ? "${project.tomcatDir}/bin" : project.tomcatDir,
+                dir: SystemUtils.IS_OS_WINDOWS ? "${project.tomcat.catalinaHome}/bin" : project.tomcat.catalinaHome,
                 executable: SystemUtils.IS_OS_WINDOWS ? "cmd" : "bin/catalina.sh"
         )
         {
@@ -111,7 +114,7 @@ class StartTomcat extends DefaultTask
                 arg(line: "/c start ")
                 arg(value: "'Tomcat Server'")
                 arg(value: "/B")
-                arg(value: "${project.tomcatDir}/bin/catalina.bat")
+                arg(value: "${project.tomcat.catalinaHome}/bin/catalina.bat")
             }
             arg(value: "start")
         }
