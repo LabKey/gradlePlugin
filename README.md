@@ -14,6 +14,8 @@ but also make certain assumptions that you may not want to impose on your module
 (Earliest compatible LabKey version: 19.1)
 
 * Update tasks for yarn support
+* [Issue 36138](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36138) - Remove compile-time dependency on local tomcat installation
+  * Only require `tomcat.home`/`CATALINA_HOME` for tasks that use them
 
 ### version 1.5
 *Release*: 22 May 2019
