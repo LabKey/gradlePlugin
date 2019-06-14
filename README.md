@@ -10,7 +10,7 @@ but also make certain assumptions that you may not want to impose on your module
 ## Release Notes
 
 ### version 1.6
-*Release*: ???
+*Release*: 14 Jun 2019
 (Earliest compatible LabKey version: 19.1)
 
 * Update tasks for yarn support
