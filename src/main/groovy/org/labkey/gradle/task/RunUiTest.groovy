@@ -90,7 +90,8 @@ class RunUiTest extends Test
         systemProperty "labkey.root", project.rootProject.projectDir
         systemProperty "project.root", project.rootProject.projectDir
         systemProperty "user.home", System.getProperty('user.home')
-        systemProperty "tomcat.home", project.ext.tomcatDir
+        // A handfull of tests require tomcat.home to be defined when running within IntelliJ
+        systemProperty "tomcat.home", project.tomcat.catalinaHome
         systemProperty "test.credentials.file", "${project.projectDir}/test.credentials.json"
         if (project.findProject(BuildUtils.getTestProjectPath(project.gradle)) != null)
         {

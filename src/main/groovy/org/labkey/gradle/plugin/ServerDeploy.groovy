@@ -165,7 +165,7 @@ class ServerDeploy implements Plugin<Project>
         //
         // At a later date, we can possibly make this task execute the mklink command (and its counterpart to remove the link).
         // This would require that the gradle tasks be run as an administrator, and that is possibly not ideal.
-        if (!SystemUtils.IS_OS_WINDOWS && project.hasProperty('npmVersion') && project.hasProperty('nodeVersion')) {
+        if (!SystemUtils.IS_OS_WINDOWS &&  project.hasProperty('nodeVersion')) {
             project.tasks.register("symlinkNode") {
                 Task task ->
                     task.group = GroupNames.DEPLOY
@@ -174,18 +174,18 @@ class ServerDeploy implements Plugin<Project>
                         File linkContainer = new File("${project.rootDir}/${project.npmWorkDirectory}")
                         linkContainer.mkdirs()
 
-                // default to core project path for backward compatibility.  npmSetup introduced for :server in 18.3
-                Project npmLinkProject = project.project(BuildUtils.getNodeBinProjectPath(project.gradle))
-                Path npmLinkPath = Paths.get("${linkContainer.getPath()}/npm")
-                String npmDirName = "npm-v${project.npmVersion}"
-                Path npmTargetPath = Paths.get("${npmLinkProject.buildDir}/${project.npmWorkDirectory}/${npmDirName}")
-                if (!Files.isSymbolicLink(npmLinkPath) || !Files.readSymbolicLink(npmLinkPath).getFileName().toString().equals(npmDirName))
-                {
-                    // if the symbolic link exists, we want to replace it
-                    if (Files.isSymbolicLink(npmLinkPath))
-                        Files.delete(npmLinkPath)
+                        Project pmLinkProject = project.project(BuildUtils.getNodeBinProjectPath(project.gradle))
+                        Path pmLinkPath = Paths.get("${linkContainer.getPath()}/${NpmRun.useYarn(project) ? 'yarn' : 'npm'}")
+                        String pmDirName = NpmRun.useYarn(project) ? "yarn-v${project.yarnVersion}" : "npm-v${project.npmVersion}"
+                        Path pmTargetPath = Paths.get("${pmLinkProject.buildDir}/${NpmRun.useYarn(project) ? project.yarnWorkDirectory : project.npmWorkDirectory}/${pmDirName}")
 
-                            Files.createSymbolicLink(npmLinkPath, npmTargetPath)
+                        if (!Files.isSymbolicLink(pmLinkPath) || !Files.readSymbolicLink(pmLinkPath).getFileName().toString().equals(pmDirName))
+                        {
+                            // if the symbolic link exists, we want to replace it
+                            if (Files.isSymbolicLink(pmLinkPath))
+                                Files.delete(pmLinkPath)
+
+                            Files.createSymbolicLink(pmLinkPath, pmTargetPath)
                         }
 
                         String nodeFilePrefix = "node-v${project.nodeVersion}-"
@@ -342,19 +342,21 @@ class ServerDeploy implements Plugin<Project>
 
     private static void deleteTomcatLibs(Project project)
     {
-        Files.newDirectoryStream(Paths.get(project.tomcatDir, "lib"), "${ServerBootstrap.JAR_BASE_NAME}*.jar").each { Path path ->
+        project.tomcat.validateCatalinaHome()
+
+        Files.newDirectoryStream(Paths.get(project.tomcat.catalinaHome, "lib"), "${ServerBootstrap.JAR_BASE_NAME}*.jar").each { Path path ->
             project.delete path.toString()
         }
 
         project.configurations.tomcatJars.files.each {File jarFile ->
-            File libFile = new File("${project.tomcatDir}/lib/${jarFile.getName()}")
+            File libFile = new File("${project.tomcat.catalinaHome}/lib/${jarFile.getName()}")
             if (libFile.exists())
                 project.delete libFile.getAbsolutePath()
         }
 
         // Get rid of (un-versioned) jars that were deployed
         TOMCAT_LIB_UNVERSIONED_JARS.each{String name ->
-            File libFile = new File("${project.tomcatDir}/lib/${name}")
+            File libFile = new File("${project.tomcat.catalinaHome}/lib/${name}")
             if (libFile.exists())
                 project.delete libFile.getAbsolutePath()
         }

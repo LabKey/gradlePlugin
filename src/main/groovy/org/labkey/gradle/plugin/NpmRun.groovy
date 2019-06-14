@@ -88,7 +88,7 @@ class NpmRun implements Plugin<Project>
 
             if (project.hasProperty('yarnWorkDirectory'))
                 // Set the work directory for Yarn
-                yarnWorkDir = file("${project.buildDir}/${project.yarnWorkDirectory}")
+                yarnWorkDir = project.file("${project.buildDir}/${project.yarnWorkDirectory}")
 
             // Set the work directory where node_modules should be located
             nodeModulesDir = project.file("${project.projectDir}")
@@ -190,9 +190,14 @@ class NpmRun implements Plugin<Project>
         project.tasks.npmInstall.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
     }
 
+    static boolean useYarn(Project project)
+    {
+        return project.hasProperty("yarnVersion")
+    }
+
     private static void addTasks(Project project)
     {
-        if (project.hasProperty('yarnVersion'))
+        if (useYarn(project))
             addYarnTasks(project)
         else
             addNpmTasks(project)

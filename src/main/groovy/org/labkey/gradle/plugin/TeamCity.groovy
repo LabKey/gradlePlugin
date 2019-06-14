@@ -68,9 +68,9 @@ class TeamCity extends Tomcat
         // from TeamCity's configuration when creating the UITestExtension on TeamCity
         super.apply(project)
         project.tomcat.assertionFlag = "-ea"
-        if (project.file("${project.tomcatDir}/localhost.truststore").exists())
+        if (project.file("${project.tomcat.catalinaHome}/localhost.truststore").exists())
         {
-            project.tomcat.trustStore = "-Djavax.net.ssl.trustStore=${project.tomcatDir}/localhost.truststore"
+            project.tomcat.trustStore = "-Djavax.net.ssl.trustStore=${project.tomcat.catalinaHome}/localhost.truststore"
             project.tomcat.trustStorePassword = "-Djavax.net.ssl.trustStorePassword=changeit"
         }
         project.tomcat.recompileJsp = false
