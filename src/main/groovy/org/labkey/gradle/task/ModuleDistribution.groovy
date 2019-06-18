@@ -343,6 +343,10 @@ class ModuleDistribution extends DefaultTask
             copy.from(project.zipTree(zipFile))
             copy.into(project.buildDir)
         })
+        // This is necessary for reasons that are unclear.  Without it, you get:
+        // -bash: ./manual-upgrade.sh: /bin/sh^M: bad interpreter: No such file or directory
+        // even though the original file has unix line endings, and we build on a linux box.  Dunno.
+        project.ant.fixcrlf (srcdir: project.buildDir, includes: "manual-upgrade.sh", eol: "unix")
     }
 
     File getDistributionFile()
