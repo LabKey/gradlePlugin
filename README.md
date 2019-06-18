@@ -9,6 +9,13 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
+### version 1.6.1
+*Release*: ???
+(Earliest compatible LabKey version: 19.1)
+
+* [Issue 37754](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=37754) - fix line endings for `manual-upgrade.sh`
+
+
 ### version 1.6
 *Release*: 14 Jun 2019
 (Earliest compatible LabKey version: 19.1)
