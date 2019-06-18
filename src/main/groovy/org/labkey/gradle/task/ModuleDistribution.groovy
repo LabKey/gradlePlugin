@@ -345,7 +345,7 @@ class ModuleDistribution extends DefaultTask
         })
         // This is necessary for reasons that are unclear.  Without it, you get:
         // -bash: ./manual-upgrade.sh: /bin/sh^M: bad interpreter: No such file or directory
-        // even though the original file has unix line endings, and we build on a linux box.  Dunno.
+        // even though the original file has unix line endings. Dunno.
         project.ant.fixcrlf (srcdir: project.buildDir, includes: "manual-upgrade.sh", eol: "unix")
     }
 
