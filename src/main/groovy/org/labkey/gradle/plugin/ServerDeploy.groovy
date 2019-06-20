@@ -192,7 +192,7 @@ class ServerDeploy implements Plugin<Project>
                         Path nodeLinkPath = Paths.get("${linkContainer.getPath()}/node")
                         if (!Files.isSymbolicLink(nodeLinkPath) || !Files.readSymbolicLink(nodeLinkPath).getFileName().toString().startsWith(nodeFilePrefix))
                         {
-                            File nodeDir = new File("${npmLinkProject.buildDir}/${project.nodeWorkDirectory}")
+                            File nodeDir = new File("${pmLinkProject.buildDir}/${project.nodeWorkDirectory}")
                             File[] nodeFiles = nodeDir.listFiles({ File file -> file.name.startsWith(nodeFilePrefix) } as FileFilter)
                             if (nodeFiles != null && nodeFiles.length > 0)
                             {
