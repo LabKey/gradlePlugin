@@ -9,6 +9,12 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
+### version 1.6.2
+*Release*: ???
+(Earliest compatible LabKey version 19.1)
+
+* Fix for symlinkNode task (referencing unknown property)
+
 ### version 1.6.1
 *Release*: 18 Jun 2019
 (Earliest compatible LabKey version: 19.1)
