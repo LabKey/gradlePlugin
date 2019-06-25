@@ -11,7 +11,7 @@ but also make certain assumptions that you may not want to impose on your module
 
 ### version 1.6.2
 *Release*: ???
-(Earliest compatible LabKey version 19.2)
+(Earliest compatible LabKey version 19.1)
 
 * Fix for symlinkNode task (referencing unknown property)
 
