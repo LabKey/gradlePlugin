@@ -10,7 +10,7 @@ but also make certain assumptions that you may not want to impose on your module
 ## Release Notes
 
 ### version 1.6.2
-*Release*: ???
+*Release*: 25 Jun 2019
 (Earliest compatible LabKey version 19.1)
 
 * Fix for symlinkNode task (referencing unknown property)
