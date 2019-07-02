@@ -156,14 +156,24 @@ class MultiGit implements Plugin<Project>
     {
         enum Type
         {
-            clientLibrary,
-            gradlePlugin,
-            serverModule,
-            serverModuleContainer,
-            other,
-            svnModule, // This should be removed eventually
-            svnCustomModule, // This should be removed eventually
-            svnExternalModule // this should be removed eventually
+            clientLibrary('labkey-client-api', ":remoteapi"),
+            gradlePlugin('gradle-plugin', ":buildSrc"),
+            serverModule("labkey-module", ":server:modules"),
+            serverExternalModule("labkey-external", ":externalModules"),
+            serverModuleContainer("labkey-module-container", ":server:modules"),
+            serverOptionalModule("labkey-optional-module", ":server:optionalModules"),
+            testContainer("labkey-test-container", ":server"),
+            other(null, ""),
+            svnExternalModule(null, ":externalModules") // this should be removed eventually
+
+            private String topic
+            private String enlistmentProject
+
+            private Type(topic, enlistmentProject)
+            {
+                this.topic = topic;
+                this.enlistmentProject = enlistmentProject
+            }
         }
 
         private String name
@@ -190,11 +200,7 @@ class MultiGit implements Plugin<Project>
             this.isSvn = isSvn
             if (isSvn)
             {
-                if (rootProject.file("server/modules/${name}").exists())
-                    this.setType(Type.svnModule)
-                else if (rootProject.file("server/customModules/${name}").exists())
-                    this.setType(Type.svnCustomModule)
-                else if (rootProject.file("externalModules/${name}").exists())
+                if (rootProject.file("externalModules/${name}").exists())
                     this.setType(Type.svnExternalModule)
             }
             setProject(rootProject)
@@ -215,9 +221,17 @@ class MultiGit implements Plugin<Project>
             {
                 this.setType(Type.serverModuleContainer)
             }
+            else if (topics.contains('labkey-optional-module'))
+            {
+                this.setType(Type.serverOptionalModule)
+            }
             else if (topics.contains("labkey-module"))
             {
-                this.setType(Type.serverModule)
+                this.setType(Type.serverOptionalModule)
+            }
+            else if (topics.contains('labkey-test-container'))
+            {
+                this.setType(Type.testContainer)
             }
             else if (topics.contains("labkey-client-api"))
             {
@@ -408,24 +422,7 @@ class MultiGit implements Plugin<Project>
 
         private String getCheckoutProject()
         {
-            switch (getType())
-            {
-                case Type.clientLibrary:
-                    return ":remoteapi"
-                case Type.gradlePlugin:
-                    return ":buildSrc"
-                case Type.serverModule:
-                    return isExternal ? ":externalModules" : ":server:optionalModules"
-                case Type.serverModuleContainer:
-                    return ':server:modules'
-                case Type.svnModule:
-                    return ":server:modules"
-                case Type.svnCustomModule:
-                    return ":server:customModules"
-                case Type.svnExternalModule:
-                    return ":externalModules"
-            }
-            return "";
+            return getType().enlistmentProject;
         }
 
         void setProject(Project rootProject)
@@ -1066,6 +1063,7 @@ class MultiGit implements Plugin<Project>
                                 Grgit grgit = Grgit.open {
                                     dir = repository.enlistmentDir
                                 }
+                                grgit.fetch(prune: true)
                                 List<Branch> branches = grgit.branch.list(mode: BranchListOp.Mode.REMOTE)
 
                                 boolean hasBranch = branches.stream().anyMatch({
@@ -1084,6 +1082,30 @@ class MultiGit implements Plugin<Project>
                     toUpdate.forEach({
                         Repository repository ->
                             repository.enlist(branchName)
+                    })
+                })
+        }
+
+        project.tasks.register("gitFetch") {
+            Task task ->
+                task.group = "VCS"
+                task.description = "(incubating) For all repositories with a current enlistement, perform a git fetch. " +
+                                    "Use -PgitPrune to remove any remote-tracking references that no longer exist on the remote." +
+                                   "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering."
+                task.doLast({
+                    RepositoryQuery query = new RepositoryQuery(project)
+                    query.setIncludeTopics(true)
+                    Map<String, Repository> repositories = query.execute()
+                    project.logger.quiet(getEchoHeader(repositories, project))
+                    repositories.values().forEach({
+                        Repository repository ->
+                            if (repository.enlistmentDir.exists())
+                            {
+                                Grgit grgit = Grgit.open {
+                                    dir = repository.enlistmentDir
+                                }
+                                grigit.fetch(prune: project.hasProperty('gitPrune'))
+                            }
                     })
                 })
         }

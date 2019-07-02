@@ -9,9 +9,15 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
+### veresion 1.6.3
+*Release*: ???
+(Earliest compatible LabKey version: 19.1)
+
+* Modify incubating git tasks to account for git modules not in optionalModules and testAutomation repo
+
 ### version 1.6.2
 *Release*: 25 Jun 2019
-(Earliest compatible LabKey version 19.1)
+(Earliest compatible LabKey version: 19.1)
 
 * Fix for symlinkNode task (referencing unknown property)
 
