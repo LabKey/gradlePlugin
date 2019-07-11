@@ -95,7 +95,6 @@ class NpmRun implements Plugin<Project>
         }
     }
 
-    // TODO this needs to be tested, but adding the stub now
     private static void addYarnTasks(Project project)
     {
         project.tasks.register("yarnRunClean")
@@ -192,7 +191,7 @@ class NpmRun implements Plugin<Project>
 
     static boolean useYarn(Project project)
     {
-        return project.hasProperty("yarnVersion")
+        return project.hasProperty("yarnVersion") && !project.file(NPM_PROJECT_LOCK_FILE).exists()
     }
 
     private static void addTasks(Project project)

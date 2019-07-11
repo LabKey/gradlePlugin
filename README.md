@@ -14,6 +14,7 @@ but also make certain assumptions that you may not want to impose on your module
 (Earliest compatible LabKey version: 19.1)
 
 * Modify incubating git tasks to account for git modules not in optionalModules and testAutomation repo
+* Don't use yarn if there is a package-lock.json file.
 
 ### version 1.6.2
 *Release*: 25 Jun 2019
