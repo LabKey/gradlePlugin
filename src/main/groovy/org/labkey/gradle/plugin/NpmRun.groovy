@@ -210,6 +210,24 @@ class NpmRun implements Plugin<Project>
                 })
         }
 
+        project.tasks.register("listNodeProjects") {
+            Task task ->
+                task.group = GroupNames.NPM_RUN
+                task.description = "List all projects that employ node in their build"
+                task.doLast({
+                    List<String> nodeProjects = []
+                    project.allprojects({Project p ->
+                        if (p.getPlugins().hasPlugin(NpmRun.class))
+                            nodeProjects.add("${p.path} (${useYarn(p) ? 'yarn' : 'npm'})")
+                    })
+                    if (nodeProjects.size == 0)
+                        println("No projects found containing ${NPM_PROJECT_FILE}")
+                    else {
+                        println("The following projects use Node in their builds:\n\t${nodeProjects.join("\n\t")}\n")
+                    }
+                })
+        }
+
     }
 
     private static void addTaskInputOutput(Task task)
