@@ -1081,7 +1081,14 @@ class MultiGit implements Plugin<Project>
                     })
                     toUpdate.forEach({
                         Repository repository ->
-                            repository.enlist(branchName)
+                            try
+                            {
+                                repository.enlist(branchName)
+                            }
+                            catch (Exception e)
+                            {
+                                project.logger.error("${repository.projectPath}: problem enlisting in branch '" + branchName + "'. ${e.message}")
+                            }
                     })
                 })
         }
