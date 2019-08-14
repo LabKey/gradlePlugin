@@ -387,7 +387,7 @@ class MultiGit implements Plugin<Project>
             {
                 rootProject.logger.info("${this.getName()}: enlistment already exists in expected location")
                 return Grgit.open {
-                    dir = enlistmentDir
+                    currentDir = enlistmentDir
                 }
             }
             return null;
@@ -1061,7 +1061,7 @@ class MultiGit implements Plugin<Project>
                             if (repository.enlistmentDir.exists())
                             {
                                 Grgit grgit = Grgit.open {
-                                    dir = repository.enlistmentDir
+                                    currentDir = repository.enlistmentDir
                                 }
                                 grgit.fetch(prune: true)
                                 List<Branch> branches = grgit.branch.list(mode: BranchListOp.Mode.REMOTE)
@@ -1109,7 +1109,7 @@ class MultiGit implements Plugin<Project>
                             if (repository.enlistmentDir.exists())
                             {
                                 Grgit grgit = Grgit.open {
-                                    dir = repository.enlistmentDir
+                                    currentDir = repository.enlistmentDir
                                 }
                                 grigit.fetch(prune: project.hasProperty('gitPrune'))
                             }
