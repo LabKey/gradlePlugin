@@ -17,6 +17,7 @@ but also make certain assumptions that you may not want to impose on your module
 * Don't use yarn if there is a package-lock.json file.
 * Add listNodeProjects task for showing which projects are are using node in their build and which package manager
 * Add links for both yarn and npm binaries
+* [Issue 38198](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=38198): Find the nearest vcs root to use for populating vcs properties to accommodate modules nested in git repositories
 
 ### version 1.6.2
 *Release*: 25 Jun 2019
