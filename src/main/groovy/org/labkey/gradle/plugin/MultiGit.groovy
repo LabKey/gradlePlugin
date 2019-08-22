@@ -433,7 +433,7 @@ class MultiGit implements Plugin<Project>
                     }
                     else
                     {
-                        rootProject.logger.quiet("${this.getName()}: Checkint out branch '${branchName}' (origin/${branchName})")
+                        rootProject.logger.quiet("${this.getName()}: Checking out branch '${branchName}' (origin/${branchName})")
                         git.checkout(branch: branchName, startPoint: "origin/${branchName}", createBranch: true)
                     }
                 }
