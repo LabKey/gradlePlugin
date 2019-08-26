@@ -19,6 +19,7 @@ but also make certain assumptions that you may not want to impose on your module
 * [Issue 38198](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=38198): Find the nearest vcs root to use for populating vcs properties to accommodate modules nested in git repositories
 * Modify incubating multi-git tasks to account for git modules not in optionalModules and testAutomation repo
 * Add more incubating multi-git tasks: gitPull, gitPush, and gitStatus 
+* Update reallyClean to depend on cleanNodeModules and thus also remove the node_modules directory for a module
 
 ### version 1.6.2
 *Release*: 25 Jun 2019
