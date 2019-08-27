@@ -9,9 +9,21 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
+### veresion 1.7.0
+*Release*: 27 Aug 2019
+(Earliest compatible LabKey version: 19.1)
+
+* Don't use yarn if there is a package-lock.json file.
+* Add listNodeProjects task for showing which projects are using node in their build and which package manager
+* Add links for both yarn and npm binaries
+* [Issue 38198](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=38198): Find the nearest vcs root to use for populating vcs properties to accommodate modules nested in git repositories
+* Modify incubating multi-git tasks to account for git modules not in optionalModules and testAutomation repo
+* Add more incubating multi-git tasks: gitPull, gitPush, and gitStatus 
+* Update reallyClean to depend on cleanNodeModules and thus also remove the node_modules directory for a module
+
 ### version 1.6.2
 *Release*: 25 Jun 2019
-(Earliest compatible LabKey version 19.1)
+(Earliest compatible LabKey version: 19.1)
 
 * Fix for symlinkNode task (referencing unknown property)
 

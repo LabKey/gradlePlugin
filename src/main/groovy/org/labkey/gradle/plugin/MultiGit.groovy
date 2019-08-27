@@ -3,6 +3,7 @@ package org.labkey.gradle.plugin
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.ajoberstar.grgit.Branch
 import org.ajoberstar.grgit.Grgit
+import org.ajoberstar.grgit.Status
 import org.ajoberstar.grgit.operation.BranchListOp
 import org.apache.commons.lang3.StringUtils
 import org.apache.http.client.ResponseHandler
@@ -156,14 +157,24 @@ class MultiGit implements Plugin<Project>
     {
         enum Type
         {
-            clientLibrary,
-            gradlePlugin,
-            serverModule,
-            serverModuleContainer,
-            other,
-            svnModule, // This should be removed eventually
-            svnCustomModule, // This should be removed eventually
-            svnExternalModule // this should be removed eventually
+            clientLibrary('labkey-client-api', ":remoteapi"),
+            gradlePlugin('gradle-plugin', ":buildSrc"),
+            serverModule("labkey-module", ":server:modules"),
+            serverExternalModule("labkey-external", ":externalModules"),
+            serverModuleContainer("labkey-module-container", ":server:modules"),
+            serverOptionalModule("labkey-optional-module", ":server:optionalModules"),
+            testContainer("labkey-test-container", ":server"),
+            other(null, ""),
+            svnExternalModule(null, ":externalModules") // this should be removed eventually
+
+            private String topic
+            private String enlistmentProject
+
+            private Type(topic, enlistmentProject)
+            {
+                this.topic = topic;
+                this.enlistmentProject = enlistmentProject
+            }
         }
 
         private String name
@@ -190,11 +201,7 @@ class MultiGit implements Plugin<Project>
             this.isSvn = isSvn
             if (isSvn)
             {
-                if (rootProject.file("server/modules/${name}").exists())
-                    this.setType(Type.svnModule)
-                else if (rootProject.file("server/customModules/${name}").exists())
-                    this.setType(Type.svnCustomModule)
-                else if (rootProject.file("externalModules/${name}").exists())
+                if (rootProject.file("externalModules/${name}").exists())
                     this.setType(Type.svnExternalModule)
             }
             setProject(rootProject)
@@ -211,13 +218,21 @@ class MultiGit implements Plugin<Project>
             {
                 this.setIsExternal(true)
             }
-            if (topics.contains('labkey-module-container'))
+            if (topics.contains('labkey-optional-module'))
+            {
+                this.setType(Type.serverOptionalModule)
+            }
+            else if (topics.contains('labkey-module-container'))
             {
                 this.setType(Type.serverModuleContainer)
             }
             else if (topics.contains("labkey-module"))
             {
                 this.setType(Type.serverModule)
+            }
+            else if (topics.contains('labkey-test-container'))
+            {
+                this.setType(Type.testContainer)
             }
             else if (topics.contains("labkey-client-api"))
             {
@@ -373,12 +388,23 @@ class MultiGit implements Plugin<Project>
             {
                 rootProject.logger.info("${this.getName()}: enlistment already exists in expected location")
                 return Grgit.open {
-                    dir = enlistmentDir
+                    currentDir = enlistmentDir
                 }
             }
             return null;
         }
 
+        boolean hasRemoteBranch(String remoteBranch)
+        {
+            Grgit grgit = getGit()
+            grgit.fetch(prune: true)
+            List<Branch> branches = grgit.branch.list(mode: BranchListOp.Mode.REMOTE)
+
+            return branches.stream().anyMatch({
+                Branch branch ->
+                   return branch.name == remoteBranch
+            })
+        }
 
         void enlist(String branchName)
         {
@@ -398,34 +424,29 @@ class MultiGit implements Plugin<Project>
 
             if (!StringUtils.isEmpty(branchName))
             {
-                rootProject.logger.info("${this.getName()}: Checking out branch '${branchName}'")
-                if (git.branch.list().find( { it.name == branchName }))
-                    git.checkout (branch: branchName)
+                if (hasRemoteBranch("origin/${branchName}"))
+                {
+                    if (git.branch.list().find( { it.name == branchName }))
+                    {
+                        rootProject.logger.quiet("${this.getName()}: Checking out branch '${branchName}'")
+                        git.checkout(branch: branchName)
+                    }
+                    else
+                    {
+                        rootProject.logger.quiet("${this.getName()}: Checking out branch '${branchName}' (origin/${branchName})")
+                        git.checkout(branch: branchName, startPoint: "origin/${branchName}", createBranch: true)
+                    }
+                }
                 else
-                    git.checkout(branch: branchName, startPoint: "origin/${branchName}", createBranch: true)
+                {
+                    rootProject.logger.quiet("${this.getName()}: No branch '${branchName} found.  Leaving on default branch.")
+                }
             }
         }
 
         private String getCheckoutProject()
         {
-            switch (getType())
-            {
-                case Type.clientLibrary:
-                    return ":remoteapi"
-                case Type.gradlePlugin:
-                    return ":buildSrc"
-                case Type.serverModule:
-                    return isExternal ? ":externalModules" : ":server:optionalModules"
-                case Type.serverModuleContainer:
-                    return ':server:modules'
-                case Type.svnModule:
-                    return ":server:modules"
-                case Type.svnCustomModule:
-                    return ":server:customModules"
-                case Type.svnExternalModule:
-                    return ":externalModules"
-            }
-            return "";
+            return isExternal ? ":externalModules" : getType().enlistmentProject;
         }
 
         void setProject(Project rootProject)
@@ -1063,36 +1084,181 @@ class MultiGit implements Plugin<Project>
                         Repository repository ->
                             if (repository.enlistmentDir.exists())
                             {
-                                Grgit grgit = Grgit.open {
-                                    dir = repository.enlistmentDir
-                                }
-                                List<Branch> branches = grgit.branch.list(mode: BranchListOp.Mode.REMOTE)
-
-                                boolean hasBranch = branches.stream().anyMatch({
-                                    Branch branch ->
-                                        branch.name == remoteBranch
-                                })
-                                if (hasBranch)
-                                    if (grgit.branch.current().name != branchName)
+                                if (repository.hasRemoteBranch(remoteBranch))
+                                    if (repository.git.branch.current().name != branchName)
                                         toUpdate.push(repository)
                                     else
-                                        project.logger.quiet("${repository.projectPath}: already on branch '" + branchName + "'. No checkout required.")
+                                        project.logger.info("${repository.projectPath}: already on branch '" + branchName + "'. No checkout required.")
                                 else
-                                    project.logger.quiet("${repository.projectPath}: no branch '" + branchName + "'. No checkout attempted.")
+                                    project.logger.info("${repository.projectPath}: no branch '" + branchName + "'. No checkout attempted.")
                             }
                     })
                     toUpdate.forEach({
                         Repository repository ->
-                            repository.enlist(branchName)
+                            try
+                            {
+                                repository.enlist(branchName)
+                            }
+                            catch (Exception e)
+                            {
+                                project.logger.error("${repository.projectPath}: problem enlisting in branch '" + branchName + "'. ${e.message}")
+                            }
                     })
                 })
         }
 
-        // TODO support the -Pbranch property.  Almost there, but for the case that the branch does not exist.
+        project.tasks.register("gitStatus") {
+            Task task ->
+                task.group = "VCS"
+                task.description = "(incubating) Perform a 'git status' for a collection of repositories. " +
+                        "By default, uses the projects specified in the settings.gradle file for which there is a current enlistment. " +
+                        "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for " +
+                        "choosing a set of repositories other than those given in the settings.gradle file."
+                task.doLast({
+                    RepositoryQuery query = new RepositoryQuery(project)
+                    query.setIncludeTopics(true)
+                    Map<String, Repository> repositories = query.execute()
+                    project.logger.quiet(getEchoHeader(repositories, project))
+                    repositories.values().forEach({
+                        Repository repository ->
+                            if (repository.enlistmentDir.exists() && (project.hasProperty(RepositoryQuery.TOPICS_PROPERTY) || repository.project != null))
+                            {
+                                Grgit grgit = Grgit.open {
+                                    currentDir = repository.enlistmentDir
+                                }
+                                Status status = grgit.status()
+                                if (status.isClean())
+                                {
+                                    project.logger.quiet("${repository.enlistmentDir}: up to date on branch ${grgit.branch.current().name}")
+                                }
+                                else
+                                {
+                                    List<String> messages = new ArrayList<String>()
+                                    String msg = "Staged changes: "
+                                    if (status.staged.allChanges.size() > 0)
+                                    {
+                                        msg += " ${status.staged.added.size()} additions"
+                                        msg += " ${status.staged.modified.size()} modifications"
+                                        msg += " ${status.staged.removed.size()} removals"
+
+                                    }
+                                    else
+                                    {
+                                        msg += "None"
+                                    }
+                                    messages.add(msg)
+
+                                    msg = "Unstaged changes: "
+                                    if (status.unstaged.allChanges.size() > 0)
+                                    {
+                                        msg += " ${status.unstaged.added.size()} additions"
+                                        msg += " ${status.unstaged.modified.size()} modifications"
+                                        msg += " ${status.unstaged.removed.size()} removals"
+                                    }
+                                    else
+                                    {
+                                        msg += "None"
+                                    }
+                                    messages.add(msg)
+                                    if (status.conflicts.size() > 0)
+                                    {
+                                        messages.add("${status.conflicts.size()} unresolved conflicts")
+                                    }
+                                    project.logger.quiet("${repository.enlistmentDir}:")
+                                    project.logger.quiet("\t${messages.join("\n\t")}")
+                                }
+                            }
+                    })
+                })
+        }
+
+        project.tasks.register("gitPull") {
+            Task task ->
+                task.group = "VCS"
+                task.description = "(incubating) Perform a 'git pull' for a collection of repositories. " +
+                        "Use -PgitRebase to rebase the branches while pulling." +
+                        "By default, uses the projects specified in the settings.gradle file for which there is a current enlistment. " +
+                        "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for " +
+                        "choosing a set of repositories other than those given in the settings.gradle file."
+                task.doLast({
+                    RepositoryQuery query = new RepositoryQuery(project)
+                    query.setIncludeTopics(true)
+                    Map<String, Repository> repositories = query.execute()
+                    project.logger.quiet(getEchoHeader(repositories, project))
+                    repositories.values().forEach({
+                        Repository repository ->
+                            if (repository.enlistmentDir.exists() && (project.hasProperty(RepositoryQuery.TOPICS_PROPERTY) || repository.project != null))
+                            {
+                                project.logger.quiet("Pulling for ${repository.enlistmentDir} ")
+                                Grgit grgit = Grgit.open {
+                                    currentDir = repository.enlistmentDir
+                                }
+                                grgit.pull(rebase: project.hasProperty('gitRebase'))
+                            }
+                    })
+                })
+        }
+
+        project.tasks.register("gitFetch") {
+            Task task ->
+                task.group = "VCS"
+                task.description = "(incubating) Perform a 'git fetch' for a collection of repositories.  " +
+                        "Use -PgitPrune to remove any remote-tracking references that no longer exist on the remote." +
+                        "By default, uses the projects specified in the settings.gradle file for which there is a current enlistment. " +
+                        "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for " +
+                        "choosing a set of repositories other than those given in the settings.gradle file."
+                task.doLast({
+                    RepositoryQuery query = new RepositoryQuery(project)
+                    query.setIncludeTopics(true)
+                    Map<String, Repository> repositories = query.execute()
+                    project.logger.quiet(getEchoHeader(repositories, project))
+                    repositories.values().forEach({
+                        Repository repository ->
+                            if (repository.enlistmentDir.exists() && (project.hasProperty(RepositoryQuery.TOPICS_PROPERTY) || repository.project != null))
+                            {
+                                project.logger.quiet("Fetching for ${repository.enlistmentDir}")
+                                Grgit grgit = Grgit.open {
+                                    currentDir = repository.enlistmentDir
+                                }
+                                grgit.fetch(prune: project.hasProperty('gitPrune'))
+                            }
+                    })
+                })
+        }
+
+
+        project.tasks.register("gitPush") {
+            Task task ->
+                task.group = "VCS"
+                task.description = "(incubating) Perform a `git push` for a collection of repositories. " +
+                        "Use -PgitDryRun to do everything except actually send the updates." +
+                        "By default, uses the projects specified in the settings.gradle file for which there is a current enlistment. " +
+                        "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for " +
+                        "choosing a set of repositories other than those given in the settings.gradle file."
+                task.doLast({
+                    RepositoryQuery query = new RepositoryQuery(project)
+                    query.setIncludeTopics(true)
+                    Map<String, Repository> repositories = query.execute()
+                    project.logger.quiet(getEchoHeader(repositories, project))
+                    repositories.values().forEach({
+                        Repository repository ->
+                            if (repository.enlistmentDir.exists() && (project.hasProperty(RepositoryQuery.TOPICS_PROPERTY) || repository.project != null))
+                            {
+                                project.logger.quiet("Pushing for ${repository.enlistmentDir}")
+                                Grgit grgit = Grgit.open {
+                                    currentDir = repository.enlistmentDir
+                                }
+                                grgit.push(dryRun: project.hasProperty('gitDryRun'))
+                            }
+                    })
+                })
+        }
+
         project.tasks.register("gitEnlist") {
             Task task ->
                 task.group = "VCS"
                 task.description = "(incubating) Enlist in all of the git modules used for a running LabKey server.  " +
+                        "Use -Pbranch=<bname> to enlist in a particular branch (shortcut for using gitEnlist then gitCheckout -Pbranch=<name>)."
                         "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering the repository set. " +
                         "If a moduleSet property is specified, enlist in only the modules included by that module set. Using -PmoduleSet=all is the same as providing no module set property."
                 task.doLast({
@@ -1111,7 +1277,7 @@ class MultiGit implements Plugin<Project>
                     // do recursive enlistment for all the base repositories
                     baseSet.forEach({
                         Repository repository ->
-                            enlist(repositories, repository, enlisted)
+                            enlist(repositories, repository, enlisted,  (String) project.property('branch'))
                     })
                 })
         }
@@ -1166,7 +1332,6 @@ class MultiGit implements Plugin<Project>
             enlisted.add(repository.getName())
             if (!repository.haveEnlistment())
             {
-                project.logger.quiet("Enlisting in ${repository.getName()} in directory ${repository.getEnlistmentDir()}")
                 repository.enlist(branch)
                 if (repository.getProject() == null)
                     repository.setProject(project)

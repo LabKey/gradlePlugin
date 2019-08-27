@@ -277,6 +277,8 @@ class FileModule implements Plugin<Project>
                     task.group = GroupNames.BUILD
                     task.description = "Deletes the build, staging, and deployment directories of this module"
                     task.dependsOn(project.tasks.clean, project.tasks.undeployModule)
+                    if (project.tasks.findByName('cleanNodeModules') != null)
+                        task.dependsOn(project.tasks.cleanNodeModules)
             }
         }
 

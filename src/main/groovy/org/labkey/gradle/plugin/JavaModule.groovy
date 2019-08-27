@@ -247,7 +247,7 @@ class JavaModule extends FileModule
      * @return the collection of files that contain the dependencies
      *
      * FIXME The method of accessing the other projects' external configuration is now deemed unsafe.
-     * Attemps to use the method recommended in the Gradle docs of extending from a configuration of the
+     * Attempts to use the method recommended in the Gradle docs of extending from a configuration of the
      * other project have, thus far, been unsuccessful.  Instead, extending from api's external actually
      * brings in the current project's external dependencies, which means we eliminate just the files we
      * need to keep.  This may have something to do with order of evaluation.

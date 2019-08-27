@@ -95,7 +95,6 @@ class NpmRun implements Plugin<Project>
         }
     }
 
-    // TODO this needs to be tested, but adding the stub now
     private static void addYarnTasks(Project project)
     {
         project.tasks.register("yarnRunClean")
@@ -192,7 +191,7 @@ class NpmRun implements Plugin<Project>
 
     static boolean useYarn(Project project)
     {
-        return project.hasProperty("yarnVersion")
+        return project.hasProperty("yarnVersion") && !project.file(NPM_PROJECT_LOCK_FILE).exists()
     }
 
     private static void addTasks(Project project)
@@ -208,6 +207,24 @@ class NpmRun implements Plugin<Project>
                 task.description = "Removes ${project.file(NODE_MODULES_DIR)}"
                 task.configure({ DeleteSpec delete ->
                     delete.delete (project.file(NODE_MODULES_DIR))
+                })
+        }
+
+        project.tasks.register("listNodeProjects") {
+            Task task ->
+                task.group = GroupNames.NPM_RUN
+                task.description = "List all projects that employ node in their build"
+                task.doLast({
+                    List<String> nodeProjects = []
+                    project.allprojects({Project p ->
+                        if (p.getPlugins().hasPlugin(NpmRun.class))
+                            nodeProjects.add("${p.path} (${useYarn(p) ? 'yarn' : 'npm'})")
+                    })
+                    if (nodeProjects.size == 0)
+                        println("No projects found containing ${NPM_PROJECT_FILE}")
+                    else {
+                        println("The following projects use Node in their builds:\n\t${nodeProjects.join("\n\t")}\n")
+                    }
                 })
         }
 

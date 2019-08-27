@@ -451,13 +451,19 @@ class BuildUtils
         Properties ret = new Properties()
         if (project.plugins.hasPlugin("org.labkey.versioning"))
         {
-            ret.setProperty("VcsURL", project.versioning.info.url)
-            if (project.versioning.info.branch != null)
-                ret.setProperty("VcsBranch", project.versioning.info.branch)
-            if (project.versioning.info.tag != null)
-               ret.setProperty("VcsTag", project.versioning.info.tag)
-            ret.setProperty("VcsRevision", project.versioning.info.commit)
-            ret.setProperty("BuildNumber", (String) TeamCityExtension.getTeamCityProperty(project, "build.number", project.versioning.info.build))
+            Project vcsProject = project
+            while (vcsProject.versioning.info.url == "No VCS" && vcsProject != project.rootProject)
+            {
+                vcsProject = vcsProject.parent
+            }
+            vcsProject.println("${project.path} versioning info ${ vcsProject.versioning.info}")
+            ret.setProperty("VcsURL", vcsProject.versioning.info.url)
+            if (vcsProject.versioning.info.branch != null)
+                ret.setProperty("VcsBranch", vcsProject.versioning.info.branch)
+            if (vcsProject.versioning.info.tag != null)
+               ret.setProperty("VcsTag", vcsProject.versioning.info.tag)
+            ret.setProperty("VcsRevision", vcsProject.versioning.info.commit)
+            ret.setProperty("BuildNumber", (String) TeamCityExtension.getTeamCityProperty(project, "build.number", vcsProject.versioning.info.build))
         }
         else
         {
