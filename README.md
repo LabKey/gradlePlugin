@@ -9,8 +9,8 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
-### veresion 1.6.3
-*Release*: ???
+### veresion 1.7.0
+*Release*: 27 Aug 2019
 (Earliest compatible LabKey version: 19.1)
 
 * Don't use yarn if there is a package-lock.json file.
