@@ -52,7 +52,7 @@ buildscript {
 apply plugin: "org.ajoberstar.grgit"
 apply plugin: 'maven-publish'
 
-project.version = "1.6.3-SNAPSHOT"
+project.version = "1.8.0-SNAPSHOT"
 
 if (project.file("moduleTemplate").exists())
 {
