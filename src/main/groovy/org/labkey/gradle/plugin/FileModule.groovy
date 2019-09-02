@@ -408,18 +408,38 @@ class FileModule implements Plugin<Project>
                 project.tasks.register("pomFile", PomFile)  {
                     PomFile pFile ->
                         pFile.group = GroupNames.PUBLISHING
-                        pFile.description = "create the pom file for this project"
+                        pFile.description = "create the pom file for this project's api jar"
                         pFile.pomProperties = project.lkModule.modProperties
                 }
+//                project.tasks.register("modulePomFile", ModulePomFile)  {
+//                    ModulePomFile pFile ->
+//                        pFile.group = GroupNames.PUBLISHING
+//                        pFile.description = "create the pom file for this project's .module file"
+//                        pFile.pomProperties = project.lkModule.modProperties
+//                }
                 project.publishing {
                     publications {
-                        libs(MavenPublication) { pub ->
-                            project.tasks.each {
-                                if (it instanceof Jar &&
-                                        (!it.name.equals("schemasJar") || XmlBeans.isApplicable(project)))
-                                {
-                                    pub.artifact(it)
-                                }
+                        // can't produce more than one main artifact for a given
+                        if (project.hasProperty('module'))
+                        {
+                            module(MavenPublication) { pub ->
+                                // can't produce more than one main artifact for a given project, so we can put the .module
+                                // artifact in a different group, but we need to make a corresponding pom file.  For now,
+                                // we leave the .module in the same group as the api jar.
+//                                pub.groupId = "org.labkey.module"
+                                pub.artifact(project.tasks.module)
+                            }
+                        }
+                        if (project.hasProperty('apiJar'))
+                        {
+                            apiLib(MavenPublication) { pub ->
+                                pub.artifact(project.tasks.apiJar)
+                            }
+                        }
+                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
+                        {
+                            apiLib(MavenPublication) { pub ->
+                                pub.artifact(project.tasks.jar)
                             }
                         }
                     }
@@ -427,15 +447,17 @@ class FileModule implements Plugin<Project>
                     if (BuildUtils.shouldPublish(project))
                     {
                         project.artifactoryPublish {
-                            project.tasks.each {
-                                if (it instanceof Jar &&
-                                        (!it.name.equals("schemasJar") || XmlBeans.isApplicable(project)))
-                                {
-                                    dependsOn it
-                                }
+                            if (project.hasProperty('module'))
+                            {
+//                                dependsOn project.tasks.modulePomFile
+                                dependsOn project.tasks.module
                             }
-                            dependsOn project.tasks.pomFile
-                            publications('libs')
+                            if (project.hasProperty('apiJar'))
+                            {
+                                dependsOn project.tasks.pomFile
+                                dependsOn project.tasks.apiJar
+                            }
+                            publications('module', 'apiLib')
                         }
                     }
 

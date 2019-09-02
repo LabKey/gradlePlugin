@@ -16,21 +16,23 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.labkey.gradle.plugin.ServerBootstrap
-import org.labkey.gradle.util.BuildUtils
 
 /**
  * This task creates a pom file in a location that artifactory expects it when publishing.  It is meant to
  * replace the task created by the (incubating) maven-publish plugin since for whatever reason that task does
  * not pull in the dependencies (and it is sometimes, mysteriously, removed from the dependency list for
  * the artifactoryPublish task).
+ *
+ * The pom file produced here should have all the .module dependencies and, where appropriate, any external
+ * .jar file dependencies not captured in the .module files themselves.
+ *
+ * FIXME For this to work, we'll need to convert all modules to declare their module dependencies within their respective build.gradle files
  */
-class PomFile extends DefaultTask
+class ModulePomFile extends DefaultTask
 {
-    String artifactCategory = "apiLib"
+    String artifactCategory = "module"
     Properties pomProperties = new Properties()
 
     @OutputFile
@@ -45,46 +47,25 @@ class PomFile extends DefaultTask
             project.pom {
                 withXml {
                     asNode().get('artifactId').first().setValue((String) pomProperties.getProperty("ArtifactId", project.name))
-                    // remove the tomcat dependencies with no version specified because we cannot know which version of tomcat is in use
-                    List<Node> toRemove = []
+
                     def dependencies = asNode().dependencies
+                    def dependenciesNode
                     if (!dependencies.isEmpty())
                     {
-                        dependencies.first().each {
-                            if (it.get("groupId").first().value().first().equals("org.apache.tomcat") &&
-                                    it.get("version").isEmpty())
-                                toRemove.add(it)
-                            if (it.get('groupId').first().value().first().equals("org.labkey"))
-                            {
-                                String artifactId = it.get('artifactId').first().value().first();
-                                if (artifactId.equals("java"))
-                                    it.get('artifactId').first().setValue(['labkey-client-api'])
-                                else if (artifactId.equals("bootstrap"))
-                                    it.get('artifactId').first().setValue(ServerBootstrap.JAR_BASE_NAME)
-                            }
-                        }
-                        toRemove.each {
-                            asNode().dependencies.first().remove(it)
-                        }
-                        // FIXME it's possible to have external dependencies but no dependencies.
-                        // add in the dependencies from the external configuration as well
-                        def dependenciesNode = asNode().dependencies.first()
-                        project.configurations.api.allDependencies.each {
-                            def classifier = ""
-                            if (it instanceof DefaultProjectDependency)
-                            {
-                                DefaultProjectDependency dep = (DefaultProjectDependency) it
-                                classifier = BuildUtils.getClassifier(dep.targetConfiguration)
-                            }
-                            def depNode = dependenciesNode.appendNode("dependency")
-                            depNode.appendNode("groupId", it.group)
-                            depNode.appendNode("artifactId", it.name)
-                            depNode.appendNode("version", it.version)
-                            if (classifier.length() > 0)
-                                depNode.appendNode("classifier", classifier)
-                            depNode.appendNode("scope", "compile")
-                        }
+                        dependenciesNode = asNode().dependencies.first()
                     }
+                    else
+                    {
+                        dependenciesNode = asNode().appendNode("dependencies")
+                    }
+                    project.configurations.module.allDependencies.each {
+                        def depNode = dependenciesNode.appendNode("dependency")
+                        depNode.appendNode("groupId", it.group)
+                        depNode.appendNode("artifactId", it.name)
+                        depNode.appendNode("version", it.version)
+                        depNode.appendNode("scope", "compile")
+                    }
+
                     if (pomProperties.getProperty("Organization") != null || pomProperties.getProperty("OrganizationURL") != null)
                     {
                         def orgNode = asNode().appendNode("organization")
