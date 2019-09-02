@@ -19,6 +19,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.plugin.XmlBeans
 
 /**
  * Task to compile XSD schema files into Java class files using the ant XMLBean
@@ -29,19 +30,19 @@ class SchemaCompile extends DefaultTask {
   @InputDirectory
   File getSchemasDir()
   {
-    return project.file(project.xmlBeans.schemasDir)
+    return project.file(XmlBeans.SCHEMAS_DIR)
   }
 
   @OutputDirectory
   File getSrcGenDir()
   {
-    return new File("$project.labkey.srcGenDir/$project.xmlBeans.classDir")
+    return new File("$project.labkey.srcGenDir/$XmlBeans.CLASS_DIR")
   }
 
   @OutputDirectory
   File getClassesDir()
   {
-    return new File("$project.buildDir/$project.xmlBeans.classDir")
+    return new File("$project.buildDir/$XmlBeans.CLASS_DIR")
   }
 
   @TaskAction

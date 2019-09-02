@@ -59,7 +59,7 @@ class Module extends JavaModule
                     BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getInternalProjectPath(project.gradle), depVersion: project.labkeyVersion)
                     BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
                     if (XmlBeans.isApplicable(project))
-                        implementation project.files(project.tasks.schemasJar)
+                        implementation project.tasks.schemasCompile.outputs.files
                     if (Api.isApplicable(project))
                         implementation project.files(project.tasks.apiJar)
                 }
