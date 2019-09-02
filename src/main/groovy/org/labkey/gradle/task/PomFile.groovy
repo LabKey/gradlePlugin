@@ -30,7 +30,7 @@ import org.labkey.gradle.util.BuildUtils
  */
 class PomFile extends DefaultTask
 {
-    String artifactCategory = "apiLib"
+    String artifactCategory = "libs"
     Properties pomProperties = new Properties()
 
     @OutputFile

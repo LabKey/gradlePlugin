@@ -419,29 +419,39 @@ class FileModule implements Plugin<Project>
 //                }
                 project.publishing {
                     publications {
-                        // can't produce more than one main artifact for a given
-                        if (project.hasProperty('module'))
-                        {
-                            module(MavenPublication) { pub ->
-                                // can't produce more than one main artifact for a given project, so we can put the .module
-                                // artifact in a different group, but we need to make a corresponding pom file.  For now,
-                                // we leave the .module in the same group as the api jar.
-//                                pub.groupId = "org.labkey.module"
+                        libs(MavenPublication) { pub ->
+                            if (project.hasProperty('module'))
                                 pub.artifact(project.tasks.module)
-                            }
-                        }
-                        if (project.hasProperty('apiJar'))
-                        {
-                            apiLib(MavenPublication) { pub ->
+                            if (project.hasProperty('apiJar'))
                                 pub.artifact(project.tasks.apiJar)
-                            }
-                        }
-                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
-                        {
-                            apiLib(MavenPublication) { pub ->
+                            else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
+                            {
                                 pub.artifact(project.tasks.jar)
                             }
                         }
+
+//                        if (project.hasProperty('module'))
+//                        {
+//                            module(MavenPublication) { pub ->
+//                                // can't produce more than one main artifact for a given project, so we can put the .module
+//                                // artifact in a different group, but we need to make a corresponding pom file.  For now,
+//                                // we leave the .module in the same group as the api jar.
+////                                pub.groupId = "org.labkey.module"
+//                                pub.artifact(project.tasks.module)
+//                            }
+//                        }
+//                        if (project.hasProperty('apiJar'))
+//                        {
+//                            apiLib(MavenPublication) { pub ->
+//                                pub.artifact(project.tasks.apiJar)
+//                            }
+//                        }
+//                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
+//                        {
+//                            apiLib(MavenPublication) { pub ->
+//                                pub.artifact(project.tasks.jar)
+//                            }
+//                        }
                     }
 
                     if (BuildUtils.shouldPublish(project))
@@ -454,10 +464,15 @@ class FileModule implements Plugin<Project>
                             }
                             if (project.hasProperty('apiJar'))
                             {
-                                dependsOn project.tasks.pomFile
                                 dependsOn project.tasks.apiJar
                             }
-                            publications('module', 'apiLib')
+                            else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
+                            {
+                                dependsOn project.tasks.jar
+                            }
+                            dependsOn project.tasks.pomFile
+                            publications('libs')
+//                            publications('module', 'apiLib')
                         }
                     }
 
