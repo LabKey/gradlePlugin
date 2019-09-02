@@ -279,6 +279,8 @@ class FileModule implements Plugin<Project>
                     task.dependsOn(project.tasks.clean, project.tasks.undeployModule)
                     if (project.tasks.findByName('cleanNodeModules') != null)
                         task.dependsOn(project.tasks.cleanNodeModules)
+                    if (project.tasks.findByName('cleanSchemasCompile') != null)
+                        task.dependsOn(project.tasks.cleanSchemasCompile)
             }
         }
 
