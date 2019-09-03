@@ -615,26 +615,8 @@ class BuildUtils
         }
     }
 
-    static String getClassifier(String projectConfig) {
-        if (projectConfig == null)
-            return ""
-
-        if ('apiCompile'.equals(projectConfig))
-            return "${Api.CLASSIFIER}"
-        else if ('xmlSchema'.equals(projectConfig))
-            return "${XmlBeans.CLASSIFIER}"
-        else if ('jspCompile'.equals(projectConfig))
-            return "${Jsp.CLASSIFIER}"
-        // TODO when can the following be removed?
-        else if ('transformCompile'.equals(projectConfig)) // special business for CNPRC's distribution so it can include the genetics transform jar file
-            return "transform"
-        return ""
-    }
-
     static String getLabKeyArtifactName(Project project, String projectPath, String projectConfig, String version, String extension)
     {
-        String classifier = getClassifier(projectConfig)
-
         String moduleName
         if (projectPath.endsWith(getRemoteApiProjectPath(project.gradle).substring(1)))
         {
@@ -656,7 +638,7 @@ class BuildUtils
 
         String extensionString = extension == null ? "" : "@$extension"
 
-        return "org.labkey:${moduleName}${versionString}${(classifier.length() > 0 ? ':' + classifier : '')}${extensionString}"
+        return "org.labkey:${moduleName}${versionString}${extensionString}"
 
     }
 

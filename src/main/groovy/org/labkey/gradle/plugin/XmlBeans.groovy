@@ -27,7 +27,6 @@ import org.labkey.gradle.util.GroupNames
  */
 class XmlBeans implements Plugin<Project>
 {
-    public static final String CLASSIFIER = "schemas"
     public static final String SCHEMAS_DIR = "schemas" // the directory containing the schemas to be compiled
     public static final String CLASS_DIR = "xb" // the name of the directory in build or build/gensrc for the source and class files
 
