@@ -424,7 +424,8 @@ class FileModule implements Plugin<Project>
                                 pub.artifact(project.tasks.module)
                             if (project.hasProperty('apiJar'))
                                 pub.artifact(project.tasks.apiJar)
-                            else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
+                            else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
+                                    || project.path.equals(BuildUtils.getInternalProjectPath(project.gradle)))
                             {
                                 pub.artifact(project.tasks.jar)
                             }
@@ -466,7 +467,8 @@ class FileModule implements Plugin<Project>
                             {
                                 dependsOn project.tasks.apiJar
                             }
-                            else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
+                            else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
+                                    || project.path.equals(BuildUtils.getInternalProjectPath(project.gradle)))
                             {
                                 dependsOn project.tasks.jar
                             }
