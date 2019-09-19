@@ -11,7 +11,7 @@ but also make certain assumptions that you may not want to impose on your module
 
 ### version ???
 *Release*: ???
-(Earliest compatible LabKey verison: ???)
+(Earliest compatible LabKey version: 19.3)
 
 * Update reallyClean to depend on cleanSchemasCompile and thus remove the classes generated from xsd files
 * Remove the schemas jar, incorporating the schema classes into the "main" (implementation) jar.
