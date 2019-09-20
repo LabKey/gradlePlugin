@@ -2,6 +2,7 @@ package org.labkey.gradle.plugin
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.ajoberstar.grgit.Branch
+import org.ajoberstar.grgit.Credentials
 import org.ajoberstar.grgit.Grgit
 import org.ajoberstar.grgit.Status
 import org.ajoberstar.grgit.operation.BranchListOp
@@ -25,6 +26,8 @@ import org.labkey.gradle.util.PropertiesUtils
 
 import java.text.SimpleDateFormat
 import java.util.stream.Collectors
+
+import static org.labkey.gradle.plugin.MultiGit.RepositoryQuery.getAuthorizationToken
 
 /**
  * This is an incubating feature set.  Interfaces and functionality are likely to change, perhaps drastically,
@@ -389,9 +392,10 @@ class MultiGit implements Plugin<Project>
                 rootProject.logger.info("${this.getName()}: enlistment already exists in expected location")
                 return Grgit.open {
                     currentDir = enlistmentDir
+                    credentials = new Credentials(getAuthorizationToken())
                 }
             }
-            return null;
+            return null
         }
 
         boolean hasRemoteBranch(String remoteBranch)
@@ -1080,7 +1084,8 @@ class MultiGit implements Plugin<Project>
                     query.setIncludeTopics(true)
                     Map<String, Repository> repositories = query.execute()
                     project.logger.quiet(getEchoHeader(repositories, project))
-                    repositories.values().forEach({
+
+                    repositories.values().each({
                         Repository repository ->
                             if (repository.enlistmentDir.exists())
                             {
@@ -1093,7 +1098,7 @@ class MultiGit implements Plugin<Project>
                                     project.logger.info("${repository.projectPath}: no branch '" + branchName + "'. No checkout attempted.")
                             }
                     })
-                    toUpdate.forEach({
+                    toUpdate.each({
                         Repository repository ->
                             try
                             {
