@@ -30,6 +30,7 @@ import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
+import org.labkey.gradle.task.ModulePomFile
 import org.labkey.gradle.task.PomFile
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
@@ -411,12 +412,12 @@ class FileModule implements Plugin<Project>
                         pFile.description = "create the pom file for this project's api jar"
                         pFile.pomProperties = project.lkModule.modProperties
                 }
-//                project.tasks.register("modulePomFile", ModulePomFile)  {
-//                    ModulePomFile pFile ->
-//                        pFile.group = GroupNames.PUBLISHING
-//                        pFile.description = "create the pom file for this project's .module file"
-//                        pFile.pomProperties = project.lkModule.modProperties
-//                }
+                project.tasks.register("modulePomFile", ModulePomFile)  {
+                    ModulePomFile pFile ->
+                        pFile.group = GroupNames.PUBLISHING
+                        pFile.description = "create the pom file for this project's .module file"
+                        pFile.pomProperties = project.lkModule.modProperties
+                }
                 project.publishing {
                     publications {
                         libs(MavenPublication) { pub ->
@@ -431,28 +432,28 @@ class FileModule implements Plugin<Project>
                             }
                         }
 
-//                        if (project.hasProperty('module'))
-//                        {
-//                            module(MavenPublication) { pub ->
-//                                // can't produce more than one main artifact for a given project, so we can put the .module
-//                                // artifact in a different group, but we need to make a corresponding pom file.  For now,
-//                                // we leave the .module in the same group as the api jar.
-////                                pub.groupId = "org.labkey.module"
-//                                pub.artifact(project.tasks.module)
-//                            }
-//                        }
-//                        if (project.hasProperty('apiJar'))
-//                        {
-//                            apiLib(MavenPublication) { pub ->
-//                                pub.artifact(project.tasks.apiJar)
-//                            }
-//                        }
-//                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
-//                        {
-//                            apiLib(MavenPublication) { pub ->
-//                                pub.artifact(project.tasks.jar)
-//                            }
-//                        }
+                        if (project.hasProperty('module'))
+                        {
+                            module(MavenPublication) { pub ->
+                                // can't produce more than one main artifact for a given project, so we can put the .module
+                                // artifact in a different group, but we need to make a corresponding pom file.  For now,
+                                // we leave the .module in the same group as the api jar.
+                                //todo: pub.groupId = "org.labkey.module"
+                                pub.artifact(project.tasks.module)
+                            }
+                        }
+                        if (project.hasProperty('apiJar'))
+                        {
+                            apiLib(MavenPublication) { pub ->
+                                pub.artifact(project.tasks.apiJar)
+                            }
+                        }
+                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
+                        {
+                            apiLib(MavenPublication) { pub ->
+                                pub.artifact(project.tasks.jar)
+                            }
+                        }
                     }
 
                     if (BuildUtils.shouldPublish(project))
@@ -460,7 +461,7 @@ class FileModule implements Plugin<Project>
                         project.artifactoryPublish {
                             if (project.hasProperty('module'))
                             {
-//                                dependsOn project.tasks.modulePomFile
+                                dependsOn project.tasks.modulePomFile
                                 dependsOn project.tasks.module
                             }
                             if (project.hasProperty('apiJar'))
@@ -474,7 +475,7 @@ class FileModule implements Plugin<Project>
                             }
                             dependsOn project.tasks.pomFile
                             publications('libs')
-//                            publications('module', 'apiLib')
+                            publications('module', 'apiLib')
                         }
                     }
 

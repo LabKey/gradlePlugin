@@ -28,11 +28,10 @@ import org.gradle.api.tasks.TaskAction
  * The pom file produced here should have all the .module dependencies and, where appropriate, any external
  * .jar file dependencies not captured in the .module files themselves.
  *
- * FIXME For this to work, we'll need to convert all modules to declare their module dependencies within their respective build.gradle files
  */
 class ModulePomFile extends DefaultTask
 {
-    String artifactCategory = "module"
+    String artifactCategory = "modules"
     Properties pomProperties = new Properties()
 
     @OutputFile
@@ -44,50 +43,44 @@ class ModulePomFile extends DefaultTask
     @TaskAction
     void writePomFile()
     {
-            project.pom {
-                withXml {
-                    asNode().get('artifactId').first().setValue((String) pomProperties.getProperty("ArtifactId", project.name))
+        project.pom {
+            withXml {
+                asNode().get('artifactId').first().setValue((String) pomProperties.getProperty("ArtifactId", project.name))
 
-                    def dependencies = asNode().dependencies
-                    def dependenciesNode
-                    if (!dependencies.isEmpty())
-                    {
-                        dependenciesNode = asNode().dependencies.first()
-                    }
-                    else
-                    {
-                        dependenciesNode = asNode().appendNode("dependencies")
-                    }
-                    project.configurations.module.allDependencies.each {
-                        def depNode = dependenciesNode.appendNode("dependency")
-                        depNode.appendNode("groupId", it.group)
-                        depNode.appendNode("artifactId", it.name)
-                        depNode.appendNode("version", it.version)
-                        depNode.appendNode("scope", "compile")
-                    }
+                def dependenciesNode = asNode().appendNode("dependencies")
 
-                    if (pomProperties.getProperty("Organization") != null || pomProperties.getProperty("OrganizationURL") != null)
-                    {
-                        def orgNode = asNode().appendNode("organization")
-                        if (pomProperties.getProperty("Organization") != null)
-                            orgNode.appendNode("name", pomProperties.getProperty("Organization"))
-                        if (pomProperties.getProperty("OrganizationURL") != null)
-                            orgNode.appendNode("url", pomProperties.getProperty("OrganizationURL"))
-                    }
-                    if (pomProperties.getProperty("Description") != null)
-                        asNode().appendNode("description", pomProperties.getProperty("Description"))
-                    if (pomProperties.getProperty("URL") != null)
-                        asNode().appendNode("url", pomProperties.getProperty("URL"))
-                    if (pomProperties.getProperty("License") != null || pomProperties.getProperty("LicenseURL") != null)
-                    {
-                        def licenseNode = asNode().appendNode("licenses").appendNode("license")
-                        if (pomProperties.getProperty("License") != null)
-                            licenseNode.appendNode("name", pomProperties.getProperty("License"))
-                        if (pomProperties.getProperty("LicenseURL") != null)
-                            licenseNode.appendNode("url", pomProperties.getProperty("LicenseURL"))
-                        licenseNode.appendNode("distribution", "repo")
-                    }
+                // TODO: do we want to use existing dependencies for this node? Maybe put code back here?
+                project.configurations.modules.allDependencies.each {
+                    def depNode = dependenciesNode.appendNode("dependency")
+                    // todo: it.group is set to 'org.labkey' which is set on the dependency
+                    depNode.appendNode("groupId", "org.labkey.modules")
+                    depNode.appendNode("artifactId", it.name)
+                    depNode.appendNode("version", it.version)
+                    depNode.appendNode("scope", "module")
                 }
-            }.writeTo(getPomFile())
+
+                if (pomProperties.getProperty("Organization") != null || pomProperties.getProperty("OrganizationURL") != null)
+                {
+                    def orgNode = asNode().appendNode("organization")
+                    if (pomProperties.getProperty("Organization") != null)
+                        orgNode.appendNode("name", pomProperties.getProperty("Organization"))
+                    if (pomProperties.getProperty("OrganizationURL") != null)
+                        orgNode.appendNode("url", pomProperties.getProperty("OrganizationURL"))
+                }
+                if (pomProperties.getProperty("Description") != null)
+                    asNode().appendNode("description", pomProperties.getProperty("Description"))
+                if (pomProperties.getProperty("URL") != null)
+                    asNode().appendNode("url", pomProperties.getProperty("URL"))
+                if (pomProperties.getProperty("License") != null || pomProperties.getProperty("LicenseURL") != null)
+                {
+                    def licenseNode = asNode().appendNode("licenses").appendNode("license")
+                    if (pomProperties.getProperty("License") != null)
+                        licenseNode.appendNode("name", pomProperties.getProperty("License"))
+                    if (pomProperties.getProperty("LicenseURL") != null)
+                        licenseNode.appendNode("url", pomProperties.getProperty("LicenseURL"))
+                    licenseNode.appendNode("distribution", "repo")
+                }
+            }
+        }.writeTo(getPomFile())
     }
 }
