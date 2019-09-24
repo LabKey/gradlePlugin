@@ -423,7 +423,7 @@ class FileModule implements Plugin<Project>
                         libs(MavenPublication) { pub ->
                             if (project.hasProperty('module'))
                                 pub.artifact(project.tasks.module)
-                            if (project.hasProperty('apiJar'))
+                            else if (project.hasProperty('apiJar'))
                                 pub.artifact(project.tasks.apiJar)
                             else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
                                     || project.path.equals(BuildUtils.getInternalProjectPath(project.gradle)))
@@ -435,14 +435,14 @@ class FileModule implements Plugin<Project>
                         if (project.hasProperty('module'))
                         {
                             module(MavenPublication) { pub ->
-                                // can't produce more than one main artifact for a given project, so we can put the .module
-                                // artifact in a different group, but we need to make a corresponding pom file.  For now,
-                                // we leave the .module in the same group as the api jar.
-                                //todo: pub.groupId = "org.labkey.module"
-                                pub.artifact(project.tasks.module)
+                                    // can't produce more than one main artifact for a given project, so we can put the .module
+                                    // artifact in a different group, but we need to make a corresponding pom file.  For now,
+                                    // we leave the .module in the same group as the api jar.
+                                    pub.groupId = "org.labkey.module"
+                                    pub.artifact(project.tasks.module)
                             }
                         }
-                        if (project.hasProperty('apiJar'))
+                        else if (project.hasProperty('apiJar'))
                         {
                             apiLib(MavenPublication) { pub ->
                                 pub.artifact(project.tasks.apiJar)

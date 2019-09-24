@@ -46,19 +46,19 @@ class ModulePomFile extends DefaultTask
         project.pom {
             withXml {
                 asNode().get('artifactId').first().setValue((String) pomProperties.getProperty("ArtifactId", project.name))
-
-                def dependenciesNode = asNode().appendNode("dependencies")
+                def dependenciesNode = new Node(null, 'dependencies')
 
                 // TODO: do we want to use existing dependencies for this node? Maybe put code back here?
                 project.configurations.modules.allDependencies.each {
                     def depNode = dependenciesNode.appendNode("dependency")
-                    // todo: it.group is set to 'org.labkey' which is set on the dependency
-                    depNode.appendNode("groupId", "org.labkey.modules")
+                    depNode.appendNode("groupId", "org.labkey.module")
                     depNode.appendNode("artifactId", it.name)
                     depNode.appendNode("version", it.version)
                     depNode.appendNode("scope", "module")
                 }
 
+                // Replace dependencies created by gradle
+                asNode().get('dependencies')?.first()?.replaceNode(dependenciesNode)
                 if (pomProperties.getProperty("Organization") != null || pomProperties.getProperty("OrganizationURL") != null)
                 {
                     def orgNode = asNode().appendNode("organization")
