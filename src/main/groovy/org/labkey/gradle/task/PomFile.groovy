@@ -16,11 +16,10 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.ServerBootstrap
-import org.labkey.gradle.util.BuildUtils
 
 /**
  * This task creates a pom file in a location that artifactory expects it when publishing.  It is meant to
@@ -30,13 +29,13 @@ import org.labkey.gradle.util.BuildUtils
  */
 class PomFile extends DefaultTask
 {
-    String artifactCategory = "libs"
     Properties pomProperties = new Properties()
+    boolean isModulePom
 
     @OutputFile
     File getPomFile()
     {
-        return new File(project.buildDir, "publications/${artifactCategory}/pom-default.xml")
+        return new File(project.buildDir, "publications/${pomProperties.get("artifactCategory")}/pom-default.xml")
     }
 
     @TaskAction
@@ -44,40 +43,23 @@ class PomFile extends DefaultTask
     {
             project.pom {
                 withXml {
+                    asNode().get('groupId').first().setValue(pomProperties.getProperty("groupId"))
+                    removeDependencies(asNode())
                     asNode().get('artifactId').first().setValue((String) pomProperties.getProperty("ArtifactId", project.name))
-                    // remove the tomcat dependencies with no version specified because we cannot know which version of tomcat is in use
-                    List<Node> toRemove = []
-                    def dependencies = asNode().dependencies
-                    if (!dependencies.isEmpty())
-                    {
-                        dependencies.first().each {
-                            if (it.get("groupId").first().value().first().equals("org.apache.tomcat") &&
-                                    it.get("version").isEmpty())
-                                toRemove.add(it)
-                            if (it.get('groupId').first().value().first().equals("org.labkey"))
-                            {
-                                String artifactId = it.get('artifactId').first().value().first();
-                                if (artifactId.equals("java"))
-                                    it.get('artifactId').first().setValue(['labkey-client-api'])
-                                else if (artifactId.equals("bootstrap"))
-                                    it.get('artifactId').first().setValue(ServerBootstrap.JAR_BASE_NAME)
-                            }
-                        }
-                        toRemove.each {
-                            asNode().dependencies.first().remove(it)
-                        }
-                        // FIXME it's possible to have external dependencies but no dependencies.
-                        // add in the dependencies from the external configuration as well
-                        def dependenciesNode = asNode().dependencies.first()
-                        project.configurations.api.allDependencies.each {
-                            def depNode = dependenciesNode.appendNode("dependency")
-                            depNode.appendNode("groupId", it.group)
-                            depNode.appendNode("artifactId", it.name)
-                            depNode.appendNode("version", it.version)
+                    def dependenciesNode = asNode().dependencies.first()
+                    DependencySet dependencySet = isModulePom ? project.configurations.modules.allDependencies : project.configurations.api.allDependencies
 
-                            depNode.appendNode("scope", "compile")
-                        }
+                    // FIXME it's possible to have external dependencies but no dependencies.
+                    // add in the dependencies from the external configuration as well
+                    dependencySet.each {
+                        def depNode = dependenciesNode.appendNode("dependency")
+                        depNode.appendNode("groupId", pomProperties.getProperty("groupId"))
+                        depNode.appendNode("artifactId", it.name)
+                        depNode.appendNode("version", it.version)
+
+                        depNode.appendNode("scope", pomProperties.getProperty("scope"))
                     }
+
                     if (pomProperties.getProperty("Organization") != null || pomProperties.getProperty("OrganizationURL") != null)
                     {
                         def orgNode = asNode().appendNode("organization")
@@ -101,5 +83,40 @@ class PomFile extends DefaultTask
                     }
                 }
             }.writeTo(getPomFile())
+    }
+
+    void removeDependencies(Node root)
+    {
+        if(isModulePom)
+        {
+            // Replace dependencies created by gradle
+            def dependenciesNode = new Node(null, 'dependencies')
+            root.get('dependencies')?.first()?.replaceNode(dependenciesNode)
+        }
+        else
+        {
+            // remove the tomcat dependencies with no version specified because we cannot know which version of tomcat is in use
+            List<Node> toRemove = []
+            def dependencies = root.dependencies
+            if (!dependencies.isEmpty())
+            {
+                dependencies.first().each {
+                    if (it.get("groupId").first().value().first().equals("org.apache.tomcat") &&
+                            it.get("version").isEmpty())
+                        toRemove.add(it)
+                    if (it.get('groupId').first().value().first().equals("org.labkey"))
+                    {
+                        String artifactId = it.get('artifactId').first().value().first();
+                        if (artifactId.equals("java"))
+                            it.get('artifactId').first().setValue(['labkey-client-api'])
+                        else if (artifactId.equals("bootstrap"))
+                            it.get('artifactId').first().setValue(ServerBootstrap.JAR_BASE_NAME)
+                    }
+                }
+                toRemove.each {
+                    root.dependencies.first().remove(it)
+                }
+            }
+        }
     }
 }

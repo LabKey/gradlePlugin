@@ -30,7 +30,6 @@ import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.task.ModulePomFile
 import org.labkey.gradle.task.PomFile
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
@@ -406,17 +405,18 @@ class FileModule implements Plugin<Project>
         if (!AntBuild.isApplicable(project))
         {
             project.afterEvaluate {
+                String artifactId = project.name
                 project.tasks.register("pomFile", PomFile)  {
                     PomFile pFile ->
                         pFile.group = GroupNames.PUBLISHING
-                        pFile.description = "create the pom file for this project's api jar"
-                        pFile.pomProperties = project.lkModule.modProperties
+                        pFile.pomProperties = LabKeyExtension.getApiPomProperties(artifactId, "create the pom file for this project's api jar")
+                        pFile.isModulePom = false
                 }
-                project.tasks.register("modulePomFile", ModulePomFile)  {
-                    ModulePomFile pFile ->
+                project.tasks.register("modulePomFile", PomFile)  {
+                    PomFile pFile ->
                         pFile.group = GroupNames.PUBLISHING
-                        pFile.description = "create the pom file for this project's .module file"
-                        pFile.pomProperties = project.lkModule.modProperties
+                        pFile.pomProperties = LabKeyExtension.getModulePomProperties(artifactId, "create the pom file for this project's .module file")
+                        pFile.isModulePom = true
                 }
                 project.publishing {
                     publications {
@@ -478,7 +478,6 @@ class FileModule implements Plugin<Project>
                             publications('module', 'apiLib')
                         }
                     }
-
                 }
             }
         }
