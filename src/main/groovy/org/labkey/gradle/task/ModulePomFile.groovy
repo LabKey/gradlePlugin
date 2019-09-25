@@ -45,6 +45,7 @@ class ModulePomFile extends DefaultTask
     {
         project.pom {
             withXml {
+                asNode().get('groupId').first().setValue("org.labkey.module")
                 asNode().get('artifactId').first().setValue((String) pomProperties.getProperty("ArtifactId", project.name))
                 def dependenciesNode = new Node(null, 'dependencies')
 
