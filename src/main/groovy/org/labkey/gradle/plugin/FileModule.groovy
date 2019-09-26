@@ -405,36 +405,25 @@ class FileModule implements Plugin<Project>
         if (!AntBuild.isApplicable(project))
         {
             project.afterEvaluate {
-                String artifactId = project.name
                 project.tasks.register("pomFile", PomFile)  {
                     PomFile pFile ->
+                        pFile.description = "create the pom file for this project's api jar"
                         pFile.group = GroupNames.PUBLISHING
-                        pFile.pomProperties = LabKeyExtension.getApiPomProperties(artifactId, "create the pom file for this project's api jar")
+                        pFile.pomProperties = LabKeyExtension.getApiPomProperties(project)
                         pFile.isModulePom = false
                 }
                 project.tasks.register("modulePomFile", PomFile)  {
                     PomFile pFile ->
+                        pFile.description = "create the pom file for this project's .module file"
                         pFile.group = GroupNames.PUBLISHING
-                        pFile.pomProperties = LabKeyExtension.getModulePomProperties(artifactId, "create the pom file for this project's .module file")
+                        pFile.pomProperties = LabKeyExtension.getModulePomProperties(project)
                         pFile.isModulePom = true
                 }
                 project.publishing {
                     publications {
-                        libs(MavenPublication) { pub ->
-                            if (project.hasProperty('module'))
-                                pub.artifact(project.tasks.module)
-                            else if (project.hasProperty('apiJar'))
-                                pub.artifact(project.tasks.apiJar)
-                            else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
-                                    || project.path.equals(BuildUtils.getInternalProjectPath(project.gradle)))
-                            {
-                                pub.artifact(project.tasks.jar)
-                            }
-                        }
-
                         if (project.hasProperty('module'))
                         {
-                            module(MavenPublication) { pub ->
+                            modules(MavenPublication) { pub ->
                                     // can't produce more than one main artifact for a given project, so we can put the .module
                                     // artifact in a different group, but we need to make a corresponding pom file.  For now,
                                     // we leave the .module in the same group as the api jar.
@@ -442,13 +431,15 @@ class FileModule implements Plugin<Project>
                                     pub.artifact(project.tasks.module)
                             }
                         }
-                        else if (project.hasProperty('apiJar'))
+
+                        if (project.hasProperty('apiJar'))
                         {
                             apiLib(MavenPublication) { pub ->
                                 pub.artifact(project.tasks.apiJar)
                             }
                         }
-                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
+                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
+                                || project.path.equals(BuildUtils.getInternalProjectPath(project.gradle)))
                         {
                             apiLib(MavenPublication) { pub ->
                                 pub.artifact(project.tasks.jar)
@@ -464,6 +455,7 @@ class FileModule implements Plugin<Project>
                                 dependsOn project.tasks.modulePomFile
                                 dependsOn project.tasks.module
                             }
+
                             if (project.hasProperty('apiJar'))
                             {
                                 dependsOn project.tasks.apiJar
@@ -473,9 +465,9 @@ class FileModule implements Plugin<Project>
                             {
                                 dependsOn project.tasks.jar
                             }
+
                             dependsOn project.tasks.pomFile
-                            publications('libs')
-                            publications('module', 'apiLib')
+                            publications('modules', 'apiLib')
                         }
                     }
                 }

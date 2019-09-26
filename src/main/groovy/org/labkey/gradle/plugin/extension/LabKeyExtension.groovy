@@ -98,9 +98,21 @@ class LabKeyExtension
     {
         Properties pomProperties = getBasePomProperties(artifactPrefix, description)
         pomProperties.put("groupId", "org.labkey")
-        pomProperties.setProperty("artifactCategory", "libs")
+        pomProperties.setProperty("artifactCategory", "apiLib")
         pomProperties.setProperty("scope", "compile")
         return pomProperties
+    }
+
+    static Properties getApiPomProperties(Project project)
+    {
+        return getApiPomProperties(project.name, project.description)
+
+    }
+
+    static Properties getModulePomProperties(Project project)
+    {
+        return getModulePomProperties(project.name, project.description)
+
     }
 
     static Properties getModulePomProperties(String artifactPrefix, String description)

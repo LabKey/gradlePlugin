@@ -56,7 +56,6 @@ class PomFile extends DefaultTask
                         depNode.appendNode("groupId", pomProperties.getProperty("groupId"))
                         depNode.appendNode("artifactId", it.name)
                         depNode.appendNode("version", it.version)
-
                         depNode.appendNode("scope", pomProperties.getProperty("scope"))
                     }
 
