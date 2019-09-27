@@ -16,8 +16,9 @@ but also make certain assumptions that you may not want to impose on your module
 * Update reallyClean to depend on cleanSchemasCompile and thus remove the classes generated from xsd files
 * Remove the schemas jar, incorporating the schema classes into the "main" (implementation) jar.
 * Change publications to publish only the api jar and .module file
+* [Issue 38550] (https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=38550): Add authentication for fetching from repositories
 
-### veresion 1.7.0
+### version 1.7.0
 *Release*: 27 Aug 2019
 (Earliest compatible LabKey version: 19.1)
 
