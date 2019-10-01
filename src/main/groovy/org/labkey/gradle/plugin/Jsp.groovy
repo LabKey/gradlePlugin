@@ -32,7 +32,6 @@ import org.labkey.gradle.util.GroupNames
  */
 class Jsp implements Plugin<Project>
 {
-    public static final String CLASSIFIER = "jsp"
     public static final String BASE_NAME_EXTENSION = "_jsp"
 
     static boolean isApplicable(Project project)
