@@ -16,6 +16,7 @@ but also make certain assumptions that you may not want to impose on your module
 * Update reallyClean to depend on cleanSchemasCompile and thus remove the classes generated from xsd files
 * Remove the schemas jar, incorporating the schema classes into the "main" (implementation) jar.
 * Change publications to publish only the api jar and .module file
+* Create task to publish module pom files to artifactory and harness transitive module dependencies
 
 ### veresion 1.7.0
 *Release*: 27 Aug 2019
