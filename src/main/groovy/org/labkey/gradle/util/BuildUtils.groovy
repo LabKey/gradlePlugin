@@ -610,8 +610,7 @@ class BuildUtils
                     depVersion = depProject.version
             }
 
-            def setTransitive = {transitive isTransitive}
-            parentProject.dependencies.add(parentProjectConfig, getLabKeyArtifactName(parentProject, depProjectPath, depProjectConfig, depVersion, depExtension), setTransitive)
+            parentProject.dependencies.add(parentProjectConfig, getLabKeyArtifactName(parentProject, depProjectPath, depProjectConfig, depVersion, depExtension), {transitive isTransitive})
         }
     }
 
