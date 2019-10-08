@@ -57,6 +57,8 @@ class PomFile extends DefaultTask
                         depNode.appendNode("artifactId", it.name)
                         depNode.appendNode("version", it.version)
                         depNode.appendNode("scope", pomProperties.getProperty("scope"))
+                        if (isModulePom)
+                            depNode.appendNode("type", pomProperties.getProperty("type"))
                     }
 
                     if (pomProperties.getProperty("Organization") != null || pomProperties.getProperty("OrganizationURL") != null)
