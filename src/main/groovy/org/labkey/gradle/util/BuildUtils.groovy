@@ -19,10 +19,7 @@ import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-import org.labkey.gradle.plugin.Api
-import org.labkey.gradle.plugin.Jsp
 import org.labkey.gradle.plugin.ServerBootstrap
-import org.labkey.gradle.plugin.XmlBeans
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 
@@ -588,6 +585,7 @@ class BuildUtils
                                     )
     {
         Project depProject = parentProject.rootProject.findProject(depProjectPath)
+
         if (depProject != null && shouldBuildFromSource(depProject))
         {
             parentProject.logger.info("Found project ${depProjectPath}; building ${depProjectPath} from source")
@@ -611,7 +609,9 @@ class BuildUtils
                 if (depVersion == null)
                     depVersion = depProject.version
             }
-            parentProject.dependencies.add(parentProjectConfig, getLabKeyArtifactName(parentProject, depProjectPath, depProjectConfig, depVersion, depExtension), closure)
+
+            def setTransitive = {transitive isTransitive}
+            parentProject.dependencies.add(parentProjectConfig, getLabKeyArtifactName(parentProject, depProjectPath, depProjectConfig, depVersion, depExtension), setTransitive)
         }
     }
 
@@ -638,7 +638,8 @@ class BuildUtils
 
         String extensionString = extension == null ? "" : "@$extension"
 
-        return "org.labkey:${moduleName}${versionString}${extensionString}"
+        String prefix = extension.equals("module") ? "org.labkey.module" : "org.labkey"
+        return "${prefix}:${moduleName}${versionString}${extensionString}"
 
     }
 
