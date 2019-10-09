@@ -345,7 +345,7 @@ class FileModule implements Plugin<Project>
      * Finds all module files and directories for a project included in the deployment directory and/or staging directory
      * @param project the project to find module files for
      * @param includeDeployed include .module files and directories in the build/deploy directory
-     * @param includeStaging indlude .module files in the build/staging directory
+     * @param includeStaging include .module files in the build/staging directory
      * @return list of files and directories for this module with the deploy .module files first, followed by the deploy directories
      *          followed by the staging .module files.
      */
