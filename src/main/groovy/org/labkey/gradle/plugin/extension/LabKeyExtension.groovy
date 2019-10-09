@@ -106,7 +106,6 @@ class LabKeyExtension
     static Properties getApiPomProperties(Project project)
     {
         return getApiPomProperties(project.name, project.description)
-
     }
 
     static Properties getModulePomProperties(Project project)
