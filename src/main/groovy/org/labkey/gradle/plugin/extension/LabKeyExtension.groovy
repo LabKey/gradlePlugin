@@ -111,7 +111,6 @@ class LabKeyExtension
     static Properties getModulePomProperties(Project project)
     {
         return getModulePomProperties(project.name, project.description)
-
     }
 
     static Properties getModulePomProperties(String artifactPrefix, String description)
