@@ -88,7 +88,7 @@ class PomFile extends DefaultTask
 
     void removeDependencies(Node root)
     {
-        if(isModulePom)
+        if (isModulePom)
         {
             // Replace dependencies created by gradle
             def dependenciesNode = new Node(null, 'dependencies')
