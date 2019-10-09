@@ -27,7 +27,7 @@ import org.labkey.gradle.util.ModuleFinder
  */
 class LabKey implements Plugin<Project>
 {
-    public static final String API_GROUP = "org.labkey"
+    public static final String API_GROUP = "org.labkey.api"
     public static final String MODULE_GROUP = "org.labkey.module"
     public static final String CLIENT_LIBS_CLASSIFER = "web"
     public static final String SOURCES_CLASSIFIER = "sources"
