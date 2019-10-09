@@ -36,7 +36,6 @@ import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PropertiesUtils
 
 import java.util.regex.Matcher
-import java.util.regex.Pattern
 
 /**
  * This class is used for building a LabKey file-based module, which contains only client-side code.
@@ -170,26 +169,7 @@ class FileModule implements Plugin<Project>
                             String newLine = line
                             while (matcher.find())
                             {
-                                if(PropertiesUtils.LABKEY_VERSION_PATTERN.matcher(line))
-                                {
-                                    File globalProperties = project.rootProject.file("gradle.properties")
-
-                                    // Search gradle properties for labkey version
-                                    globalProperties.find {
-                                        String prop ->
-                                            Matcher labkeyVersionMatcher = Pattern.compile("labkeyVersion=").matcher(prop)
-                                            if (labkeyVersionMatcher.find())
-                                            {
-                                                newLine = newLine.replace(matcher.group(), prop.replace(labkeyVersionMatcher.group(), ""))
-                                                return true
-                                            }
-                                            return false
-                                    }
-                                }
-                                else
-                                {
-                                    newLine = newLine.replace(matcher.group(), (String) project.lkModule.getPropertyValue(matcher.group(1), ""))
-                                }
+                                newLine = newLine.replace(matcher.group(), (String) project.lkModule.getPropertyValue(matcher.group(1), ""))
                             }
                             writer.println(newLine)
                     }
