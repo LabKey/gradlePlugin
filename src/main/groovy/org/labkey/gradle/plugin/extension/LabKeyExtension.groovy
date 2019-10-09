@@ -91,7 +91,6 @@ class LabKeyExtension
             pomProperties.put("Description", description)
         pomProperties.put("License", "The Apache Software License, Version 2.0")
         pomProperties.put("LicenseURL", "http://www.apache.org/licenses/LICENSE-2.0.txt")
-        pomProperties.setProperty("scope", "compile")
         return pomProperties
     }
 
@@ -100,6 +99,7 @@ class LabKeyExtension
         Properties pomProperties = getBasePomProperties(artifactPrefix, description)
         pomProperties.put("groupId", "org.labkey")
         pomProperties.setProperty("artifactCategory", "apiLib")
+        pomProperties.setProperty("scope", "compile")
         return pomProperties
     }
 
@@ -120,6 +120,7 @@ class LabKeyExtension
         pomProperties.put("groupId", "org.labkey.module")
         pomProperties.setProperty("artifactCategory", "modules")
         pomProperties.setProperty("type", "module")
+        pomProperties.setProperty("scope", "runtime")
         return pomProperties
     }
 }

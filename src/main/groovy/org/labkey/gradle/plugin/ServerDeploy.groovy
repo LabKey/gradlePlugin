@@ -91,8 +91,10 @@ class ServerDeploy implements Plugin<Project>
                                 }
                             }
                 })
+
         }
         project.tasks.stageModules.dependsOn project.configurations.modules
+
 
         project.tasks.register("checkModuleVersions", CheckForVersionConflicts) {
             CheckForVersionConflicts task ->
@@ -104,7 +106,7 @@ class ServerDeploy implements Plugin<Project>
                 task.description = "Check for conflicts in version numbers of module files to be deployed and files in the deploy directory. " +
                         "Default action on detecting a conflict is to fail.  Use -PversionConflictAction=[delete|fail|warn] to change this behavior.  The value 'delete' will cause the " +
                         "conflicting version(s) in the ${serverDeploy.modulesDir} directory to be removed."
-        }
+            }
 
 
         project.tasks.stageModules.dependsOn(project.tasks.checkModuleVersions)

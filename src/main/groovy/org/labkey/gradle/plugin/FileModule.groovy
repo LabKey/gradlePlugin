@@ -407,14 +407,14 @@ class FileModule implements Plugin<Project>
             project.afterEvaluate {
                 project.tasks.register("pomFile", PomFile)  {
                     PomFile pFile ->
-                        pFile.description = "create the pom file for this project's api jar"
+                        pFile.description = "Create the pom file for this project's api jar"
                         pFile.group = GroupNames.PUBLISHING
                         pFile.pomProperties = LabKeyExtension.getApiPomProperties(project)
                         pFile.isModulePom = false
                 }
                 project.tasks.register("modulePomFile", PomFile)  {
                     PomFile pFile ->
-                        pFile.description = "create the pom file for this project's .module file"
+                        pFile.description = "Create the pom file for this project's .module file"
                         pFile.group = GroupNames.PUBLISHING
                         pFile.pomProperties = LabKeyExtension.getModulePomProperties(project)
                         pFile.isModulePom = true
@@ -424,9 +424,7 @@ class FileModule implements Plugin<Project>
                         if (project.hasProperty('module'))
                         {
                             modules(MavenPublication) { pub ->
-                                    // can't produce more than one main artifact for a given project, so we can put the .module
-                                    // artifact in a different group, but we need to make a corresponding pom file.  For now,
-                                    // we leave the .module in the same group as the api jar.
+                                    // Use org.labkey.module for module dependency groupIds instead of "org.labkey"
                                     pub.groupId = "org.labkey.module"
                                     pub.artifact(project.tasks.module)
                             }

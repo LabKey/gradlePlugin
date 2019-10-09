@@ -46,19 +46,23 @@ class PomFile extends DefaultTask
                     asNode().get('groupId').first().setValue(pomProperties.getProperty("groupId"))
                     removeDependencies(asNode())
                     asNode().get('artifactId').first().setValue((String) pomProperties.getProperty("ArtifactId", project.name))
-                    def dependenciesNode = asNode().dependencies.first()
-                    DependencySet dependencySet = isModulePom ? project.configurations.modules.allDependencies : project.configurations.api.allDependencies
 
-                    // FIXME it's possible to have external dependencies but no dependencies.
-                    // add in the dependencies from the external configuration as well
-                    dependencySet.each {
-                        def depNode = dependenciesNode.appendNode("dependency")
-                        depNode.appendNode("groupId", pomProperties.getProperty("groupId"))
-                        depNode.appendNode("artifactId", it.name)
-                        depNode.appendNode("version", it.version)
-                        depNode.appendNode("scope", pomProperties.getProperty("scope"))
-                        if (isModulePom)
-                            depNode.appendNode("type", pomProperties.getProperty("type"))
+                    if (!asNode().dependencies.isEmpty())
+                    {
+                        def dependenciesNode = asNode().dependencies.first()
+                        DependencySet dependencySet = isModulePom ? project.configurations.modules.allDependencies : project.configurations.api.allDependencies
+
+                        // FIXME it's possible to have external dependencies but no dependencies.
+                        // add in the dependencies from the external configuration as well
+                        dependencySet.each {
+                            def depNode = dependenciesNode.appendNode("dependency")
+                            depNode.appendNode("groupId", pomProperties.getProperty("groupId"))
+                            depNode.appendNode("artifactId", it.name)
+                            depNode.appendNode("version", it.version)
+                            depNode.appendNode("scope", pomProperties.getProperty("scope"))
+                            if (isModulePom)
+                                depNode.appendNode("type", pomProperties.getProperty("type"))
+                        }
                     }
 
                     if (pomProperties.getProperty("Organization") != null || pomProperties.getProperty("OrganizationURL") != null)
@@ -90,7 +94,7 @@ class PomFile extends DefaultTask
     {
         if (isModulePom)
         {
-            // Replace dependencies created by gradle
+            // Replace all dependencies automatically added by gradle (tomcat lib dependencies, etc.)
             def dependenciesNode = new Node(null, 'dependencies')
             root.get('dependencies')?.first()?.replaceNode(dependenciesNode)
         }

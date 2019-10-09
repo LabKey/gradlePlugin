@@ -42,6 +42,8 @@ class BuildUtils
     public static final String CUSTOM_MODULES_GIT_DIR = "server/modules/customModules"
     public static final String OPTIONAL_MODULES_DIR = "server/optionalModules"
     public static final String EXTERNAL_MODULES_DIR = "externalModules"
+    public static final String API_GROUP_ID = "org.labkey"
+    public static final String MODULE_GROUP_ID = "org.labkey.module"
 
 
     public static final List<String> EHR_MODULE_NAMES = [
@@ -610,7 +612,13 @@ class BuildUtils
                     depVersion = depProject.version
             }
 
-            parentProject.dependencies.add(parentProjectConfig, getLabKeyArtifactName(parentProject, depProjectPath, depProjectConfig, depVersion, depExtension), {transitive isTransitive})
+            def combinedClosure =  {
+                transitive isTransitive
+                if (closure != null)
+                    closure()
+            }
+
+            parentProject.dependencies.add(parentProjectConfig, getLabKeyArtifactName(parentProject, depProjectPath, depProjectConfig, depVersion, depExtension), combinedClosure)
         }
     }
 
@@ -637,9 +645,8 @@ class BuildUtils
 
         String extensionString = extension == null ? "" : "@$extension"
 
-        String prefix = extension.equals("module") ? "org.labkey.module" : "org.labkey"
-        return "${prefix}:${moduleName}${versionString}${extensionString}"
-
+        String group = extension.equals("module") ? MODULE_GROUP_ID : API_GROUP_ID
+        return "${group}:${moduleName}${versionString}${extensionString}"
     }
 
     static String getRepositoryKey(Project project)
