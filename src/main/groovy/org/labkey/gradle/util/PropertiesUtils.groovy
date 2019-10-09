@@ -25,6 +25,7 @@ class PropertiesUtils
 {
     public static final Pattern PROPERTY_PATTERN = Pattern.compile("@@([^@]+)@@")
     private static final Pattern VALUE_PATTERN = Pattern.compile("(\\\$\\{\\w*\\})")
+    public static final Pattern LABKEY_VERSION_PATTERN = Pattern.compile("@@LabkeyVersion@@")
 
     static Properties readFileProperties(Project project, String fileName)
     {

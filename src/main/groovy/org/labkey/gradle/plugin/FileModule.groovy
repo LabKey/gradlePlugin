@@ -36,6 +36,8 @@ import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PropertiesUtils
 
 import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 /**
  * This class is used for building a LabKey file-based module, which contains only client-side code.
  * It also serves as a base class for the Java module classes.
@@ -168,10 +170,30 @@ class FileModule implements Plugin<Project>
                             String newLine = line
                             while (matcher.find())
                             {
-                                newLine = newLine.replace(matcher.group(), (String) project.lkModule.getPropertyValue(matcher.group(1), ""))
+                                if(PropertiesUtils.LABKEY_VERSION_PATTERN.matcher(line))
+                                {
+                                    File globalProperties = project.rootProject.file("gradle.properties")
+
+                                    // Search gradle properties for labkey version
+                                    globalProperties.find {
+                                        String prop ->
+                                            Matcher labkeyVersionMatcher = Pattern.compile("labkeyVersion=").matcher(prop)
+                                            if (labkeyVersionMatcher.find())
+                                            {
+                                                newLine = newLine.replace(matcher.group(), prop.replace(labkeyVersionMatcher.group(), ""))
+                                                return true
+                                            }
+                                            return false
+                                    }
+                                }
+                                else
+                                {
+                                    newLine = newLine.replace(matcher.group(), (String) project.lkModule.getPropertyValue(matcher.group(1), ""))
+                                }
                             }
                             writer.println(newLine)
                     }
+
                     writer.close()
                     is.close()
                 }
@@ -345,7 +367,7 @@ class FileModule implements Plugin<Project>
      * Finds all module files and directories for a project included in the deployment directory and/or staging directory
      * @param project the project to find module files for
      * @param includeDeployed include .module files and directories in the build/deploy directory
-     * @param includeStaging indlude .module files in the build/staging directory
+     * @param includeStaging include .module files in the build/staging directory
      * @return list of files and directories for this module with the deploy .module files first, followed by the deploy directories
      *          followed by the staging .module files.
      */
