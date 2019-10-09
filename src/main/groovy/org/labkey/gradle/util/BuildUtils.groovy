@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.labkey.gradle.plugin.LabKey
 import org.labkey.gradle.plugin.ServerBootstrap
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
@@ -42,8 +43,6 @@ class BuildUtils
     public static final String CUSTOM_MODULES_GIT_DIR = "server/modules/customModules"
     public static final String OPTIONAL_MODULES_DIR = "server/optionalModules"
     public static final String EXTERNAL_MODULES_DIR = "externalModules"
-    public static final String API_GROUP_ID = "org.labkey"
-    public static final String MODULE_GROUP_ID = "org.labkey.module"
 
 
     public static final List<String> EHR_MODULE_NAMES = [
@@ -645,7 +644,7 @@ class BuildUtils
 
         String extensionString = extension == null ? "" : "@$extension"
 
-        String group = extension.equals("module") ? MODULE_GROUP_ID : API_GROUP_ID
+        String group = extension.equals("module") ? LabKey.MODULE_GROUP : LabKey.API_GROUP
         return "${group}:${moduleName}${versionString}${extensionString}"
     }
 

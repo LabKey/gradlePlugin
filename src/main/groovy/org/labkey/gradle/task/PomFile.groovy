@@ -19,6 +19,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.plugin.LabKey
 import org.labkey.gradle.plugin.ServerBootstrap
 
 /**
@@ -109,7 +110,7 @@ class PomFile extends DefaultTask
                     if (it.get("groupId").first().value().first().equals("org.apache.tomcat") &&
                             it.get("version").isEmpty())
                         toRemove.add(it)
-                    if (it.get('groupId').first().value().first().equals("org.labkey"))
+                    if (it.get('groupId').first().value().first().equals(LabKey.API_GROUP))
                     {
                         String artifactId = it.get('artifactId').first().value().first();
                         if (artifactId.equals("java"))

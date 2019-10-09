@@ -16,7 +16,7 @@
 package org.labkey.gradle.plugin.extension
 
 import org.gradle.api.Project
-import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.plugin.LabKey
 
 /**
  * Created by susanh on 4/23/17.
@@ -97,7 +97,7 @@ class LabKeyExtension
     static Properties getApiPomProperties(String artifactPrefix, String description)
     {
         Properties pomProperties = getBasePomProperties(artifactPrefix, description)
-        pomProperties.put("groupId", "org.labkey")
+        pomProperties.put("groupId", LabKey.API_GROUP)
         pomProperties.setProperty("artifactCategory", "apiLib")
         pomProperties.setProperty("scope", "compile")
         return pomProperties
@@ -116,7 +116,7 @@ class LabKeyExtension
     static Properties getModulePomProperties(String artifactPrefix, String description)
     {
         Properties pomProperties = getBasePomProperties(artifactPrefix, description)
-        pomProperties.put("groupId", "org.labkey.module")
+        pomProperties.put("groupId", LabKey.MODULE_GROUP)
         pomProperties.setProperty("artifactCategory", "modules")
         pomProperties.setProperty("type", "module")
         pomProperties.setProperty("scope", "runtime")
