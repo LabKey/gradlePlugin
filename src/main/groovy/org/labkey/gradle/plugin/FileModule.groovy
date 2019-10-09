@@ -36,7 +36,6 @@ import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PropertiesUtils
 
 import java.util.regex.Matcher
-
 /**
  * This class is used for building a LabKey file-based module, which contains only client-side code.
  * It also serves as a base class for the Java module classes.
@@ -173,7 +172,6 @@ class FileModule implements Plugin<Project>
                             }
                             writer.println(newLine)
                     }
-
                     writer.close()
                     is.close()
                 }
