@@ -19,8 +19,8 @@ import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-import org.labkey.gradle.plugin.LabKey
 import org.labkey.gradle.plugin.ServerBootstrap
+import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 
@@ -644,7 +644,7 @@ class BuildUtils
 
         String extensionString = extension == null ? "" : "@$extension"
 
-        String group = extension.equals("module") ? LabKey.MODULE_GROUP : LabKey.API_GROUP
+        String group = extension.equals("module") ? LabKeyExtension.MODULE_GROUP : LabKeyExtension.API_GROUP
         return "${group}:${moduleName}${versionString}${extensionString}"
     }
 

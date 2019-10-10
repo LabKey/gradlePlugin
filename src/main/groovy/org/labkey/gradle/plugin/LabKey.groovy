@@ -27,8 +27,7 @@ import org.labkey.gradle.util.ModuleFinder
  */
 class LabKey implements Plugin<Project>
 {
-    public static final String API_GROUP = "org.labkey.api"
-    public static final String MODULE_GROUP = "org.labkey.module"
+    public static final String LABKEY_GROUP = "org.labkey"
     public static final String CLIENT_LIBS_CLASSIFER = "web"
     public static final String SOURCES_CLASSIFIER = "sources"
     public static final String JAVADOC_CLASSIFIER = "javadoc"
@@ -37,7 +36,7 @@ class LabKey implements Plugin<Project>
     @Override
     void apply(Project project)
     {
-        project.group = API_GROUP
+        project.group = LABKEY_GROUP
         project.subprojects { Project subproject ->
             if (ModuleFinder.isDistributionProject(subproject))
                 subproject.buildDir = "${project.rootProject.buildDir}/installer/${subproject.name}"

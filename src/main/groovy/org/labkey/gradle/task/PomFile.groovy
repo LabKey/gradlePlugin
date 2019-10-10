@@ -21,6 +21,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.LabKey
 import org.labkey.gradle.plugin.ServerBootstrap
+import org.labkey.gradle.plugin.extension.LabKeyExtension
 
 /**
  * This task creates a pom file in a location that artifactory expects it when publishing.  It is meant to
@@ -45,7 +46,7 @@ class PomFile extends DefaultTask
             project.pom {
                 withXml {
                     asNode().get('groupId').first().setValue(pomProperties.getProperty("groupId"))
-                    removeDependencies(asNode())
+                    modifyDependencies(asNode())
                     asNode().get('artifactId').first().setValue((String) pomProperties.getProperty("ArtifactId", project.name))
 
                     if (!asNode().dependencies.isEmpty())
@@ -57,12 +58,18 @@ class PomFile extends DefaultTask
                         // add in the dependencies from the external configuration as well
                         dependencySet.each {
                             def depNode = dependenciesNode.appendNode("dependency")
-                            depNode.appendNode("groupId", pomProperties.getProperty("groupId"))
+
                             depNode.appendNode("artifactId", it.name)
                             depNode.appendNode("version", it.version)
                             depNode.appendNode("scope", pomProperties.getProperty("scope"))
-                            if (isModulePom)
+                            if (isModulePom){
                                 depNode.appendNode("type", pomProperties.getProperty("type"))
+                                depNode.appendNode("groupId", pomProperties.getProperty("groupId"))
+                            }
+                            else
+                            {
+                                depNode.appendNode("groupId", it.group)
+                            }
                         }
                     }
 
@@ -91,7 +98,7 @@ class PomFile extends DefaultTask
             }.writeTo(getPomFile())
     }
 
-    void removeDependencies(Node root)
+    void modifyDependencies(Node root)
     {
         if (isModulePom)
         {
@@ -117,13 +124,15 @@ class PomFile extends DefaultTask
                     if (it.get("groupId").first().value().first().equals("org.apache.tomcat") &&
                             it.get("version").isEmpty())
                         toRemove.add(it)
-                    if (it.get('groupId').first().value().first().equals(LabKey.API_GROUP))
+                    if (it.get('groupId').first().value().first().equals(LabKey.LABKEY_GROUP))
                     {
                         String artifactId = it.get('artifactId').first().value().first();
                         if (artifactId.equals("java"))
                             it.get('artifactId').first().setValue(['labkey-client-api'])
                         else if (artifactId.equals("bootstrap"))
                             it.get('artifactId').first().setValue(ServerBootstrap.JAR_BASE_NAME)
+
+                        it.get('groupId').first().setValue(LabKeyExtension.API_GROUP)
                     }
                 }
                 toRemove.each {

@@ -425,7 +425,7 @@ class FileModule implements Plugin<Project>
                         {
                             modules(MavenPublication) { pub ->
                                     // Use org.labkey.module for module dependency groupIds instead of "org.labkey"
-                                    pub.groupId = LabKey.MODULE_GROUP
+                                    pub.groupId = LabKeyExtension.MODULE_GROUP
                                     pub.artifact(project.tasks.module)
                             }
                         }

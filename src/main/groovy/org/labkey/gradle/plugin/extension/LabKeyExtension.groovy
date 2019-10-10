@@ -24,6 +24,8 @@ import org.labkey.gradle.plugin.LabKey
 class LabKeyExtension
 {
     private static final String DEPLOY_MODE_PROPERTY = "deployMode"
+    public static final String MODULE_GROUP = "org.labkey.module"
+    public static final String API_GROUP = "org.labkey.api"
     private static enum DeployMode {
 
         dev("Development"),
@@ -97,7 +99,7 @@ class LabKeyExtension
     static Properties getApiPomProperties(String artifactPrefix, String description)
     {
         Properties pomProperties = getBasePomProperties(artifactPrefix, description)
-        pomProperties.put("groupId", LabKey.API_GROUP)
+        pomProperties.put("groupId", API_GROUP)
         pomProperties.setProperty("artifactCategory", "apiLib")
         pomProperties.setProperty("scope", "compile")
         return pomProperties
@@ -116,7 +118,7 @@ class LabKeyExtension
     static Properties getModulePomProperties(String artifactPrefix, String description)
     {
         Properties pomProperties = getBasePomProperties(artifactPrefix, description)
-        pomProperties.put("groupId", LabKey.MODULE_GROUP)
+        pomProperties.put("groupId", MODULE_GROUP)
         pomProperties.setProperty("artifactCategory", "modules")
         pomProperties.setProperty("type", "module")
         pomProperties.setProperty("scope", "runtime")
