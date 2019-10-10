@@ -95,7 +95,7 @@ publishing {
 }
 
 
-if (project.hasProperty("doPublishing") && project.hasProperty('artifactory_contextUrl') && project.hasProperty('artifactory_user') && project.hasProperty('artifactory_password'))
+if (project.hasProperty("doPluginPublishing") && project.hasProperty('artifactory_contextUrl') && project.hasProperty('artifactory_user') && project.hasProperty('artifactory_password'))
 {
     apply plugin: 'com.jfrog.artifactory'
     artifactory {
