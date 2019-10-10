@@ -124,14 +124,17 @@ class PomFile extends DefaultTask
                     if (it.get("groupId").first().value().first().equals("org.apache.tomcat") &&
                             it.get("version").isEmpty())
                         toRemove.add(it)
+
                     if (it.get('groupId').first().value().first().equals(LabKeyExtension.LABKEY_GROUP))
                     {
-                        String artifactId = it.get('artifactId').first().value().first();
+                        String artifactId = it.get('artifactId').first().value().first()
+
                         if (artifactId.equals("java"))
                             it.get('artifactId').first().setValue(['labkey-client-api'])
                         else if (artifactId.equals("bootstrap"))
                             it.get('artifactId').first().setValue(ServerBootstrap.JAR_BASE_NAME)
 
+                        // All jar dependencies except for the labkey-client-api are in org.labkey.api
                         if (!artifactId.equals("java") && !artifactId.equals("labkey-client-api"))
                             it.get('groupId').first().setValue(LabKeyExtension.API_GROUP)
                     }
