@@ -433,6 +433,7 @@ class FileModule implements Plugin<Project>
                         if (project.hasProperty('apiJar'))
                         {
                             apiLib(MavenPublication) { pub ->
+                                pub.groupId = LabKeyExtension.API_GROUP
                                 pub.artifact(project.tasks.apiJar)
                             }
                         }
