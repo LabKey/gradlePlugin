@@ -95,9 +95,16 @@ class PomFile extends DefaultTask
     {
         if (isModulePom)
         {
-            // Replace all dependencies automatically added by gradle (tomcat lib dependencies, etc.)
+            // Remove all dependencies automatically added by gradle (tomcat lib dependencies, etc.)
             def dependenciesNode = new Node(null, 'dependencies')
-            root.get('dependencies')?.first()?.replaceNode(dependenciesNode)
+            if (root.dependencies.isEmpty())
+            {
+                root.appendNode(dependenciesNode)
+            }
+            else
+            {
+                root.dependencies.first().replaceNode(dependenciesNode)
+            }
         }
         else
         {
