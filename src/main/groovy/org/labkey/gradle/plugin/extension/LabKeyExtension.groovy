@@ -16,7 +16,6 @@
 package org.labkey.gradle.plugin.extension
 
 import org.gradle.api.Project
-import org.labkey.gradle.plugin.LabKey
 
 /**
  * Created by susanh on 4/23/17.
