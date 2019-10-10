@@ -24,6 +24,7 @@ import org.labkey.gradle.plugin.LabKey
 class LabKeyExtension
 {
     private static final String DEPLOY_MODE_PROPERTY = "deployMode"
+    public static final String LABKEY_GROUP = "org.labkey"
     public static final String MODULE_GROUP = "org.labkey.module"
     public static final String API_GROUP = "org.labkey.api"
     private static enum DeployMode {

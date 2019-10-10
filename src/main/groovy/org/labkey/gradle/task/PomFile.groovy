@@ -124,7 +124,7 @@ class PomFile extends DefaultTask
                     if (it.get("groupId").first().value().first().equals("org.apache.tomcat") &&
                             it.get("version").isEmpty())
                         toRemove.add(it)
-                    if (it.get('groupId').first().value().first().equals(LabKey.LABKEY_GROUP))
+                    if (it.get('groupId').first().value().first().equals(LabKeyExtension.LABKEY_GROUP))
                     {
                         String artifactId = it.get('artifactId').first().value().first();
                         if (artifactId.equals("java"))
