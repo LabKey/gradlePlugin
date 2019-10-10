@@ -441,6 +441,7 @@ class FileModule implements Plugin<Project>
                                 || project.path.equals(BuildUtils.getInternalProjectPath(project.gradle)))
                         {
                             apiLib(MavenPublication) { pub ->
+                                pub.groupId = LabKeyExtension.API_GROUP
                                 pub.artifact(project.tasks.jar)
                             }
                         }

@@ -132,7 +132,8 @@ class PomFile extends DefaultTask
                         else if (artifactId.equals("bootstrap"))
                             it.get('artifactId').first().setValue(ServerBootstrap.JAR_BASE_NAME)
 
-                        it.get('groupId').first().setValue(LabKeyExtension.API_GROUP)
+                        if (!artifactId.equals("java") && !artifactId.equals("labkey-client-api"))
+                            it.get('groupId').first().setValue(LabKeyExtension.API_GROUP)
                     }
                 }
                 toRemove.each {
