@@ -695,6 +695,11 @@ class MultiGit implements Plugin<Project>
             return System.getenv('GIT_ACCESS_TOKEN');
         }
 
+        void setIncludeForkedRepos(boolean includeForkedRepos)
+        {
+            this.includeForkedRepos = includeForkedRepos
+        }
+
         private String getQueryString(String filterString = "")
         {
             String queryString = "org:LabKey ${filterString} "
@@ -703,11 +708,6 @@ class MultiGit implements Plugin<Project>
             if(includeForkedRepos)
                 queryString += "fork:true "
             return "\"${queryString}\", type:REPOSITORY, first:${REPO_PAGE_SIZE}"
-        }
-
-        boolean setIncludeForkedRepos(boolean includeForkedRepos)
-        {
-            this.includeForkedRepos = includeForkedRepos
         }
 
         private getRepositorySelectors()
