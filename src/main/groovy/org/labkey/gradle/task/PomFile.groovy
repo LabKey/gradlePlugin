@@ -134,8 +134,8 @@ class PomFile extends DefaultTask
                         else if (artifactId.equals("bootstrap"))
                             it.get('artifactId').first().setValue(ServerBootstrap.JAR_BASE_NAME)
 
-                        // All jar dependencies except for the labkey-client-api are in org.labkey.api
-                        if (!artifactId.equals("java") && !artifactId.equals("labkey-client-api"))
+                        // All jar dependencies except for the labkey-client-api and bootstrap are in org.labkey.api
+                        if (!artifactId.equals("java") && !artifactId.equals("labkey-client-api") && !artifactId.equals("bootstrap"))
                             it.get('groupId').first().setValue(LabKeyExtension.API_GROUP)
                     }
                 }
