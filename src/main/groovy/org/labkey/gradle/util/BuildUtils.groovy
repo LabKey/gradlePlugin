@@ -617,15 +617,17 @@ class BuildUtils
                     closure()
             }
 
-            parentProject.dependencies.add(parentProjectConfig, getLabKeyArtifactName(parentProject, depProjectPath, depProjectConfig, depVersion, depExtension), combinedClosure)
+            parentProject.dependencies.add(parentProjectConfig, getLabKeyArtifactName(parentProject, depProjectPath, depVersion, depExtension), combinedClosure)
         }
     }
 
-    static String getLabKeyArtifactName(Project project, String projectPath, String projectConfig, String version, String extension)
+    static String getLabKeyArtifactName(Project project, String projectPath, String version, String extension)
     {
         String moduleName
+        String group = extension.equals("module") ? LabKeyExtension.MODULE_GROUP : LabKeyExtension.API_GROUP
         if (projectPath.endsWith(getRemoteApiProjectPath(project.gradle).substring(1)))
         {
+            group = LabKeyExtension.LABKEY_GROUP
             moduleName = "labkey-client-api"
         }
         else if (projectPath.equals(getBootstrapProjectPath(project.gradle)))
@@ -644,7 +646,6 @@ class BuildUtils
 
         String extensionString = extension == null ? "" : "@$extension"
 
-        String group = extension.equals("module") ? LabKeyExtension.MODULE_GROUP : LabKeyExtension.API_GROUP
         return "${group}:${moduleName}${versionString}${extensionString}"
     }
 
