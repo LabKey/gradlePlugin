@@ -115,12 +115,13 @@ class PomFile extends DefaultTask
         }
         else
         {
-            // remove the tomcat dependencies with no version specified because we cannot know which version of tomcat is in use
-            List<Node> toRemove = []
             def dependencies = root.dependencies
             if (!dependencies.isEmpty())
             {
+                List<Node> toRemove = []
+
                 dependencies.first().each {
+                    // remove the tomcat dependencies with no version specified because we cannot know which version of tomcat is in use
                     if (it.get("groupId").first().value().first().equals("org.apache.tomcat") &&
                             it.get("version").isEmpty())
                         toRemove.add(it)
