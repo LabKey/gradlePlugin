@@ -632,6 +632,7 @@ class BuildUtils
         }
         else if (projectPath.equals(getBootstrapProjectPath(project.gradle)))
         {
+            group = LabKeyExtension.LABKEY_GROUP
             moduleName = ServerBootstrap.JAR_BASE_NAME
         }
         else
