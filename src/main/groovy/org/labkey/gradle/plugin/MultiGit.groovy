@@ -640,7 +640,6 @@ class MultiGit implements Plugin<Project>
         private boolean includePullRequests = false
         private boolean includeArchived = false
         private boolean requireAllTopics = false
-        private boolean includeForkedRepos = false
         private Date startDate
         private Date endDate
         private String baseRef
@@ -695,18 +694,11 @@ class MultiGit implements Plugin<Project>
             return System.getenv('GIT_ACCESS_TOKEN');
         }
 
-        void setIncludeForkedRepos(boolean includeForkedRepos)
-        {
-            this.includeForkedRepos = includeForkedRepos
-        }
-
         private String getQueryString(String filterString = "")
         {
-            String queryString = "org:LabKey ${filterString} "
+            String queryString = "org:LabKey ${filterString} fork:true "
             if (!includeArchived)
                 queryString += " archived:false "
-            if(includeForkedRepos)
-                queryString += "fork:true "
             return "\"${queryString}\", type:REPOSITORY, first:${REPO_PAGE_SIZE}"
         }
 
@@ -1091,7 +1083,6 @@ class MultiGit implements Plugin<Project>
 
                     RepositoryQuery query = new RepositoryQuery(project)
                     query.setIncludeTopics(true)
-                    query.setIncludeForkedRepos(true)
 
                     Map<String, Repository> repositories = query.execute()
                     project.logger.quiet(getEchoHeader(repositories, project))
