@@ -105,8 +105,7 @@ class BuildUtils
                 getPlatformModuleProjectPath(gradle, "experiment"),
                 getPlatformModuleProjectPath(gradle, "filecontent"),
                 getPlatformModuleProjectPath(gradle, "pipeline"),
-                getPlatformModuleProjectPath(gradle, "query"),
-                getPlatformModuleProjectPath(gradle, "wiki")
+                getPlatformModuleProjectPath(gradle, "query")
         ]
     }
 
@@ -632,6 +631,7 @@ class BuildUtils
         }
         else if (projectPath.equals(getBootstrapProjectPath(project.gradle)))
         {
+            group = LabKeyExtension.LABKEY_GROUP
             moduleName = ServerBootstrap.JAR_BASE_NAME
         }
         else
