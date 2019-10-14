@@ -15,15 +15,9 @@
  */
 package org.labkey.gradle.plugin
 
-import com.sun.jdi.AbsentInformationException
-import com.sun.jdi.Bootstrap
-import com.sun.jdi.IncompatibleThreadStateException
-import com.sun.jdi.ObjectReference
-import com.sun.jdi.StackFrame
-import com.sun.jdi.ThreadReference
-import com.sun.jdi.VirtualMachine
-import com.sun.jdi.connect.Connector
+import com.sun.jdi.*
 import com.sun.jdi.connect.AttachingConnector
+import com.sun.jdi.connect.Connector
 import com.sun.jdi.connect.IllegalConnectorArgumentsException
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.GradleException
@@ -38,13 +32,10 @@ import org.labkey.gradle.task.DoThenSetup
 import org.labkey.gradle.task.PickDb
 import org.labkey.gradle.task.RunTestSuite
 import org.labkey.gradle.task.UndeployModules
-import org.labkey.gradle.util.BuildUtils
-import org.labkey.gradle.util.DatabaseProperties
-import org.labkey.gradle.util.GroupNames
-import org.labkey.gradle.util.PropertiesUtils
-import org.labkey.gradle.util.SqlUtils
+import org.labkey.gradle.util.*
 
 import java.util.regex.Matcher
+
 /**
  * Creates tasks for TeamCity to run its tests suites based on properties set in a build configuration (particularly for
  * the database properties)
@@ -133,31 +124,6 @@ class TeamCity extends Tomcat
                     killFirefox(project)
                 }
         }
-        if (project.findProject(":externalModules:labModules:SequenceAnalysis") != null)
-        {
-            project.tasks.register("createPipelineConfig", Copy) {
-                Copy task ->
-                    task.group = GroupNames.TEST_SERVER
-                    task.description = "Create pipeline configs for running tests on the test server"
-                    task.from project.project(":server").file(TEST_CONFIGS_DIR)
-                    task.include PIPELINE_CONFIG_FILE
-                    task.filter({ String line ->
-                        Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
-                        String newLine = line
-                        while (matcher.find())
-                        {
-                            if (matcher.group(1).equals("SEQUENCEANALYSIS_CODELOCATION") || matcher.group(1).equals("SEQUENCEANALYSIS_TOOLS"))
-                                newLine = newLine.replace(matcher.group(), extension.getTeamCityProperty("additional.pipeline.tools"))
-                            else if (matcher.group(1).equals("SEQUENCEANALYSIS_EXTERNALDIR"))
-                                newLine = newLine.replace(matcher.group(), project.project(":externalModules:labModules:SequenceAnalysis").file("pipeline_code/external").getAbsolutePath())
-                        }
-                        return newLine;
-
-                    })
-                    task.destinationDir = new File("${ServerDeployExtension.getServerDeployDirectory(project)}/config")
-
-            }
-        }
 
         project.tasks.register("createNlpConfig", Copy) {
             Copy task ->
@@ -180,10 +146,6 @@ class TeamCity extends Tomcat
 
         }
 
-        if (project.findProject(":externalModules:labModules:SequenceAnalysis") != null)
-        {
-            project.tasks.startTomcat.dependsOn(project.tasks.createPipelineConfig)
-        }
         project.tasks.startTomcat.dependsOn(project.tasks.createNlpConfig)
 
         project.tasks.register("validateConfiguration") {

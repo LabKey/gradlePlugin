@@ -23,6 +23,7 @@ import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.NpmRunExtension
 import org.labkey.gradle.util.GroupNames
+import org.labkey.gradle.util.TaskUtils
 
 /**
  * Used to add tasks for running npm commands for a module.
@@ -106,7 +107,7 @@ class NpmRun implements Plugin<Project>
         if (project.tasks.findByName("clean") != null)
             project.tasks.clean.dependsOn(project.tasks.yarnRunClean)
 
-        project.tasks.register("yarnRunBuildProd")
+        def yarnRunBuildProd = project.tasks.register("yarnRunBuildProd")
                 {Task task ->
                     task.group = GroupNames.YARN
                     task.description = "Runs 'yarn run ${project.npmRun.buildProd}'"
@@ -117,7 +118,7 @@ class NpmRun implements Plugin<Project>
         addTaskInputOutput(project.tasks.yarnRunBuildProd)
         addTaskInputOutput(project.tasks.getByName("yarn_run_${project.npmRun.buildProd}"))
 
-        project.tasks.register("yarnRunBuild")
+        def yarnRunBuild = project.tasks.register("yarnRunBuild")
                 {Task task ->
                     task.group = GroupNames.YARN
                     task.description ="Runs 'yarn run ${project.npmRun.buildDev}'"
@@ -128,11 +129,9 @@ class NpmRun implements Plugin<Project>
         addTaskInputOutput(project.tasks.yarnRunBuild)
         addTaskInputOutput(project.tasks.getByName("yarn_run_${project.npmRun.buildDev}"))
 
-        String runCommand = LabKeyExtension.isDevMode(project) ? "yarnRunBuild" : "yarnRunBuildProd"
-        if (project.tasks.findByName("module") != null)
-            project.tasks.module.dependsOn(runCommand)
-        if (project.tasks.findByName("processModuleResources") != null)
-            project.tasks.processModuleResources.dependsOn(runCommand)
+        def runCommand = LabKeyExtension.isDevMode(project) ? yarnRunBuild : yarnRunBuildProd
+        TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
+        TaskUtils.configureTaskIfPresent(project, "processModuleResources", { mustRunAfter(runCommand) })
 
         project.tasks.yarn_install {Task task ->
             task.inputs.file project.file(NPM_PROJECT_FILE)
@@ -153,7 +152,7 @@ class NpmRun implements Plugin<Project>
         if (project.tasks.findByName("clean") != null)
             project.tasks.clean.dependsOn(project.tasks.npmRunClean)
 
-        project.tasks.register("npmRunBuildProd")
+        def npmRunBuildProd = project.tasks.register("npmRunBuildProd")
                 {Task task ->
                     task.group = GroupNames.NPM_RUN
                     task.description = "Runs 'npm run ${project.npmRun.buildProd}'"
@@ -164,7 +163,7 @@ class NpmRun implements Plugin<Project>
         addTaskInputOutput(project.tasks.npmRunBuildProd)
         addTaskInputOutput(project.tasks.getByName("npm_run_${project.npmRun.buildProd}"))
 
-        project.tasks.register("npmRunBuild")
+        def npmRunBuild = project.tasks.register("npmRunBuild")
                 {Task task ->
                     task.group = GroupNames.NPM_RUN
                     task.description ="Runs 'npm run ${project.npmRun.buildDev}'"
@@ -175,11 +174,9 @@ class NpmRun implements Plugin<Project>
         addTaskInputOutput(project.tasks.npmRunBuild)
         addTaskInputOutput(project.tasks.getByName("npm_run_${project.npmRun.buildDev}"))
 
-        String runCommand = LabKeyExtension.isDevMode(project) ? "npmRunBuild" : "npmRunBuildProd"
-        if (project.tasks.findByName("module") != null)
-            project.tasks.module.dependsOn(runCommand)
-        if (project.tasks.findByName("processModuleResources") != null)
-            project.tasks.processModuleResources.dependsOn(runCommand)
+        def runCommand = LabKeyExtension.isDevMode(project) ? npmRunBuild : npmRunBuildProd
+        TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
+        TaskUtils.configureTaskIfPresent(project, "processModuleResources", { mustRunAfter(runCommand) })
 
         project.tasks.npmInstall {Task task ->
             task.inputs.file project.file(NPM_PROJECT_FILE)
