@@ -699,7 +699,7 @@ class MultiGit implements Plugin<Project>
             String queryString = "org:LabKey ${filterString} fork:true "
             if (!includeArchived)
                 queryString += " archived:false "
-            return "\"${queryString}\", type:REPOSITORY, first:${REPO_PAGE_SIZE}"
+            return "\"${queryString}\", type:REPOSITORY, first:${REPO_PAGE_SIZE} "
         }
 
         private getRepositorySelectors()
@@ -1080,10 +1080,8 @@ class MultiGit implements Plugin<Project>
                     String branchName = (String) project.property('branch')
                     String remoteBranch = "origin/${branchName}"
                     List<Repository> toUpdate = new ArrayList<>()
-
                     RepositoryQuery query = new RepositoryQuery(project)
                     query.setIncludeTopics(true)
-
                     Map<String, Repository> repositories = query.execute()
                     project.logger.quiet(getEchoHeader(repositories, project))
 
