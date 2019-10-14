@@ -34,9 +34,6 @@ class RunTestSuite extends RunUiTest
         project.logger.info("RunTestSuite: constructor");
         scanForTestClasses = false
         include "org/labkey/test/Runner.class"
-        // TODO: Remove when 19.1 is no longer supported. Dependency is now declared in `qc/build.gradle`
-        if (project.findProject(":sampledata:qc") != null)
-            dependsOn(project.project(":sampledata:qc").tasks.jar)
         dependsOn(project.tasks.writeSampleDataFile)
 
         dependsOn(project.tasks.ensurePassword)
@@ -75,8 +72,7 @@ class RunTestSuite extends RunUiTest
                 systemProperty "testRecentlyFailed", "${runRiskGroupTestsFirst.contains("recentlyFailed")}"
             }
             systemProperty "teamcity.buildType.id", project.teamcity['teamcity.buildType.id']
-            // TODO: Remove references to 'tomcat.home' once plugin doesn't support 19.1, should use CATALINA_HOME
-            systemProperty "tomcat.home", project.teamcity["tomcat.home"]
+            systemProperty "tomcat.home", System.getenv("CATALINA_HOME")
             systemProperty "tomcat.port", project.teamcity["tomcat.port"]
             systemProperty "tomcat.debug", project.teamcity["tomcat.debug"]
             systemProperty "labkey.port", project.teamcity['tomcat.port']

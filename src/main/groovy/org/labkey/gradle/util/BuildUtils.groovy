@@ -125,16 +125,9 @@ class BuildUtils
      */
     static void includeTestModules(Settings settings, File rootDir)
     {
-        if (new File(rootDir, "sampledata/qc").exists())
-            settings.include ":sampledata:qc" // TODO: Remove when 19.1 is no longer supported
-        else
-            settings.include "${getTestProjectPath(settings.gradle)}:data:qc"
+        settings.include "${getTestProjectPath(settings.gradle)}:data:qc"
         settings.include getTestProjectPath(settings.gradle)
         includeModules(settings, rootDir, ["${convertPathToRelativeDir(getTestProjectPath(settings.gradle))}/modules"], [])
-        // TODO Remove when 19.1 is no longer supported. Dumbster moved into test modules
-        File dumbsterDir = new File(rootDir, "server/modules/dumbster")
-        if (dumbsterDir.exists())
-            settings.include ":server:modules:dumbster"
     }
 
     static void includeModules(Settings settings, List<String> modules)
@@ -357,18 +350,7 @@ class BuildUtils
 
             if (!["trunk", "master", "develop", "none"].contains(rootBranch))
             {
-                // TODO: Remove sprint branch naming in 19.2. Sprint branches became 'alpha' branches in 19.1Alpha3
-                if (lowerBranch.startsWith("sprint")) /* e.g. sprint_19.1_2 */
-                {
-                    version = version.replace("-SNAPSHOT", "")
-                    version += "Sprint"
-                    String[] nameParts = rootBranch.split("_")
-                    if (nameParts.length != 3)
-                        project.logger.error("Root branch name '${rootBranch}' not as expected.  Distribution name may not be as expected.");
-                    else
-                        version += nameParts[2]
-                }
-                else if (lowerBranch.startsWith("alpha")) /* e.g. alpha_19.1_3 */
+                if (lowerBranch.startsWith("alpha")) /* e.g. alpha_19.1_3 */
                 {
                     version = version.replace("-SNAPSHOT", "")
                     version += "Alpha"
