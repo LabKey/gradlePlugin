@@ -107,8 +107,7 @@ class BuildUtils
                 getPlatformModuleProjectPath(gradle, "experiment"),
                 getPlatformModuleProjectPath(gradle, "filecontent"),
                 getPlatformModuleProjectPath(gradle, "pipeline"),
-                getPlatformModuleProjectPath(gradle, "query"),
-                getPlatformModuleProjectPath(gradle, "wiki")
+                getPlatformModuleProjectPath(gradle, "query")
         ]
     }
 
