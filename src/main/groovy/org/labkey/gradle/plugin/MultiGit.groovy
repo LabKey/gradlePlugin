@@ -696,7 +696,7 @@ class MultiGit implements Plugin<Project>
 
         private String getQueryString(String filterString = "")
         {
-            String queryString = "org:LabKey ${filterString} "
+            String queryString = "org:LabKey ${filterString} fork:true "
             if (!includeArchived)
                 queryString += " archived:false "
             return "\"${queryString}\", type:REPOSITORY, first:${REPO_PAGE_SIZE} "

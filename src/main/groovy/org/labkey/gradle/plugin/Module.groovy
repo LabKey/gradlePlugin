@@ -41,20 +41,7 @@ class Module extends JavaModule
     {
         project.dependencies
                 {
-                    if (project.hasProperty('apacheTomcatVersion'))
-                    {
-                        BuildUtils.addTomcatBuildDependencies(project, 'implementation')
-                    }
-                    else // TODO: Remove once plugin no longer supports 19.1
-                    {
-                        // This is only required for the api module to compile, but we exclude the declaration of dependencies from
-                        // the api module's pom file because we cannot specify a version, since we rely on the local tomcat version.
-                        // Therefore, when relying on the api jar file not built from source, we require this extra definition;
-                        // it will not find the tomcat jar files without this.
-                        implementation project.fileTree(dir: "${project.ext.tomcatDir}/lib", includes: ['*.jar'], excludes: ['servlet-api.jar', 'mail.jar'])
-                        implementation 'org.apache.tomcat:jsp-api'
-                        implementation 'org.apache.tomcat:jasper'
-                    }
+                    BuildUtils.addTomcatBuildDependencies(project, 'implementation')
 
                     BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getInternalProjectPath(project.gradle), depVersion: project.labkeyVersion)
                     BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: project.labkeyVersion)

@@ -76,8 +76,7 @@ class ModuleFinder extends SimpleFileVisitor<Path>
 
     static boolean isModuleContainer(Project p)
     {
-        // TODO remove the check for commonAssays and platform when we have added the properties to the container directories
-        return (p.findProperty("moduleContainer") && p.path.equals(p.property("moduleContainer"))) || p.path.equals(BuildUtils.getCommonAssaysProjectPath(p.gradle)) || p.path.equals(BuildUtils.getPlatformProjectPath(p.gradle))
+        return (p.findProperty("moduleContainer") && p.path.equals(p.property("moduleContainer")))
     }
 
     static boolean isPotentialModule(Project p)
