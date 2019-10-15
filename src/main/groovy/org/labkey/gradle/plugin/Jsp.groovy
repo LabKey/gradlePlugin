@@ -22,7 +22,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
-import org.labkey.gradle.plugin.extension.JspCompileExtension
+import org.labkey.gradle.plugin.extension.JspImplementationExtension
 import org.labkey.gradle.task.JspCompile2Java
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
@@ -56,7 +56,7 @@ class Jsp implements Plugin<Project>
     void apply(Project project)
     {
         project.apply plugin: 'java-base'
-        project.extensions.create("jspCompile", JspCompileExtension)
+        project.extensions.create("jspImplementation", JspImplementationExtension)
 
         addConfiguration(project)
         addDependencies(project)
@@ -70,7 +70,7 @@ class Jsp implements Plugin<Project>
                 {
                     jsp {
                         java {
-                            srcDirs = ["${project.buildDir}/${project.jspCompile.classDir}"]
+                            srcDirs = ["${project.buildDir}/${project.jspImplementation.classDir}"]
                         }
                     }
                 }
@@ -145,11 +145,11 @@ class Jsp implements Plugin<Project>
                         task.description = "Copy jsp files to jsp compile directory"
                         task.configure({ CopySpec copy ->
                             copy.from 'src'
-                            copy.into "${project.buildDir}/${project.jspCompile.tempDir}/webapp"
+                            copy.into "${project.buildDir}/${project.jspImplementation.tempDir}/webapp"
                             copy.include '**/*.jsp'
                         })
                         task.doFirst {
-                            project.delete "${project.buildDir}/${project.jspCompile.tempDir}/webapp/org"
+                            project.delete "${project.buildDir}/${project.jspImplementation.tempDir}/webapp/org"
                         }
                 }
 
@@ -161,7 +161,7 @@ class Jsp implements Plugin<Project>
                         task.description = "Copy resource jsp files to jsp compile directory"
                         task.configure({ CopySpec copy ->
                             copy.from 'resources'
-                            copy.into "${project.buildDir}/${project.jspCompile.tempDir}/webapp/org/labkey/${project.name}"
+                            copy.into "${project.buildDir}/${project.jspImplementation.tempDir}/webapp/org/labkey/${project.name}"
                             copy.include '**/*.jsp'
                         })
                 }
@@ -174,7 +174,7 @@ class Jsp implements Plugin<Project>
                         task.description = "Copy the tag library (.tld) files to jsp compile directory"
                         task.configure({ CopySpec copy ->
                             copy.from "${project.rootProject.buildDir}/webapp"
-                            copy.into "${project.buildDir}/${project.jspCompile.tempDir}/webapp"
+                            copy.into "${project.buildDir}/${project.jspImplementation.tempDir}/webapp"
                             copy.include 'WEB-INF/web.xml'
                             copy.include 'WEB-INF/*.tld'
                             copy.include 'WEB-INF/tags/**'
@@ -192,9 +192,9 @@ class Jsp implements Plugin<Project>
                task.inputs.files project.tasks.copyJsp
                task.inputs.files project.tasks.copyResourceJsp
                task.inputs.files project.tasks.copyTagLibs
-               task.outputs.dir "${project.buildDir}/${project.jspCompile.classDir}"
+               task.outputs.dir "${project.buildDir}/${project.jspImplementation.classDir}"
                task.doFirst ({
-                   project.delete "${project.buildDir}/${project.jspCompile.classDir}"
+                   project.delete "${project.buildDir}/${project.jspImplementation.classDir}"
                })
                if (project.hasProperty('apiJar'))
                    task.dependsOn('apiJar')

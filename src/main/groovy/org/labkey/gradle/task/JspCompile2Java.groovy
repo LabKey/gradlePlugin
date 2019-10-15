@@ -28,13 +28,13 @@ class JspCompile2Java extends DefaultTask
     @OutputDirectory
     File getClassesDirectory()
     {
-        return new File("${project.buildDir}/${project.jspCompile.classDir}")
+        return new File("${project.buildDir}/${project.jspImplementation.classDir}")
     }
 
     @OutputDirectory
     File getWebAppDirectory()
     {
-        return new File("${project.buildDir}/${project.jspCompile.tempDir}/webapp")
+        return new File("${project.buildDir}/${project.jspImplementation.tempDir}/webapp")
     }
 
     @TaskAction
