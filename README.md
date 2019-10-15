@@ -19,6 +19,7 @@ but also make certain assumptions that you may not want to impose on your module
 * [Issue 38550](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=38550): Add authentication for fetching from repositories
 * Create task to publish module pom files to artifactory and harness transitive module dependencies
 * [Issue 38553](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=38553): Add labkey version to module.xml file for each module
+* [Issue 38681](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=38681): Change jspCompile references to jspImplementation
 
 
 ### version 1.7.0
