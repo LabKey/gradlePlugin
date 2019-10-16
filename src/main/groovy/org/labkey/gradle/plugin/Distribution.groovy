@@ -30,7 +30,6 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.ClientApiDistribution
 import org.labkey.gradle.task.ModuleDistribution
-import org.labkey.gradle.task.PipelineConfigDistribution
 import org.labkey.gradle.task.PomFile
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
@@ -152,9 +151,7 @@ class Distribution implements Plugin<Project>
                     distributions(MavenPublication) { pub ->
                         pub.artifactId(artifactId)
                         project.tasks.each {
-                            if (it instanceof ModuleDistribution ||
-                                    it instanceof ClientApiDistribution ||
-                                    it instanceof PipelineConfigDistribution)
+                            if (it instanceof ModuleDistribution || it instanceof ClientApiDistribution)
                             {
                                 it.outputs.files.each {File file ->
                                     pub.artifact(file)
@@ -177,9 +174,7 @@ class Distribution implements Plugin<Project>
 
                 project.artifactoryPublish {
                     project.tasks.each {
-                        if (it instanceof ModuleDistribution ||
-                                it instanceof ClientApiDistribution ||
-                                it instanceof PipelineConfigDistribution)
+                        if (it instanceof ModuleDistribution || it instanceof ClientApiDistribution)
                         {
                             dependsOn it
                         }
