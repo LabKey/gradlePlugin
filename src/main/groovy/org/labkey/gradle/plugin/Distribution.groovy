@@ -144,7 +144,7 @@ class Distribution implements Plugin<Project>
                     pFile.group = GroupNames.PUBLISHING
                     pFile.description = "create the pom file for this project"
                     pFile.artifactCategory = "distributions"
-                    pFile.pomProperties = LabKeyExtension.getBasePomProperties(artifactId, project.dist.description)
+                    pFile.pomProperties = LabKeyExtension.getApiPomProperties(artifactId, project.dist.description)
             }
             project.publishing {
                 publications {
@@ -186,7 +186,7 @@ class Distribution implements Plugin<Project>
         }
     }
 
-    private static String getArtifactId(Project project)
+    static String getArtifactId(Project project)
     {
         if (project.dist.artifactId != null)
             return project.dist.artifactId

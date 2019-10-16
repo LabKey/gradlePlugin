@@ -20,7 +20,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
-import org.labkey.gradle.plugin.extension.TomcatExtension
 
 /**
  * Created by susanh on 11/15/16.
@@ -95,13 +94,15 @@ class StartTomcat extends DefaultTask
                         key: "R_LIBS_USER",
                         value: System.getenv("R_LIBS_USER") != null ? System.getenv("R_LIBS_USER") : project.rootProject.file("sampledata/rlabkey")
                 )
+
+                def javaHome = TeamCityExtension.getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
                 env (
                         key: "JAVA_HOME",
-                        value: System.getenv("JAVA_HOME")
+                        value: javaHome
                 )
                 env (
                         key: "JRE_HOME",
-                        value: System.getenv("JAVA_HOME")
+                        value: javaHome
                 )
             }
 
