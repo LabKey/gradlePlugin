@@ -53,12 +53,12 @@ class JavaModule extends FileModule
         }
         else
         {
+            // this comes before the setJavaBuildProperties because we declare
+            // dependencies to tasks from this plugin in the jar configuration
+            if (XmlBeans.isApplicable(project))
+                project.apply plugin: 'org.labkey.xmlBeans'
+
             setJavaBuildProperties(project)
-            // We don't have an isApplicable method here because the directory we need to check is set in the extension
-            // created by this plugin.  We could separate extension creation from plugin application, but it would be
-            // different from the pattern used elsewhere.  Schema tasks will be skipped if there are no xsd files in
-            // the designated directory
-            project.apply plugin: 'org.labkey.xmlBeans'
 
             if (ModuleResources.isApplicable(project))
                 project.apply plugin: 'org.labkey.moduleResources'
@@ -133,7 +133,12 @@ class JavaModule extends FileModule
         addSourceSets(project)
 
         project.jar { Jar jar ->
-            jar.archiveBaseName = project.name
+            jar.archiveBaseName.set(project.name)
+            if (XmlBeans.isApplicable(project))
+            {
+                project.tasks.compileJava.dependsOn(project.tasks.schemasCompile)
+                jar.from(project.tasks.compileJava, project.tasks.schemasCompile)
+            }
         }
     }
 
@@ -142,7 +147,7 @@ class JavaModule extends FileModule
         project.sourceSets {
             main {
                 java {
-                    srcDirs = ['src']
+                    srcDirs = XmlBeans.isApplicable(project) ? ['src', "$project.buildDir/$XmlBeans.CLASS_DIR"] : ['src']
                 }
             }
         }
@@ -275,16 +280,23 @@ class JavaModule extends FileModule
         // base modules should remove everything included by api
         else if (BuildUtils.getBaseModules(project.gradle).contains(project.path))
         {
-            return config - project.project(BuildUtils.getApiProjectPath(project.gradle)).configurations.external
+            if (project.findProject(BuildUtils.getApiProjectPath(project.gradle)))
+            {
+                return config - project.project(BuildUtils.getApiProjectPath(project.gradle)).configurations.external
+            }
+            return config
         }
         else // all other modules should remove everything in the base modules
         {
             for (String path : BuildUtils.getBaseModules(project.gradle))
             {
-                FileCollection otherExternal = project.project(path).configurations.external
-                if (otherExternal != null)
+                if (project.findProject(path))
                 {
-                    config = config - otherExternal
+                    FileCollection otherExternal = project.project(path).configurations.external
+                    if (otherExternal != null)
+                    {
+                        config = config - otherExternal
+                    }
                 }
             }
         }

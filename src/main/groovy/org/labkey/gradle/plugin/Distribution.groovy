@@ -30,7 +30,6 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.ClientApiDistribution
 import org.labkey.gradle.task.ModuleDistribution
-import org.labkey.gradle.task.PipelineConfigDistribution
 import org.labkey.gradle.task.PomFile
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
@@ -145,16 +144,14 @@ class Distribution implements Plugin<Project>
                     pFile.group = GroupNames.PUBLISHING
                     pFile.description = "create the pom file for this project"
                     pFile.artifactCategory = "distributions"
-                    pFile.pomProperties = LabKeyExtension.getBasePomProperties(artifactId, project.dist.description)
+                    pFile.pomProperties = LabKeyExtension.getApiPomProperties(artifactId, project.dist.description)
             }
             project.publishing {
                 publications {
                     distributions(MavenPublication) { pub ->
                         pub.artifactId(artifactId)
                         project.tasks.each {
-                            if (it instanceof ModuleDistribution ||
-                                    it instanceof ClientApiDistribution ||
-                                    it instanceof PipelineConfigDistribution)
+                            if (it instanceof ModuleDistribution || it instanceof ClientApiDistribution)
                             {
                                 it.outputs.files.each {File file ->
                                     pub.artifact(file)
@@ -177,9 +174,7 @@ class Distribution implements Plugin<Project>
 
                 project.artifactoryPublish {
                     project.tasks.each {
-                        if (it instanceof ModuleDistribution ||
-                                it instanceof ClientApiDistribution ||
-                                it instanceof PipelineConfigDistribution)
+                        if (it instanceof ModuleDistribution || it instanceof ClientApiDistribution)
                         {
                             dependsOn it
                         }
@@ -191,7 +186,7 @@ class Distribution implements Plugin<Project>
         }
     }
 
-    private static String getArtifactId(Project project)
+    static String getArtifactId(Project project)
     {
         if (project.dist.artifactId != null)
             return project.dist.artifactId

@@ -19,10 +19,8 @@ import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-import org.labkey.gradle.plugin.Api
-import org.labkey.gradle.plugin.Jsp
 import org.labkey.gradle.plugin.ServerBootstrap
-import org.labkey.gradle.plugin.XmlBeans
+import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 
@@ -107,8 +105,7 @@ class BuildUtils
                 getPlatformModuleProjectPath(gradle, "experiment"),
                 getPlatformModuleProjectPath(gradle, "filecontent"),
                 getPlatformModuleProjectPath(gradle, "pipeline"),
-                getPlatformModuleProjectPath(gradle, "query"),
-                getPlatformModuleProjectPath(gradle, "wiki")
+                getPlatformModuleProjectPath(gradle, "query")
         ]
     }
 
@@ -128,16 +125,9 @@ class BuildUtils
      */
     static void includeTestModules(Settings settings, File rootDir)
     {
-        if (new File(rootDir, "sampledata/qc").exists())
-            settings.include ":sampledata:qc" // TODO: Remove when 19.1 is no longer supported
-        else
-            settings.include "${getTestProjectPath(settings.gradle)}:data:qc"
+        settings.include "${getTestProjectPath(settings.gradle)}:data:qc"
         settings.include getTestProjectPath(settings.gradle)
         includeModules(settings, rootDir, ["${convertPathToRelativeDir(getTestProjectPath(settings.gradle))}/modules"], [])
-        // TODO Remove when 19.1 is no longer supported. Dumbster moved into test modules
-        File dumbsterDir = new File(rootDir, "server/modules/dumbster")
-        if (dumbsterDir.exists())
-            settings.include ":server:modules:dumbster"
     }
 
     static void includeModules(Settings settings, List<String> modules)
@@ -360,18 +350,7 @@ class BuildUtils
 
             if (!["trunk", "master", "develop", "none"].contains(rootBranch))
             {
-                // TODO: Remove sprint branch naming in 19.2. Sprint branches became 'alpha' branches in 19.1Alpha3
-                if (lowerBranch.startsWith("sprint")) /* e.g. sprint_19.1_2 */
-                {
-                    version = version.replace("-SNAPSHOT", "")
-                    version += "Sprint"
-                    String[] nameParts = rootBranch.split("_")
-                    if (nameParts.length != 3)
-                        project.logger.error("Root branch name '${rootBranch}' not as expected.  Distribution name may not be as expected.");
-                    else
-                        version += nameParts[2]
-                }
-                else if (lowerBranch.startsWith("alpha")) /* e.g. alpha_19.1_3 */
+                if (lowerBranch.startsWith("alpha")) /* e.g. alpha_19.1_3 */
                 {
                     version = version.replace("-SNAPSHOT", "")
                     version += "Alpha"
@@ -588,6 +567,7 @@ class BuildUtils
                                     )
     {
         Project depProject = parentProject.rootProject.findProject(depProjectPath)
+
         if (depProject != null && shouldBuildFromSource(depProject))
         {
             parentProject.logger.info("Found project ${depProjectPath}; building ${depProjectPath} from source")
@@ -611,37 +591,29 @@ class BuildUtils
                 if (depVersion == null)
                     depVersion = depProject.version
             }
-            parentProject.dependencies.add(parentProjectConfig, getLabKeyArtifactName(parentProject, depProjectPath, depProjectConfig, depVersion, depExtension), closure)
+
+            def combinedClosure =  {
+                transitive isTransitive
+                if (closure != null)
+                    closure()
+            }
+
+            parentProject.dependencies.add(parentProjectConfig, getLabKeyArtifactName(parentProject, depProjectPath, depVersion, depExtension), combinedClosure)
         }
     }
 
-    static String getClassifier(String projectConfig) {
-        if (projectConfig == null)
-            return ""
-
-        if ('apiCompile'.equals(projectConfig))
-            return "${Api.CLASSIFIER}"
-        else if ('xmlSchema'.equals(projectConfig))
-            return "${XmlBeans.CLASSIFIER}"
-        else if ('jspCompile'.equals(projectConfig))
-            return "${Jsp.CLASSIFIER}"
-        // TODO when can the following be removed?
-        else if ('transformCompile'.equals(projectConfig)) // special business for CNPRC's distribution so it can include the genetics transform jar file
-            return "transform"
-        return ""
-    }
-
-    static String getLabKeyArtifactName(Project project, String projectPath, String projectConfig, String version, String extension)
+    static String getLabKeyArtifactName(Project project, String projectPath, String version, String extension)
     {
-        String classifier = getClassifier(projectConfig)
-
         String moduleName
+        String group = extension.equals("module") ? LabKeyExtension.MODULE_GROUP : LabKeyExtension.API_GROUP
         if (projectPath.endsWith(getRemoteApiProjectPath(project.gradle).substring(1)))
         {
+            group = LabKeyExtension.LABKEY_GROUP
             moduleName = "labkey-client-api"
         }
         else if (projectPath.equals(getBootstrapProjectPath(project.gradle)))
         {
+            group = LabKeyExtension.LABKEY_GROUP
             moduleName = ServerBootstrap.JAR_BASE_NAME
         }
         else
@@ -656,8 +628,7 @@ class BuildUtils
 
         String extensionString = extension == null ? "" : "@$extension"
 
-        return "org.labkey:${moduleName}${versionString}${(classifier.length() > 0 ? ':' + classifier : '')}${extensionString}"
-
+        return "${group}:${moduleName}${versionString}${extensionString}"
     }
 
     static String getRepositoryKey(Project project)

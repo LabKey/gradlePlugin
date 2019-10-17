@@ -58,20 +58,10 @@ class ServerBootstrap implements Plugin<Project>
     {
         project.dependencies
                 {
-                    if (project.hasProperty('apacheTomcatVersion'))
-                    {
-                        implementation "org.apache.tomcat:tomcat-api:${project.apacheTomcatVersion}"
-                        implementation "org.apache.tomcat:tomcat-catalina:${project.apacheTomcatVersion}"
-                        implementation "org.apache.tomcat:tomcat-juli:${project.apacheTomcatVersion}"
-                        implementation "org.apache.tomcat:tomcat-util:${project.apacheTomcatVersion}"
-                    }
-                    else // TODO: Remove once plugin no longer supports 19.1
-                    {
-                        implementation 'org.apache.tomcat:tomcat-api',
-                                'org.apache.tomcat:catalina',
-                                'org.apache.tomcat:tomcat-juli',
-                                'org.apache.tomcat:tomcat-util'
-                    }
+                    implementation "org.apache.tomcat:tomcat-api:${project.apacheTomcatVersion}"
+                    implementation "org.apache.tomcat:tomcat-catalina:${project.apacheTomcatVersion}"
+                    implementation "org.apache.tomcat:tomcat-juli:${project.apacheTomcatVersion}"
+                    implementation "org.apache.tomcat:tomcat-util:${project.apacheTomcatVersion}"
                 }
     }
 

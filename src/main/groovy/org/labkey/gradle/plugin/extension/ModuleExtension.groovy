@@ -126,6 +126,7 @@ class ModuleExtension
         modProperties.setProperty("BuildPath", project.buildDir.getAbsolutePath())
         modProperties.setProperty("SourcePath", project.projectDir.getAbsolutePath())
         modProperties.setProperty("ResourcePath", "") // TODO  _project.getResources().... ???
+        modProperties.setProperty("LabkeyVersion", (String) project.getProperty("labkeyVersion"))
         boolean isExternalModule = project.projectDir.getAbsolutePath().contains("externalModules")
         if (modProperties.getProperty("ConsolidateScripts") == null)
         {

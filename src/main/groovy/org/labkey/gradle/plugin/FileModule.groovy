@@ -279,6 +279,8 @@ class FileModule implements Plugin<Project>
                     task.dependsOn(project.tasks.clean, project.tasks.undeployModule)
                     if (project.tasks.findByName('cleanNodeModules') != null)
                         task.dependsOn(project.tasks.cleanNodeModules)
+                    if (project.tasks.findByName('cleanSchemasCompile') != null)
+                        task.dependsOn(project.tasks.cleanSchemasCompile)
             }
         }
 
@@ -343,7 +345,7 @@ class FileModule implements Plugin<Project>
      * Finds all module files and directories for a project included in the deployment directory and/or staging directory
      * @param project the project to find module files for
      * @param includeDeployed include .module files and directories in the build/deploy directory
-     * @param includeStaging indlude .module files in the build/staging directory
+     * @param includeStaging include .module files in the build/staging directory
      * @return list of files and directories for this module with the deploy .module files first, followed by the deploy directories
      *          followed by the staging .module files.
      */
@@ -405,19 +407,42 @@ class FileModule implements Plugin<Project>
             project.afterEvaluate {
                 project.tasks.register("pomFile", PomFile)  {
                     PomFile pFile ->
+                        pFile.description = "Create the pom file for this project's api jar"
                         pFile.group = GroupNames.PUBLISHING
-                        pFile.description = "create the pom file for this project"
-                        pFile.pomProperties = project.lkModule.modProperties
+                        pFile.pomProperties = LabKeyExtension.getApiPomProperties(project)
+                        pFile.isModulePom = false
+                }
+                project.tasks.register("modulePomFile", PomFile)  {
+                    PomFile pFile ->
+                        pFile.description = "Create the pom file for this project's .module file"
+                        pFile.group = GroupNames.PUBLISHING
+                        pFile.pomProperties = LabKeyExtension.getModulePomProperties(project)
+                        pFile.isModulePom = true
                 }
                 project.publishing {
                     publications {
-                        libs(MavenPublication) { pub ->
-                            project.tasks.each {
-                                if (it instanceof Jar &&
-                                        (!it.name.equals("schemasJar") || XmlBeans.isApplicable(project)))
-                                {
-                                    pub.artifact(it)
-                                }
+                        if (project.hasProperty('module'))
+                        {
+                            modules(MavenPublication) { pub ->
+                                    // Use org.labkey.module for module dependency groupIds instead of "org.labkey"
+                                    pub.groupId = LabKeyExtension.MODULE_GROUP
+                                    pub.artifact(project.tasks.module)
+                            }
+                        }
+
+                        if (project.hasProperty('apiJar'))
+                        {
+                            apiLib(MavenPublication) { pub ->
+                                pub.groupId = LabKeyExtension.API_GROUP
+                                pub.artifact(project.tasks.apiJar)
+                            }
+                        }
+                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
+                                || project.path.equals(BuildUtils.getInternalProjectPath(project.gradle)))
+                        {
+                            apiLib(MavenPublication) { pub ->
+                                pub.groupId = LabKeyExtension.API_GROUP
+                                pub.artifact(project.tasks.jar)
                             }
                         }
                     }
@@ -425,18 +450,26 @@ class FileModule implements Plugin<Project>
                     if (BuildUtils.shouldPublish(project))
                     {
                         project.artifactoryPublish {
-                            project.tasks.each {
-                                if (it instanceof Jar &&
-                                        (!it.name.equals("schemasJar") || XmlBeans.isApplicable(project)))
-                                {
-                                    dependsOn it
-                                }
+                            if (project.hasProperty('module'))
+                            {
+                                dependsOn project.tasks.modulePomFile
+                                dependsOn project.tasks.module
                             }
+
+                            if (project.hasProperty('apiJar'))
+                            {
+                                dependsOn project.tasks.apiJar
+                            }
+                            else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
+                                    || project.path.equals(BuildUtils.getInternalProjectPath(project.gradle)))
+                            {
+                                dependsOn project.tasks.jar
+                            }
+
                             dependsOn project.tasks.pomFile
-                            publications('libs')
+                            publications('modules', 'apiLib')
                         }
                     }
-
                 }
             }
         }

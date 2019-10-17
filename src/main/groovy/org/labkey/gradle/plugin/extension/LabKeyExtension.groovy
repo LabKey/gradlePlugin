@@ -16,7 +16,6 @@
 package org.labkey.gradle.plugin.extension
 
 import org.gradle.api.Project
-import org.labkey.gradle.util.BuildUtils
 
 /**
  * Created by susanh on 4/23/17.
@@ -24,6 +23,9 @@ import org.labkey.gradle.util.BuildUtils
 class LabKeyExtension
 {
     private static final String DEPLOY_MODE_PROPERTY = "deployMode"
+    public static final String LABKEY_GROUP = "org.labkey"
+    public static final String MODULE_GROUP = "org.labkey.module"
+    public static final String API_GROUP = "org.labkey.api"
     private static enum DeployMode {
 
         dev("Development"),
@@ -81,7 +83,7 @@ class LabKeyExtension
         externalLibDir = "${externalDir}/lib"
     }
 
-    static Properties getBasePomProperties(String artifactPrefix, String description)
+    private static Properties getBasePomProperties(String artifactPrefix, String description)
     {
         Properties pomProperties = new Properties()
         pomProperties.put("ArtifactId", artifactPrefix)
@@ -91,6 +93,35 @@ class LabKeyExtension
             pomProperties.put("Description", description)
         pomProperties.put("License", "The Apache Software License, Version 2.0")
         pomProperties.put("LicenseURL", "http://www.apache.org/licenses/LICENSE-2.0.txt")
+        return pomProperties
+    }
+
+    static Properties getApiPomProperties(String artifactPrefix, String description)
+    {
+        Properties pomProperties = getBasePomProperties(artifactPrefix, description)
+        pomProperties.put("groupId", API_GROUP)
+        pomProperties.setProperty("artifactCategory", "apiLib")
+        pomProperties.setProperty("scope", "compile")
+        return pomProperties
+    }
+
+    static Properties getApiPomProperties(Project project)
+    {
+        return getApiPomProperties(project.name, project.description)
+    }
+
+    static Properties getModulePomProperties(Project project)
+    {
+        return getModulePomProperties(project.name, project.description)
+    }
+
+    static Properties getModulePomProperties(String artifactPrefix, String description)
+    {
+        Properties pomProperties = getBasePomProperties(artifactPrefix, description)
+        pomProperties.put("groupId", MODULE_GROUP)
+        pomProperties.setProperty("artifactCategory", "modules")
+        pomProperties.setProperty("type", "module")
+        pomProperties.setProperty("scope", "runtime")
         return pomProperties
     }
 }

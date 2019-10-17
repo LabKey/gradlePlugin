@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 LabKey Corporation
+ * Copyright (c) 2019 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.labkey.gradle.plugin.extension
+package org.labkey.gradle.util
 
-/**
- * Created by susanh on 4/23/17.
- */
-class XmlBeansExtension
+import org.gradle.api.Project
+import org.gradle.api.UnknownTaskException
+
+class TaskUtils
 {
-    String schemasDir = "schemas" // the directory containing the schemas to be compiled
-    String classDir = "xb" // the name of the directory in build or build/gensrc for the source and class files
+    static void configureTaskIfPresent(Project project, String taskName, Closure closure)
+    {
+        try {
+            project.tasks.named(taskName).configure closure
+        }
+        catch (UnknownTaskException ignore) {}
+    }
 }

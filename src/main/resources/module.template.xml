@@ -41,5 +41,6 @@
         <property name="enlistmentId" value="@@EnlistmentId@@"/>
         <property name="consolidateScripts" value="@@ConsolidateScripts@@"/>
         <property name="manageVersion" value="@@ManageVersion@@"/>
+        <property name="labkeyVersion" value="@@LabkeyVersion@@"/>
     </bean>
 </beans>
