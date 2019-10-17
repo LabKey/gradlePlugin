@@ -9,8 +9,8 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
-### version ???
-*Release*: ???
+### version 1.8
+*Release*: 17 Oct 2019
 (Earliest compatible LabKey version: 19.3)
 
 * Update reallyClean to depend on cleanSchemasCompile and thus remove the classes generated from xsd files
