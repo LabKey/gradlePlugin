@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.task.SchemaCompile
+import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
 /**
@@ -54,6 +55,12 @@ class XmlBeans implements Plugin<Project>
                 {
                     xmlbeans "org.apache.xmlbeans:xmlbeans:${project.xmlbeansVersion}"
                 }
+
+        String schemasProjectPath = BuildUtils.getSchemasProjectPath(project.gradle)
+        if (!project.path.equals(schemasProjectPath))
+        {
+            BuildUtils.addLabKeyDependency(project: project, config: 'xmlbeans', depProjectPath: schemasProjectPath)
+        }
     }
 
     private static void addTasks(Project project)
