@@ -33,7 +33,10 @@ class SchemaCompile extends DefaultTask {
     return project.file(XmlBeans.SCHEMAS_DIR)
   }
 
-  @OutputDirectory
+  // Not marked as an OutputDirectory to prevent inclusion of .java files in the jar file.
+  // Alternatively, the jar task could be configured to exclude .java files, but these
+  // intermediate files should never be modified on their own and are cleand up directly
+  // so there seems no reason to declare this as an output directory
   File getSrcGenDir()
   {
     return new File("$project.labkey.srcGenDir/$XmlBeans.CLASS_DIR")
