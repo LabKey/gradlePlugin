@@ -9,6 +9,14 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
+### version 1.8.1
+*Release*: ???
+(Earliest compatible LabKey version: 19.3)
+
+* Fix classpath for XSD schema compilation to prevent duplicate classes
+* Remove .java files generated from XSD files
+* Move to new node plugin that works with Gradle 6
+
 ### version 1.8
 *Release*: 17 Oct 2019
 (Earliest compatible LabKey version: 19.3)
