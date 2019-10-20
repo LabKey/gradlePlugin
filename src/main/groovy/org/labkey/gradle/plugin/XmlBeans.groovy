@@ -85,8 +85,8 @@ class XmlBeans implements Plugin<Project>
                     task.description = "remove source and class files generated from xsd files"
                     task.configure (
                 {DeleteSpec del ->
-                            del.delete "$project.buildDir/$XmlBeans.CLASS_DIR",
-                                         "$project.labkey.srcGenDir/$XmlBeans.CLASS_DIR"
+                            del.delete "$project.buildDir/$CLASS_DIR",
+                                         "$project.labkey.srcGenDir/$CLASS_DIR"
                         }
                     )
         }
