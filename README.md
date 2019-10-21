@@ -9,8 +9,16 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
+### version 1.8.1
+*Released*: 21 Oct 2019
+(Earliest compatible LabKey version: 19.3)
+
+* Fix classpath for XSD schema compilation to prevent duplicate classes
+* Remove .java files generated from XSD files from jar file
+* Move to new node plugin that works with Gradle 6
+
 ### version 1.8
-*Release*: 17 Oct 2019
+*Released*: 17 Oct 2019
 (Earliest compatible LabKey version: 19.3)
 
 * Update reallyClean to depend on cleanSchemasCompile and thus remove the classes generated from xsd files
@@ -24,7 +32,7 @@ but also make certain assumptions that you may not want to impose on your module
 * Add property to allow TeamCity to run Tomcat under a different JDK `teamcity["tomcatJavaHome"]`
 
 ### version 1.7.0
-*Release*: 27 Aug 2019
+*Released*: 27 Aug 2019
 (Earliest compatible LabKey version: 19.1)
 
 * Don't use yarn if there is a package-lock.json file.
@@ -36,20 +44,20 @@ but also make certain assumptions that you may not want to impose on your module
 * Update reallyClean to depend on cleanNodeModules and thus also remove the node_modules directory for a module
 
 ### version 1.6.2
-*Release*: 25 Jun 2019
+*Released*: 25 Jun 2019
 (Earliest compatible LabKey version: 19.1)
 
 * Fix for symlinkNode task (referencing unknown property)
 
 ### version 1.6.1
-*Release*: 18 Jun 2019
+*Released*: 18 Jun 2019
 (Earliest compatible LabKey version: 19.1)
 
 * [Issue 37754](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=37754) - fix line endings for `manual-upgrade.sh`
 
 
 ### version 1.6
-*Release*: 14 Jun 2019
+*Released*: 14 Jun 2019
 (Earliest compatible LabKey version: 19.1)
 
 * Update tasks for yarn support
@@ -57,7 +65,7 @@ but also make certain assumptions that you may not want to impose on your module
   * Only require `tomcat.home`/`CATALINA_HOME` for tasks that use them
 
 ### version 1.5
-*Release*: 23 May 2019
+*Released*: 23 May 2019
 (Earliest compatible LabKey version: 19.1)
 
 * [Issue 36138](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36138) - Remove compile-time dependency on local tomcat installation 
@@ -70,19 +78,19 @@ but also make certain assumptions that you may not want to impose on your module
 * (Incubating) Enable yarn for NPM plugin configuration if yarnVersion and yarnWorkDirectory properties are defined 
 
 ### version 1.4.4
-*Release*: 27 Mar 2019
+*Released*: 27 Mar 2019
 (Earliest compatible LabKey version: 19.1)
 
 * Build with Java 11 istead of 12
 
 ### version 1.4.3
-*Release*: 25 Mar 2019
+*Released*: 25 Mar 2019
 (Earliest compatible LabKey version: 19.1)
 
 * Fix evaluation ordering for SpringConfig plugin when doing IntelliJ gradle syncing.
 
 ### version 1.4.2
-*Release*: 20 Mar 2019
+*Released*: 20 Mar 2019
 (Earliest compatible LabKey version: 19.1)
 
 * Add ability to get base modules from a different location using the `platformProjectPath` property to
@@ -90,7 +98,7 @@ support some reorganization of the modules into git repositories.
 
 
 ### version 1.4.1
-*Release*: 20 Feb 2019
+*Released*: 20 Feb 2019
 (Earliest compatible LabKey version: 19.1)
 
 * Remove Windows installer
@@ -99,7 +107,7 @@ support some reorganization of the modules into git repositories.
 * (incubating) Add task for listing pull request info on a set of git repositories
 
 ### version 1.4
-*Release*: 17 Jan 2019
+*Released*: 17 Jan 2019
 (Earliest compatible LabKey version: 19.1)
 
 * [Issue 36261](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36261) - always include source path as module property
@@ -114,7 +122,7 @@ deprecated functionality.
 * No longer throw exception if a `modules` configuration dependency is declared for a project in the settings file but there is no enlistment for that project
 
 ### version 1.3.8
-*Release*: 14 Jan 2019
+*Released*: 14 Jan 2019
 (Earliest compatible LabKey version: 18.3)
 
 * [Issue 36527](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36527) - Don't add branch name to artifact version if on release snapshot branch
@@ -123,7 +131,7 @@ deprecated functionality.
 (skipped)
 
 ### version 1.3.6
-*Release*: 28 Nov 2018
+*Released*: 28 Nov 2018
 (Earliest compatible LabKey version: 18.3)
 
 * Move ThreadDumpAndKill functionality into TeamCity plugin, where it is used
@@ -134,7 +142,7 @@ deprecated functionality.
 * [Issue 36171](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36171) - make the contents of the .tar.gz and .zip distributions identical
 
 ### version 1.3.5
-*Release*: 29 Oct 2018
+*Released*: 29 Oct 2018
 (Earliest compatible LabKey version: 18.3)
 
 * When copying the labkey.xml file to the tomcat conf directory, don't throw an exception if the directory does not exist but the user can create it (via the copy)
@@ -144,13 +152,13 @@ deprecated functionality.
 * Removed TestRunner dependency on sardine.
 
 ### version 1.3.4
-*Release*: 29 Oct 2018
+*Released*: 29 Oct 2018
 (Earliest compatible LabKey version: 18.2)
 
 (Accidental no-change release)
 
 ### version 1.3.3
-*Release*: 18 Oct 2018
+*Released*: 18 Oct 2018
 (Earliest compatible LabKey version: 18.2)
 
 * add ability to enable ldap sync configuration in labkey.xml with -PenableLdapSync.  This will uncomment a stanza in the labkey.xml
@@ -161,7 +169,7 @@ that is surrounded by &lt;`--@@ldapSyncConfig@@` and `@@ldapSyncConfig@@`--&gt;
 * update pattern for jar checking to account for words in the release version (e.g., Spring's 4.3.0.RELEASE)
 
 ### version 1.3.2
-*Release*: 29 Aug 2019
+*Released*: 29 Aug 2019
 (Earliest compatible LabKey version: 18.2)
 
 * [Issue 34390](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=34523) - make createModule use lower case name
@@ -173,7 +181,7 @@ linking to npm executables work when not building from source
 * Update template for createModule task to parameterize version number and copyright year
 
 ### version 1.3.1
-*Released*: 19 June 2018
+*Releasedd*: 19 June 2018
 (Earliest compatible LabKey version: 18.2)
 
 * Remove code that attempted (but failed) to create symbolic links to node and npm directories on Windows. 
