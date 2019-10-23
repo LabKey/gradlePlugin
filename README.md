@@ -9,6 +9,12 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
+### version ???
+*Released*: ???
+(Earliest compatible LabKey version: 19.3)
+
+* Fix stageModules task so locally built modules will replace externally built modules that come through transitive dependencies
+
 ### version 1.8.1
 *Released*: 21 Oct 2019
 (Earliest compatible LabKey version: 19.3)
