@@ -20,8 +20,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.StagingExtension
@@ -86,8 +90,22 @@ class ServerDeploy implements Plugin<Project>
                             preserveLastModified: true // this is important so we don't re-explode modules that have not changed
                     )
                             {
-                                project.configurations.modules { Configuration collection ->
-                                    collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
+                                project.configurations.modules {
+                                    Configuration collection ->
+                                        // copy over the module dependencies first (things not built from source that might bring in
+                                        // transitive dependencies)
+                                        collection.fileCollection ({
+                                            Dependency dependency -> dependency instanceof DefaultExternalModuleDependency
+                                        }).addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
+                                        // Then copy over the project dependencies (things built from source) so they will replace
+                                        // any transitive dependencies that were brought in).
+                                        // One might like to do this overriding/overwriting using DependencySubstitution, as that is very much
+                                        // what it is designed for, but that allows substitution of a project for an ExternalModuleDependency
+                                        // and since a .module file is only one of the artifacts produced by our projects (e.g., :server:modules:platform:experiment)
+                                        // and is not the default artifact, DependencySubstitution does not seem to work.
+                                        collection.fileCollection ({
+                                            Dependency dependency -> dependency instanceof DefaultProjectDependency
+                                        }).addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet);
                                 }
                             }
                 })

@@ -570,7 +570,7 @@ class BuildUtils
 
         if (depProject != null && shouldBuildFromSource(depProject))
         {
-            parentProject.logger.info("Found project ${depProjectPath}; building ${depProjectPath} from source")
+            parentProject.logger.debug("Found project ${depProjectPath}; building ${depProjectPath} from source")
             if (depProjectConfig != null)
                 parentProject.dependencies.add(parentProjectConfig, parentProject.dependencies.project(path: depProjectPath, configuration: depProjectConfig, transitive: isTransitive), closure)
             else
@@ -580,13 +580,13 @@ class BuildUtils
         {
             if (depProject == null)
             {
-                parentProject.logger.info("${depProjectPath} project not found; assumed to be external.")
+                parentProject.logger.debug("${depProjectPath} project not found; assumed to be external.")
                 if (depVersion == null)
                     depVersion = parentProject.version
             }
             else
             {
-                parentProject.logger.info("${depProjectPath} project found but not building from source because: "
+                parentProject.logger.debug("${depProjectPath} project found but not building from source because: "
                         + whyNotBuildFromSource(parentProject, BUILD_FROM_SOURCE_PROP).join("; "))
                 if (depVersion == null)
                     depVersion = depProject.version
