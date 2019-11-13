@@ -33,6 +33,7 @@ class ModuleDistribution extends DefaultTask
 {
     Boolean includeZipArchive = false
     Boolean includeTarGZArchive = false
+    Boolean includeWarArchive = false
     Boolean makeDistribution = true // set to false for just an archive of modules
     String extraFileIdentifier = ""
     Boolean includeMassSpecBinaries = false
@@ -99,7 +100,7 @@ class ModuleDistribution extends DefaultTask
     private String getArchivePrefix()
     {
         if (archivePrefix == null)
-            archivePrefix =  "${getVersionPrefix()}-bin"
+            archivePrefix = "${getVersionPrefix()}-bin"
         return archivePrefix
     }
 
@@ -159,6 +160,10 @@ class ModuleDistribution extends DefaultTask
         {
             zipArchives()
         }
+        if (includeWarArchive)
+        {
+            warArchives()
+        }
     }
 
     String getArtifactId()
@@ -186,6 +191,11 @@ class ModuleDistribution extends DefaultTask
     private String getZipArchivePath()
     {
         return "${getDistributionDir()}/${getArtifactName()}.zip"
+    }
+
+    private String getWarArchivePath()
+    {
+        return "${getDistributionDir()}/${getArtifactName()}.war"
     }
 
     private void tarArchives()
@@ -325,8 +335,89 @@ class ModuleDistribution extends DefaultTask
                 }
             }
         }
-
     }
+
+    // CONSIDER sort module by module dependencies
+    //   I don't think this is a problem with core labkey modules today, but it could be
+    private void warArchives()
+    {
+        StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
+        String warArchivePath = getWarArchivePath()
+
+//        String[] modules = getModulesDir().list new FilenameFilter() {
+//            @Override
+//            boolean accept(File dir, String name) { return name.endsWith(".module") }
+//        }
+
+        String[] modules = getModulesDir().list { File dir, String name -> name.endsWith(".module") }
+
+        List<File> explodedModules = new ArrayList<>()
+        Arrays.asList(modules).forEach({ String moduleFile ->
+            String moduleName = moduleFile.substring(0, moduleFile.size() - ".module".size())
+            File explodedDir = new File(new File(warArchivePath).parentFile, moduleName)
+            explodedModules.push(explodedDir)
+            ant.unzip(src: new File(getModulesDir(),moduleFile), dest: explodedDir)
+        })
+
+        ant.zip(destfile: warArchivePath) {
+
+            zipfileset(dir: staging.webappDir,
+                    prefix: "/") {
+                exclude(name: "WEB-INF/classes/distribution")
+            }
+
+            zipfileset(dir: staging.tomcatLibDir,
+                    prefix: "/WEB-INF/lib/") {
+                // this exclusion is necessary because for some reason when buildFromSource=false,
+                // the tomcat bootstrap jar is included in the staged libraries and the LabKey bootstrap jar is not.
+                // Not sure why.
+                exclude(name: "labkeyBootstrap.jar")
+                exclude(name: "bootstrap.jar")
+            }
+
+            // we want expanded modules (no point in nesting archives)
+            // NOTE: if we want to enable running w/o LabKeyBootstrapClassLoader we have to do some of its work here (see ExplodedModule)
+            // NOTE: in particular some files need to be move out of the module and into the WEB-INF directory
+
+            explodedModules.forEach({ File moduleDir ->
+                String moduleName = moduleDir.getName()
+
+                println("MODULE: ${moduleName}")
+
+                // modules files that stay in the exploded module directory
+                zipfileset(dir: moduleDir,
+                        prefix: "/WEB-INF/modules/" + moduleName) {
+                    exclude(name: "lib/**/*.jar")
+                    exclude(name: "web/**/*.gwt.rpc")
+                    exclude(name: "**/*Context.xml")
+                }
+
+                // jars
+                zipfileset(dir: new File(moduleDir, "lib"),
+                        prefix: "/WEB-INF/lib",
+                        erroronmissingdir: false) {
+                    include(name: "*.jar")
+                }
+
+                // gwt.rpc
+                zipfileset(dir: new File(moduleDir, "web"),
+                        prefix: "/",
+                        erroronmissingdir: false) {
+                    include(name: "**/*.gwt.rpc")
+                }
+
+                // spring Context.xml files
+                zipfileset(dir: new File(moduleDir, "config"),
+                        prefix: "/WEB-INF/",
+                        erroronmissingdir: false) {
+                    include(name: "*Context.xml")
+                }
+            })
+        }
+
+        explodedModules.forEach({ File moduleDir -> moduleDir.deleteDir() })
+    }
+
 
     private void createDistributionFiles()
     {
