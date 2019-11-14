@@ -362,12 +362,12 @@ class ModuleDistribution extends DefaultTask
         ant.zip(destfile: warArchivePath) {
 
             zipfileset(dir: staging.webappDir,
-                    prefix: "/") {
+                    prefix: "") {
                 exclude(name: "WEB-INF/classes/distribution")
             }
 
             zipfileset(dir: staging.tomcatLibDir,
-                    prefix: "/WEB-INF/lib/") {
+                    prefix: "WEB-INF/lib/") {
                 // this exclusion is necessary because for some reason when buildFromSource=false,
                 // the tomcat bootstrap jar is included in the staged libraries and the LabKey bootstrap jar is not.
                 // Not sure why.
@@ -386,31 +386,38 @@ class ModuleDistribution extends DefaultTask
 
                 // modules files that stay in the exploded module directory
                 zipfileset(dir: moduleDir,
-                        prefix: "/WEB-INF/modules/" + moduleName) {
+                        prefix: "WEB-INF/modules/" + moduleName) {
                     exclude(name: "lib/**/*.jar")
                     exclude(name: "web/**/*.gwt.rpc")
                     exclude(name: "**/*Context.xml")
                 }
 
+                // WEB-INF (web.xml, labkey.tld)
+                zipfileset(dir: new File(moduleDir, "web/WEB-INF"),
+                        prefix: "WEB-INF/",
+                        erroronmissingdir: false) {
+                    include(name: "*")
+                }
+
                 // jars
                 zipfileset(dir: new File(moduleDir, "lib"),
-                        prefix: "/WEB-INF/lib",
+                        prefix: "WEB-INF/lib",
                         erroronmissingdir: false) {
                     include(name: "*.jar")
                 }
 
                 // gwt.rpc
                 zipfileset(dir: new File(moduleDir, "web"),
-                        prefix: "/",
+                        prefix: "",
                         erroronmissingdir: false) {
                     include(name: "**/*.gwt.rpc")
                 }
 
                 // spring Context.xml files
                 zipfileset(dir: new File(moduleDir, "config"),
-                        prefix: "/WEB-INF/",
+                        prefix: "WEB-INF/",
                         erroronmissingdir: false) {
-                    include(name: "*Context.xml")
+                    include(name: "**/*Context.xml")
                 }
             })
         }
