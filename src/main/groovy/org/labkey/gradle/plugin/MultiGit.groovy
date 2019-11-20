@@ -401,13 +401,16 @@ class MultiGit implements Plugin<Project>
         boolean hasRemoteBranch(String remoteBranch)
         {
             Grgit grgit = getGit()
-            grgit.fetch(prune: true)
-            List<Branch> branches = grgit.branch.list(mode: BranchListOp.Mode.REMOTE)
+            if (grgit != null)
+            {
+                grgit.fetch(prune: true)
+                List<Branch> branches = grgit.branch.list(mode: BranchListOp.Mode.REMOTE)
 
-            return branches.stream().anyMatch({
-                Branch branch ->
-                   return branch.name == remoteBranch
-            })
+                return branches.stream().anyMatch({
+                    Branch branch ->
+                        return branch.name == remoteBranch
+                })
+            }
         }
 
         void enlist(String branchName)
@@ -1128,9 +1131,7 @@ class MultiGit implements Plugin<Project>
                         Repository repository ->
                             if (repository.enlistmentDir.exists() && (project.hasProperty(RepositoryQuery.TOPICS_PROPERTY) || repository.project != null))
                             {
-                                Grgit grgit = Grgit.open {
-                                    currentDir = repository.enlistmentDir
-                                }
+                                Grgit grgit = repository.getGit()
                                 Status status = grgit.status()
                                 if (status.isClean())
                                 {
@@ -1195,9 +1196,7 @@ class MultiGit implements Plugin<Project>
                             if (repository.enlistmentDir.exists() && (project.hasProperty(RepositoryQuery.TOPICS_PROPERTY) || repository.project != null))
                             {
                                 project.logger.quiet("Pulling for ${repository.enlistmentDir} ")
-                                Grgit grgit = Grgit.open {
-                                    currentDir = repository.enlistmentDir
-                                }
+                                Grgit grgit = repository.getGit();
                                 grgit.pull(rebase: project.hasProperty('gitRebase'))
                             }
                     })
@@ -1222,9 +1221,7 @@ class MultiGit implements Plugin<Project>
                             if (repository.enlistmentDir.exists() && (project.hasProperty(RepositoryQuery.TOPICS_PROPERTY) || repository.project != null))
                             {
                                 project.logger.quiet("Fetching for ${repository.enlistmentDir}")
-                                Grgit grgit = Grgit.open {
-                                    currentDir = repository.enlistmentDir
-                                }
+                                Grgit grgit = repository.getGit()
                                 grgit.fetch(prune: project.hasProperty('gitPrune'))
                             }
                     })
@@ -1250,9 +1247,7 @@ class MultiGit implements Plugin<Project>
                             if (repository.enlistmentDir.exists() && (project.hasProperty(RepositoryQuery.TOPICS_PROPERTY) || repository.project != null))
                             {
                                 project.logger.quiet("Pushing for ${repository.enlistmentDir}")
-                                Grgit grgit = Grgit.open {
-                                    currentDir = repository.enlistmentDir
-                                }
+                                Grgit grgit = repository.getGit()
                                 grgit.push(dryRun: project.hasProperty('gitDryRun'))
                             }
                     })
