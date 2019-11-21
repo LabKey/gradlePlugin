@@ -14,6 +14,7 @@ but also make certain assumptions that you may not want to impose on your module
 (Earliest compatible LabKey version: 19.3)
 
 * Provide credentials for all multigit commands
+* Remove announcements from base modules
 
 ### version 1.8.2
 *Released*: 29 Oct 2019

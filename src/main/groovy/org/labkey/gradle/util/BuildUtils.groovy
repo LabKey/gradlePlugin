@@ -99,7 +99,6 @@ class BuildUtils
                 getBootstrapProjectPath(gradle),
                 getRemoteApiProjectPath(gradle),
                 getInternalProjectPath(gradle),
-                getPlatformModuleProjectPath(gradle, "announcements"),
                 getPlatformModuleProjectPath(gradle, "audit"),
                 getPlatformModuleProjectPath(gradle, "core"),
                 getPlatformModuleProjectPath(gradle, "experiment"),
