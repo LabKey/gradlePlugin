@@ -344,13 +344,9 @@ class ModuleDistribution extends DefaultTask
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
         String warArchivePath = getWarArchivePath()
 
-//        String[] modules = getModulesDir().list new FilenameFilter() {
-//            @Override
-//            boolean accept(File dir, String name) { return name.endsWith(".module") }
-//        }
-
         String[] modules = getModulesDir().list { File dir, String name -> name.endsWith(".module") }
 
+        // explode the modules before trying to assemble the .war
         List<File> explodedModules = new ArrayList<>()
         Arrays.asList(modules).forEach({ String moduleFile ->
             String moduleName = moduleFile.substring(0, moduleFile.size() - ".module".size())
@@ -368,28 +364,28 @@ class ModuleDistribution extends DefaultTask
 
             zipfileset(dir: staging.tomcatLibDir,
                     prefix: "WEB-INF/lib/") {
-                // this exclusion is necessary because for some reason when buildFromSource=false,
-                // the tomcat bootstrap jar is included in the staged libraries and the LabKey bootstrap jar is not.
-                // Not sure why.
                 exclude(name: "labkeyBootstrap.jar")
                 exclude(name: "bootstrap.jar")
             }
 
-            // we want expanded modules (no point in nesting archives)
             // NOTE: if we want to enable running w/o LabKeyBootstrapClassLoader we have to do some of its work here (see ExplodedModule)
-            // NOTE: in particular some files need to be move out of the module and into the WEB-INF directory
+            // NOTE: in particular some files need to be moved out of the module and into the WEB-INF directory
 
             explodedModules.forEach({ File moduleDir ->
                 String moduleName = moduleDir.getName()
 
                 println("MODULE: ${moduleName}")
 
-                // modules files that stay in the exploded module directory
+                // copy the modules files that stay in the exploded module directory
                 zipfileset(dir: moduleDir,
                         prefix: "WEB-INF/modules/" + moduleName) {
                     exclude(name: "lib/**/*.jar")
                     exclude(name: "web/**/*.gwt.rpc")
                     exclude(name: "**/*Context.xml")
+                }
+                zipfileset(dir: moduleDir,
+                        prefix: "WEB-INF/modules/" + moduleName) {
+                    include(name: "lib/*_jsp*.jar")
                 }
 
                 // WEB-INF (web.xml, labkey.tld)
@@ -399,11 +395,12 @@ class ModuleDistribution extends DefaultTask
                     include(name: "*")
                 }
 
-                // jars
+                // WEB-INF/lib jars
                 zipfileset(dir: new File(moduleDir, "lib"),
                         prefix: "WEB-INF/lib",
                         erroronmissingdir: false) {
                     include(name: "*.jar")
+                    exclude(name: "*_jsp*.jar")
                 }
 
                 // gwt.rpc
