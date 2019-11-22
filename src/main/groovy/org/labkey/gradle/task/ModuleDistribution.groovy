@@ -374,8 +374,6 @@ class ModuleDistribution extends DefaultTask
             explodedModules.forEach({ File moduleDir ->
                 String moduleName = moduleDir.getName()
 
-                println("MODULE: ${moduleName}")
-
                 // copy the modules files that stay in the exploded module directory
                 zipfileset(dir: moduleDir,
                         prefix: "WEB-INF/modules/" + moduleName) {
