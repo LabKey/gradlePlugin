@@ -15,12 +15,8 @@
  */
 package org.labkey.gradle.plugin
 
-import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.CopySpec
-import org.gradle.api.tasks.JavaExec
-import org.labkey.gradle.util.GroupNames
 
 /**
  * Adds tasks for building the bootstrap jar file, copying it to the tomcat directory and creating the api file list
@@ -75,35 +71,5 @@ class ServerBootstrap implements Plugin<Project>
             attributes provider: 'LabKey'
             attributes 'Main-Class': BOOTSTRAP_MAIN_CLASS
         }
-        // This we do specially for the Windows installer because the init script looks in the build directory
-        // for the bootstrap jar.  When we remove the Windows installer, we can remove this extra copy.
-        if (SystemUtils.IS_OS_WINDOWS)
-        {
-            project.tasks.jar.doLast {
-                project.copy { CopySpec copy ->
-                    copy.from project.jar.outputs
-                    copy.into project.rootProject.buildDir
-                }
-            }
-        }
-
-        project.tasks.register('createApiFilesList', JavaExec) {
-            JavaExec task ->
-                task.group = GroupNames.DEPLOY
-                task.description = 'Create an index of the files in the application so extraneous files can be removed during bootstrapping'
-                task.main = "org.labkey.bootstrap.DirectoryFileListWriter"
-                task.workingDir = project.staging.webappDir
-                task.classpath {
-                        [
-                                project.jar
-                        ]
-                    }
-                task.inputs.dir  project.staging.webappDir
-                task.outputs.file  "${project.staging.webInfDir}/apiFiles.list"
-                task.mustRunAfter(project.project(":server").tasks.stageApp)
-                task.dependsOn(project.jar)
-        }
-
-        project.project(":server").tasks.deployApp.dependsOn(project.tasks.createApiFilesList)
     }
 }
