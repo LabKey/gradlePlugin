@@ -17,6 +17,7 @@ but also make certain assumptions that you may not want to impose on your module
 * Remove announcements from base modules
 * [Issue 39105](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39105): Remove createApiFilesList task
 * Remove unnecessary copying of the bootstrap jar, previously needed for the Windows installer
+* [Issue 39058](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39058): Make sure api's schemaCompile task precedes the schemaCompile task for other modules
 
 ### version 1.8.2
 *Released*: 29 Oct 2019
