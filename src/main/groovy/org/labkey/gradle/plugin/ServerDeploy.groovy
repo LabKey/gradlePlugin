@@ -130,7 +130,7 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.register("checkVersionConflicts") {
             Task task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Check for conflicts in version numbers on module files, WEB-INF/lib jar files and jar files in modules."
+                task.description = "Check for conflicts in version numbers on module files and jar files in modules."
                 task.dependsOn(project.tasks.checkModuleVersions)
         }
 
