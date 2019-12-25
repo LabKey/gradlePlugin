@@ -29,7 +29,6 @@ class StagingExtension
 
     String dir
     String webappClassesDir
-    String libDir
     String jspDir
     String webInfDir
     String webappDir
@@ -41,7 +40,6 @@ class StagingExtension
     {
         dir = "${project.rootProject.buildDir}/${STAGING_DIR}"
         webappClassesDir = "${project.rootProject.buildDir}/${STAGING_WEBINF_DIR}/classes"
-        libDir = "${project.rootProject.buildDir}/${STAGING_WEBINF_DIR}/lib"
         jspDir = "${project.rootProject.buildDir}/${STAGING_WEBINF_DIR}/jsp"
         webInfDir = "${project.rootProject.buildDir}/${STAGING_WEBINF_DIR}"
         webappDir = "${project.rootProject.buildDir}/${STAGING_WEBAPP_DIR}"
