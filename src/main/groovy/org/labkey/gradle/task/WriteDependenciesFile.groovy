@@ -19,6 +19,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.util.BuildUtils
 
 class WriteDependenciesFile extends DefaultTask
 {
@@ -58,11 +59,28 @@ class WriteDependenciesFile extends DefaultTask
         FileOutputStream outputStream = null;
         try
         {
+            boolean isApi = project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
+
             outputStream = new FileOutputStream(dependenciesFile)
-            outputStream.write("# direct external dependencies for project ${project.path}\n".getBytes())
+            if (isApi)
+                outputStream.write("# direct external dependencies of ${project.path} and dependencies of labkey-client-api\n".getBytes())
+            else
+                outputStream.write("# direct external dependencies for project ${project.path}\n".getBytes())
+
+            Set<String> dependencySet = new HashSet<>();
 
             project.configurations.externalsNotTrans.each { File file ->
                 outputStream.write((file.getName() + "\n").getBytes());
+                dependencySet.add(file.getName());
+            }
+            if (isApi) {
+                project.project(BuildUtils.getRemoteApiProjectPath(project.gradle)).configurations.external.each {
+                    if (!dependencySet.contains(it.getName()))
+                    {
+                        outputStream.write((it.getName() + "\n").getBytes())
+                        dependencySet.add(it.getName())
+                    }
+                }
             }
         }
         finally
