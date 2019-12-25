@@ -74,11 +74,14 @@ class WriteDependenciesFile extends DefaultTask
                 dependencySet.add(file.getName());
             }
             if (isApi) {
-                project.project(BuildUtils.getRemoteApiProjectPath(project.gradle)).configurations.external.each {
-                    if (!dependencySet.contains(it.getName()))
-                    {
-                        outputStream.write((it.getName() + "\n").getBytes())
-                        dependencySet.add(it.getName())
+                if (project.configurations.findByName("externalDependencies") != null)
+                {
+                    project.configurations.externalDependencies.each {
+                        if (!dependencySet.contains(it.getName()))
+                        {
+                            outputStream.write((it.getName() + "\n").getBytes())
+                            dependencySet.add(it.getName())
+                        }
                     }
                 }
             }
