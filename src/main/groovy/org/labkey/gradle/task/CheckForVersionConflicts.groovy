@@ -18,6 +18,9 @@ package org.labkey.gradle.task
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.util.BuildUtils
 
@@ -34,14 +37,19 @@ class CheckForVersionConflicts  extends DefaultTask
         warn
     }
     /** The directory to check for existing files **/
+    @InputDirectory
     File directory
     /** The extension of the files to look for.  Null indicates all files **/
+    @Input
     String extension = null
     /** Indicates what should happen when a conflict is detected **/
+    @Input
     ConflictAction conflictAction = ConflictAction.fail
     /** The collection of files to check for.  Usually this will come from a configuration. **/
+    @InputFiles
     FileCollection collection
     /** The name of a task to run if conflicts are found that will resolve the conflict (presumably by cleaning out the directory) **/
+    @Input
     String cleanTask
 
     @TaskAction
