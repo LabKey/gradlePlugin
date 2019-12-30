@@ -74,9 +74,9 @@ class WriteDependenciesFile extends DefaultTask
                 dependencySet.add(file.getName());
             }
             if (isApi) {
-                if (project.configurations.findByName("externalDependencies") != null)
+                if (project.configurations.findByName("creditable") != null)
                 {
-                    project.configurations.externalDependencies.each {
+                    project.configurations.creditable.each {
                         if (!dependencySet.contains(it.getName()))
                         {
                             outputStream.write((it.getName() + "\n").getBytes())
