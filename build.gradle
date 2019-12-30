@@ -4,8 +4,24 @@
 // and Gradle is updated to whatever version of groovy has that fix.
 import java.nio.file.Paths
 
-apply plugin: "groovy"
-apply plugin: 'java-library'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${buildInfoExtractorGradleVersion}"
+        classpath "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
+    }
+}
+
+plugins {
+    id 'groovy'
+    id 'java-library'
+    id "com.jfrog.artifactory" version "${artifactoryPluginVersion}" apply false
+    id "org.ajoberstar.grgit" version "${grgitGradleVersion}" apply false
+    id "maven-publish"
+}
 
 repositories {
     jcenter()
@@ -40,18 +56,6 @@ dependencies {
     implementation "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
 }
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${buildInfoExtractorGradleVersion}"
-        classpath "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
-    }
-}
-
-apply plugin: "org.ajoberstar.grgit"
-apply plugin: 'maven-publish'
 
 project.version = "1.8.3-SNAPSHOT"
 
