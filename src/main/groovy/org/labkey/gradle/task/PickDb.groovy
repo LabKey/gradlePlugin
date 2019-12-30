@@ -16,21 +16,26 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.file.CopySpec
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
 
 /**
  * Created by susanh on 8/11/16.
  */
 class PickDb extends DoThenSetup
 {
+    @Input
     String dbType
-    File dir = project.project(":server").projectDir
+
+    @InputDirectory
+    File configsDir = new File(project.project(":server").projectDir, "configs")
 
     Closure<Void> fn = {
 
         //copies the correct config file.
         project.copy({ CopySpec copy ->
-            copy.from "${dir}/configs"
-            copy.into dir
+            copy.from configsDir
+            copy.into configsDir.parent
             copy.include "${dbType}.properties"
             copy.rename { String fileName ->
                 fileName.replace(dbType, "config")
