@@ -17,6 +17,7 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.LabKey
@@ -31,7 +32,9 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
  */
 class PomFile extends DefaultTask
 {
+    @Input
     Properties pomProperties = new Properties()
+    @Input
     boolean isModulePom
 
     @OutputFile

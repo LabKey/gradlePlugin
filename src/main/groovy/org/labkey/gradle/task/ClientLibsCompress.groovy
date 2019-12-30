@@ -39,12 +39,13 @@ class ClientLibsCompress extends DefaultTask
 {
     public static final String LIB_XML_EXTENSION = ".lib.xml"
 
-    File workingDir = new File((String) project.labkey.explodedModuleWebDir)
+    private File workingDir = new File((String) project.labkey.explodedModuleWebDir)
 
+    @InputFiles
     FileTree xmlFiles
-    List<File> inputFiles = null
-    List<File> outputFiles = null
-    Map<File, XmlImporter> importerMap = null
+    private List<File> inputFiles = null
+    private List<File> outputFiles = null
+    private Map<File, XmlImporter> importerMap = null
 
     /**
      * Creates a map between the individual .lib.xml files and the importers used to parse these files and

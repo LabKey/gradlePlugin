@@ -21,6 +21,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.DistributionExtension
@@ -51,13 +52,13 @@ class ModuleDistribution extends DefaultTask
     @Input
     String artifactName
 
-    @Input
+    @OutputDirectory
     File distributionDir
 
     @Input
     String archivePrefix
-    @Input
-    DistributionExtension distExtension
+
+    private DistributionExtension distExtension
 
     ModuleDistribution()
     {
@@ -69,7 +70,7 @@ class ModuleDistribution extends DefaultTask
     }
 
     @OutputDirectory
-    File getDistributionDir()
+    File getResolvedDistributionDir()
     {
         if (distributionDir == null && subDirName != null)
             distributionDir = project.file("${distExtension.dir}/${subDirName}")
@@ -103,20 +104,21 @@ class ModuleDistribution extends DefaultTask
 
     }
 
-    private String getVersionPrefix()
+    private String getResolvedVersionPrefix()
     {
         if (versionPrefix == null)
             versionPrefix = "LabKey${BuildUtils.getDistributionVersion(project)}${extraFileIdentifier}"
         return versionPrefix
     }
 
-    private String getArchivePrefix()
+    private String getResolvedArchivePrefix()
     {
         if (archivePrefix == null)
-            archivePrefix = "${getVersionPrefix()}-bin"
+            archivePrefix = "${getResolvedVersionPrefix()}-bin"
         return archivePrefix
     }
 
+    @OutputDirectory
     File getModulesDir()
     {
         // we use a common directory to save on disk space for TeamCity.  This mimics the behavior of the ant build.
@@ -179,6 +181,7 @@ class ModuleDistribution extends DefaultTask
         }
     }
 
+    @Input
     String getArtifactId()
     {
         return subDirName
@@ -189,31 +192,31 @@ class ModuleDistribution extends DefaultTask
         if (artifactName == null)
         {
             if (makeDistribution)
-                artifactName = getArchivePrefix()
+                artifactName = getResolvedArchivePrefix()
             else
-                artifactName = getVersionPrefix()
+                artifactName = getResolvedVersionPrefix()
         }
         return artifactName
     }
 
     private String getTarArchivePath()
     {
-        return "${getDistributionDir()}/${getArtifactName()}.tar.gz"
+        return "${getResolvedDistributionDir()}/${getArtifactName()}.tar.gz"
     }
 
     private String getZipArchivePath()
     {
-        return "${getDistributionDir()}/${getArtifactName()}.zip"
+        return "${getResolvedDistributionDir()}/${getArtifactName()}.zip"
     }
 
     private String getWarArchivePath()
     {
-        return "${getDistributionDir()}/${getArtifactName()}.war"
+        return "${getResolvedDistributionDir()}/${getArtifactName()}.war"
     }
 
     private void tarArchives()
     {
-        String archivePrefix = getArchivePrefix()
+        String archivePrefix = getResolvedArchivePrefix()
         if (makeDistribution)
         {
             StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
@@ -285,7 +288,7 @@ class ModuleDistribution extends DefaultTask
 
     private void zipArchives()
     {
-        String archivePrefix = this.getArchivePrefix()
+        String archivePrefix = this.getResolvedArchivePrefix()
         if (makeDistribution)
         {
             StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
@@ -375,12 +378,6 @@ class ModuleDistribution extends DefaultTask
                 exclude(name: "WEB-INF/classes/distribution")
             }
 
-            zipfileset(dir: staging.tomcatLibDir,
-                    prefix: "WEB-INF/lib/") {
-                exclude(name: "labkeyBootstrap.jar")
-                exclude(name: "bootstrap.jar")
-            }
-
             // NOTE: if we want to enable running w/o LabKeyBootstrapClassLoader we have to do some of its work here (see ExplodedModule)
             // NOTE: in particular some files need to be moved out of the module and into the WEB-INF directory
 
@@ -404,14 +401,6 @@ class ModuleDistribution extends DefaultTask
                         prefix: "WEB-INF/",
                         erroronmissingdir: false) {
                     include(name: "*")
-                }
-
-                // WEB-INF/lib jars
-                zipfileset(dir: new File(moduleDir, "lib"),
-                        prefix: "WEB-INF/lib",
-                        erroronmissingdir: false) {
-                    include(name: "*.jar")
-                    exclude(name: "*_jsp*.jar")
                 }
 
                 // gwt.rpc
@@ -455,7 +444,7 @@ class ModuleDistribution extends DefaultTask
         project.ant.fixcrlf (srcdir: project.buildDir, includes: "manual-upgrade.sh", eol: "unix")
     }
 
-    File getDistributionFile()
+    private File getDistributionFile()
     {
         File distExtraDir = new File(project.buildDir, DistributionExtension.DIST_FILE_DIR)
         return new File(distExtraDir,  DistributionExtension.DIST_FILE_NAME)
@@ -466,6 +455,7 @@ class ModuleDistribution extends DefaultTask
         Files.write(getDistributionFile().toPath(), project.name.getBytes())
     }
 
+    @OutputFile
     File getVersionFile()
     {
         return new File(project.buildDir.absolutePath, DistributionExtension.VERSION_FILE_NAME)
