@@ -5,6 +5,7 @@
 import java.nio.file.Paths
 
 apply plugin: "groovy"
+apply plugin: 'java-library'
 
 repositories {
     jcenter()
@@ -28,8 +29,8 @@ repositories {
 dependencies {
     implementation gradleApi()
     implementation localGroovy()
-    implementation "org.apache.commons:commons-lang3:${commonsLang3Version}"
-    implementation "commons-io:commons-io:${commonsIoVersion}"
+    api "org.apache.commons:commons-lang3:${commonsLang3Version}"
+    api "commons-io:commons-io:${commonsIoVersion}"
     implementation "com.yahoo.platform.yui:yuicompressor:${yuiCompressorVersion}"
     implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
     implementation "org.apache.httpcomponents:httpcore:${httpcoreVersion}"
