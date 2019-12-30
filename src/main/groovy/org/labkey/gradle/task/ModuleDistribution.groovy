@@ -19,6 +19,7 @@ package org.labkey.gradle.task
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileTree
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
@@ -31,19 +32,31 @@ import java.nio.file.Files
 
 class ModuleDistribution extends DefaultTask
 {
+    @Input
     Boolean includeZipArchive = false
+    @Input
     Boolean includeTarGZArchive = false
+    @Input
     Boolean includeWarArchive = false
+    @Input
     Boolean makeDistribution = true // set to false for just an archive of modules
+    @Input
     String extraFileIdentifier = ""
+    @Input
     Boolean includeMassSpecBinaries = false
+    @Input
     String versionPrefix = null
+    @Input
     String subDirName
+    @Input
     String artifactName
 
+    @Input
     File distributionDir
 
+    @Input
     String archivePrefix
+    @Input
     DistributionExtension distExtension
 
     ModuleDistribution()
