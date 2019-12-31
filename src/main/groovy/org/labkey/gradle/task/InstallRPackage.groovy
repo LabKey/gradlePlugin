@@ -31,11 +31,11 @@ class InstallRPackage extends DefaultTask
 {
     @Optional @Input
     List<String> packageNames
-    @Input
+    @Optional @Input
     String installScript
 
-    private String rPath
-    private File rLibsUserDir
+    protected String rPath
+    protected File rLibsUserDir
 
     InstallRPackage()
     {
@@ -70,7 +70,8 @@ class InstallRPackage extends DefaultTask
     void doInstall()
     {
         project.mkdir("${getRLibsUserPath(project)}/logs")
-        installRPackage(installScript)
+        if (installScript != null)
+            installRPackage(installScript)
     }
 
     Boolean isPackageInstalled(String name)
