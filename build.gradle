@@ -47,13 +47,13 @@ dependencies {
     implementation localGroovy()
     api "org.apache.commons:commons-lang3:${commonsLang3Version}"
     api "commons-io:commons-io:${commonsIoVersion}"
-    implementation "com.yahoo.platform.yui:yuicompressor:${yuiCompressorVersion}"
-    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    api "com.yahoo.platform.yui:yuicompressor:${yuiCompressorVersion}"
+    api "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
     implementation "org.apache.httpcomponents:httpcore:${httpcoreVersion}"
-    implementation "org.apache.httpcomponents:httpclient:${httpclientVersion}"
-    implementation "org.json:json:${jsonVersion}"
+    api "org.apache.httpcomponents:httpclient:${httpclientVersion}"
+    api "org.json:json:${jsonVersion}"
     implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}"
-    implementation "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
+    api "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
 }
 
 
