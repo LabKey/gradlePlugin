@@ -17,6 +17,8 @@ package org.labkey.gradle.task
 
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.file.CopySpec
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.labkey.gradle.plugin.TeamCity
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.DatabaseProperties
@@ -27,6 +29,7 @@ import org.labkey.gradle.util.DatabaseProperties
  */
 class RunTestSuite extends RunUiTest
 {
+    @Optional @Input
     DatabaseProperties dbProperties
 
     RunTestSuite()
