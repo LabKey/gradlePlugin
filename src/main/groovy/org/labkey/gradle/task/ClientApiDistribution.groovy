@@ -31,13 +31,13 @@ class ClientApiDistribution extends DefaultTask
     public static final String XML_SCHEMA_DOC = "ClientAPI-XMLSchema-Docs"
     public static final String SCHEMA_DOC_CLASSIFIER = "schema-doc"
 
-    private  File javaDir
-    private File javaJdbcDir
-    private File javascriptDir
-    private File xmlDir
+    protected File javaDir
+    protected File javaJdbcDir
+    protected File javascriptDir
+    protected File xmlDir
 
-    private String apiDocsBuildDir
-    private String xsdDocsBuildDir
+    protected String apiDocsBuildDir
+    protected String xsdDocsBuildDir
 
     ClientApiDistribution()
     {
