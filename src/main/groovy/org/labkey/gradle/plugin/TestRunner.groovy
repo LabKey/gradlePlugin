@@ -23,6 +23,7 @@ import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.RunTestSuite
 import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
 
 /**
@@ -164,17 +165,17 @@ class TestRunner extends UiTest
                 task.inputs.files directories
                 task.outputs.file sampleDataFile
                 task..doLast({
-                    List<String> dirNames = new ArrayList<>();
+                    List<String> dirNames = new ArrayList<>()
 
                     directories.each({File file ->
                         dirNames.add(file.getAbsolutePath())
                     })
 
-                    FileOutputStream outputStream = new FileOutputStream(sampleDataFile);
+                    FileOutputStream outputStream = new FileOutputStream(sampleDataFile)
                     Writer writer = null
                     try
                     {
-                        writer = new OutputStreamWriter(outputStream);
+                        writer = new OutputStreamWriter(outputStream)
                         dirNames.add("${project.rootDir}/sampledata")
                         dirNames.add("${project.rootDir}/${BuildUtils.convertPathToRelativeDir(BuildUtils.getTestProjectPath(project.gradle))}/data")
                         writer.write(String.join(";", dirNames))
@@ -182,18 +183,18 @@ class TestRunner extends UiTest
                     finally
                     {
                         if (writer != null)
-                            writer.close();
+                            writer.close()
                     }
                 })
         }
     }
 
-    private void addExtensionsTasks(Project project)
+    private static void addExtensionsTasks(Project project)
     {
         File extensionsDir = project.file("chromeextensions")
         if (extensionsDir.exists())
         {
-            List<TaskProvider> extensionsZipTasks = new ArrayList<>();
+            List<TaskProvider> extensionsZipTasks = new ArrayList<>()
             extensionsDir.eachDir({
                 File dir ->
 
@@ -201,8 +202,8 @@ class TestRunner extends UiTest
                     project.tasks.register(extensionTaskName, Zip) {
                         Zip task ->
                             task.description = "Package the ${dir.getName()} chrome extension used for testing"
-                            task.archiveBaseName = dir.getName()
-                            task.archiveExtension = "zip"
+                            task.archiveBaseName.set(dir.getName())
+                            task.archiveExtension.set("zip")
                             task.from dir
                             task.destinationDirectory = new File("${project.buildDir}/chromextensions")
                     }
@@ -237,7 +238,7 @@ class TestRunner extends UiTest
                 jar.group = GroupNames.BUILD
                 jar.description = "produce jar file of test classes"
                 jar.from project.sourceSets.uiTest.output
-                jar.archiveBaseName = "labkeyTest"
+                jar.archiveBaseName.set("labkeyTest")
                 jar.archiveVersion.set((String) project.version)
                 jar.destinationDirectory = new File("${project.buildDir}/libs")
         }
