@@ -19,6 +19,8 @@ import org.gradle.api.Project
 
 class DatabaseProperties implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private static final String PICKED_DATABASE_CONFIG_FILE = "config.properties"
 
     private static final String JDBC_URL_PROP = "jdbcURL"
@@ -234,5 +236,10 @@ class DatabaseProperties implements Serializable
                 {
                     entry( key: name, value: value)
                 }
+    }
+
+    @SuppressWarnings('unused')
+    private static void writeObject(ObjectOutputStream s) throws IOException {
+        s.defaultWriteObject();
     }
 }
