@@ -17,10 +17,8 @@ package org.labkey.gradle.util
 
 import org.gradle.api.Project
 
-class DatabaseProperties implements Serializable
+class DatabaseProperties
 {
-    private static final long serialVersionUID = 1L;
-
     private static final String PICKED_DATABASE_CONFIG_FILE = "config.properties"
 
     private static final String JDBC_URL_PROP = "jdbcURL"
@@ -40,7 +38,7 @@ class DatabaseProperties implements Serializable
     String version // database version, e.g. 9.2
 
     Properties configProperties
-    Project project
+    private Project _project
 
     DatabaseProperties(String dbTypeAndVersion, String shortType, version)
     {
@@ -52,7 +50,7 @@ class DatabaseProperties implements Serializable
 
     DatabaseProperties(Project project, Boolean useBootstrap)
     {
-        this.project = project
+        this._project = project
         this.configProperties = readDatabaseProperties(project)
         if (!this.configProperties.isEmpty())
         {
@@ -64,7 +62,7 @@ class DatabaseProperties implements Serializable
 
     DatabaseProperties(Project project, DatabaseProperties copyProperties)
     {
-        this.project = project
+        this._project = project
         this.configProperties = (Properties) copyProperties.configProperties.clone()
         this.dbTypeAndVersion = copyProperties.dbTypeAndVersion
         this.shortType = copyProperties.shortType
@@ -83,7 +81,7 @@ class DatabaseProperties implements Serializable
 
     void setProject(Project project)
     {
-        this.project = project
+        this._project = project
     }
 
     void setJdbcURL(String jdbcURL)
@@ -179,19 +177,19 @@ class DatabaseProperties implements Serializable
             return (String) this.configProperties.get(property)
         else
         {
-            project.logger.info("Default database config property ${property} not defined; returning '${defaultValue}'.")
+            _project.logger.info("Default database config property ${property} not defined; returning '${defaultValue}'.")
             return defaultValue
         }
     }
 
     void interpolateCompositeProperties()
     {
-        this.configProperties.setProperty(JDBC_URL_PROP, PropertiesUtils.parseCompositeProp(project, this.configProperties, this.configProperties.getProperty(JDBC_URL_PROP)))
+        this.configProperties.setProperty(JDBC_URL_PROP, PropertiesUtils.parseCompositeProp(_project, this.configProperties, this.configProperties.getProperty(JDBC_URL_PROP)))
     }
 
     void mergePropertiesFromFile()
     {
-        Properties fileProperties = readDatabaseProperties(project)
+        Properties fileProperties = readDatabaseProperties(_project)
         for (String name : fileProperties.propertyNames())
         {
             if (this.configProperties.getProperty(name) == null)
@@ -204,9 +202,9 @@ class DatabaseProperties implements Serializable
 
     void writeDbProps()
     {
-        writeDatabaseProperty(project, JDBC_URL_PROP, PropertiesUtils.parseCompositeProp(project, this.configProperties, this.configProperties.getProperty(JDBC_URL_PROP)))
-        writeDatabaseProperty(project, JDBC_USER_PROP, getJdbcUser())
-        writeDatabaseProperty(project, JDBC_PASSWORD_PROP, getJdbcPassword())
+        writeDatabaseProperty(_project, JDBC_URL_PROP, PropertiesUtils.parseCompositeProp(_project, this.configProperties, this.configProperties.getProperty(JDBC_URL_PROP)))
+        writeDatabaseProperty(_project, JDBC_USER_PROP, getJdbcUser())
+        writeDatabaseProperty(_project, JDBC_PASSWORD_PROP, getJdbcPassword())
     }
 
     static Properties readDatabaseProperties(Project project)
@@ -236,10 +234,5 @@ class DatabaseProperties implements Serializable
                 {
                     entry( key: name, value: value)
                 }
-    }
-
-    @SuppressWarnings('unused')
-    private static void writeObject(ObjectOutputStream s) throws IOException {
-        s.defaultWriteObject();
     }
 }
