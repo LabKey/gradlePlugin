@@ -29,7 +29,12 @@ import org.labkey.gradle.util.DatabaseProperties
  */
 class RunTestSuite extends RunUiTest
 {
-    @Optional @Input
+    // TODO uncomment the lines below to remove warning about unannotated properties not being allowed in Gradle 7.
+    // Currently this does not work on TeamCity because dbProperties can't be serialized (dbProperties is not used for running local tests).
+    //    [10:00:41][Gradle failure report] Execution failed for task ':server:testAutomation:ciTestsSqlserver2019'.
+    //    [10:00:41][Gradle failure report] > Unable to store input properties for task ':server:testAutomation:ciTestsSqlserver2019'. Property 'dbProperties' with value 'org.labkey.gradle.util.DatabaseProperties@3a6453c6' cannot be serialized.
+    // Not sure why it can't be serialized, but I suspect it's because of the project property
+//    @Optional @Input
     DatabaseProperties dbProperties
 
     RunTestSuite()
