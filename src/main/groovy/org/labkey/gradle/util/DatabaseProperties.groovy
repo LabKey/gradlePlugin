@@ -16,10 +16,8 @@
 package org.labkey.gradle.util
 
 import org.gradle.api.Project
-/**
- * Created by susanh on 12/19/16.
- */
-class DatabaseProperties
+
+class DatabaseProperties implements Serializable
 {
     private static final String PICKED_DATABASE_CONFIG_FILE = "config.properties"
 
