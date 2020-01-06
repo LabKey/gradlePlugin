@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.util.BuildUtils
 
@@ -37,7 +38,10 @@ class CheckForVersionConflicts  extends DefaultTask
         warn
     }
     /** The directory to check for existing files **/
-    @InputDirectory
+    // This might seem more naturally declared as an InputDirectory, but if so declared, the task will fail during configured if it does not exist.
+    // Without that declaration you get the warning: Property 'directory' is not annotated with an input or output annotation.
+    // TODO reconsider this when we revisit the CheckForVersionConflicts implementation
+    @OutputDirectory
     File directory
     /** The extension of the files to look for.  Null indicates all files **/
     @Input
