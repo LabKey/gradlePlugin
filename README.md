@@ -9,8 +9,8 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
-### version ???
-*Released*: ???
+### version 1.9.0
+*Released*: 11 January 2019
 (Earliest compatible LabKey version: 19.3)
 
 * Provide credentials for all multigit commands
