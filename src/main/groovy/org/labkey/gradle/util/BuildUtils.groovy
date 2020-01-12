@@ -591,6 +591,8 @@ class BuildUtils
                     depVersion = depProject.version
             }
 
+            // TODO I don't think this combinedClosure works. Change to just pass transitive through in the add
+            // and then pass on the closure without evaluating it.
             def combinedClosure =  {
                 transitive isTransitive
                 if (closure != null)
