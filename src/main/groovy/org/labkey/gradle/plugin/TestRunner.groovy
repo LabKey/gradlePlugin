@@ -251,19 +251,19 @@ class TestRunner extends UiTest
     {
         project.tasks.compileUiTestJava.doLast {
             ant.taskdef(
-                    resource: "org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties",
-                    classpath: project.configurations.aspectj.asPath
+                resource: "org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties",
+                classpath: project.configurations.aspectj.asPath
             )
             ant.iajc(
-                    destdir: "${project.buildDir}/classes/java/uiTest/",
-                    source: project.sourceCompatibility,
-                    target: project.targetCompatibility,
-                    classpath: project.configurations.uiTestRuntimeClasspath.asPath,
-                    {
-                        project.sourceSets.uiTest.java.srcDirs.each {
-                            src(path: it)
-                        }
+                destdir: "${project.buildDir}/classes/java/uiTest/",
+                source: project.sourceCompatibility,
+                target: project.targetCompatibility,
+                classpath: project.configurations.uiTestRuntimeClasspath.asPath,
+                {
+                    project.sourceSets.uiTest.java.srcDirs.each {
+                        src(path: it)
                     }
+                }
             )
         }
     }
