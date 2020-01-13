@@ -19,7 +19,10 @@ package org.labkey.gradle.task
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileTree
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.DistributionExtension
@@ -31,19 +34,32 @@ import java.nio.file.Files
 
 class ModuleDistribution extends DefaultTask
 {
+    @Optional @Input
     Boolean includeZipArchive = false
+    @Optional @Input
     Boolean includeTarGZArchive = false
+    @Optional @Input
+    Boolean includeWarArchive = false
+    @Optional @Input
     Boolean makeDistribution = true // set to false for just an archive of modules
+    @Optional @Input
     String extraFileIdentifier = ""
+    @Optional @Input
     Boolean includeMassSpecBinaries = false
+    @Optional @Input
     String versionPrefix = null
+    @Optional @Input
     String subDirName
+    @Optional @Input
     String artifactName
 
+    @OutputDirectory
     File distributionDir
 
+    @Optional @Input
     String archivePrefix
-    DistributionExtension distExtension
+
+    private DistributionExtension distExtension
 
     ModuleDistribution()
     {
@@ -55,7 +71,7 @@ class ModuleDistribution extends DefaultTask
     }
 
     @OutputDirectory
-    File getDistributionDir()
+    File getResolvedDistributionDir()
     {
         if (distributionDir == null && subDirName != null)
             distributionDir = project.file("${distExtension.dir}/${subDirName}")
@@ -89,20 +105,21 @@ class ModuleDistribution extends DefaultTask
 
     }
 
-    private String getVersionPrefix()
+    private String getResolvedVersionPrefix()
     {
         if (versionPrefix == null)
             versionPrefix = "LabKey${BuildUtils.getDistributionVersion(project)}${extraFileIdentifier}"
         return versionPrefix
     }
 
-    private String getArchivePrefix()
+    private String getResolvedArchivePrefix()
     {
         if (archivePrefix == null)
-            archivePrefix =  "${getVersionPrefix()}-bin"
+            archivePrefix = "${getResolvedVersionPrefix()}-bin"
         return archivePrefix
     }
 
+    @OutputDirectory
     File getModulesDir()
     {
         // we use a common directory to save on disk space for TeamCity.  This mimics the behavior of the ant build.
@@ -159,8 +176,13 @@ class ModuleDistribution extends DefaultTask
         {
             zipArchives()
         }
+        if (includeWarArchive)
+        {
+            warArchives()
+        }
     }
 
+    @Input
     String getArtifactId()
     {
         return subDirName
@@ -171,26 +193,31 @@ class ModuleDistribution extends DefaultTask
         if (artifactName == null)
         {
             if (makeDistribution)
-                artifactName = getArchivePrefix()
+                artifactName = getResolvedArchivePrefix()
             else
-                artifactName = getVersionPrefix()
+                artifactName = getResolvedVersionPrefix()
         }
         return artifactName
     }
 
     private String getTarArchivePath()
     {
-        return "${getDistributionDir()}/${getArtifactName()}.tar.gz"
+        return "${getResolvedDistributionDir()}/${getArtifactName()}.tar.gz"
     }
 
     private String getZipArchivePath()
     {
-        return "${getDistributionDir()}/${getArtifactName()}.zip"
+        return "${getResolvedDistributionDir()}/${getArtifactName()}.zip"
+    }
+
+    private String getWarArchivePath()
+    {
+        return "${getResolvedDistributionDir()}/${getArtifactName()}.war"
     }
 
     private void tarArchives()
     {
-        String archivePrefix = getArchivePrefix()
+        String archivePrefix = getResolvedArchivePrefix()
         if (makeDistribution)
         {
             StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
@@ -262,7 +289,7 @@ class ModuleDistribution extends DefaultTask
 
     private void zipArchives()
     {
-        String archivePrefix = this.getArchivePrefix()
+        String archivePrefix = this.getResolvedArchivePrefix()
         if (makeDistribution)
         {
             StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
@@ -325,8 +352,77 @@ class ModuleDistribution extends DefaultTask
                 }
             }
         }
-
     }
+
+    // CONSIDER sort module by module dependencies
+    //   I don't think this is a problem with core labkey modules today, but it could be
+    private void warArchives()
+    {
+        StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
+        String warArchivePath = getWarArchivePath()
+
+        String[] modules = getModulesDir().list { File dir, String name -> name.endsWith(".module") }
+
+        // explode the modules before trying to assemble the .war
+        List<File> explodedModules = new ArrayList<>()
+        Arrays.asList(modules).forEach({ String moduleFile ->
+            String moduleName = moduleFile.substring(0, moduleFile.size() - ".module".size())
+            File explodedDir = new File(new File(warArchivePath).parentFile, moduleName)
+            explodedModules.push(explodedDir)
+            ant.unzip(src: new File(getModulesDir(),moduleFile), dest: explodedDir)
+        })
+
+        ant.zip(destfile: warArchivePath) {
+
+            zipfileset(dir: staging.webappDir,
+                    prefix: "") {
+                exclude(name: "WEB-INF/classes/distribution")
+            }
+
+            // NOTE: if we want to enable running w/o LabKeyBootstrapClassLoader we have to do some of its work here (see ExplodedModule)
+            // NOTE: in particular some files need to be moved out of the module and into the WEB-INF directory
+
+            explodedModules.forEach({ File moduleDir ->
+                String moduleName = moduleDir.getName()
+
+                // copy the modules files that stay in the exploded module directory
+                zipfileset(dir: moduleDir,
+                        prefix: "WEB-INF/modules/" + moduleName) {
+                    exclude(name: "lib/**/*.jar")
+                    exclude(name: "web/**/*.gwt.rpc")
+                    exclude(name: "**/*Context.xml")
+                }
+                zipfileset(dir: moduleDir,
+                        prefix: "WEB-INF/modules/" + moduleName) {
+                    include(name: "lib/*_jsp*.jar")
+                }
+
+                // WEB-INF (web.xml, labkey.tld)
+                zipfileset(dir: new File(moduleDir, "web/WEB-INF"),
+                        prefix: "WEB-INF/",
+                        erroronmissingdir: false) {
+                    include(name: "*")
+                }
+
+                // gwt.rpc
+                zipfileset(dir: new File(moduleDir, "web"),
+                        prefix: "",
+                        erroronmissingdir: false) {
+                    include(name: "**/*.gwt.rpc")
+                }
+
+                // spring Context.xml files
+                zipfileset(dir: new File(moduleDir, "config"),
+                        prefix: "WEB-INF/",
+                        erroronmissingdir: false) {
+                    include(name: "**/*Context.xml")
+                }
+            })
+        }
+
+        explodedModules.forEach({ File moduleDir -> moduleDir.deleteDir() })
+    }
+
 
     private void createDistributionFiles()
     {
@@ -349,7 +445,7 @@ class ModuleDistribution extends DefaultTask
         project.ant.fixcrlf (srcdir: project.buildDir, includes: "manual-upgrade.sh", eol: "unix")
     }
 
-    File getDistributionFile()
+    private File getDistributionFile()
     {
         File distExtraDir = new File(project.buildDir, DistributionExtension.DIST_FILE_DIR)
         return new File(distExtraDir,  DistributionExtension.DIST_FILE_NAME)
@@ -360,6 +456,7 @@ class ModuleDistribution extends DefaultTask
         Files.write(getDistributionFile().toPath(), project.name.getBytes())
     }
 
+    @OutputFile
     File getVersionFile()
     {
         return new File(project.buildDir.absolutePath, DistributionExtension.VERSION_FILE_NAME)

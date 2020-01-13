@@ -139,6 +139,7 @@ class JavaModule extends FileModule
                 project.tasks.compileJava.dependsOn(project.tasks.schemasCompile)
                 jar.from(project.tasks.compileJava, project.tasks.schemasCompile)
             }
+            jar.exclude '**/*.java'
         }
     }
 

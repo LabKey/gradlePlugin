@@ -17,6 +17,7 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.LabKey
@@ -31,7 +32,9 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
  */
 class PomFile extends DefaultTask
 {
+    @Input
     Properties pomProperties = new Properties()
+    @Input
     boolean isModulePom
 
     @OutputFile
@@ -43,59 +46,59 @@ class PomFile extends DefaultTask
     @TaskAction
     void writePomFile()
     {
-            project.pom {
-                withXml {
-                    asNode().get('groupId').first().setValue(pomProperties.getProperty("groupId"))
-                    modifyDependencies(asNode())
-                    asNode().get('artifactId').first().setValue((String) pomProperties.getProperty("ArtifactId", project.name))
+        project.pom {
+            withXml {
+                asNode().get('groupId').first().setValue(pomProperties.getProperty("groupId"))
+                modifyDependencies(asNode())
+                asNode().get('artifactId').first().setValue((String) pomProperties.getProperty("ArtifactId", project.name))
 
-                    if (!asNode().dependencies.isEmpty())
-                    {
-                        def dependenciesNode = asNode().dependencies.first()
-                        DependencySet dependencySet = isModulePom ? project.configurations.modules.allDependencies : project.configurations.api.allDependencies
+                if (!asNode().dependencies.isEmpty())
+                {
+                    def dependenciesNode = asNode().dependencies.first()
+                    DependencySet dependencySet = isModulePom ? project.configurations.modules.allDependencies : project.configurations.api.allDependencies
 
-                        // FIXME it's possible to have external dependencies but no dependencies.
-                        // add in the dependencies from the external configuration as well
-                        dependencySet.each {
-                            def depNode = dependenciesNode.appendNode("dependency")
+                    // FIXME it's possible to have external dependencies but no dependencies.
+                    // add in the dependencies from the external configuration as well
+                    dependencySet.each {
+                        def depNode = dependenciesNode.appendNode("dependency")
 
-                            depNode.appendNode("artifactId", it.name)
-                            depNode.appendNode("version", it.version)
-                            depNode.appendNode("scope", pomProperties.getProperty("scope"))
-                            if (isModulePom){
-                                depNode.appendNode("type", pomProperties.getProperty("type"))
-                                depNode.appendNode("groupId", pomProperties.getProperty("groupId"))
-                            }
-                            else
-                            {
-                                depNode.appendNode("groupId", it.group)
-                            }
+                        depNode.appendNode("artifactId", it.name)
+                        depNode.appendNode("version", it.version)
+                        depNode.appendNode("scope", pomProperties.getProperty("scope"))
+                        if (isModulePom){
+                            depNode.appendNode("type", pomProperties.getProperty("type"))
+                            depNode.appendNode("groupId", pomProperties.getProperty("groupId"))
+                        }
+                        else
+                        {
+                            depNode.appendNode("groupId", it.group)
                         }
                     }
-
-                    if (pomProperties.getProperty("Organization") != null || pomProperties.getProperty("OrganizationURL") != null)
-                    {
-                        def orgNode = asNode().appendNode("organization")
-                        if (pomProperties.getProperty("Organization") != null)
-                            orgNode.appendNode("name", pomProperties.getProperty("Organization"))
-                        if (pomProperties.getProperty("OrganizationURL") != null)
-                            orgNode.appendNode("url", pomProperties.getProperty("OrganizationURL"))
-                    }
-                    if (pomProperties.getProperty("Description") != null)
-                        asNode().appendNode("description", pomProperties.getProperty("Description"))
-                    if (pomProperties.getProperty("URL") != null)
-                        asNode().appendNode("url", pomProperties.getProperty("URL"))
-                    if (pomProperties.getProperty("License") != null || pomProperties.getProperty("LicenseURL") != null)
-                    {
-                        def licenseNode = asNode().appendNode("licenses").appendNode("license")
-                        if (pomProperties.getProperty("License") != null)
-                            licenseNode.appendNode("name", pomProperties.getProperty("License"))
-                        if (pomProperties.getProperty("LicenseURL") != null)
-                            licenseNode.appendNode("url", pomProperties.getProperty("LicenseURL"))
-                        licenseNode.appendNode("distribution", "repo")
-                    }
                 }
-            }.writeTo(getPomFile())
+
+                if (pomProperties.getProperty("Organization") != null || pomProperties.getProperty("OrganizationURL") != null)
+                {
+                    def orgNode = asNode().appendNode("organization")
+                    if (pomProperties.getProperty("Organization") != null)
+                        orgNode.appendNode("name", pomProperties.getProperty("Organization"))
+                    if (pomProperties.getProperty("OrganizationURL") != null)
+                        orgNode.appendNode("url", pomProperties.getProperty("OrganizationURL"))
+                }
+                if (pomProperties.getProperty("Description") != null)
+                    asNode().appendNode("description", pomProperties.getProperty("Description"))
+                if (pomProperties.getProperty("URL") != null)
+                    asNode().appendNode("url", pomProperties.getProperty("URL"))
+                if (pomProperties.getProperty("License") != null || pomProperties.getProperty("LicenseURL") != null)
+                {
+                    def licenseNode = asNode().appendNode("licenses").appendNode("license")
+                    if (pomProperties.getProperty("License") != null)
+                        licenseNode.appendNode("name", pomProperties.getProperty("License"))
+                    if (pomProperties.getProperty("LicenseURL") != null)
+                        licenseNode.appendNode("url", pomProperties.getProperty("LicenseURL"))
+                    licenseNode.appendNode("distribution", "repo")
+                }
+            }
+        }.writeTo(getPomFile())
     }
 
     void modifyDependencies(Node root)

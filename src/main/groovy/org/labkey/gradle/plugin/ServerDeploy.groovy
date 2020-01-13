@@ -21,7 +21,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -36,6 +35,7 @@ import org.labkey.gradle.util.GroupNames
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+
 /**
  * First stages then deploys the application locally to the tomcat directory
  */
@@ -72,9 +72,6 @@ class ServerDeploy implements Plugin<Project>
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
 
         // The staging step complicates things, but it is currently needed for the following reasons:
-        // - we currently depend on it for generating the apiFilesList that determines which libraries to keep and which to remove from WEB-INF/lib
-        //   (could be accomplished with a sync task perhaps)
-        // - We need to put certain libraries in WEB-INF/lib because the RecompilingJspClassLoader uses that in its classpath
         // - We want to make sure tomcat doesn't restart multiple times when deploying the application.
         //   (seems like it could be avoided as the copy being done here is just as atomic as the copy from deployModules)
         project.tasks.register("stageModules") {
@@ -130,46 +127,11 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.stageModules.dependsOn(project.tasks.checkModuleVersions)
 
 
-        project.tasks.register("stageJars") {
-            Task task ->
-                task.group = GroupNames.DEPLOY
-                task.description = "Stage select jars into ${staging.dir}"
-                task.doFirst({
-                    project.delete staging.libDir
-                })
-                task.doLast({
-                    project.ant.copy(
-                            todir: staging.libDir,
-                            preserveLastModified: true
-                    )
-                            {
-                                project.configurations.jars { Configuration collection ->
-                                    collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-                                }
-                            }
-            })
-        }
-
-        project.tasks.stageJars.dependsOn project.configurations.jars
-        project.tasks.register("checkWebInfLibJarVersions", CheckForVersionConflicts) {
-            CheckForVersionConflicts task ->
-                task.group = GroupNames.DEPLOY
-                task.description = "Check for conflicts in version numbers of jar files to be deployed to and files in the directory ${serverDeploy.webappDir}/WEB-INF/lib." +
-                        "Default action on detecting a conflict is to fail.  Use -PversionConflictAction=[delete|fail|warn] to change this behavior.  The value 'delete' will cause the " +
-                        "conflicting version(s) in the ${serverDeploy.webappDir}/WEB-INF/lib directory to be removed."
-
-                task.directory = new File("${serverDeploy.webappDir}/WEB-INF/lib")
-                task.extension = "jar"
-                task.cleanTask = ":server:cleanDeploy"
-                task.collection = project.configurations.jars
-        }
-        project.tasks.stageJars.dependsOn(project.tasks.checkWebInfLibJarVersions)
-
         project.tasks.register("checkVersionConflicts") {
             Task task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Check for conflicts in version numbers on module files, WEB-INF/lib jar files and jar files in modules."
-                task.dependsOn(project.tasks.checkModuleVersions, project.tasks.checkWebInfLibJarVersions)
+                task.description = "Check for conflicts in version numbers on module files and jar files in modules."
+                task.dependsOn(project.tasks.checkModuleVersions)
         }
 
         // Creating symbolic links on Windows requires elevated permissions.  Even with these permissions, the createSymbolicLink method fails
@@ -229,7 +191,6 @@ class ServerDeploy implements Plugin<Project>
                 task.group = GroupNames.DEPLOY
                 task.description = "Stage modules and jar files into ${staging.dir}"
                 task.dependsOn project.tasks.stageModules
-                task.dependsOn project.tasks.stageJars
                 task.dependsOn project.tasks.stageRemotePipelineJars
         }
 
@@ -257,13 +218,13 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.register("stageDistribution", StageDistribution) {
             StageDistribution task ->
                 task.group = GroupNames.DISTRIBUTION
-                task.description = "Populate the staging directory using a LabKey distribution file from build/dist or directory specified with distDir property. Use property distType to specify zip or tar.gz (default)."
+                task.description = "Populate the staging directory using a LabKey distribution file from directory dist or directory specified with distDir property. Use property distType to specify zip or tar.gz (default)."
         }
 
         project.tasks.register("deployDistribution", DeployApp) {
             DeployApp task ->
                 task.group = GroupNames.DISTRIBUTION
-                task.description = "Deploy a LabKey distribution file from build/dist or directory specified with distDir property.  Use property distType to specify zip or tar.gz (default)."
+                task.description = "Deploy a LabKey distribution file from directory dist or directory specified with distDir property.  Use property distType to specify zip or tar.gz (default)."
                 task.dependsOn(project.tasks.stageDistribution, project.tasks.configureLog4j, project.tasks.setup)
         }
 

@@ -61,6 +61,10 @@ class XmlBeans implements Plugin<Project>
         {
             BuildUtils.addLabKeyDependency(project: project, config: 'xmlbeans', depProjectPath: schemasProjectPath)
         }
+        if (!project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
+        {
+            project.evaluationDependsOn(BuildUtils.getApiProjectPath(project.gradle))
+        }
     }
 
     private static void addTasks(Project project)
@@ -77,6 +81,11 @@ class XmlBeans implements Plugin<Project>
                     project.delete(task.getSrcGenDir())
                     project.delete(task.getClassesDir())
                 })
+                // make sure we compile any API schemas first as other schemas can depend on that
+                if (!project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
+                {
+                    task.dependsOn(project.project(BuildUtils.getApiProjectPath(project.gradle)).tasks.schemasCompile)
+                }
         }
 
         project.tasks.register("cleanSchemasCompile", Delete) {

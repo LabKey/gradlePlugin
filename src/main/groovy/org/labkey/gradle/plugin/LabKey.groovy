@@ -58,6 +58,7 @@ class LabKey implements Plugin<Project>
     // to these configurations.
     private static void addConfigurations(Project project)
     {
+        // TODO remove jars configuration once it is removed from server/build.gradle
         project.configurations
                 {
                     modules

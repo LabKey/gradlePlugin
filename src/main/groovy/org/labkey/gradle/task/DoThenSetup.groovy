@@ -21,15 +21,20 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.PropertiesUtils
 
 class DoThenSetup extends DefaultTask
 {
+    @Optional @Input
     protected DatabaseProperties databaseProperties
+    @Input
     boolean dbPropertiesChanged = false
 
+    @Optional @Input
     Closure<Void> fn = {
         setDatabaseProperties()
     }

@@ -18,6 +18,7 @@ package org.labkey.gradle.task
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.Project
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.testing.Test
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
@@ -52,6 +53,7 @@ class RunUiTest extends Test
         outputs.upToDateWhen( { return false }) // always run tests when asked to
     }
 
+    @Input
     protected String getDebugPort()
     {
         return testExt.getTestConfig("selenium.debug.port")

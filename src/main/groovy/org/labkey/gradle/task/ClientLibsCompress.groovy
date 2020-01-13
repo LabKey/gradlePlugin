@@ -21,6 +21,7 @@ import org.apache.commons.io.IOUtils
 import org.apache.tools.ant.util.FileUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileTree
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
@@ -39,29 +40,31 @@ class ClientLibsCompress extends DefaultTask
 {
     public static final String LIB_XML_EXTENSION = ".lib.xml"
 
-    File workingDir = new File((String) project.labkey.explodedModuleWebDir)
+    protected File workingDir = new File((String) project.labkey.explodedModuleWebDir)
 
+    // This returns the libXml files from the project directory (the actual input files)
+    @InputFiles
     FileTree xmlFiles
-    List<File> inputFiles = null
-    List<File> outputFiles = null
-    Map<File, XmlImporter> importerMap = null
+    private List<File> inputFiles = null
+    private List<File> outputFiles = null
+    protected Map<File, XmlImporter> _importerMap = null
 
     /**
      * Creates a map between the individual .lib.xml files and the importers used to parse these files and
      * extract the css and javascript files that are referenced.
      * @return map between the file and the importer
      */
-    Map<File, XmlImporter> getImporterMap()
+    private Map<File, XmlImporter> getImporterMap()
     {
-        if (importerMap == null)
+        if (_importerMap == null)
         {
-            importerMap = new HashMap<>()
-            getLibXmlFiles().files.each() {
+            _importerMap = new HashMap<>()
+            xmlFiles.files.each() {
                 File file ->
-                    importerMap.put(file, parseXmlFile(getSourceDir(file), file))
+                    _importerMap.put(file, parseXmlFile(getSourceDir(file), file))
             }
         }
-        return importerMap;
+        return _importerMap;
     }
 
     static File getSourceDir(File libXmlFile)
@@ -94,7 +97,7 @@ class ClientLibsCompress extends DefaultTask
         if (inputFiles == null)
         {
             inputFiles = new ArrayList<>()
-            inputFiles.addAll(getLibXmlFiles())
+            inputFiles.addAll(xmlFiles)
 
             getImporterMap().entrySet().each { Map.Entry<File, XmlImporter> entry ->
                 if (entry.value.getCssFiles().size() > 0)
@@ -109,13 +112,6 @@ class ClientLibsCompress extends DefaultTask
         }
         return inputFiles
     }
-
-    // This returns the libXml files from the project directory (the actual input files)
-    FileTree getLibXmlFiles()
-    {
-        return xmlFiles
-    }
-
 
     @OutputFiles
     List<File> getOutputFiles()
@@ -147,7 +143,7 @@ class ClientLibsCompress extends DefaultTask
     @TaskAction
     void compressAllFiles()
     {
-        FileTree libXmlFiles = getLibXmlFiles()
+        FileTree libXmlFiles = xmlFiles
         libXmlFiles.files.each() {
             File file -> compressSingleFile(file)
         }

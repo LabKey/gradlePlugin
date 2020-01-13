@@ -4,7 +4,24 @@
 // and Gradle is updated to whatever version of groovy has that fix.
 import java.nio.file.Paths
 
-apply plugin: "groovy"
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${buildInfoExtractorGradleVersion}"
+        classpath "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
+    }
+}
+
+plugins {
+    id 'groovy'
+    id 'java-library'
+    id "com.jfrog.artifactory" version "${artifactoryPluginVersion}" apply false
+    id "org.ajoberstar.grgit" version "${grgitGradleVersion}" apply false
+    id "maven-publish"
+}
 
 repositories {
     jcenter()
@@ -28,31 +45,19 @@ repositories {
 dependencies {
     implementation gradleApi()
     implementation localGroovy()
-    implementation "org.apache.commons:commons-lang3:${commonsLang3Version}"
-    implementation "commons-io:commons-io:${commonsIoVersion}"
-    implementation "com.yahoo.platform.yui:yuicompressor:${yuiCompressorVersion}"
-    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    api "org.apache.commons:commons-lang3:${commonsLang3Version}"
+    api "commons-io:commons-io:${commonsIoVersion}"
+    api "com.yahoo.platform.yui:yuicompressor:${yuiCompressorVersion}"
+    api "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
     implementation "org.apache.httpcomponents:httpcore:${httpcoreVersion}"
-    implementation "org.apache.httpcomponents:httpclient:${httpclientVersion}"
-    implementation "org.json:json:${jsonVersion}"
+    api "org.apache.httpcomponents:httpclient:${httpclientVersion}"
+    api "org.json:json:${jsonVersion}"
     implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}"
-    implementation "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
+    api "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
 }
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${buildInfoExtractorGradleVersion}"
-        classpath "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
-    }
-}
 
-apply plugin: "org.ajoberstar.grgit"
-apply plugin: 'maven-publish'
-
-project.version = "1.8.2-SNAPSHOT"
+project.version = "1.9.0-SNAPSHOT"
 
 if (project.file("moduleTemplate").exists())
 {

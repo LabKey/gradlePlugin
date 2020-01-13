@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.RelativePath
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
@@ -27,7 +28,7 @@ import java.nio.file.Paths
 
 class StageDistribution extends DefaultTask
 {
-    File distributionFile = null
+    protected File distributionFile = null
 
     @OutputDirectory
     File modulesStagingDir = new File((String) project.staging.modulesDir)

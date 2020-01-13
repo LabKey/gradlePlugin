@@ -18,6 +18,8 @@ package org.labkey.gradle.task
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.TeamCityExtension
@@ -27,11 +29,13 @@ import org.labkey.gradle.plugin.extension.TeamCityExtension
  */
 class InstallRPackage extends DefaultTask
 {
+    @Optional @Input
     List<String> packageNames
+    @Optional @Input
     String installScript
 
-    String rPath
-    File rLibsUserDir
+    protected String rPath
+    protected File rLibsUserDir
 
     InstallRPackage()
     {
@@ -66,7 +70,8 @@ class InstallRPackage extends DefaultTask
     void doInstall()
     {
         project.mkdir("${getRLibsUserPath(project)}/logs")
-        installRPackage(installScript)
+        if (installScript != null)
+            installRPackage(installScript)
     }
 
     Boolean isPackageInstalled(String name)

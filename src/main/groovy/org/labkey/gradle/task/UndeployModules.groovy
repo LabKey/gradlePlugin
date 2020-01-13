@@ -17,6 +17,8 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.FileModule
 import org.labkey.gradle.plugin.JavaModule
@@ -29,6 +31,7 @@ import org.labkey.gradle.plugin.Module
  */
 class UndeployModules extends DefaultTask
 {
+    @Input @Optional
     String dbType = null
 
     @TaskAction
