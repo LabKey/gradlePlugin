@@ -8,10 +8,23 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
+### version TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 20.2)
+
+* Remove obsolete 'jars' configuration
+* Remove unused 'zipWebDir' task
+* [Issue 39422](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39422) Prevent duplicate class files in jars
+
+### version 1.9.1
+*Released*: 13 January 2019 
+(Earliest compatible LabKey version: 20.2)
+
+No functional changes; built with JDK 12 instead of 13
 
 ### version 1.9.0
-*Released*: 11 January 2019
-(Earliest compatible LabKey version: 19.3)
+*Released*: 12 January 2019
+(Earliest compatible LabKey version: 20.2)
 
 * Provide credentials for all multigit commands
 * Remove announcements from base modules
