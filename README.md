@@ -8,8 +8,8 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
-### version TBD
-*Released*: TBD
+### version 1.9.2
+*Released*: 21 January 2019
 (Earliest compatible LabKey version: 20.2)
 
 * Remove obsolete 'jars' configuration
