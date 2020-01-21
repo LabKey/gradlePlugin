@@ -283,19 +283,6 @@ class FileModule implements Plugin<Project>
                         task.dependsOn(project.tasks.cleanSchemasCompile)
             }
         }
-
-        if (hasClientLibraries(project))
-        {
-            project.tasks.register("zipWebDir", Zip) {
-                Zip task ->
-                    task.group = GroupNames.MODULE
-                    task.description = "Create a zip file from the exploded module web directory"
-                    task.archiveBaseName.set(project.name)
-                    task.archiveClassifier.set(LabKey.CLIENT_LIBS_CLASSIFER)
-                    from project.labkey.explodedModuleWebDir
-                    task.destinationDirectory = project.file("${project.buildDir}/${project.libsDirName}")
-            }
-        }
     }
 
     static void setJarManifestAttributes(Project project, Manifest manifest)

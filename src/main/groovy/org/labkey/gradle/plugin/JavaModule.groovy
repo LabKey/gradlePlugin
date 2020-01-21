@@ -16,8 +16,8 @@
 package org.labkey.gradle.plugin
 
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
@@ -25,6 +25,7 @@ import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.task.CheckForVersionConflicts
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
+
 /**
  * This class is used for building a LabKey Java module (one that typically resides in a *modules
  * directory).  It defines tasks for building the jar files (<module>_jsp.jar, <module>.jar)
@@ -139,6 +140,7 @@ class JavaModule extends FileModule
                 project.tasks.compileJava.dependsOn(project.tasks.schemasCompile)
                 jar.from(project.tasks.compileJava, project.tasks.schemasCompile)
             }
+            jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
             jar.exclude '**/*.java'
         }
     }
