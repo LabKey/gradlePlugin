@@ -1,0 +1,8 @@
+# Default ignored files
+/workspace.xml
+/shelf/
+$CACHE_FILE$
+$PRODUCT_WORKSPACE_FILE$
+gradle.xml
+jarRepositories.xml
+
