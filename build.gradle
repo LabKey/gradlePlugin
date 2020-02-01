@@ -10,7 +10,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${buildInfoExtractorGradleVersion}"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${artifactoryPluginVersion}"
         classpath "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
     }
 }
@@ -57,7 +57,7 @@ dependencies {
 }
 
 
-project.version = "1.9.2-SNAPSHOT"
+project.version = "1.10.0-SNAPSHOT"
 
 if (project.file("moduleTemplate").exists())
 {
