@@ -44,7 +44,7 @@ class JavaModule extends FileModule
     @Override
     protected void applyPlugins(Project project)
     {
-        project.apply plugin: 'maven'
+        project.apply plugin: 'maven' // TODO this is deprecated
         project.apply plugin: 'maven-publish'
 
         if (AntBuild.isApplicable(project))
@@ -96,35 +96,22 @@ class JavaModule extends FileModule
     protected void addConfigurations(Project project)
     {
         super.addConfigurations(project)
-//        boolean isApi = BuildUtils.isApi(project)
         project.configurations
                 {
-                    external
                     labkey // use this configuration for dependencies to labkey API jars that are needed for a module
                            // but don't need to show up in the dependencies.txt and jars.txt
-                    api.extendsFrom(external)
+                    api.extendsFrom(external) // TODO this is probably not necessary
                     compile.extendsFrom(external)
                     implementation.extendsFrom(external)
                     compile.extendsFrom(labkey)
                     implementation.extendsFrom(labkey)
-// This doesn't work as expected.  When the dedupe configuration is used, it is the configuration for THIS project, not for the api project.
-// https://discuss.gradle.org/t/extending-from-other-projects-configuration/30041
-// https://github.com/gradle/gradle/issues/8275
-//                    if (!isApi)
-//                        dedupe.extendsFrom(project.project(BuildUtils.getApiProjectPath(project.gradle)).configurations.external)
-//                    // base modules should remove everything included by api, but all others should exclude api and what's included by the base modules
-//                    if (!baseModules.contains(project.path))
-//                    {
-//                        baseModules.forEach({
-//                            path -> dedupe.extendsFrom(project.project(path).configurations.external)
-//                        })
-//                    }
+                    dedupe {
+                        canBeConsumed = false
+                        canBeResolved = true
+                    }
                 }
         project.configurations.labkey.setDescription("Dependencies on LabKey API jars that are needed for a module when the full module is not required.  These don't need to be declared in jars.txt.")
-//        if (!isApi)
-//        {
-//            project.configurations.dedupe.setDescription("Dependencies that come from the base modules that can therefore be excluded from other modules")
-//        }
+        project.configurations.dedupe.setDescription("Dependencies that come from the base modules and can therefore be excluded from other modules")
     }
 
     protected void setJavaBuildProperties(Project project)
@@ -168,23 +155,6 @@ class JavaModule extends FileModule
     {
         super.addTasks(project)
         setJarManifestAttributes(project, project.jar.manifest)
-//        FIXME: the following tasks will not work in general because of the cycle between ms2 and ms1.  Would be nice...
-//        _project.task('javadocJar', description: "Generate jar file of javadoc files", type: Jar) {
-//            from project.tasks.javadoc.destinationDir
-//            group GroupNames.DISTRIBUTION
-//            baseName "${project.name}_${LabKey.JAVADOC_CLASSIFIER}"
-//            classifier LabKey.JAVADOC_CLASSIFIER
-//            dependsOn project.tasks.javadoc
-//        }
-//
-//        _project.task('sourcesJar', description: "Generate jar file of source files", type: Jar) {
-//            from project.sourceSets.main.allJava
-//
-//            group GroupNames.DISTRIBUTION
-//            baseName "${project.name}_${LabKey.SOURCES_CLASSIFIER}"
-//            classifier LabKey.SOURCES_CLASSIFIER
-//        }
-
 
         // We do this afterEvaluate to allow all dependencies to be declared before checking
         project.afterEvaluate({
@@ -195,6 +165,7 @@ class JavaModule extends FileModule
                 Copy task ->
                     task.group = GroupNames.MODULE
                     task.description = "copy the dependencies declared in the 'external' configuration into the lib directory of the built module"
+                    task.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
                     task.configure
                             { CopySpec copy ->
                                 copy.from externalFiles
@@ -253,12 +224,6 @@ class JavaModule extends FileModule
      * project is the api module, all jars in its external configuration are included.
      * @param project the project whose external dependencies are to be removed
      * @return the collection of files that contain the dependencies
-     *
-     * FIXME The method of accessing the other projects' external configuration is now deemed unsafe.
-     * Attempts to use the method recommended in the Gradle docs of extending from a configuration of the
-     * other project have, thus far, been unsuccessful.  Instead, extending from api's external actually
-     * brings in the current project's external dependencies, which means we eliminate just the files we
-     * need to keep.  This may have something to do with order of evaluation.
      */
     static FileCollection getTrimmedExternalFiles(Project project)
     {
@@ -270,40 +235,13 @@ class JavaModule extends FileModule
 
         config = labkeyConfig == null ? config : (config == null ? labkeyConfig : config + labkeyConfig)
 
-//        // trim nothing from api
-//        if (BuildUtils.isApi(project))
-//            return config
-//        else // all other modules should remove everything in the dedupe configuration
-//        {
-//            return config - project.configurations.dedupe
-//        }
-
+        // trim nothing from api
         if (BuildUtils.isApi(project))
             return config
-        // base modules should remove everything included by api
-        else if (BuildUtils.getBaseModules(project.gradle).contains(project.path))
+        else // all other modules should remove everything in the dedupe configuration
         {
-            if (project.findProject(BuildUtils.getApiProjectPath(project.gradle)))
-            {
-                return config - project.project(BuildUtils.getApiProjectPath(project.gradle)).configurations.external
-            }
-            return config
+            return config - project.configurations.dedupe
         }
-        else // all other modules should remove everything in the base modules
-        {
-            for (String path : BuildUtils.getBaseModules(project.gradle))
-            {
-                if (project.findProject(path))
-                {
-                    FileCollection otherExternal = project.project(path).configurations.external
-                    if (otherExternal != null)
-                    {
-                        config = config - otherExternal
-                    }
-                }
-            }
-        }
-        return config
     }
 }
 
