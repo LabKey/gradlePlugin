@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.labkey.gradle.plugin.LabKey
 import org.labkey.gradle.plugin.ServerBootstrap
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 
@@ -138,8 +137,15 @@ class PomFile extends DefaultTask
                         else if (artifactId.equals("bootstrap"))
                             it.get('artifactId').first().setValue(ServerBootstrap.JAR_BASE_NAME)
 
-                        // All jar dependencies except for the labkey-client-api and bootstrap are in org.labkey.api
-                        if (!artifactId.equals("java") && !artifactId.equals("labkey-client-api") && !artifactId.equals("bootstrap"))
+                        if ((artifactId.equals("java") || artifactId.equals("labkey-client-api"))) {
+                            // labkey-client-api group was org.labkey until it was released with its own version number,
+                            // at which point it was put in the org.labkey.api group
+                            if (project.hasProperty("labkeyClientApiVersion"))
+                            {
+                                it.get('groupId').first.setValue(LabKeyExtension.API_GROUP)
+                            }
+                        }
+                        else if (!artifactId.equals("bootstrap")) // everything else except bootstrap is in org.labkey.api
                             it.get('groupId').first().setValue(LabKeyExtension.API_GROUP)
                     }
                 }
