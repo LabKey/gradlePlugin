@@ -25,7 +25,6 @@ class Bootstrap extends DoThenSetup
     @Override
     protected void doDatabaseTask()
     {
-        println("in bootstrap");
         setDatabaseProperties()
 
         SqlUtils.dropDatabase(this.project, databaseProperties)
