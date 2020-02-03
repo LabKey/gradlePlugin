@@ -5,4 +5,4 @@ $CACHE_FILE$
 $PRODUCT_WORKSPACE_FILE$
 gradle.xml
 jarRepositories.xml
-
+uiDesigner.xml
