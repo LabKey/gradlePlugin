@@ -43,8 +43,19 @@ class Module extends JavaModule
                 {
                     BuildUtils.addTomcatBuildDependencies(project, 'implementation')
 
-                    BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getInternalProjectPath(project.gradle), depVersion: project.labkeyVersion)
-                    BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
+                    BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getInternalProjectPath(project.gradle))
+                    BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle))
+                    for (String path : BuildUtils.getBaseModules(project.gradle))
+                    {
+                        if (path == project.path)
+                            continue
+                        if (path == BuildUtils.getApiProjectPath(project.gradle) || path == BuildUtils.getInternalProjectPath(project.gradle))
+                            continue
+                        if (project.findProject(path) )
+                        {
+                            BuildUtils.addLabKeyDependency(project: project, config: "dedupe", depProjectPath: path, depProjectConfig: "external")
+                        }
+                    }
                     if (XmlBeans.isApplicable(project))
                         implementation project.tasks.schemasCompile.outputs.files
                     if (Api.isApplicable(project))
