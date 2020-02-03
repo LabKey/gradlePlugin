@@ -28,11 +28,14 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.JavaExecSpec
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
-import org.labkey.gradle.task.DoThenSetup
 import org.labkey.gradle.task.PickDb
 import org.labkey.gradle.task.RunTestSuite
+import org.labkey.gradle.task.TeamCityDbSetup
 import org.labkey.gradle.task.UndeployModules
-import org.labkey.gradle.util.*
+import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.util.DatabaseProperties
+import org.labkey.gradle.util.GroupNames
+import org.labkey.gradle.util.PropertiesUtils
 
 import java.util.regex.Matcher
 
@@ -182,24 +185,13 @@ class TeamCity extends Tomcat
 
             String suffix = properties.dbTypeAndVersion.capitalize()
             String setUpTaskName = "setUp${suffix}"
-            project.tasks.register(setUpTaskName,DoThenSetup) {
-                DoThenSetup task ->
+            project.tasks.register(setUpTaskName,TeamCityDbSetup) {
+                TeamCityDbSetup task ->
                     task.group = GroupNames.TEST_SERVER
                     task.description = "Get database properties set up for running tests for ${suffix}"
                     task.setDatabaseProperties(properties)
-                    task.dbPropertiesChanged = true
-                    task.fn = {
-                        properties.mergePropertiesFromFile()
-                        if (extension.dropDatabase) {
-                            if (Boolean.parseBoolean( extension.getTeamCityProperty("testValidationOnly"))){
-                                logger.info("The 'testValidationOnly' flag is true, not going to drop the database.")
-                            }
-                            else {
-                                SqlUtils.dropDatabase(project, properties)
-                            }
-                        }
-                        properties.interpolateCompositeProperties()
-                    }
+                    task.dropDatabase = extension.dropDatabase
+                    task.testValidationOnly = Boolean.parseBoolean( extension.getTeamCityProperty("testValidationOnly"))
                     task.doLast {
                         properties.writeDbProps()
                     }

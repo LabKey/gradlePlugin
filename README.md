@@ -21,6 +21,7 @@ but also make certain assumptions that you may not want to impose on your module
 * Remove obsolete 'jars' configuration
 * Remove unused 'zipWebDir' task
 * [Issue 39422](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39422) Prevent duplicate class files in jars
+* [Issue 39544](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39544) Remove closure function from doThenSetup to prevent it from running twice
 
 ### version 1.9.1
 *Released*: 13 January 2019 

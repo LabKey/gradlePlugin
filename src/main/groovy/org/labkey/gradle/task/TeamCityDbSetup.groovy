@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 LabKey Corporation
+ * Copyright (c) 2016-2017 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,33 +15,30 @@
  */
 package org.labkey.gradle.task
 
-import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
+import org.labkey.gradle.util.SqlUtils
 
-/**
- * Created by susanh on 8/11/16.
- */
-class PickDb extends DoThenSetup
+class TeamCityDbSetup extends DoThenSetup
 {
+    boolean dbPropertiesChanged = true
     @Input
-    String dbType
-
-    @InputDirectory
-    File configsDir = new File(project.project(":server").projectDir, "configs")
+    boolean dropDatabase = false
+    @Input
+    boolean testValidationOnly = false
 
     @Override
     protected void doDatabaseTask()
     {
-        //copies the correct config file.
-        project.copy({ CopySpec copy ->
-            copy.from configsDir
-            copy.into configsDir.parent
-            copy.include "${dbType}.properties"
-            copy.rename { String fileName ->
-                fileName.replace(dbType, "config")
+        databaseProperties.mergePropertiesFromFile();
+        if (dropDatabase) {
+            if (testValidationOnly){
+                logger.info("The 'testValidationOnly' flag is true, not going to drop the database.")
             }
-        })
-        super.doDatabaseTask();
+            else {
+                SqlUtils.dropDatabase(project, databaseProperties)
+            }
+        }
+        databaseProperties.interpolateCompositeProperties()
     }
+
 }
