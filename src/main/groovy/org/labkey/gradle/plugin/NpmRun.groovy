@@ -205,6 +205,7 @@ class NpmRun implements Plugin<Project>
                 task.configure({ DeleteSpec delete ->
                     delete.delete (project.file(NODE_MODULES_DIR))
                 })
+                task.mustRunAfter(project.tasks.npmRunClean)
         }
 
         project.tasks.register("listNodeProjects") {
