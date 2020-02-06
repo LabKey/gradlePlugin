@@ -108,6 +108,11 @@ class BuildUtils
         ]
     }
 
+    static boolean isBaseModule(Project project)
+    {
+        return getBaseModules(project.gradle).contains(project.path)
+    }
+
     /**
      * This includes modules that are required for any LabKey server build (e.g., bootstrap, api, internal)
      * @param settings the settings

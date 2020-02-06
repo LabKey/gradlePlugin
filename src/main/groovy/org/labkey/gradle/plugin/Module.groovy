@@ -45,17 +45,22 @@ class Module extends JavaModule
 
                     BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getInternalProjectPath(project.gradle))
                     BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle))
-                    for (String path : BuildUtils.getBaseModules(project.gradle))
+                    if (BuildUtils.isBaseModule(project) && !BuildUtils.isApi(project) && project.findProject(BuildUtils.getApiProjectPath(project.gradle)))
                     {
-                        if (path == project.path)
-                            continue
-                        if (path == BuildUtils.getApiProjectPath(project.gradle) || path == BuildUtils.getInternalProjectPath(project.gradle))
-                            continue
-                        if (project.findProject(path) )
+                        // base modules remove only API dependencies
+                        BuildUtils.addLabKeyDependency(project: project, config: "dedupe", depProjectPath: BuildUtils.getApiProjectPath(project.gradle), depProjectConfig: "external")
+                    }
+                    else // non-base modules remove dependencies from the base modules
+                    {
+                        for (String path : BuildUtils.getBaseModules(project.gradle))
                         {
-                            BuildUtils.addLabKeyDependency(project: project, config: "dedupe", depProjectPath: path, depProjectConfig: "external")
+                            if (project.findProject(path)) // exclude dependencies only if building that module (otherwise we don't have the external configuration
+                            {
+                                BuildUtils.addLabKeyDependency(project: project, config: "dedupe", depProjectPath: path, depProjectConfig: "external")
+                            }
                         }
                     }
+
                     if (XmlBeans.isApplicable(project))
                         implementation project.tasks.schemasCompile.outputs.files
                     if (Api.isApplicable(project))
