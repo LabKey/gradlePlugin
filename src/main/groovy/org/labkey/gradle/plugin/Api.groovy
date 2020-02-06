@@ -42,7 +42,7 @@ class Api implements Plugin<Project>
     void apply(Project project)
     {
         project.apply plugin: 'java-base'
-        project.apply plugin: 'maven'
+        project.apply plugin: 'maven' // TODO this is deprecated.  Are these even required here?
         project.apply plugin: 'maven-publish'
         addSourceSet(project)
         addDependencies(project)
