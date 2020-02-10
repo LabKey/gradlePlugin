@@ -44,10 +44,19 @@ class Api implements Plugin<Project>
         project.apply plugin: 'java-base'
         project.apply plugin: 'maven' // TODO this is deprecated.  Are these even required here?
         project.apply plugin: 'maven-publish'
+        addConfigurations(project)
         addSourceSet(project)
         addDependencies(project)
         addApiJarTask(project)
         addArtifacts(project)
+    }
+
+    private void addConfigurations(Project project)
+    {
+        project.configurations {
+            apiJarFile // used by other project to declare dependencies to this project api jar
+        }
+        project.configurations.apiJarFile.setDescription("Configuration that depends on the task for generating the api jar file.  Projects that depend on this project's api jar file should use this configuration in their dependency declaration")
     }
 
     private void addSourceSet(Project project)
@@ -68,7 +77,7 @@ class Api implements Plugin<Project>
                 {
                     BuildUtils.addLabKeyDependency(project: project, config: 'apiImplementation', depProjectPath: BuildUtils.getApiProjectPath(project.gradle))
                     BuildUtils.addLabKeyDependency(project: project, config: 'apiImplementation', depProjectPath: BuildUtils.getInternalProjectPath(project.gradle))
-                    BuildUtils.addLabKeyDependency(project: project, config: "apiImplementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
+                    BuildUtils.addLabKeyDependency(project: project, config: "apiImplementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: BuildUtils.getLabKeyClientApiVersion(project))
                 }
     }
 
@@ -116,7 +125,8 @@ class Api implements Plugin<Project>
     {
         project.artifacts
                 {
-                    apiCompile project.tasks.apiJar
+                    apiCompile project.tasks.apiJar // deprecated.  Remove this artifact declaration once build files have been updated to use apiJarFile instead
+                    apiJarFile project.tasks.apiJar
                 }
     }
 }
