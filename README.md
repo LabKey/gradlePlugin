@@ -45,6 +45,8 @@ No functional changes; built with JDK 12 instead of 13
 * [Issue 39058](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39058): Make sure api's schemaCompile task precedes the schemaCompile task for other modules
 * [Issue 38600](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=38600): Remove stageJars task and relatives
 * Add missing Input and Output annotations for tasks
+* Add apiJarFile configuration to replace apiCompile for dependencies on the api jar file
+* use labkeyClientApiVersion property if available for declaring dependency on labkey-client-api
 
 ### version 1.8.2
 *Released*: 29 Oct 2019

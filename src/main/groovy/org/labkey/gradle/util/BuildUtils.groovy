@@ -289,6 +289,11 @@ class BuildUtils
         return getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:java")
     }
 
+    static String getLabKeyClientApiVersion(Project project)
+    {
+        return project.hasProperty('labkeyClientApiVersion') ? project.property('labkeyClientApiVersion') : project.labkeyVersion
+    }
+
     static String getSchemasProjectPath(Gradle gradle)
     {
         return getProjectPath(gradle, "schemasProjectPath", ":schemas")
@@ -614,7 +619,7 @@ class BuildUtils
         String group = extension.equals("module") ? LabKeyExtension.MODULE_GROUP : LabKeyExtension.API_GROUP
         if (projectPath.endsWith(getRemoteApiProjectPath(project.gradle).substring(1)))
         {
-            group = LabKeyExtension.LABKEY_GROUP
+            group = project.hasProperty("labkeyClientApiVersion") ? LabKeyExtension.API_GROUP : LabKeyExtension.LABKEY_GROUP
             moduleName = "labkey-client-api"
         }
         else if (projectPath.equals(getBootstrapProjectPath(project.gradle)))
