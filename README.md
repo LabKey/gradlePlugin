@@ -8,6 +8,14 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
+### version x.y.z
+*Released*: xxx
+(Earliest compatible LabKey version: 20.3)
+
+* Rename "version" property to "schemaVersion"
+* Rename "labkeyVersion" property to "releaseVersion"
+* Remove "consolidateScripts" property
+
 ### version 1.9.2
 *Released*: 21 January 2019
 (Earliest compatible LabKey version: 20.2)
@@ -112,7 +120,7 @@ No functional changes; built with JDK 12 instead of 13
 *Released*: 27 Mar 2019
 (Earliest compatible LabKey version: 19.1)
 
-* Build with Java 11 istead of 12
+* Build with Java 11 instead of 12
 
 ### version 1.4.3
 *Released*: 25 Mar 2019
@@ -126,7 +134,6 @@ No functional changes; built with JDK 12 instead of 13
 
 * Add ability to get base modules from a different location using the `platformProjectPath` property to
 support some reorganization of the modules into git repositories.
-
 
 ### version 1.4.1
 *Released*: 20 Feb 2019
