@@ -12,9 +12,9 @@ but also make certain assumptions that you may not want to impose on your module
 *Released*: xxx
 (Earliest compatible LabKey version: 20.3)
 
-* Rename "version" property to "schemaVersion" and support null value
-* Rename "labkeyVersion" property to "releaseVersion"
-* Remove "consolidateScripts" property
+* module.xml writer: Rename "version" property to "schemaVersion" and support null value
+* module.xml writer: Rename "labkeyVersion" property to "releaseVersion"
+* module.xml writer: Remove "consolidateScripts" property
 * Update module template to match versioning changes
 
 ### version 1.9.2
