@@ -78,16 +78,10 @@ class ModuleExtension
         this.modProperties = new Properties()
         PropertiesUtils.readProperties(propertiesFile, this.modProperties)
 
-        if (modProperties.getProperty("Version") == null)
-        // remove -SNAPSHOT and any feature branch prefix from the module version number
-        // because the module loader does not expect or handle decorated version numbers
-            modProperties.setProperty("Version", BuildUtils.getLabKeyModuleVersion(project))
-
         setBuildInfoProperties()
         setModuleInfoProperties()
         setVcsProperties()
         setEnlistmentId()
-
     }
 
     private void setVcsProperties()
@@ -126,21 +120,17 @@ class ModuleExtension
         modProperties.setProperty("BuildPath", project.buildDir.getAbsolutePath())
         modProperties.setProperty("SourcePath", project.projectDir.getAbsolutePath())
         modProperties.setProperty("ResourcePath", "") // TODO  _project.getResources().... ???
-        modProperties.setProperty("LabkeyVersion", (String) project.getProperty("labkeyVersion"))
-        boolean isExternalModule = project.projectDir.getAbsolutePath().contains("externalModules")
-        if (modProperties.getProperty("ConsolidateScripts") == null)
-        {
-            if (isExternalModule)
-                modProperties.setProperty("ConsolidateScripts", "false")
-            else
-                modProperties.setProperty("ConsolidateScripts", "true")
-        }
+        modProperties.setProperty("ReleaseVersion", (String) project.getProperty("labkeyVersion"))
         if (modProperties.getProperty("ManageVersion") == null)
         {
-            if (isExternalModule)
-                modProperties.setProperty("ManageVersion", "false")
+            modProperties.setProperty("ManageVersion", "true")
+        }
+        if (modProperties.getProperty("SchemaVersion") == null)
+        {
+            if (modProperties.getProperty("Version") == null)
+                modProperties.setProperty("SchemaVersion", "")  // Spring binds this as setSchemaVersion(null), which is what we want
             else
-                modProperties.setProperty("ManageVersion", "true")
+                modProperties.setProperty("SchemaVersion", modProperties.getProperty("Version"))  // For backward compatibility with old modules TODO: Remove
         }
     }
 

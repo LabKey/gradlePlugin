@@ -5,7 +5,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
     <bean id="moduleBean" class="@@ModuleClass@@">
         <property name="name" value="@@Name@@"/>
-        <property name="version" value="@@Version@@"/>
+        <property name="schemaVersion" value="@@SchemaVersion@@"/>
         <property name="requiredServerVersion" value="@@RequiredServerVersion@@"/>
         <property name="moduleDependencies" value="@@ModuleDependencies@@"/>
 
@@ -39,8 +39,7 @@
         <property name="resourcePath" value="@@ResourcePath@@"/>
         <property name="buildNumber" value="@@BuildNumber@@"/>
         <property name="enlistmentId" value="@@EnlistmentId@@"/>
-        <property name="consolidateScripts" value="@@ConsolidateScripts@@"/>
         <property name="manageVersion" value="@@ManageVersion@@"/>
-        <property name="labkeyVersion" value="@@LabkeyVersion@@"/>
+        <property name="releaseVersion" value="@@ReleaseVersion@@"/>
     </bean>
 </beans>

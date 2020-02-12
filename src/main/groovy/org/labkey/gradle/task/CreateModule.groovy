@@ -133,13 +133,13 @@ class CreateModule extends DefaultTask
         }
 
         String[] versionParts = BuildUtils.getLabKeyModuleVersion(project.rootProject).split("\\.");
-        String version = versionParts[0] + "." + (Integer.parseInt(versionParts[1])-1) + "1"
+        String version = versionParts[0] + ".000"
         Map<String, String> substitutions = [
                 'MODULE_DIR_NAME' : moduleName.toLowerCase(),
                 'MODULE_LOWERCASE_NAME' : moduleName.toLowerCase(),
                 'MODULE_NAME' : StringUtils.capitalize(moduleName),
                 'CURRENT_YEAR': Calendar.getInstance().get(Calendar.YEAR).toString(),
-                'LABKEY_VERSION_NUMBER': version
+                'SCHEMA_VERSION_NUMBER': version
         ]
 
         project.copy({ CopySpec copy ->
