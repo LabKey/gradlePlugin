@@ -18,9 +18,10 @@ but also make certain assumptions that you may not want to impose on your module
 * Promote most multiGit tasks as non-incubating
 * [Issue 39544](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39544) Remove closure usage for DoThenSetup that would cause the "do" function to run twice.
 * Exclude "webpack" directory from potential modules
-* module.xml writer: Rename "version" property to "schemaVersion" and support null value
-* module.xml writer: Rename "labkeyVersion" property to "releaseVersion"
-* module.xml writer: Remove "consolidateScripts" property
+* Update module.xml writer for version property changes 
+  * Rename "version" property to "schemaVersion" and support null value
+  * Rename "labkeyVersion" property to "releaseVersion"
+  * Remove "consolidateScripts" property
 * Update module template to match versioning changes
 
 ### version 1.9.2
