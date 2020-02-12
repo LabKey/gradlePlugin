@@ -70,7 +70,7 @@ print_usage()
     echo ""
     echo "        --tomcat_lk: for LabKey Internal Hosted Server Installed Only"
     echo ""
-    echo "        --skip_tomcat: the script will not attempt to start/stop tomcat.  you must do this manually before/after running the script. This might be suitable for remote pipeline servers as well.
+    echo "        --skip_tomcat: the script will not attempt to start/stop tomcat.  You must do this manually before/after running the script.
     echo ""
 }
 
@@ -414,4 +414,3 @@ echo "  - LabKey specific log: $tomcat_home/logs/labkey.log "
 echo ""
 echo " ------------- The upgrade has completed at "  `date`
 echo ""
-
