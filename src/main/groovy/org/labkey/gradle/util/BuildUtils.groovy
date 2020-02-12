@@ -97,7 +97,7 @@ class BuildUtils
         return [
                 getApiProjectPath(gradle),
                 getBootstrapProjectPath(gradle),
-                getRemoteApiProjectPath(gradle),
+                getRemoteApiProjectPath(gradle), // TODO remove this after 1.10.0 plugin release and introduction of labkeyClientApiVersion
                 getInternalProjectPath(gradle),
                 getPlatformModuleProjectPath(gradle, "audit"),
                 getPlatformModuleProjectPath(gradle, "core"),
@@ -120,6 +120,21 @@ class BuildUtils
     static void includeBaseModules(Settings settings)
     {
         includeModules(settings, getBaseModules(settings.gradle))
+    }
+
+    /**
+     * Add module dependencies for all the base modules to facilitate deploying a LabKey Server instance without building the base modules
+     * @param project The project for the LabKey module being deployed.
+     */
+    static void addBaseModuleDependencies(Project project)
+    {
+        for (String path : BuildUtils.getBaseModules(project.gradle))
+        {
+            if (path != getBootstrapProjectPath(project.gradle) && path != getRemoteApiProjectPath(project.gradle))
+            {
+                addLabKeyDependency(project: project, config: "modules", depProjectPath: path, depProjectConfig: 'published', depExtension: 'module')
+            }
+        }
     }
 
     /**
