@@ -39,6 +39,7 @@ class TeamCityDbSetup extends DoThenSetup
             }
         }
         databaseProperties.interpolateCompositeProperties()
+        databaseProperties.writeDbProps()
     }
 
 }

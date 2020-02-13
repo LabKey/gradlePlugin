@@ -192,9 +192,6 @@ class TeamCity extends Tomcat
                     task.setDatabaseProperties(properties)
                     task.dropDatabase = extension.dropDatabase
                     task.testValidationOnly = Boolean.parseBoolean( extension.getTeamCityProperty("testValidationOnly"))
-                    task.doLast {
-                        task.databaseProperties.writeDbProps()
-                    }
                     task.dependsOn (pickDbTask)
             }
 
