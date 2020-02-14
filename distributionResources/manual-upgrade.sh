@@ -44,7 +44,7 @@
 print_usage()
 {
     echo "Usage:"
-    echo "    manual-upgrade.sh -l dir [-d dir] [-c dir] [-u tomcatuser] [--noPrompt] [--service|--systemctl|--catalina|--tomcat_lk]"
+    echo "    manual-upgrade.sh -l dir [-d dir] [-c dir] [-u tomcatuser] [--noPrompt] [--service|--systemctl|--catalina|--tomcat_lk|--skip_tomcat]"
     echo ""
     echo "    -l dir: LABKEY_HOME directory to be upgraded. This directory contains the "
     echo "            the labkeywebapp, modules, pipeline-lib, etc directories for the existing "
@@ -70,6 +70,8 @@ print_usage()
     echo ""
     echo "        --tomcat_lk: for LabKey Internal Hosted Server Installed Only"
     echo ""
+    echo "        --skip_tomcat: the script will not attempt to start/stop tomcat.  You must do this manually before/after running the script.
+    echo ""
 }
 
 print_error()
@@ -89,6 +91,7 @@ service="true"
 systemctl="false"
 catalina="false"
 tomcat_lk="false"
+skip_tomcat="false"
 noPrompt="false"
 labkey_home=""
 tomcat_home=$CATALINA_HOME
@@ -160,9 +163,13 @@ do
     --catalina)
     catalina="true";
     service="false"
-    shift;;
+    shift;;    
     --tomcat_lk)
     tomcat_lk="true";
+    service="false"
+    shift;;
+    --skip_tomcat)
+    skip_tomcat="true";
     service="false"
     shift;;
     --noPrompt)
@@ -267,6 +274,9 @@ then
 elif [ "$catalina" = "true" ]
 then
     $tomcat_home/bin/shutdown.sh
+elif [ "$skip_tomcat" = "true" ]
+then
+    echo "skip_tomcat=true, so tomcat will not be shutdown"
 fi
 
 #
@@ -371,6 +381,9 @@ then
 elif [ $catalina = "true" ]
 then
     $tomcat_home/bin/startup.sh
+elif [ "$skip_tomcat" = "true" ]
+then
+    echo "skip_tomcat=true, so tomcat will not be restarted"    
 fi
 
 #
@@ -401,4 +414,3 @@ echo "  - LabKey specific log: $tomcat_home/logs/labkey.log "
 echo ""
 echo " ------------- The upgrade has completed at "  `date`
 echo ""
-
