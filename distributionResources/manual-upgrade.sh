@@ -70,7 +70,7 @@ print_usage()
     echo ""
     echo "        --tomcat_lk: for LabKey Internal Hosted Server Installed Only"
     echo ""
-    echo "        --skip_tomcat: the script will not attempt to start/stop tomcat.  You must do this manually before/after running the script.
+    echo "        --skip_tomcat: the script will not attempt to start/stop tomcat.  You must do this manually before/after running the script."
     echo ""
 }
 

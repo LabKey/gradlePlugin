@@ -8,14 +8,24 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
-### version x.y.z
-*Released*: xxx
+### version TBD
+*Released*: TBD
 (Earliest compatible LabKey version: 20.3)
 
-* module.xml writer: Rename "version" property to "schemaVersion" and support null value
-* module.xml writer: Rename "labkeyVersion" property to "releaseVersion"
-* module.xml writer: Remove "consolidateScripts" property
+* Better fix for [Issue 39058](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39058).  Depend on api's jar task, not just schemaCompile
+* Make sure we run npm clean before cleanNodeModules so we don't reinstall node_modules in order to do the cleaning
+* Add dedupe configuration for safe resolution of external configuration used for copying and deduplicating external jar dependencies
+* Promote most multiGit tasks as non-incubating
+* [Issue 39544](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39544) Remove closure usage for DoThenSetup that would cause the "do" function to run twice.
+* Exclude "webpack" directory from potential modules
+* Update module.xml writer for version property changes 
+  * Rename "version" property to "schemaVersion" and support null value
+  * Rename "labkeyVersion" property to "releaseVersion"
+  * Remove "consolidateScripts" property
 * Update module template to match versioning changes
+* Add apiJarFile configuration to replace apiCompile for dependencies on the api jar file
+* use labkeyClientApiVersion property if available for declaring dependency on labkey-client-api
+* Add BuildUtils.addBaseModuleDependencies to facilitate deploying a local server without building the base modules from source
 
 ### version 1.9.2
 *Released*: 21 January 2019

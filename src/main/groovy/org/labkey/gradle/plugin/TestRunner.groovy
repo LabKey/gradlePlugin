@@ -242,9 +242,6 @@ class TestRunner extends UiTest
                 jar.archiveVersion.set((String) project.version)
                 jar.destinationDirectory = new File("${project.buildDir}/libs")
         }
-        project.artifacts {
-            compile project.tasks.testJar
-        }
     }
 
     private void addAspectJ(Project project)

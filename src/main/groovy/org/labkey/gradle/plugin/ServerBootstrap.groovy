@@ -64,7 +64,7 @@ class ServerBootstrap implements Plugin<Project>
     private void addTasks(Project project)
     {
         project.jar {
-            baseName = JAR_BASE_NAME
+            archiveBaseName.set(JAR_BASE_NAME)
         }
         project.processResources.enabled = false
         project.jar.manifest {

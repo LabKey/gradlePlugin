@@ -58,7 +58,6 @@ class LabKey implements Plugin<Project>
     // to these configurations.
     private static void addConfigurations(Project project)
     {
-        // TODO remove jars configuration once it is removed from server/build.gradle
         project.configurations
                 {
                     modules
@@ -67,7 +66,10 @@ class LabKey implements Plugin<Project>
                     // dependencies include some of the jars that are native to tomcat.
                     tomcatJars { transitive = false }
                     remotePipelineJars
-                    external
+                    external {
+                        canBeConsumed = true
+                        canBeResolved = true
+                    }
                 }
         project.configurations.external.setDescription("External dependencies to be included in a module's lib directory")
         project.configurations.modules.setDescription("Modules used in the current server deployment")

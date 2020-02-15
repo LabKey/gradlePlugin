@@ -1013,7 +1013,7 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitRepoList") {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) List all Git repositories. Use -Pverbose to show more details. Use -P${RepositoryQuery.TOPICS_PROPERTY} to filter to modules with certain topics.  " +
+                task.description = "List all Git repositories. Use -Pverbose to show more details. Use -P${RepositoryQuery.TOPICS_PROPERTY} to filter to modules with certain topics.  " +
                         "This can be a comma-separated list of topics (e.g., labkey-module,labkey-client-api).  By default, all repositories with any of these topics will be listed.  " +
                         "Use -P${RepositoryQuery.ALL_TOPICS_PROPERTY} to specify that all topics must be present.  " +
                         "By default, only repositories that have not been archived are listed.  Use -P${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} to also include archived repositories." +
@@ -1037,7 +1037,7 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitBranches")  {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) Show the current branches for each of the repos in which there is an enlistment. " +
+                task.description = "Show the current branches for each of the repos in which there is an enlistment. " +
                         "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering. " +
                         "N.B. This task relies on accurate tagging of the Git repositories so it can determine the expected enlistment directory."
                 task.doLast({
@@ -1074,7 +1074,7 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitCheckout") {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) For all repositories with a current enlistment, perform a git checkout for the branch provided by the 'branch' property (e.g., -Pbranch=release18.3).  " +
+                task.description = "For all repositories with a current enlistment, perform a git checkout for the branch provided by the 'branch' property (e.g., -Pbranch=release18.3).  " +
                         "If no such branch exists for a repository, leaves the enlistment as is.  " +
                         "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering."
                 task.doLast({
@@ -1118,7 +1118,7 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitStatus") {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) Perform a 'git status' for a collection of repositories. " +
+                task.description = "Perform a 'git status' for a collection of repositories. " +
                         "By default, uses the projects specified in the settings.gradle file for which there is a current enlistment. " +
                         "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for " +
                         "choosing a set of repositories other than those given in the settings.gradle file."
@@ -1181,7 +1181,7 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitPull") {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) Perform a 'git pull' for a collection of repositories. " +
+                task.description = "Perform a 'git pull' for a collection of repositories. " +
                         "Use -PgitRebase to rebase the branches while pulling." +
                         "By default, uses the projects specified in the settings.gradle file for which there is a current enlistment. " +
                         "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for " +
@@ -1206,7 +1206,7 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitFetch") {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) Perform a 'git fetch' for a collection of repositories.  " +
+                task.description = "Perform a 'git fetch' for a collection of repositories.  " +
                         "Use -PgitPrune to remove any remote-tracking references that no longer exist on the remote." +
                         "By default, uses the projects specified in the settings.gradle file for which there is a current enlistment. " +
                         "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for " +
@@ -1232,7 +1232,7 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitPush") {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) Perform a `git push` for a collection of repositories. " +
+                task.description = "Perform a `git push` for a collection of repositories. " +
                         "Use -PgitDryRun to do everything except actually send the updates." +
                         "By default, uses the projects specified in the settings.gradle file for which there is a current enlistment. " +
                         "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for " +
@@ -1257,7 +1257,7 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitEnlist") {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) Enlist in all of the git modules used for a running LabKey server.  " +
+                task.description = "Enlist in all of the git modules used for a running LabKey server.  " +
                         "Use -Pbranch=<bname> to enlist in a particular branch (shortcut for using gitEnlist then gitCheckout -Pbranch=<name>)."
                         "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering the repository set. " +
                         "If a moduleSet property is specified, enlist in only the modules included by that module set. Using -PmoduleSet=all is the same as providing no module set property."
@@ -1285,7 +1285,7 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("listPullRequests") {
             Task task ->
                 task.group = "VCS"
-                task.description = "(incubating) Lists the pull requests for a set of modules... TODO" +
+                task.description = "(incubating) Lists the pull requests for a set of modules... TODO  " +
                         "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering the repository set. " +
                         "Use ${RepositoryQuery.BASE_BRANCH_PROPERTY} to sepcify the base for the pull requests (default: develop)." +
                         "Use -P${RepositoryQuery.PR_STATES_PROPERTY}=[MERGED|CLOSED|OPEN] to specify the state(s) of the pull requests to show (default: all). " +

@@ -81,6 +81,10 @@ class ModuleFinder extends SimpleFileVisitor<Path>
 
     static boolean isPotentialModule(Project p)
     {
-        return !p.name.startsWith(".") && !p.name.toLowerCase().equals("test") && !isDistributionProject(p) && !isModuleContainer(p)
+        return !p.name.startsWith(".") &&
+                !p.name.toLowerCase().equals("webpack") &&
+                !p.name.toLowerCase().equals("test") &&
+                !isDistributionProject(p) &&
+                !isModuleContainer(p)
     }
 }

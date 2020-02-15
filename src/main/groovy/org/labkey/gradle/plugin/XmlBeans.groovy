@@ -84,7 +84,7 @@ class XmlBeans implements Plugin<Project>
                 // make sure we compile any API schemas first as other schemas can depend on that
                 if (!project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
                 {
-                    task.dependsOn(project.project(BuildUtils.getApiProjectPath(project.gradle)).tasks.schemasCompile)
+                    task.dependsOn(project.project(BuildUtils.getApiProjectPath(project.gradle)).tasks.jar)
                 }
         }
 

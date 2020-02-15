@@ -30,8 +30,9 @@ class PickDb extends DoThenSetup
     @InputDirectory
     File configsDir = new File(project.project(":server").projectDir, "configs")
 
-    Closure<Void> fn = {
-
+    @Override
+    protected void doDatabaseTask()
+    {
         //copies the correct config file.
         project.copy({ CopySpec copy ->
             copy.from configsDir
@@ -41,7 +42,6 @@ class PickDb extends DoThenSetup
                 fileName.replace(dbType, "config")
             }
         })
-
-        super.getFn().run();
+        super.doDatabaseTask();
     }
 }

@@ -15,31 +15,31 @@
  */
 package org.labkey.gradle.task
 
-import org.labkey.gradle.util.DatabaseProperties
+import org.gradle.api.tasks.Input
 import org.labkey.gradle.util.SqlUtils
 
-class Bootstrap extends DoThenSetup
+class TeamCityDbSetup extends DoThenSetup
 {
     boolean dbPropertiesChanged = true
+    @Input
+    boolean dropDatabase = false
+    @Input
+    boolean testValidationOnly = false
 
     @Override
     protected void doDatabaseTask()
     {
-        setDatabaseProperties()
-
-        SqlUtils.dropDatabase(this.project, databaseProperties)
+        databaseProperties.mergePropertiesFromFile();
+        if (dropDatabase) {
+            if (testValidationOnly){
+                logger.info("The 'testValidationOnly' flag is true, not going to drop the database.")
+            }
+            else {
+                SqlUtils.dropDatabase(project, databaseProperties)
+            }
+        }
         databaseProperties.interpolateCompositeProperties()
+        databaseProperties.writeDbProps()
     }
 
-    @Override
-    protected void setDatabaseProperties()
-    {
-        databaseProperties = new DatabaseProperties(project, true)
-    }
-
-    @Override
-    boolean labkeyXmlUpToDate(String appDocBase)
-    {
-        return false
-    }
 }

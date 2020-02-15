@@ -34,11 +34,6 @@ class DoThenSetup extends DefaultTask
     @Input
     boolean dbPropertiesChanged = false
 
-    @Optional @Input
-    Closure<Void> fn = {
-        setDatabaseProperties()
-    }
-
     DoThenSetup()
     {
         if (project.findProject(":server") != null)
@@ -80,6 +75,11 @@ class DoThenSetup extends DefaultTask
         return false
     }
 
+    protected void doDatabaseTask()
+    {
+        setDatabaseProperties()
+    }
+
     @TaskAction
     void setup() {
         project.tomcat.validateCatalinaHome()
@@ -94,7 +94,7 @@ class DoThenSetup extends DefaultTask
         else if (!canCreate(tomcatConfDir))
             throw new GradleException("Insufficient permissions to create ${tomcatConfDir.absolutePath}")
 
-        getFn().run()
+        doDatabaseTask()
 
         String appDocBase = project.serverDeploy.webappDir.toString().split("[/\\\\]").join("${File.separator}")
 

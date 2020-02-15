@@ -97,7 +97,7 @@ class BuildUtils
         return [
                 getApiProjectPath(gradle),
                 getBootstrapProjectPath(gradle),
-                getRemoteApiProjectPath(gradle),
+                getRemoteApiProjectPath(gradle), // TODO remove this after 1.10.0 plugin release and introduction of labkeyClientApiVersion
                 getInternalProjectPath(gradle),
                 getPlatformModuleProjectPath(gradle, "audit"),
                 getPlatformModuleProjectPath(gradle, "core"),
@@ -108,6 +108,11 @@ class BuildUtils
         ]
     }
 
+    static boolean isBaseModule(Project project)
+    {
+        return getBaseModules(project.gradle).contains(project.path)
+    }
+
     /**
      * This includes modules that are required for any LabKey server build (e.g., bootstrap, api, internal)
      * @param settings the settings
@@ -115,6 +120,21 @@ class BuildUtils
     static void includeBaseModules(Settings settings)
     {
         includeModules(settings, getBaseModules(settings.gradle))
+    }
+
+    /**
+     * Add module dependencies for all the base modules to facilitate deploying a LabKey Server instance without building the base modules
+     * @param project The project for the LabKey module being deployed.
+     */
+    static void addBaseModuleDependencies(Project project)
+    {
+        for (String path : BuildUtils.getBaseModules(project.gradle))
+        {
+            if (path != getBootstrapProjectPath(project.gradle) && path != getRemoteApiProjectPath(project.gradle))
+            {
+                addLabKeyDependency(project: project, config: "modules", depProjectPath: path, depProjectConfig: 'published', depExtension: 'module')
+            }
+        }
     }
 
     /**
@@ -282,6 +302,11 @@ class BuildUtils
     {
 
         return getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:java")
+    }
+
+    static String getLabKeyClientApiVersion(Project project)
+    {
+        return project.hasProperty('labkeyClientApiVersion') ? project.property('labkeyClientApiVersion') : project.labkeyVersion
     }
 
     static String getSchemasProjectPath(Gradle gradle)
@@ -609,7 +634,7 @@ class BuildUtils
         String group = extension.equals("module") ? LabKeyExtension.MODULE_GROUP : LabKeyExtension.API_GROUP
         if (projectPath.endsWith(getRemoteApiProjectPath(project.gradle).substring(1)))
         {
-            group = LabKeyExtension.LABKEY_GROUP
+            group = project.hasProperty("labkeyClientApiVersion") ? LabKeyExtension.API_GROUP : LabKeyExtension.LABKEY_GROUP
             moduleName = "labkey-client-api"
         }
         else if (projectPath.equals(getBootstrapProjectPath(project.gradle)))
