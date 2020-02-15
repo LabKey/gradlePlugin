@@ -8,8 +8,8 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
-### version TBD
-*Released*: TBD
+### version 1.10.0
+*Released*: 15 February 2020
 (Earliest compatible LabKey version: 20.3)
 
 * Better fix for [Issue 39058](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39058).  Depend on api's jar task, not just schemaCompile
@@ -28,7 +28,7 @@ but also make certain assumptions that you may not want to impose on your module
 * Add BuildUtils.addBaseModuleDependencies to facilitate deploying a local server without building the base modules from source
 
 ### version 1.9.2
-*Released*: 21 January 2019
+*Released*: 21 January 2020
 (Earliest compatible LabKey version: 20.2)
 
 * Remove obsolete 'jars' configuration
@@ -36,13 +36,13 @@ but also make certain assumptions that you may not want to impose on your module
 * [Issue 39422](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39422) Prevent duplicate class files in jars
 
 ### version 1.9.1
-*Released*: 13 January 2019 
+*Released*: 13 January 2020 
 (Earliest compatible LabKey version: 20.2)
 
 No functional changes; built with JDK 12 instead of 13
 
 ### version 1.9.0
-*Released*: 12 January 2019
+*Released*: 12 January 2020
 (Earliest compatible LabKey version: 20.2)
 
 * Provide credentials for all multigit commands
