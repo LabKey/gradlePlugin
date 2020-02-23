@@ -15,6 +15,7 @@ but also make certain assumptions that you may not want to impose on your module
 * [Issue 39722](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39722) Make sure locally built modules aer 
 preferred over externally build modules by using two different copy tasks.  Two collections in one copy task seem to have
 some randomness in their ordering. 
+* Don't add npm tasks that rely on a package.json if there is no package.json file
 
 ### version 1.10.0
 *Released*: 15 February 2020
