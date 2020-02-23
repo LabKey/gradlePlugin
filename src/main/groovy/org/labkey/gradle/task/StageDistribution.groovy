@@ -72,6 +72,9 @@ class StageDistribution extends DefaultTask
 
         Boolean isTar = extension.equals("tar.gz")
 
+        // first clean out the staging directory so we don't pick up modules not in this distribution
+        project.delete modulesStagingDir
+
         project.copy({ CopySpec spec ->
             spec.from isTar ? project.tarTree(distributionFile).files : project.zipTree(distributionFile).files
             spec.into modulesStagingDir
