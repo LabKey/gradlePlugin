@@ -84,42 +84,40 @@ class ServerDeploy implements Plugin<Project>
                 task.doLast( {
                     // copy over the module dependencies first (things not built from source that might bring in
                     // transitive dependencies)
-                    project.ant.copy(
-                            todir: staging.modulesDir,
-                            preserveLastModified: true // this is important so we don't re-explode modules that have not changed
-                    )
-                            {
-                                project.configurations.modules {
-                                    Configuration collection ->
-                                        collection.fileCollection ({
-                                            Dependency dependency -> dependency instanceof DefaultExternalModuleDependency
-                                        }).addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
+                    FileCollection remoteModules = project.configurations.modules.fileCollection ({
+                        Dependency dependency -> dependency instanceof DefaultExternalModuleDependency
+                    })
+                    if (!remoteModules.isEmpty())
+                    {
+                        project.ant.copy(
+                                todir: staging.modulesDir,
+                                preserveLastModified: true // this is important so we don't re-explode modules that have not changed
+                        )
+                                {
+                                    remoteModules.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
                                 }
-                            }
+                    }
+
                     // Then copy over the project dependencies (things built from source) so they will replace
                     // any transitive dependencies that were brought in).
                     // One might like to do this overriding/overwriting using DependencySubstitution, as that is very much
                     // what it is designed for, but that allows substitution of a project for an ExternalModuleDependency
                     // and since a .module file is only one of the artifacts produced by our projects (e.g., :server:modules:platform:experiment)
                     // and is not the default artifact, DependencySubstitution does not seem to work.
-                    project.ant.copy(
-                        todir: staging.modulesDir,
-                        preserveLastModified: true // this is important so we don't re-explode modules that have not changed
-                    )
-                            {
-                                project.configurations.modules {
-                                    Configuration collection ->
-//                                        // copy over the module dependencies first (things not built from source that might bring in
-//                                        // transitive dependencies)
-//                                        collection.fileCollection ({
-//                                            Dependency dependency -> dependency instanceof DefaultExternalModuleDependency
-//                                        }).addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-
-                                        collection.fileCollection ({
-                                            Dependency dependency -> dependency instanceof DefaultProjectDependency
-                                        }).addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet);
+                    FileCollection localModules = project.configurations.modules.fileCollection ({
+                        Dependency dependency -> dependency instanceof DefaultProjectDependency
+                    })
+                    if (!localModules.isEmpty())
+                    {
+                        project.ant.copy(
+                                todir: staging.modulesDir,
+                                preserveLastModified: true // this is important so we don't re-explode modules that have not changed
+                        )
+                                {
+                                    localModules.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
                                 }
-                            }
+                    }
+
                 })
         }
         project.tasks.stageModules.dependsOn project.configurations.modules
