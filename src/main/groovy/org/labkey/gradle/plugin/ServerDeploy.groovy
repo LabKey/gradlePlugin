@@ -110,6 +110,7 @@ class ServerDeploy implements Plugin<Project>
                     if (!localModules.isEmpty())
                     {
                         project.ant.copy(
+                                overwrite: true, // overwrite existing files even if the destination files are newer
                                 todir: staging.modulesDir,
                                 preserveLastModified: true // this is important so we don't re-explode modules that have not changed
                         )
