@@ -178,11 +178,12 @@ class NpmRun implements Plugin<Project>
         TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
         TaskUtils.configureTaskIfPresent(project, "processModuleResources", { mustRunAfter(runCommand) })
 
-        project.tasks.npmInstall {Task task ->
-            task.inputs.file project.file(NPM_PROJECT_FILE)
-            if (project.file(NPM_PROJECT_LOCK_FILE).exists())
-                task.inputs.file project.file(NPM_PROJECT_LOCK_FILE)
-        }
+        project.tasks.npmInstall
+                {Task task ->
+                    task.inputs.file project.file(NPM_PROJECT_FILE)
+                    if (project.file(NPM_PROJECT_LOCK_FILE).exists())
+                        task.inputs.file project.file(NPM_PROJECT_LOCK_FILE)
+                }
         project.tasks.npmInstall.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
     }
 
@@ -193,19 +194,22 @@ class NpmRun implements Plugin<Project>
 
     private static void addTasks(Project project)
     {
-        if (useYarn(project))
-            addYarnTasks(project)
-        else
-            addNpmTasks(project)
+        if (project.file(NPM_PROJECT_FILE).exists())
+        {
+            if (useYarn(project))
+                addYarnTasks(project)
+            else
+                addNpmTasks(project)
 
-        project.tasks.register("cleanNodeModules", Delete) {
-            Delete task ->
-                task.group =  GroupNames.NPM_RUN
-                task.description = "Removes ${project.file(NODE_MODULES_DIR)}"
-                task.configure({ DeleteSpec delete ->
-                    delete.delete (project.file(NODE_MODULES_DIR))
-                })
-                task.mustRunAfter(project.tasks.npmRunClean)
+            project.tasks.register("cleanNodeModules", Delete) {
+                Delete task ->
+                    task.group = GroupNames.NPM_RUN
+                    task.description = "Removes ${project.file(NODE_MODULES_DIR)}"
+                    task.configure({ DeleteSpec delete ->
+                        delete.delete(project.file(NODE_MODULES_DIR))
+                    })
+                    task.mustRunAfter(project.tasks.npmRunClean)
+            }
         }
 
         project.tasks.register("listNodeProjects") {
