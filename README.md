@@ -8,9 +8,16 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
-### version ???
-*Released*: ???
-(Earliest compatible LabKey version; 20.3)
+
+### version TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 20.3)
+* Remove more deprecated properties
+* Fix problem with cleanNodeModules task dependency when using yarn instead of npm
+
+### version 1.10.1
+*Released*: 27 February 2020
+(Earliest compatible LabKey version: 20.3)
 * Fix pom file generation for labkey-client-api inclusion
 * [Issue 39722](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39722) Make sure locally built modules aer 
 preferred over externally build modules by using two different copy tasks.  Two collections in one copy task seem to have
