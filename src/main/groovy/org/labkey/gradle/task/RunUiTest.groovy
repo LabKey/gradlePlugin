@@ -95,29 +95,7 @@ class RunUiTest extends Test
         // A handfull of tests require tomcat.home to be defined when running within IntelliJ
         systemProperty "tomcat.home", project.tomcat.catalinaHome
         systemProperty "test.credentials.file", "${project.projectDir}/test.credentials.json"
-        if (project.findProject(BuildUtils.getTestProjectPath(project.gradle)) != null)
-        {
-            Project testProject = project.project(BuildUtils.getTestProjectPath(project.gradle))
-            if (SystemUtils.IS_OS_WINDOWS)
-            {
-                if (SystemUtils.OS_ARCH.equals("amd64"))
-                    systemProperty "webdriver.ie.driver", "${testProject.projectDir}/bin/windows/amd64/IEDriverServer.exe"
-                else if (SystemUtils.OS_ARCH.equals("i386"))
-                    systemProperty "webdriver.ie.driver", "${testProject.projectDir}/bin/windows/i386/IEDriverServer.exe"
-                systemProperty "webdriver.chrome.driver", "${testProject.projectDir}/bin/windows/chromedriver.exe"
-            }
-            else if (SystemUtils.IS_OS_MAC)
-            {
-                systemProperty "webdriver.chrome.driver", "${testProject.projectDir}/bin/mac/chromedriver"
-            }
-            else if (SystemUtils.IS_OS_LINUX)
-            {
-                if (SystemUtils.OS_ARCH.equals("amd64"))
-                    systemProperty "webdriver.chrome.driver", "${testProject.projectDir}/bin/linux/amd64/chromedriver"
-                else if (SystemUtils.OS_ARCH.equals("i386"))
-                    systemProperty "webdriver.chrome.driver", "${testProject.projectDir}/bin/linux/i386/chromedriver"
-            }
-        }
+
         setTeamCityProperties()
     }
 
