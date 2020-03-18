@@ -96,6 +96,13 @@ class RunTestSuite extends RunUiTest
                     systemProperty key, project.teamcity[key]
                 }
             }
+            // Include all 'webtest' and 'webdriver' properties, whether they are in test.properties or not
+            for (String key : project.ext.properties.keySet())
+            {
+                if (key.startsWith("webtest.") || key.startsWith("webdriver.")) {
+                    systemProperty key, project.ext[key]
+                }
+            }
         }
     }
 }

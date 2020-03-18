@@ -14,6 +14,8 @@ but also make certain assumptions that you may not want to impose on your module
 (Earliest compatible LabKey version: 20.3)
 * Remove more deprecated properties
 * Fix problem with cleanNodeModules task dependency when using yarn instead of npm
+* Let test harness locate WebDriver binaries
+* Pass along all 'webtest' and 'webdriver' properties from TeamCity
 
 ### version 1.10.1
 *Released*: 27 February 2020
