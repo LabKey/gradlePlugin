@@ -24,8 +24,6 @@ import java.sql.DriverManager
 
 class SqlUtils
 {
-    //in ant no tasks ever depend on this, so it makes sense to be a method.
-    //additionally, it is always called with inheritAll=false, so we should explicitly pass in parameters.
     static void execSql(Project project, DatabaseProperties params, String sql)
     {
         params.interpolateCompositeProperties()
