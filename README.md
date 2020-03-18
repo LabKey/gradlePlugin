@@ -18,6 +18,7 @@ but also make certain assumptions that you may not want to impose on your module
 * Pass along all 'webtest' and 'webdriver' properties from TeamCity
 * Don't lock Gradle daemon to a particular Tomcat version
 * Catch exception and log error instead of throwing if gitPull has conflicts
+* undeployModules adjusted to handle the new naming of module directories created by ModuleLoader
 
 ### version 1.10.1
 *Released*: 27 February 2020
