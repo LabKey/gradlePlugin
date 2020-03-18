@@ -349,94 +349,20 @@ if [ $? != 0 ]; then print_error; fi # exit if the last command failed
 #
 # Remove all existing LabKey JAR files from TOMCAT_HOME/lib directory, if found
 #
-
-LKJARFILE1="javax.activation.jar"
-LKJARFILE2="labkeyBootstrap.jar"
-LKJARFILE3="mysql.jar"
-LKJARFILE4="jtds.jar"
-LKJARFILE5="mail.jar"
-LKJARFILE6="postgresql.jar"
-
-echo "Checking Tomcat lib directory for old LabKey JAR files..."
-echo ""
-LKJAR1=$(ls $CATALINA_HOME/lib | grep -i $LKJARFILE1)
-if [ -n "$LKJAR1" ]
-then
-        echo "Deleting the $LKJAR1 file..."
-        rm $CATALINA_HOME/lib/$LKJAR1
-        echo ""
-        echo "Deleted..."
-        echo ""
-else
-        echo "The file $LKJARFILE1 does not exist, skipping..."
-        echo ""
-fi
-
-LKJAR2=$(ls $CATALINA_HOME/lib | grep -i $LKJARFILE2)
-if [ -n "$LKJAR2" ]
-then
-        echo "Deleting the $LKJAR2 file..."
-        rm $CATALINA_HOME/lib/$LKJAR2
-        echo ""
-        echo "Deleted..."
-        echo ""
-else
-        echo "The file $LKJARFILE2 does not exist, skipping..."
-        echo ""
-fi
-
-LKJAR3=$(ls $CATALINA_HOME/lib | grep -i $LKJARFILE3)
-if [ -n "$LKJAR3" ]
-then
-        echo "Deleting the $LKJAR3 file..."
-        rm $CATALINA_HOME/lib/$LKJAR3
-        echo ""
-        echo "Deleted..."
-        echo ""
-else
-        echo "The file $LKJARFILE3 does not exist, skipping..."
-        echo ""
-fi
-
-LKJAR4=$(ls $CATALINA_HOME/lib | grep -i $LKJARFILE4)
-if [ -n "$LKJAR4" ]
-then
-        echo "Deleting the $LKJAR4 file..."
-        rm $CATALINA_HOME/lib/$LKJAR4
-        echo ""
-        echo "Deleted..."
-        echo ""
-else
-        echo "The file $LKJARFILE4 does not exist, skipping..."
-        echo ""
-fi
-
-LKJAR5=$(ls $CATALINA_HOME/lib | grep -i $LKJARFILE5)
-if [ -n "$LKJAR5" ]
-then
-        echo "Deleting the $LKJAR5 file..."
-        rm $CATALINA_HOME/lib/$LKJAR5
-        echo ""
-        echo "Deleted..."
-        echo ""
-else
-        echo "The file $LKJARFILE5 does not exist, skipping..."
-        echo ""
-fi
-
-LKJAR6=$(ls $CATALINA_HOME/lib | grep -i $LKJARFILE6)
-if [ -n "$LKJAR6" ]
-then
-        echo "Deleting the $LKJAR6 file..."
-        rm $CATALINA_HOME/lib/$LKJAR6
-        echo ""
-        echo "Deleted..."
-        echo ""
-else
-        echo "The file $LKJARFILE6 does not exist, skipping..."
-        echo ""
-fi
-
+jars=( "javax.activation.jar" "labkeyBootstrap.jar" "mysql.jar" "jtds.jar" "mail.jar" "postgresql.jar"); 
+for jar in "${jars[@]}"
+do
+    file=$CATALINA_HOME/lib/$jar
+    if [ -f $file ]
+    then
+        echo "Deleting the $file file..."
+        rm $file;
+        ret_value=$?
+        if [ $ret_value -ne 0 ]; then
+            echo "FAILED"
+        fi
+    fi
+done
 #
 # Copy the LabKey jar files (libraries) to the TOMCAT_HOME directory
 #
