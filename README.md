@@ -14,6 +14,7 @@ but also make certain assumptions that you may not want to impose on your module
 (Earliest compatible LabKey version: 20.3)
 * Remove more deprecated properties
 * Fix problem with cleanNodeModules task dependency when using yarn instead of npm
+* Catch exception and log error instead of throwing if gitPull has conflicts
 
 ### version 1.10.1
 *Released*: 27 February 2020

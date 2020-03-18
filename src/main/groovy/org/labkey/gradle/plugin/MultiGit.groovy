@@ -1197,7 +1197,14 @@ class MultiGit implements Plugin<Project>
                             {
                                 project.logger.quiet("Pulling for ${repository.enlistmentDir} ")
                                 Grgit grgit = repository.getGit();
-                                grgit.pull(rebase: project.hasProperty('gitRebase'))
+                                try
+                                {
+                                    grgit.pull(rebase: project.hasProperty('gitRebase'))
+                                }
+                                catch (Exception e)
+                                {
+                                    project.logger.error("${repository.projectPath}: problem pulling. ${e.message}")
+                                }
                             }
                     })
                 })
