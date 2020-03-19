@@ -27,7 +27,6 @@ import org.labkey.gradle.util.ModuleFinder
  */
 class LabKey implements Plugin<Project>
 {
-    public static final String CLIENT_LIBS_CLASSIFER = "web"
     public static final String SOURCES_CLASSIFIER = "sources"
     public static final String JAVADOC_CLASSIFIER = "javadoc"
     public static final String FAT_JAR_CLASSIFIER = "all"
