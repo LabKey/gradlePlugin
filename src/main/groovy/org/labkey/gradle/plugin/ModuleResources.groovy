@@ -66,7 +66,12 @@ class ModuleResources implements Plugin<Project>
                     }
                 }
         if (!LabKeyExtension.isDevMode(project))
-            project.tasks.processModuleResources.doLast(new GzipAction())
+        {
+            GzipAction zipAction = new GzipAction();
+            zipAction.extraExcludes = ["views/**"];
+            project.tasks.processModuleResources.doLast(zipAction);
+        }
+
         project.tasks.processResources.dependsOn('processModuleResources')
     }
 }

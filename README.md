@@ -19,6 +19,7 @@ but also make certain assumptions that you may not want to impose on your module
 * Don't lock Gradle daemon to a particular Tomcat version
 * Catch exception and log error instead of throwing if gitPull has conflicts
 * undeployModules adjusted to handle the new naming of module directories created by ModuleLoader
+* [Issue 39643](https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=39643) Remove some extraneous zip files
 
 ### version 1.10.1
 *Released*: 27 February 2020
