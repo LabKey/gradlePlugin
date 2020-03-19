@@ -18,6 +18,7 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
@@ -135,6 +136,7 @@ class ModuleDistribution extends DefaultTask
         project.copy
         { CopySpec copy ->
             copy.from { project.configurations.distribution }
+            copy.duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
             copy.into modulesDir
         }
     }
