@@ -361,7 +361,7 @@ class FileModule implements Plugin<Project>
                     @Override
                     boolean accept(final File file)
                     {
-                        return file.isDirectory() && file.getName().equalsIgnoreCase(project.name)
+                        return file.isDirectory() && (file.getName().startsWith("${project.name}-") || file.getName().equalsIgnoreCase(project.name))
                     }
                 })
                 )
