@@ -9,8 +9,8 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
-### version TBD
-*Released*: TBD
+### version 1.10.2
+*Released*: 23 March 2020
 (Earliest compatible LabKey version: 20.3)
 * Remove more deprecated properties
 * Fix problem with cleanNodeModules task dependency when using yarn instead of npm
