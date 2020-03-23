@@ -48,7 +48,7 @@ class NpmRun implements Plugin<Project>
     @Override
     void apply(Project project)
     {
-        // This brings in nodeSetup and npmInstall tasks.  See https://github.com/srs/gradle-node-plugin
+        // This brings in nodeSetup and npmInstall tasks.  See https://github.com/node-gradle/gradle-node-plugin
         project.apply plugin: 'com.github.node-gradle.node'
         project.extensions.create(EXTENSION_NAME, NpmRunExtension)
 
@@ -156,7 +156,6 @@ class NpmRun implements Plugin<Project>
                 {Task task ->
                     task.group = GroupNames.NPM_RUN
                     task.description = "Runs 'npm run ${project.npmRun.buildProd}'"
-                    task.dependsOn "npmInstall"
                     task.dependsOn "npm_run_${project.npmRun.buildProd}"
                     task.mustRunAfter "npmInstall"
                 }
@@ -167,7 +166,6 @@ class NpmRun implements Plugin<Project>
                 {Task task ->
                     task.group = GroupNames.NPM_RUN
                     task.description ="Runs 'npm run ${project.npmRun.buildDev}'"
-                    task.dependsOn "npmInstall"
                     task.dependsOn "npm_run_${project.npmRun.buildDev}"
                     task.mustRunAfter "npmInstall"
                 }
@@ -177,14 +175,6 @@ class NpmRun implements Plugin<Project>
         def runCommand = LabKeyExtension.isDevMode(project) ? npmRunBuild : npmRunBuildProd
         TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
         TaskUtils.configureTaskIfPresent(project, "processModuleResources", { mustRunAfter(runCommand) })
-
-        project.tasks.npmInstall
-                {Task task ->
-                    task.inputs.file project.file(NPM_PROJECT_FILE)
-                    if (project.file(NPM_PROJECT_LOCK_FILE).exists())
-                        task.inputs.file project.file(NPM_PROJECT_LOCK_FILE)
-                }
-        project.tasks.npmInstall.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
     }
 
     static boolean useYarn(Project project)
@@ -208,7 +198,10 @@ class NpmRun implements Plugin<Project>
                     task.configure({ DeleteSpec delete ->
                         delete.delete(project.file(NODE_MODULES_DIR))
                     })
-                    task.mustRunAfter(project.tasks.npmRunClean)
+                    if (useYarn(project))
+                        task.mustRunAfter(project.tasks.yarnRunClean)
+                    else
+                        task.mustRunAfter(project.tasks.npmRunClean)
             }
         }
 

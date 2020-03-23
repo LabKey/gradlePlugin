@@ -8,9 +8,22 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
-### version ???
-*Released*: ???
-(Earliest compatible LabKey version; 20.3)
+
+### version 1.10.2
+*Released*: 23 March 2020
+(Earliest compatible LabKey version: 20.3)
+* Remove more deprecated properties
+* Fix problem with cleanNodeModules task dependency when using yarn instead of npm
+* Let test harness locate WebDriver binaries
+* Pass along all 'webtest' and 'webdriver' properties from TeamCity
+* Don't lock Gradle daemon to a particular Tomcat version
+* Catch exception and log error instead of throwing if gitPull has conflicts
+* undeployModules adjusted to handle the new naming of module directories created by ModuleLoader
+* [Issue 39643](https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=39643) Remove some extraneous zip files
+
+### version 1.10.1
+*Released*: 27 February 2020
+(Earliest compatible LabKey version: 20.3)
 * Fix pom file generation for labkey-client-api inclusion
 * [Issue 39722](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39722) Make sure locally built modules aer 
 preferred over externally build modules by using two different copy tasks.  Two collections in one copy task seem to have

@@ -338,7 +338,7 @@ class FileModule implements Plugin<Project>
      */
     static List<File> getModuleFilesAndDirectories(Project project, Boolean includeDeployed = true, Boolean includeStaging=true)
     {
-        String moduleFilePrefix = "${project.tasks.module.baseName}-"
+        String moduleFilePrefix = "${project.name}-"
         List<File> files = new ArrayList<>()
         if (includeDeployed)
         {
@@ -361,7 +361,7 @@ class FileModule implements Plugin<Project>
                     @Override
                     boolean accept(final File file)
                     {
-                        return file.isDirectory() && file.getName().startsWith(moduleFilePrefix)
+                        return file.isDirectory() && (file.getName().startsWith("${project.name}-") || file.getName().equalsIgnoreCase(project.name))
                     }
                 })
                 )
