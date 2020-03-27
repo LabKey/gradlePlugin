@@ -217,6 +217,10 @@ class DoThenSetup extends DefaultTask
                         }
             }
 
+        new File("${project.tomcat.catalinaHome}/lib/jtds.jar").delete();
+        new File("${project.tomcat.catalinaHome}/lib/mysql.jar").delete();
+        new File("${project.tomcat.catalinaHome}/lib/postgresql.jar").delete();
+
         // Then copy them into the tomcat/lib directory
         project.ant.copy(
                 todir: "${project.tomcat.catalinaHome}/lib",
