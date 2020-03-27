@@ -24,6 +24,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.plugin.ServerDeploy
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.PropertiesUtils
 
@@ -217,9 +218,7 @@ class DoThenSetup extends DefaultTask
                         }
             }
 
-        new File("${project.tomcat.catalinaHome}/lib/jtds.jar").delete();
-        new File("${project.tomcat.catalinaHome}/lib/mysql.jar").delete();
-        new File("${project.tomcat.catalinaHome}/lib/postgresql.jar").delete();
+        ServerDeploy.JDBC_JARS.each{String name -> new File("${project.tomcat.catalinaHome}/lib/${name}").delete()}
 
         // Then copy them into the tomcat/lib directory
         project.ant.copy(
