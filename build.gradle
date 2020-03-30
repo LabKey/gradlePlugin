@@ -57,7 +57,7 @@ dependencies {
 }
 
 
-project.version = "1.10.3"
+project.version = "1.10.4-SNAPSHOT"
 
 if (project.file("moduleTemplate").exists())
 {
