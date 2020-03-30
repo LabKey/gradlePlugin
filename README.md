@@ -10,7 +10,7 @@ but also make certain assumptions that you may not want to impose on your module
 ## Release Notes
 
 ### version 1.10.3
-*Released*: TBD
+*Released*: 30 March 2020
 (Earliest compatible LabKey version: 20.3)
 * [Issue 40014](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=40014) Auto-delete JDBC drivers from \<tomcat\>/lib folder during setup, pickPg, pickMSSQL, et al tasks
 
