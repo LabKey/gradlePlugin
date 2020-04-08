@@ -381,6 +381,11 @@ class ModuleDistribution extends DefaultTask
                 exclude(name: "WEB-INF/classes/distribution")
             }
 
+            // TODO mail.jar should be picked up from api module (like jdbc jars)
+            zipfileset(dir: staging.tomcatLibDir, prefix: "WEB-INF/lib") {
+                include(name: "mail.jar")
+            }
+
             // NOTE: if we want to enable running w/o LabKeyBootstrapClassLoader we have to do some of its work here (see ExplodedModule)
             // NOTE: in particular some files need to be moved out of the module and into the WEB-INF directory
 
@@ -404,6 +409,13 @@ class ModuleDistribution extends DefaultTask
                         prefix: "WEB-INF/",
                         erroronmissingdir: false) {
                     include(name: "*")
+                }
+
+                // WEB-INF/lib (*.jar)
+                zipfileset(dir: moduleDir,
+                        prefix: "WEB-INF",
+                        erroronmissingdir: false) {
+                    include(name: "lib/*.jar")
                 }
 
                 // gwt.rpc
