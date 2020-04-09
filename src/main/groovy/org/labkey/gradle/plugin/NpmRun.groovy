@@ -133,6 +133,14 @@ class NpmRun implements Plugin<Project>
         TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
         TaskUtils.configureTaskIfPresent(project, "processModuleResources", { mustRunAfter(runCommand) })
 
+        project.tasks.npmInstall
+                {Task task ->
+                    task.inputs.file project.file(NPM_PROJECT_FILE)
+                    if (project.file(NPM_PROJECT_LOCK_FILE).exists())
+                        task.inputs.file project.file(NPM_PROJECT_LOCK_FILE)
+                }
+        project.tasks.npmInstall.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
+
         project.tasks.yarn_install {Task task ->
             task.inputs.file project.file(NPM_PROJECT_FILE)
             if (project.file(NPM_PROJECT_LOCK_FILE).exists())
@@ -196,7 +204,8 @@ class NpmRun implements Plugin<Project>
                     task.group = GroupNames.NPM_RUN
                     task.description = "Removes ${project.file(NODE_MODULES_DIR)}"
                     task.configure({ DeleteSpec delete ->
-                        delete.delete(project.file(NODE_MODULES_DIR))
+                        if (project.file(NODE_MODULES_DIR).exists())
+                            delete.delete(project.file(NODE_MODULES_DIR))
                     })
                     if (useYarn(project))
                         task.mustRunAfter(project.tasks.yarnRunClean)
