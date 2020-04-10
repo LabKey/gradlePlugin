@@ -350,27 +350,34 @@ if [ $? != 0 ]; then print_error; fi # exit if the last command failed
 # Remove all existing LabKey JAR files from TOMCAT_HOME/lib directory, if found
 # Throws warning if the forced delete fails.
 #
-jars=( "javax.activation.jar" "labkeyBootstrap.jar" "mysql.jar" "jtds.jar" "mail.jar" "postgresql.jar"); 
+removeTomcatJar()
+{
+  jar=$1
+  file=$CATALINA_HOME/lib/$jar
+  if [ -f $file ]
+  then
+      echo "Deleting the $file file..."
+      rm -f $file;
+      retValue=$?
+      if [ $retValue -ne 0 ]; then
+          echo "FAILED"
+          deleteFailed=1
+      fi
+  fi
+}
 
 deleteFailed=0
-for jar in "${jars[@]}"
-do
-    file=$CATALINA_HOME/lib/$jar
-    if [ -f $file ]
-    then
-        echo "Deleting the $file file..."
-        rm -f $file;
-        retValue=$?
-        if [ $retValue -ne 0 ]; then
-            echo "FAILED"
-            deleteFailed=1
-        fi
-    fi
-done
+removeTomcatJar 'javax.activation.jar'
+removeTomcatJar 'labkeyBootstrap.jar'
+removeTomcatJar 'mysql.jar'
+removeTomcatJar 'jtds.jar'
+removeTomcatJar 'mail.jar'
+removeTomcatJar 'postgresql.jar'
 
 if [ $deleteFailed -eq 1 ]; then
     echo "Unable to delete one or more legacy jar files from $CATALINA_HOME/lib.  You will need to remove these manually in order for the server to start cleanly."
 fi
+
 #
 # Copy the LabKey jar files (libraries) to the TOMCAT_HOME directory
 #
