@@ -97,7 +97,6 @@ class BuildUtils
         return [
                 getApiProjectPath(gradle),
                 getBootstrapProjectPath(gradle),
-                getRemoteApiProjectPath(gradle), // TODO remove this after 1.10.0 plugin release and introduction of labkeyClientApiVersion
                 getInternalProjectPath(gradle),
                 getPlatformModuleProjectPath(gradle, "audit"),
                 getPlatformModuleProjectPath(gradle, "core"),
