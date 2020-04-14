@@ -9,6 +9,11 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
+### version TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 20.3)
+* Fix manual-upgrade.sh script since sh shell does not support arrays
+
 ### version 1.10.3
 *Released*: 30 March 2020
 (Earliest compatible LabKey version: 20.3)
