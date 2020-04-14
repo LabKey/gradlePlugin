@@ -16,6 +16,8 @@ but also make certain assumptions that you may not want to impose on your module
 * Check for existence of `node_modules` directory before attempting to remove it with `cleanNodeModules` to avoid crankiness on Windows
 * Restore input and output declarations for npmInstall as a possible fix for [Issue 40153](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=40153)
 * Remove remoteapi/java as a base module
+* Change default npmInstall command to `ci` instead of `install` with a property `npmInstallCommand`
+that can be used to override this default (e.g., `PnpmInstallCommand=install`)
 
 ### version 1.10.3
 *Released*: 30 March 2020

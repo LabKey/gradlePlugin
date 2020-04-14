@@ -93,6 +93,8 @@ class NpmRun implements Plugin<Project>
 
             // Set the work directory where node_modules should be located
             nodeModulesDir = project.file("${project.projectDir}")
+
+            npmInstallCommand = project.hasProperty('npmInstallCommand') ? project.npmInstallCommand : 'ci'
         }
     }
 
