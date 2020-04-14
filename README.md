@@ -19,6 +19,11 @@ but also make certain assumptions that you may not want to impose on your module
 * Change default npmInstall command to `ci` instead of `install` with a property `npmInstallCommand`
 that can be used to override this default (e.g., `PnpmInstallCommand=install`)
 
+### version 1.10.4
+*Released*: 14 April 2020
+(Earliest compatible LabKey version: 20.3)
+* Fix manual-upgrade.sh script since sh shell does not support arrays
+
 ### version 1.10.3
 *Released*: 30 March 2020
 (Earliest compatible LabKey version: 20.3)
