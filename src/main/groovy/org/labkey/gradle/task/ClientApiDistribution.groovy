@@ -65,7 +65,7 @@ class ClientApiDistribution extends DefaultTask
 
         createTeamCityArchives()
 
-        if(project.findProject(":remoteapi:labkey-api-jdbc") != null)
+        if (BuildUtils.getJdbcApiProjectPath(project.gradle) != null)
             createJdbcApi()
     }
 
@@ -103,7 +103,7 @@ class ClientApiDistribution extends DefaultTask
     private void createJdbcApi()
     {
         project.copy({CopySpec copy ->
-            copy.from project.project(":remoteapi:labkey-api-jdbc").tasks.fatJar
+            copy.from project.project(BuildUtils.getJdbcApiProjectPath(project.gradle)).tasks.fatJar
             copy.into javaJdbcDir
         })
     }
