@@ -19,6 +19,7 @@ but also make certain assumptions that you may not want to impose on your module
 * Change default npmInstall command to `ci` instead of `install` with a property `npmInstallCommand`
 that can be used to override this default (e.g., `PnpmInstallCommand=install`)
 * Add utility methods for getting path to sas and jdbc api projects
+* [Issue 40160](https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=40160) Fix war distribution to include missing jar files.
 
 ### version 1.10.4
 *Released*: 14 April 2020
