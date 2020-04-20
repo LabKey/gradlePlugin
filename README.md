@@ -9,8 +9,8 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
-## version TBD
-*Released*: TBD
+## version 1.11.0
+*Released*: 20 April 2020
 (Earliest compatible LabKey version: 20.4)
 * Removed RPackages plugin in favor of defining relevant tasks in RPackages' own `build.gradle` file
 * Check for existence of `node_modules` directory before attempting to remove it with `cleanNodeModules` to avoid crankiness on Windows
