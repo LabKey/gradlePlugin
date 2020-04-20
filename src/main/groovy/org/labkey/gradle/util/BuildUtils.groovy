@@ -97,7 +97,6 @@ class BuildUtils
         return [
                 getApiProjectPath(gradle),
                 getBootstrapProjectPath(gradle),
-                getRemoteApiProjectPath(gradle), // TODO remove this after 1.10.0 plugin release and introduction of labkeyClientApiVersion
                 getInternalProjectPath(gradle),
                 getPlatformModuleProjectPath(gradle, "audit"),
                 getPlatformModuleProjectPath(gradle, "core"),
@@ -300,8 +299,17 @@ class BuildUtils
 
     static String getRemoteApiProjectPath(Gradle gradle)
     {
-
         return getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:java")
+    }
+
+    static String getSasApiProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "sasApiProjectPath", ":remoteapi:sas")
+    }
+
+    static String getJdbcApiProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "jdbcApiProjectPath", ":remoteapi:labkey-api-jdbc");
     }
 
     static String getLabKeyClientApiVersion(Project project)

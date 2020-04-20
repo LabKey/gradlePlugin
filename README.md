@@ -9,8 +9,20 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
-### version TBD
-*Released*: TBD
+## version 1.11.0
+*Released*: 20 April 2020
+(Earliest compatible LabKey version: 20.4)
+* Removed RPackages plugin in favor of defining relevant tasks in RPackages' own `build.gradle` file
+* Check for existence of `node_modules` directory before attempting to remove it with `cleanNodeModules` to avoid crankiness on Windows
+* Restore input and output declarations for npmInstall as a possible fix for [Issue 40153](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=40153)
+* Remove remoteapi/java as a base module
+* Change default npmInstall command to `ci` instead of `install` with a property `npmInstallCommand`
+that can be used to override this default (e.g., `PnpmInstallCommand=install`)
+* Add utility methods for getting path to sas and jdbc api projects
+* [Issue 40160](https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=40160) Fix war distribution to include missing jar files.
+
+### version 1.10.4
+*Released*: 14 April 2020
 (Earliest compatible LabKey version: 20.3)
 * Fix manual-upgrade.sh script since sh shell does not support arrays
 
@@ -40,7 +52,7 @@ preferred over externally build modules by using two different copy tasks.  Two 
 some randomness in their ordering. 
 * Don't add npm tasks that rely on a package.json if there is no package.json file
 
-### version 1.10.0
+## version 1.10.0
 *Released*: 15 February 2020
 (Earliest compatible LabKey version: 20.3)
 
@@ -73,7 +85,7 @@ some randomness in their ordering.
 
 No functional changes; built with JDK 12 instead of 13
 
-### version 1.9.0
+## version 1.9.0
 *Released*: 12 January 2020
 (Earliest compatible LabKey version: 20.2)
 
@@ -99,7 +111,7 @@ No functional changes; built with JDK 12 instead of 13
 * Remove .java files generated from XSD files from jar file
 * Move to new node plugin that works with Gradle 6
 
-### version 1.8
+## version 1.8
 *Released*: 17 Oct 2019
 (Earliest compatible LabKey version: 19.3)
 
@@ -113,7 +125,7 @@ No functional changes; built with JDK 12 instead of 13
 * Remove support for pulling build dependencies from `CATALINA_HOME`
 * Add property to allow TeamCity to run Tomcat under a different JDK `teamcity["tomcatJavaHome"]`
 
-### version 1.7.0
+## version 1.7.0
 *Released*: 27 Aug 2019
 (Earliest compatible LabKey version: 19.1)
 
@@ -138,7 +150,7 @@ No functional changes; built with JDK 12 instead of 13
 * [Issue 37754](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=37754) - fix line endings for `manual-upgrade.sh`
 
 
-### version 1.6
+## version 1.6
 *Released*: 14 Jun 2019
 (Earliest compatible LabKey version: 19.1)
 
@@ -146,7 +158,7 @@ No functional changes; built with JDK 12 instead of 13
 * [Issue 36138](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=36138) - Remove compile-time dependency on local tomcat installation
   * Only require `tomcat.home`/`CATALINA_HOME` for tasks that use them
 
-### version 1.5
+## version 1.5
 *Released*: 23 May 2019
 (Earliest compatible LabKey version: 19.1)
 
@@ -187,7 +199,7 @@ support some reorganization of the modules into git repositories.
 * Convert to non-deprecated properties for artifact-producing tasks 
 * (incubating) Add task for listing pull request info on a set of git repositories
 
-### version 1.4
+## version 1.4
 *Released*: 17 Jan 2019
 (Earliest compatible LabKey version: 19.1)
 
@@ -267,7 +279,7 @@ linking to npm executables work when not building from source
 
 * Remove code that attempted (but failed) to create symbolic links to node and npm directories on Windows. 
 
-### version 1.3
+## version 1.3
 *Released*: 18 June 2018
 (Earliest compatible LabKey version: 18.2)
 
@@ -385,7 +397,7 @@ the entire node_modules tree (and stumble on broken symlinks); add package-lock.
 * Update logic for finding source directory for compressClientLibs to use lastIndexOf "web" or "webapp" directory
 * Exclude node_modules directory when checking for .lib.xml files for minor performance improvement
 
-### version 1.2
+## version 1.2
 *Released*: 28 Sept 2017
 (Earliest compatible LabKey version: 17.2)
 
@@ -414,7 +426,7 @@ directory when doing clean task for module
 * enable passing database properties through TeamCity configuration
 * add `showDiscrepancies` task to produce a report of all external jars that have multiple versions in the build
 
-### version 1.1
+## version 1.1
 
 *Released*: 3 August 2017
 (Earliest compatible LabKey version: 17.2)
@@ -425,7 +437,7 @@ directory when doing clean task for module
 * [Issue 30916](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=30916) - Prevent duplicate bootstrap 
 jar files due to including branch names in version numbers
 
-### version 1.0.1
+## version 1.0.1
 
 *Released*: 2 July 2017
 (Earliest compatible LabKey version: 17.2)

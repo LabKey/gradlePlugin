@@ -91,9 +91,6 @@ class ModuleExtension
 
     private setEnlistmentId()
     {
-        if (!LabKeyExtension.isDevMode(project))
-            return
-
         File enlistmentFile = new File(project.getRootProject().getProjectDir(), ENLISTMENT_PROPERTIES)
         Properties enlistmentProperties = new Properties()
         if (!enlistmentFile.exists())
