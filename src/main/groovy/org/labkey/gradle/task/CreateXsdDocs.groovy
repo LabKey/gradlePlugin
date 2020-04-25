@@ -46,7 +46,7 @@ class CreateXsdDocs extends DefaultTask
             exec.classpath project.configurations.xsdDoc
 
             exec.args = [
-                    "-template", "${getDocFlexRoot()}/templates/XSDDoc/FramedDoc.tpl",
+                    "-template", "${project.rootDir}/tools/docflex-xml-re-${project.docflexXmlReVersion}/templates/XSDDoc/FramedDoc.tpl",
                     "-p:docTitle", "LabKey XML Schema Reference",
                     "-format", "HTML", // output format
                     "-d", getOutputDirectory(), // output directory
@@ -60,12 +60,5 @@ class CreateXsdDocs extends DefaultTask
                 exec.args += file.path
             }
         }
-    }
-
-
-    //the location of the DocFlex/XML home directory
-    String getDocFlexRoot()
-    {
-        return "${project.rootDir}/tools/docflex-xml-re-${project.docflexXmlReVersion}"
     }
 }
