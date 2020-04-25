@@ -9,6 +9,12 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
+## version TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 20.4)
+* Eliminate duplication of jsp jars in war files
+* Gradle 7 deprecation updates
+
 ## version 1.11.0
 *Released*: 20 April 2020
 (Earliest compatible LabKey version: 20.4)
