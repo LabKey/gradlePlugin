@@ -26,11 +26,10 @@ import org.gradle.api.java.archives.Manifest
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.task.PomFile
+import org.labkey.gradle.task.PomFileHelper
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PropertiesUtils
@@ -106,7 +105,6 @@ class FileModule implements Plugin<Project>
 
     protected void applyPlugins(Project project)
     {
-        project.apply plugin: 'maven'
         project.apply plugin: 'maven-publish'
 
         if (AntBuild.isApplicable(project))
@@ -392,44 +390,73 @@ class FileModule implements Plugin<Project>
         if (!AntBuild.isApplicable(project))
         {
             project.afterEvaluate {
-                project.tasks.register("pomFile", PomFile)  {
-                    PomFile pFile ->
-                        pFile.description = "Create the pom file for this project's api jar"
-                        pFile.group = GroupNames.PUBLISHING
-                        pFile.pomProperties = LabKeyExtension.getApiPomProperties(project)
-                        pFile.isModulePom = false
-                }
-                project.tasks.register("modulePomFile", PomFile)  {
-                    PomFile pFile ->
-                        pFile.description = "Create the pom file for this project's .module file"
-                        pFile.group = GroupNames.PUBLISHING
-                        pFile.pomProperties = LabKeyExtension.getModulePomProperties(project)
-                        pFile.isModulePom = true
-                }
                 project.publishing {
                     publications {
                         if (project.hasProperty('module'))
                         {
+                            Properties pomProperties = LabKeyExtension.getModulePomProperties(project)
+                            PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, true)
                             modules(MavenPublication) { pub ->
-                                    // Use org.labkey.module for module dependency groupIds instead of "org.labkey"
-                                    pub.groupId = LabKeyExtension.MODULE_GROUP
-                                    pub.artifact(project.tasks.module)
+                                // Use org.labkey.module for module dependency groupIds instead of "org.labkey"
+                                pub.groupId = LabKeyExtension.MODULE_GROUP
+                                pub.artifact(project.tasks.module)
+                                pom {
+                                    name = project.name
+                                    description = pomProperties.getProperty("Description")
+                                    url = pomProperties.getProperty("OrganizationURL")
+//                                    developers PomFileHelper.getLabKeyTeamDevelopers()
+                                    licenses pomUtil.getLicense()
+                                    organization pomUtil.getOrganization()
+//                                    scm PomFileHelper.getLabKeyScm()
+                                    withXml {
+                                        pomUtil.getDependencyClosure(asNode(), true)
+                                    }
+                                }
                             }
                         }
 
                         if (project.hasProperty('apiJar'))
                         {
+                            Properties pomProperties = LabKeyExtension.getApiPomProperties(project)
+                            PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, false)
                             apiLib(MavenPublication) { pub ->
                                 pub.groupId = LabKeyExtension.API_GROUP
                                 pub.artifact(project.tasks.apiJar)
+                                pom {
+                                    name = project.name
+                                    description = pomProperties.getProperty("Description")
+                                    url = pomProperties.getProperty("OrganizationURL")
+//                                    developers PomFileHelper.getLabKeyTeamDevelopers()
+                                    licenses pomUtil.getLicense()
+                                    organization pomUtil.getOrganization()
+//                                    scm PomFileHelper.getLabKeyScm()
+                                    withXml {
+                                        pomUtil.getDependencyClosure(asNode(), false)
+                                    }
+                                }
                             }
                         }
                         else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
                                 || project.path.equals(BuildUtils.getInternalProjectPath(project.gradle)))
                         {
+                            Properties pomProperties = LabKeyExtension.getApiPomProperties(project)
+                            PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, false)
+
                             apiLib(MavenPublication) { pub ->
                                 pub.groupId = LabKeyExtension.API_GROUP
                                 pub.artifact(project.tasks.jar)
+                                pom {
+                                    name = project.name
+                                    description = pomProperties.getProperty("Description")
+                                    url = PomFileHelper.LABKEY_ORG_URL
+                                    developers PomFileHelper.getLabKeyTeamDevelopers()
+                                    licenses pomUtil.getLicense()
+                                    organization pomUtil.getOrganization()
+//                                    scm PomFileHelper.getLabKeyScm()
+                                    withXml {
+                                        pomUtil.getDependencyClosure(asNode(), false)
+                                    }
+                                }
                             }
                         }
                     }
@@ -439,7 +466,6 @@ class FileModule implements Plugin<Project>
                         project.artifactoryPublish {
                             if (project.hasProperty('module'))
                             {
-                                dependsOn project.tasks.modulePomFile
                                 dependsOn project.tasks.module
                             }
 
@@ -452,8 +478,6 @@ class FileModule implements Plugin<Project>
                             {
                                 dependsOn project.tasks.jar
                             }
-
-                            dependsOn project.tasks.pomFile
                             publications('modules', 'apiLib')
                         }
                     }
@@ -462,7 +486,7 @@ class FileModule implements Plugin<Project>
         }
     }
 
-    private void addDependencies(Project project)
+    private static void addDependencies(Project project)
     {
         Project serverProject = project.findProject(":server")
         if (serverProject != null)

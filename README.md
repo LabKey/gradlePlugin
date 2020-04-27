@@ -14,6 +14,7 @@ but also make certain assumptions that you may not want to impose on your module
 (Earliest compatible LabKey version: 20.4)
 * Eliminate duplication of jsp jars in war files
 * Gradle 7 deprecation updates
+* Remove use of deprecated maven plugin (in favor of maven-publish)
 
 ## version 1.11.0
 *Released*: 20 April 2020
