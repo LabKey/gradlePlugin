@@ -15,6 +15,7 @@ but also make certain assumptions that you may not want to impose on your module
 * Eliminate duplication of jsp jars in war files
 * Gradle 7 deprecation updates
 * Remove use of deprecated maven plugin (in favor of maven-publish)
+* Disable loading module resources from source on TeamCity
 
 ## version 1.11.0
 *Released*: 20 April 2020

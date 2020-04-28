@@ -68,8 +68,10 @@ class StartTomcat extends DefaultTask
             optsList.add("-Ddevmode=${LabKeyExtension.isDevMode(project)}")
             optsList.add(project.tomcat.catalinaOpts)
             optsList.add("-Xmx${TeamCityExtension.getTeamCityProperty(project, "Xmx", project.tomcat.maxMemory)}")
-            if (!project.tomcat.recompileJsp)
+            if (project.tomcat.disableRecompileJsp)
                 optsList.add("-Dlabkey.disableRecompileJsp=true")
+            if (project.tomcat.disableResourcesFromSource)
+                optsList.add("-Dlabkey.disableResourcesFromSource=true")
             optsList.add(project.tomcat.trustStore)
             optsList.add(project.tomcat.trustStorePassword)
 
