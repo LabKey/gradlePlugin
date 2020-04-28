@@ -30,7 +30,7 @@ class TomcatExtension
     String assertionFlag = "-ea" // set to -da to disable assertions and -ea to enable assertions
     String maxMemory = "1G"
     boolean disableRecompileJsp = false
-    boolean disableResourcesFromSource = false
+    boolean ignoreModuleSource = false
     String trustStore = ""
     String trustStorePassword = ""
     String catalinaOpts = ""
