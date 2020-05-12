@@ -17,6 +17,7 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.XsdDocExtension
 import org.labkey.gradle.task.CreateXsdDocs
 import org.labkey.gradle.util.GroupNames
@@ -42,11 +43,23 @@ class XsdDoc implements Plugin<Project>
 
     private static void addTasks(Project project)
     {
-       project.tasks.register("xsddoc", CreateXsdDocs) {
+       project.tasks.register("xsdDoc", CreateXsdDocs) {
            CreateXsdDocs task ->
                task.group = GroupNames.DOCUMENTATION
                task.description = 'Generating documentation for classes generated from XSD files'
        }
+
+        project.tasks.register("xsdDocZip", Zip) {
+            Zip task ->
+                task.group = GroupNames.DOCUMENTATION
+                task.description = "Package the xsd documentation into a single zip file"
+                task.archiveBaseName.set("xml-schemas")
+                task.archiveVersion.set(project.getVersion().toString())
+                task.archiveExtension.set("zip")
+                task.from project.tasks.xsdDoc
+                task.destinationDirectory = new File("${project.rootProject.buildDir}/client-api/xml-schemas")
+                task.dependsOn(project.tasks.xsdDoc)
+        }
     }
 }
 
