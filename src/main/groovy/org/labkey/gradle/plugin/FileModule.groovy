@@ -391,21 +391,21 @@ class FileModule implements Plugin<Project>
     {
         if (!AntBuild.isApplicable(project))
         {
-            project.tasks.register("pomFile", PomFile)  {
-                PomFile pFile ->
-                    pFile.description = "Create the pom file for this project's api jar"
-                    pFile.group = GroupNames.PUBLISHING
-                    pFile.pomProperties = LabKeyExtension.getApiPomProperties(project)
-                    pFile.isModulePom = false
-            }
-            project.tasks.register("modulePomFile", PomFile)  {
-                PomFile pFile ->
-                    pFile.description = "Create the pom file for this project's .module file"
-                    pFile.group = GroupNames.PUBLISHING
-                    pFile.pomProperties = LabKeyExtension.getModulePomProperties(project)
-                    pFile.isModulePom = true
-            }
             project.afterEvaluate {
+                project.tasks.register("pomFile", PomFile)  {
+                    PomFile pFile ->
+                        pFile.description = "Create the pom file for this project's api jar"
+                        pFile.group = GroupNames.PUBLISHING
+                        pFile.pomProperties = LabKeyExtension.getApiPomProperties(project)
+                        pFile.isModulePom = false
+                }
+                project.tasks.register("modulePomFile", PomFile)  {
+                    PomFile pFile ->
+                        pFile.description = "Create the pom file for this project's .module file"
+                        pFile.group = GroupNames.PUBLISHING
+                        pFile.pomProperties = LabKeyExtension.getModulePomProperties(project)
+                        pFile.isModulePom = true
+                }
                 project.publishing {
                     publications {
                         if (project.hasProperty('module'))
