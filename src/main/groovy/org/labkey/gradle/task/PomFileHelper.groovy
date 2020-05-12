@@ -86,9 +86,9 @@ class PomFileHelper
 
     static Closure getLabKeyGitScm() {
         return {
-            connection = 'https://github.com/LabKey/'
-            developerConnection = 'https://github.com/LabKey/'
-            url = 'https://github.com/LabKey/'
+            connection = 'scm:git:https://github.com/LabKey/'
+            developerConnection = 'scm:git:https://github.com/LabKey/'
+            url = 'scm:git:https://github.com/LabKey/'
         }
     }
 
