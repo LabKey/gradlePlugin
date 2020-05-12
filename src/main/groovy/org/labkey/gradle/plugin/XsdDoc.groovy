@@ -15,8 +15,10 @@
  */
 package org.labkey.gradle.plugin
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.XsdDocExtension
 import org.labkey.gradle.task.CreateXsdDocs
@@ -26,6 +28,16 @@ import org.labkey.gradle.util.GroupNames
  */
 class XsdDoc implements Plugin<Project>
 {
+    static File getClientDocsBuildDir(Project project)
+    {
+        return new File("${project.rootProject.buildDir}/client-api")
+    }
+
+    static File getXsdDocDirectory(Project project)
+    {
+        return new File(getClientDocsBuildDir(project), "xml-schemas")
+    }
+
     @Override
     void apply(Project project)
     {
@@ -57,8 +69,18 @@ class XsdDoc implements Plugin<Project>
                 task.archiveVersion.set(project.getVersion().toString())
                 task.archiveExtension.set("zip")
                 task.from project.tasks.xsdDoc
-                task.destinationDirectory = new File("${project.rootProject.buildDir}/client-api/xml-schemas")
+                task.destinationDirectory = getXsdDocDirectory(project)
                 task.dependsOn(project.tasks.xsdDoc)
+        }
+
+        project.tasks.register("cleanXsdDoc", DefaultTask) {
+            Task task ->
+                task.group = GroupNames.DOCUMENTATION
+                task.description = "Remove files created by xsdDoc and xsdDocZip tasks"
+                task.doFirst({
+                    project.delete(project.tasks.xsdDocZip.outputs)
+                    project.delete(project.tasks.xsdDoc.outputs)
+                })
         }
     }
 }

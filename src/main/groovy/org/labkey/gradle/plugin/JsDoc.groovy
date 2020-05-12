@@ -15,11 +15,13 @@
  */
 package org.labkey.gradle.plugin
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.JsDocExtension
 import org.labkey.gradle.task.CreateJsDocs
 import org.labkey.gradle.util.GroupNames
@@ -36,8 +38,13 @@ class JsDoc implements Plugin<Project>
     {
         project.extensions.create("jsDoc", JsDocExtension)
         project.jsDoc.root = "${project.rootDir}/tools/jsdoc-toolkit/"
-        project.jsDoc.outputDir = new File("${project.rootProject.buildDir}/client-api/javascript/docs")
+        project.jsDoc.outputDir =new File(getJsDocDirectory(project), "docs")
         addTasks(project)
+    }
+
+    static File getJsDocDirectory(Project project)
+    {
+        return new File(XsdDoc.getClientDocsBuildDir(project),"javascript")
     }
 
     private static void addTasks(Project project)
@@ -69,6 +76,27 @@ class JsDoc implements Plugin<Project>
                  task.description = 'Generating Client API docs'
                  task.dependsOn(project.tasks.jsdocTemplate)
          }
+
+        project.tasks.register("jsDocZip", Zip) {
+            Zip task ->
+                task.group = GroupNames.DOCUMENTATION
+                task.description = "Package the javascript Client API documentation into a single zip file"
+                task.archiveBaseName.set("javascript")
+                task.archiveVersion.set(project.getVersion().toString())
+                task.archiveExtension.set("zip")
+                task.from project.tasks.jsdoc
+                task.destinationDirectory = getJsDocDirectory(project)
+        }
+
+        project.tasks.register('cleanJsDoc', DefaultTask) {
+            Task task ->
+                task.group = GroupNames.DOCUMENTATION
+                task.description = "Remove files created by jsdoc and jsDocZip tasks"
+                task.doFirst( {
+                    project.delete(project.tasks.jsDocZip.outputs)
+                    project.delete(project.tasks.jsdoc.outputs)
+                })
+        }
     }
 }
 
