@@ -44,6 +44,7 @@ class JavaModule extends FileModule
     @Override
     protected void applyPlugins(Project project)
     {
+        project.apply plugin: 'maven' // TODO this is deprecated
         project.apply plugin: 'maven-publish'
 
         if (AntBuild.isApplicable(project))
