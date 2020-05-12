@@ -640,10 +640,10 @@ class BuildUtils
     static String getLabKeyArtifactName(Project project, String projectPath, String version, String extension)
     {
         String moduleName
-        String group = extension.equals("module") ? LabKeyExtension.MODULE_GROUP : LabKeyExtension.API_GROUP
+        String group =  project.group + (extension.equals("module") ? LabKeyExtension.MODULE_GROUP_SUFFIX : LabKeyExtension.API_GROUP_SUFFIX)
         if (projectPath.endsWith(getRemoteApiProjectPath(project.gradle).substring(1)))
         {
-            group = project.hasProperty("labkeyClientApiVersion") ? LabKeyExtension.API_GROUP : LabKeyExtension.LABKEY_GROUP
+            group = LabKeyExtension.LABKEY_API_GROUP
             moduleName = "labkey-client-api"
         }
         else if (projectPath.equals(getBootstrapProjectPath(project.gradle)))
