@@ -163,12 +163,12 @@ class MultiGit implements Plugin<Project>
             clientLibrary('labkey-client-api', ":remoteapi"),
             gradlePlugin('gradle-plugin', ":buildSrc"),
             serverModule("labkey-module", ":server:modules"),
-            serverExternalModule("labkey-external", ":externalModules"),
+            serverExternalModule("labkey-external", ":externalModules"), // TODO remove after 20.6
             serverModuleContainer("labkey-module-container", ":server:modules"),
-            serverOptionalModule("labkey-optional-module", ":server:optionalModules"),
+            serverOptionalModule("labkey-optional-module", ":server:optionalModules"), // TODO remove after 20.6
             testContainer("labkey-test-container", ":server"),
             other(null, ""),
-            svnExternalModule(null, ":externalModules") // this should be removed eventually
+            svnExternalModule(null, ":externalModules") // TODO remove after 20.6
 
             private String topic
             private String enlistmentProject

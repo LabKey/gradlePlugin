@@ -39,10 +39,10 @@ class BuildUtils
     public static final String SERVER_MODULES_DIR = "server/modules"
     public static final String PLATFORM_MODULES_DIR = "server/modules/platform"
     public static final String COMMON_ASSAYS_MODULES_DIR = "server/modules/commonAssays"
-    public static final String CUSTOM_MODULES_DIR = "server/customModules"
+    public static final String CUSTOM_MODULES_DIR = "server/customModules" // TODO remove after 20.6
     public static final String CUSTOM_MODULES_GIT_DIR = "server/modules/customModules"
-    public static final String OPTIONAL_MODULES_DIR = "server/optionalModules"
-    public static final String EXTERNAL_MODULES_DIR = "externalModules"
+    public static final String OPTIONAL_MODULES_DIR = "server/optionalModules" // TODO remove after 20.6
+    public static final String EXTERNAL_MODULES_DIR = "externalModules" // TODO remove after 20.6
 
 
     public static final List<String> EHR_MODULE_NAMES = [
