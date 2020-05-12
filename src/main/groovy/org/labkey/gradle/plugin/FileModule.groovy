@@ -29,7 +29,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.task.PomFileHelper
+import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PropertiesUtils
@@ -398,7 +398,7 @@ class FileModule implements Plugin<Project>
                             PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, true)
                             modules(MavenPublication) { pub ->
                                 // Use org.labkey.module for module dependency groupIds instead of "org.labkey"
-                                pub.groupId = LabKeyExtension.MODULE_GROUP
+                                pub.groupId = pomProperties.get('groupId')
                                 pub.artifact(project.tasks.module)
                                 pom {
                                     name = project.name
@@ -420,7 +420,7 @@ class FileModule implements Plugin<Project>
                             Properties pomProperties = LabKeyExtension.getApiPomProperties(project)
                             PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, false)
                             apiLib(MavenPublication) { pub ->
-                                pub.groupId = LabKeyExtension.API_GROUP
+                                pub.groupId = pomProperties.get('groupId')
                                 pub.artifact(project.tasks.apiJar)
                                 pom {
                                     name = project.name
@@ -443,7 +443,7 @@ class FileModule implements Plugin<Project>
                             PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, false)
 
                             apiLib(MavenPublication) { pub ->
-                                pub.groupId = LabKeyExtension.API_GROUP
+                                pub.groupId = pomProperties.get('groupId')
                                 pub.artifact(project.tasks.jar)
                                 pom {
                                     name = project.name

@@ -14,8 +14,11 @@ but also make certain assumptions that you may not want to impose on your module
 (Earliest compatible LabKey version: 20.4)
 * Eliminate duplication of jsp jars in war files
 * Gradle 7 deprecation updates
-* Remove use of deprecated maven plugin (in favor of maven-publish)
 * Disable loading module resources from source on TeamCity
+* Restore use of module properties for generating pom files
+* Add PomFileHelper utility to prepare for removal of deprecated maven plugin (in favor of maven-publish)
+* Use project's group as a prefix to determine the group for api and module artifacts
+* Make xsdDocZip  and jsDocZip tasks for publishing the doc files
 
 ## version 1.11.0
 *Released*: 20 April 2020

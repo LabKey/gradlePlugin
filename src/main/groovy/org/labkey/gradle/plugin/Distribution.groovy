@@ -30,7 +30,7 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.ClientApiDistribution
 import org.labkey.gradle.task.ModuleDistribution
-import org.labkey.gradle.task.PomFileHelper
+import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.GroupNames
 
 class Distribution implements Plugin<Project>
@@ -140,7 +140,7 @@ class Distribution implements Plugin<Project>
         // to artifactory
         project.afterEvaluate {
             String artifactId = getArtifactId(project)
-            Properties pomProperties = LabKeyExtension.getApiPomProperties(artifactId, project.dist.description)
+            Properties pomProperties = LabKeyExtension.getApiPomProperties(artifactId, project.dist.description, project)
             project.publishing {
                 publications {
                     distributions(MavenPublication) { pub ->
@@ -169,7 +169,7 @@ class Distribution implements Plugin<Project>
                             description = pomProperties.getProperty("Description")
                             url = PomFileHelper.LABKEY_ORG_URL
                             developers PomFileHelper.getLabKeyTeamDevelopers()
-                            // TODO this should probalby not always be Apache license
+                            // TODO this should probably not always be Apache license
 //                            licenses pomUtil.getLicense()
                             organization PomFileHelper.getLabKeyOrganization()
 //                            scm PomFileHelper.getLabKeyScm()

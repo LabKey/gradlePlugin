@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.labkey.gradle.task
+package org.labkey.gradle.util
 
 
 import org.gradle.api.Project
@@ -104,7 +104,6 @@ class PomFileHelper
 
     void getDependencyClosure(Node node, boolean isModulePom)
     {
-        // perhaps do this first for module pom and last otherwise?
         if (isModulePom)
             modifyModuleDependencies(node) // we are assured to have a dependencies node as a result of this
         else if (node.dependencies.isEmpty())
@@ -177,10 +176,10 @@ class PomFileHelper
                         // labkey-client-api group was org.labkey until it was released with its own version number,
                         // at which point it was put in the org.labkey.api group
                         if (project.hasProperty("labkeyClientApiVersion")) {
-                            it.get('groupId').first().setValue(LabKeyExtension.API_GROUP)
+                            it.get('groupId').first().setValue(LabKeyExtension.LABKEY_API_GROUP)
                         }
                     } else if (!artifactId.equals("bootstrap")) // everything else except bootstrap is in org.labkey.api
-                        it.get('groupId').first().setValue(LabKeyExtension.API_GROUP)
+                        it.get('groupId').first().setValue(LabKeyExtension.LABKEY_API_GROUP)
                 }
             }
             toRemove.each {
