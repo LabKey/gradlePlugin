@@ -1284,7 +1284,7 @@ class MultiGit implements Plugin<Project>
                     // do recursive enlistment for all the base repositories
                     baseSet.forEach({
                         Repository repository ->
-                            enlist(repositories, repository, enlisted,  (String) project.property('branch'))
+                            enlist(repositories, repository, enlisted,  project.hasProperty('branch') ? (String) project.property('branch') : null)
                     })
                 })
         }
