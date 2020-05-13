@@ -144,11 +144,11 @@ class PomFile extends DefaultTask
                             // at which point it was put in the org.labkey.api group
                             if (project.hasProperty("labkeyClientApiVersion"))
                             {
-                                it.get('groupId').first().setValue(LabKeyExtension.API_GROUP)
+                                it.get('groupId').first().setValue(LabKeyExtension.LABKEY_API_GROUP)
                             }
                         }
                         else if (!artifactId.equals("bootstrap")) // everything else except bootstrap is in org.labkey.api
-                            it.get('groupId').first().setValue(LabKeyExtension.API_GROUP)
+                            it.get('groupId').first().setValue(LabKeyExtension.LABKEY_API_GROUP)
                     }
                 }
                 toRemove.each {
