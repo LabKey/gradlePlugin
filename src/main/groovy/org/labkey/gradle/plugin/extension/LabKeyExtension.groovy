@@ -24,8 +24,9 @@ class LabKeyExtension
 {
     private static final String DEPLOY_MODE_PROPERTY = "deployMode"
     public static final String LABKEY_GROUP = "org.labkey"
-    public static final String MODULE_GROUP = "org.labkey.module"
-    public static final String API_GROUP = "org.labkey.api"
+    public static final String API_GROUP = LABKEY_GROUP + API_GROUP_SUFFIX
+    public static final String MODULE_GROUP_SUFFIX = ".module"
+    public static final String API_GROUP_SUFFIX = ".api"
     private static enum DeployMode {
 
         dev("Development"),
@@ -83,23 +84,26 @@ class LabKeyExtension
         externalLibDir = "${externalDir}/lib"
     }
 
-    private static Properties getBasePomProperties(String artifactPrefix, String description)
+    private static Properties getBasePomProperties(String artifactPrefix, String description, Project project)
     {
         Properties pomProperties = new Properties()
         pomProperties.put("ArtifactId", artifactPrefix)
         pomProperties.put("Organization", "LabKey")
         pomProperties.put("OrganizationURL", "http://www.labkey.org")
-        if (description != null)
-            pomProperties.put("Description", description)
         pomProperties.put("License", "The Apache Software License, Version 2.0")
         pomProperties.put("LicenseURL", "http://www.apache.org/licenses/LICENSE-2.0.txt")
+        ModuleExtension moduleExtension = new ModuleExtension(project)
+        pomProperties.putAll(moduleExtension.getModProperties())
+
+        if (description != null)
+            pomProperties.put("Description", description)
         return pomProperties
     }
 
-    static Properties getApiPomProperties(String artifactPrefix, String description)
+    static Properties getApiPomProperties(String artifactPrefix, String description, Project project)
     {
-        Properties pomProperties = getBasePomProperties(artifactPrefix, description)
-        pomProperties.put("groupId", API_GROUP)
+        Properties pomProperties = getBasePomProperties(artifactPrefix, description, project)
+        pomProperties.put("groupId", project.group + API_GROUP_SUFFIX)
         pomProperties.setProperty("artifactCategory", "apiLib")
         pomProperties.setProperty("scope", "compile")
         return pomProperties
@@ -107,18 +111,13 @@ class LabKeyExtension
 
     static Properties getApiPomProperties(Project project)
     {
-        return getApiPomProperties(project.name, project.description)
+        return getApiPomProperties(project.name, project.description, project)
     }
 
     static Properties getModulePomProperties(Project project)
     {
-        return getModulePomProperties(project.name, project.description)
-    }
-
-    static Properties getModulePomProperties(String artifactPrefix, String description)
-    {
-        Properties pomProperties = getBasePomProperties(artifactPrefix, description)
-        pomProperties.put("groupId", MODULE_GROUP)
+        Properties pomProperties = getBasePomProperties(project.name, project.description, project)
+        pomProperties.put("groupId", project.group + MODULE_GROUP_SUFFIX)
         pomProperties.setProperty("artifactCategory", "modules")
         pomProperties.setProperty("type", "module")
         pomProperties.setProperty("scope", "runtime")
