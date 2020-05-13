@@ -8,6 +8,11 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
+### version 1.10.5
+*Released*: TBD
+(Earliest compatible LabKey version: 20.3)
+
+* Fix Pom file generation to use license info from module.properties and project group as prefix for publish group of api and module artifacts
 
 ### version 1.10.4
 *Released*: 14 April 2020
