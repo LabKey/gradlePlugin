@@ -55,7 +55,7 @@ class XsdDoc implements Plugin<Project>
 
     private static void addTasks(Project project)
     {
-       project.tasks.register("xsdDoc", CreateXsdDocs) {
+       project.tasks.register("xsddoc", CreateXsdDocs) {
            CreateXsdDocs task ->
                task.group = GroupNames.DOCUMENTATION
                task.description = 'Generating documentation for classes generated from XSD files'
@@ -68,18 +68,18 @@ class XsdDoc implements Plugin<Project>
                 task.archiveBaseName.set("xml-schemas")
                 task.archiveVersion.set(project.getVersion().toString())
                 task.archiveExtension.set("zip")
-                task.from project.tasks.xsdDoc
+                task.from project.tasks.xsddoc
                 task.destinationDirectory = getXsdDocDirectory(project)
-                task.dependsOn(project.tasks.xsdDoc)
+                task.dependsOn(project.tasks.xsddoc)
         }
 
         project.tasks.register("cleanXsdDoc", DefaultTask) {
             Task task ->
                 task.group = GroupNames.DOCUMENTATION
-                task.description = "Remove files created by xsdDoc and xsdDocZip tasks"
+                task.description = "Remove files created by xsddoc and xsdDocZip tasks"
                 task.doFirst({
                     project.delete(project.tasks.xsdDocZip.outputs)
-                    project.delete(project.tasks.xsdDoc.outputs)
+                    project.delete(project.tasks.xsddoc.outputs)
                 })
         }
     }

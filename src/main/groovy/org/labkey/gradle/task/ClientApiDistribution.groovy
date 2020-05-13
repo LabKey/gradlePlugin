@@ -47,7 +47,7 @@ class ClientApiDistribution extends DefaultTask
         xmlDir = new File(project.dist.dir, "/client-api/XML")
 
         apiDocsBuildDir = project.project(":server").tasks.jsdoc.outputs.getFiles().asPath
-        xsdDocsBuildDir = project.project(":server").tasks.xsdDoc.outputs.getFiles().asPath
+        xsdDocsBuildDir = project.project(":server").tasks.xsddoc.outputs.getFiles().asPath
         project.tasks.clean.doLast({
             project.delete project.fileTree(project.dist.dir) { include '**/TeamCity*.zip' }
         })
