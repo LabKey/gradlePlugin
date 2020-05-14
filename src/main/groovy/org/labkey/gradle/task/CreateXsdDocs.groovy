@@ -19,6 +19,8 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.plugin.XsdDoc
+
 /**
  * Created by susanh on 4/17/17.
  */
@@ -33,7 +35,7 @@ class CreateXsdDocs extends DefaultTask
     @OutputDirectory
     File getOutputDirectory()
     {
-        return new File("${project.rootProject.buildDir}/client-api/xml-schemas/docs")
+        return new File(XsdDoc.getXsdDocDirectory(project), "docs")
     }
 
     @TaskAction
@@ -46,7 +48,7 @@ class CreateXsdDocs extends DefaultTask
             exec.classpath project.configurations.xsdDoc
 
             exec.args = [
-                    "-template", "${getDocFlexRoot()}/templates/XSDDoc/FramedDoc.tpl",
+                    "-template", "${project.rootDir}/tools/docflex-xml-re-${project.docflexXmlReVersion}/templates/XSDDoc/FramedDoc.tpl",
                     "-p:docTitle", "LabKey XML Schema Reference",
                     "-format", "HTML", // output format
                     "-d", getOutputDirectory(), // output directory
@@ -60,12 +62,5 @@ class CreateXsdDocs extends DefaultTask
                 exec.args += file.path
             }
         }
-    }
-
-
-    //the location of the DocFlex/XML home directory
-    String getDocFlexRoot()
-    {
-        return "${project.rootDir}/tools/docflex-xml-re-${project.docflexXmlReVersion}"
     }
 }

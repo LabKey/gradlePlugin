@@ -30,8 +30,7 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.ClientApiDistribution
 import org.labkey.gradle.task.ModuleDistribution
-import org.labkey.gradle.task.PomFile
-import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.GroupNames
 
 class Distribution implements Plugin<Project>
@@ -54,8 +53,9 @@ class Distribution implements Plugin<Project>
         addConfigurations(project)
         addTasks(project)
         addTaskDependencies(project)
-        if (BuildUtils.shouldPublishDistribution(project))
-            addArtifacts(project)
+        // commented out until we start publishing distribution artifacts, and then we'll examine the publications more closely
+//        if (BuildUtils.shouldPublishDistribution(project))
+//            addArtifacts(project)
     }
 
     private void addConfigurations(Project project)
@@ -134,18 +134,13 @@ class Distribution implements Plugin<Project>
 
     private void addArtifacts(Project project)
     {
-        project.apply plugin: 'maven'
         project.apply plugin: 'maven-publish'
 
+        // TODO this is really only an approximation of what's needed. We don't currently publish distribution artifacts
+        // to artifactory
         project.afterEvaluate {
             String artifactId = getArtifactId(project)
-            project.tasks.register("pomFile", PomFile)  {
-                PomFile pFile ->
-                    pFile.group = GroupNames.PUBLISHING
-                    pFile.description = "create the pom file for this project"
-                    pFile.artifactCategory = "distributions"
-                    pFile.pomProperties = LabKeyExtension.getApiPomProperties(artifactId, project.dist.description)
-            }
+            Properties pomProperties = LabKeyExtension.getApiPomProperties(artifactId, project.dist.description, project)
             project.publishing {
                 publications {
                     distributions(MavenPublication) { pub ->
@@ -169,6 +164,17 @@ class Distribution implements Plugin<Project>
                                 }
                             }
                         }
+                        pom {
+                            name = project.name
+                            description = pomProperties.getProperty("Description")
+                            url = PomFileHelper.LABKEY_ORG_URL
+                            developers PomFileHelper.getLabKeyTeamDevelopers()
+                            // TODO this should probably not always be Apache license
+//                            licenses pomUtil.getLicense()
+                            organization PomFileHelper.getLabKeyOrganization()
+//                            scm PomFileHelper.getLabKeyScm()
+                            // doesn't seem like these pom files will have any dependencies
+                        }
                     }
                 }
 
@@ -179,7 +185,6 @@ class Distribution implements Plugin<Project>
                             dependsOn it
                         }
                     }
-                    dependsOn project.tasks.pomFile
                     publications('distributions')
                 }
             }

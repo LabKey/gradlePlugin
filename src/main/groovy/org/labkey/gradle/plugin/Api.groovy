@@ -42,8 +42,6 @@ class Api implements Plugin<Project>
     void apply(Project project)
     {
         project.apply plugin: 'java-base'
-        project.apply plugin: 'maven' // TODO this is deprecated.  Are these even required here?
-        project.apply plugin: 'maven-publish'
         addConfigurations(project)
         addSourceSet(project)
         addDependencies(project)
@@ -56,7 +54,7 @@ class Api implements Plugin<Project>
         project.configurations {
             apiJarFile // used by other project to declare dependencies to this project api jar
         }
-        project.configurations.apiJarFile.setDescription("Configuration that depends on the task for generating the api jar file.  Projects that depend on this project's api jar file should use this configuration in their dependency declaration")
+        project.configurations.apiJarFile.setDescription("Configuration that depends on the task that generates the api jar file.  Projects that depend on this project's api jar file should use this configuration in their dependency declaration.")
     }
 
     private void addSourceSet(Project project)

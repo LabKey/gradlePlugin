@@ -39,10 +39,9 @@ class BuildUtils
     public static final String SERVER_MODULES_DIR = "server/modules"
     public static final String PLATFORM_MODULES_DIR = "server/modules/platform"
     public static final String COMMON_ASSAYS_MODULES_DIR = "server/modules/commonAssays"
-    public static final String CUSTOM_MODULES_DIR = "server/customModules"
-    public static final String CUSTOM_MODULES_GIT_DIR = "server/modules/customModules"
-    public static final String OPTIONAL_MODULES_DIR = "server/optionalModules"
-    public static final String EXTERNAL_MODULES_DIR = "externalModules"
+    public static final String CUSTOM_MODULES_DIR = "server/modules/customModules"
+    public static final String OPTIONAL_MODULES_DIR = "server/optionalModules" // TODO remove after 20.6
+    public static final String EXTERNAL_MODULES_DIR = "externalModules" // TODO remove after 20.6
 
 
     public static final List<String> EHR_MODULE_NAMES = [
@@ -61,8 +60,7 @@ class BuildUtils
             PLATFORM_MODULES_DIR,
             COMMON_ASSAYS_MODULES_DIR,
             CUSTOM_MODULES_DIR,
-            OPTIONAL_MODULES_DIR,
-            CUSTOM_MODULES_GIT_DIR
+            OPTIONAL_MODULES_DIR
     ]
 
     public static final List<String> EHR_EXTERNAL_MODULE_DIRS = [
@@ -640,10 +638,10 @@ class BuildUtils
     static String getLabKeyArtifactName(Project project, String projectPath, String version, String extension)
     {
         String moduleName
-        String group = extension.equals("module") ? LabKeyExtension.MODULE_GROUP : LabKeyExtension.API_GROUP
+        String group =  project.group + (extension.equals("module") ? LabKeyExtension.MODULE_GROUP_SUFFIX : LabKeyExtension.API_GROUP_SUFFIX)
         if (projectPath.endsWith(getRemoteApiProjectPath(project.gradle).substring(1)))
         {
-            group = project.hasProperty("labkeyClientApiVersion") ? LabKeyExtension.API_GROUP : LabKeyExtension.LABKEY_GROUP
+            group = LabKeyExtension.LABKEY_API_GROUP
             moduleName = "labkey-client-api"
         }
         else if (projectPath.equals(getBootstrapProjectPath(project.gradle)))

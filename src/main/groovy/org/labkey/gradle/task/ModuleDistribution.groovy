@@ -399,10 +399,6 @@ class ModuleDistribution extends DefaultTask
                     exclude(name: "web/**/*.gwt.rpc")
                     exclude(name: "**/*Context.xml")
                 }
-                zipfileset(dir: moduleDir,
-                        prefix: "WEB-INF/modules/" + moduleName) {
-                    include(name: "lib/*_jsp*.jar")
-                }
 
                 // WEB-INF (web.xml, labkey.tld)
                 zipfileset(dir: new File(moduleDir, "web/WEB-INF"),
