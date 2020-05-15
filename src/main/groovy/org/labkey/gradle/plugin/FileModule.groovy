@@ -423,17 +423,19 @@ class FileModule implements Plugin<Project>
                     publications {
                         if (project.hasProperty('module'))
                         {
+                            Properties pomProperties = LabKeyExtension.getModulePomProperties(project)
                             modules(MavenPublication) { pub ->
                                     // Use org.labkey.module for module dependency groupIds instead of "org.labkey"
-                                    pub.groupId = LabKeyExtension.MODULE_GROUP
+                                    pub.groupId = pomProperties.get('groupId')
                                     pub.artifact(project.tasks.module)
                             }
                         }
 
                         if (project.hasProperty('apiJar'))
                         {
+                            Properties pomProperties = LabKeyExtension.getApiPomProperties(project)
                             apiLib(MavenPublication) { pub ->
-                                pub.groupId = LabKeyExtension.API_GROUP
+                                pub.groupId = pomProperties.get('groupId')
                                 pub.artifact(project.tasks.apiJar)
                             }
                         }
