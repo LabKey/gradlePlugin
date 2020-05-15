@@ -9,7 +9,7 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 ### version 1.10.5
-*Released*: TBD
+*Released*: 15 May 2020
 (Earliest compatible LabKey version: 20.3)
 
 * Fix Pom file generation to use license info from module.properties and project group as prefix for publish group of api and module artifacts
