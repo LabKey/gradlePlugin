@@ -127,6 +127,19 @@ No functional changes; built with JDK 12 instead of 13
 * [Issue 38600](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=38600): Remove stageJars task and relatives
 * Add missing Input and Output annotations for tasks
 
+### version 1.8.4
+*Released*: 19 May 2020
+(Earliest compatible LabKey version: 19.3)
+
+* [Issue 40472](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=40472) Revert change in getLabKeyArtifactName for determining the group.
+ We will always use a LabKey group here.
+
+### version 1.8.3
+*Released*: 15 May 2020
+(Earliest compatible LabKey version: 19.3)
+
+* Fix Pom file generation to use license info from module.properties and project group as prefix for publish group of api and module artifacts
+
 ### version 1.8.2
 *Released*: 29 Oct 2019
 (Earliest compatible LabKey version: 19.3)
