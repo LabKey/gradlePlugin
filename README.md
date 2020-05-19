@@ -9,13 +9,13 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
-## version TBD
+### version TBD
 *Released*: TBD
 (Earliest compatible LabKey version: 20.4)
 * [Issue 40472](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=40472) Revert change in getLabKeyArtifactName for determining the group.  
 We will always use a LabKey group here.
 
-## version 1.12.0
+### version 1.12.0
 *Released*: 14 May 2020
 (Earliest compatible LabKey version: 20.4)
 * Eliminate duplication of jsp jars in war files
@@ -26,7 +26,7 @@ We will always use a LabKey group here.
 * Use project's group as a prefix to determine the group for api and module artifacts
 * Make xsdDocZip  and jsDocZip tasks for publishing the doc files
 
-## version 1.11.0
+### version 1.11.0
 *Released*: 20 April 2020
 (Earliest compatible LabKey version: 20.4)
 * Removed RPackages plugin in favor of defining relevant tasks in RPackages' own `build.gradle` file
@@ -37,6 +37,19 @@ We will always use a LabKey group here.
 that can be used to override this default (e.g., `PnpmInstallCommand=install`)
 * Add utility methods for getting path to sas and jdbc api projects
 * [Issue 40160](https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=40160) Fix war distribution to include missing jar files.
+
+### version 1.10.6
+*Released*: 19 May 2019
+(Earliest compatible LabKey version: 20.3)
+
+* [Issue 40472](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=40472) Revert change in getLabKeyArtifactName for determining the group.
+ We will always use a LabKey group here.
+
+### version 1.10.5
+*Released*: 15 May 2020
+(Earliest compatible LabKey version: 20.3)
+
+* Fix Pom file generation to use license info from module.properties and project group as prefix for publish group of api and module artifacts
 
 ### version 1.10.4
 *Released*: 14 April 2020
