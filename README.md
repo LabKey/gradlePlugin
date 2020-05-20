@@ -9,8 +9,8 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
-### version TBD
-*Released*: TBD
+### version 1.12.1
+*Released*: 20 May 2020
 (Earliest compatible LabKey version: 20.4)
 * [Issue 40472](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=40472) Revert change in getLabKeyArtifactName for determining the group.  
 We will always use a LabKey group here.
