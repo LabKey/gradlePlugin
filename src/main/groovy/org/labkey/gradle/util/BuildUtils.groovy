@@ -635,16 +635,16 @@ class BuildUtils
         }
     }
 
-    static String getLabKeyArtifactName(Project project, String projectPath, String version, String extension)
+    static String getLabKeyArtifactName(Project parentProject, String projectPath, String version, String extension)
     {
         String moduleName
-        String group =  project.group + (extension.equals("module") ? LabKeyExtension.MODULE_GROUP_SUFFIX : LabKeyExtension.API_GROUP_SUFFIX)
-        if (projectPath.endsWith(getRemoteApiProjectPath(project.gradle).substring(1)))
+        String group = extension.equals("module") ? LabKeyExtension.LABKEY_MODULE_GROUP : LabKeyExtension.LABKEY_API_GROUP
+        if (projectPath.endsWith(getRemoteApiProjectPath(parentProject.gradle).substring(1)))
         {
             group = LabKeyExtension.LABKEY_API_GROUP
             moduleName = "labkey-client-api"
         }
-        else if (projectPath.equals(getBootstrapProjectPath(project.gradle)))
+        else if (projectPath.equals(getBootstrapProjectPath(parentProject.gradle)))
         {
             group = LabKeyExtension.LABKEY_GROUP
             moduleName = ServerBootstrap.JAR_BASE_NAME
