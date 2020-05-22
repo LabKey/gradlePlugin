@@ -70,13 +70,9 @@ class Gwt implements Plugin<Project>
 
     private void addDependencies(Project project)
     {
-        String gxtGroup = (BuildUtils.compareVersions(project.gxtVersion, "2.2.5") > 0) ? "com.sencha.gxt" : "com.extjs"
-
         project.dependencies {
             gwtCompile "com.google.gwt:gwt-user:${project.gwtVersion}",
                     "com.google.gwt:gwt-dev:${project.gwtVersion}",
-                    "${gxtGroup}:gxt:${project.gxtVersion}",
-                    "com.allen-sauer.gwt.dnd:gwt-dnd:${project.gwtDndVersion}",
                     "javax.validation:validation-api:${project.validationApiVersion}"
         }
 

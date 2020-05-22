@@ -57,7 +57,7 @@ dependencies {
 }
 
 
-project.version = "1.12.1-SNAPSHOT"
+project.version = "1.12.1-gxtRemoval-SNAPSHOT"
 
 if (project.file("moduleTemplate").exists())
 {
