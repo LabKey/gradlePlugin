@@ -70,12 +70,27 @@ class Gwt implements Plugin<Project>
 
     private void addDependencies(Project project)
     {
-        project.dependencies {
-            gwtCompile "com.google.gwt:gwt-user:${project.gwtVersion}",
-                    "com.google.gwt:gwt-dev:${project.gwtVersion}",
-                    "javax.validation:validation-api:${project.validationApiVersion}"
-        }
+        // Be backwards-compatible for builds that still reference GXT and GWT-DND
+        if (project.hasProperty("gxtVersion") && project.hasProperty("gwtDndVersion"))
+        {
+            String gxtGroup = (BuildUtils.compareVersions(project.gxtVersion, "2.2.5") > 0) ? "com.sencha.gxt" : "com.extjs"
 
+            project.dependencies {
+                gwtCompile "com.google.gwt:gwt-user:${project.gwtVersion}",
+                        "com.google.gwt:gwt-dev:${project.gwtVersion}",
+                        "${gxtGroup}:gxt:${project.gxtVersion}",
+                        "com.allen-sauer.gwt.dnd:gwt-dnd:${project.gwtDndVersion}",
+                        "javax.validation:validation-api:${project.validationApiVersion}"
+            }
+        }
+        else
+        {
+            project.dependencies {
+                gwtCompile "com.google.gwt:gwt-user:${project.gwtVersion}",
+                        "com.google.gwt:gwt-dev:${project.gwtVersion}",
+                        "javax.validation:validation-api:${project.validationApiVersion}"
+            }
+        }
     }
 
     private void addSourceSet(Project project)
