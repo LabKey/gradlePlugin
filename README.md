@@ -9,6 +9,10 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 
+### version 1.12.2
+*Released*: 25 May 2020
+* Remove assumption that GXT and GWT-DND are part of the build
+
 ### version 1.12.1
 *Released*: 20 May 2020
 (Earliest compatible LabKey version: 20.4)
