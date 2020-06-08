@@ -15,6 +15,7 @@ on how to do that, including how to develop and test locally and the versioning 
 *Released*: TBD
 (Earliest compatible LabKey version: 20.7)
 * Remove ClientApiDistribution task no longer used in client-api distribution
+* Increase default Tomcat heap to 2GB
 
 ### version 1.12.2
 *Released*: 25 May 2020
