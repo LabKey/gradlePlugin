@@ -13,10 +13,12 @@ on how to do that, including how to develop and test locally and the versioning 
 ## Release Notes
 ### version TBD
 *Released*: TBD
+(Earliest compatible LabKey version: 20.7)
 * Remove ClientApiDistribution task no longer used in client-api distribution
 
 ### version 1.12.2
 *Released*: 25 May 2020
+(Earliest compatible LabKey version: 20.6)
 * Remove assumption that GXT and GWT-DND are part of the build
 
 ### version 1.12.1
