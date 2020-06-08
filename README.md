@@ -7,7 +7,13 @@ If building your own LabKey module, you may choose to use these plugins or not. 
 but also make certain assumptions that you may not want to impose on your module.  See the 
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
+If you are making changes to the plugins, please see the [internal docs](https://internal.labkey.com/Handbook/Dev/wiki-page.view?name=gradlePlugins) for more information
+on how to do that, including how to develop and test locally and the versioning information.
+
 ## Release Notes
+### version TBD
+*Released*: TBD
+* Remove ClientApiDistribution task no longer used in client-api distribution
 
 ### version 1.12.2
 *Released*: 25 May 2020
