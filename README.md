@@ -8,6 +8,11 @@ but also make certain assumptions that you may not want to impose on your module
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 ## Release Notes
+### version 1.10.7
+*Released*: TBD
+(Earliest compatible LabKey version: 20.3)
+* Do not add projects to dedupe configuration dependency if they have buildFromSource=false
+
 ### version 1.10.6
 *Released*: 19 May 2019
 (Earliest compatible LabKey version: 20.3)
