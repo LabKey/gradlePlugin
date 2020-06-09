@@ -17,6 +17,7 @@ on how to do that, including how to develop and test locally and the versioning 
 * Remove ClientApiDistribution task no longer used in client-api distribution
 * Increase default Tomcat heap to 2GB
 * Check if api project exists before depending on it
+* Remove deprecated apiCompile configuration from Api plugin
 
 ### version 1.12.2
 *Released*: 25 May 2020
