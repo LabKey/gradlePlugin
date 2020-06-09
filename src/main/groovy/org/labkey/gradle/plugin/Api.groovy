@@ -123,7 +123,6 @@ class Api implements Plugin<Project>
     {
         project.artifacts
                 {
-                    apiCompile project.tasks.apiJar // deprecated.  Remove this artifact declaration once build files have been updated to use apiJarFile instead
                     apiJarFile project.tasks.apiJar
                 }
     }
