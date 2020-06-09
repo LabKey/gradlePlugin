@@ -23,7 +23,7 @@ import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.util.BuildUtils
 
 /**
- * Created by susanh on 8/8/16.
+ * N.B.  This task requires that you have the platform/api project source as it needs access to directories in that project
  */
 class ServerSideJS extends DefaultTask
 {
