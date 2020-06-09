@@ -28,7 +28,6 @@ import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
-import org.labkey.gradle.task.ClientApiDistribution
 import org.labkey.gradle.task.ModuleDistribution
 import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.GroupNames
@@ -146,7 +145,7 @@ class Distribution implements Plugin<Project>
                     distributions(MavenPublication) { pub ->
                         pub.artifactId(artifactId)
                         project.tasks.each {
-                            if (it instanceof ModuleDistribution || it instanceof ClientApiDistribution)
+                            if (it instanceof ModuleDistribution)
                             {
                                 it.outputs.files.each {File file ->
                                     pub.artifact(file)
@@ -156,10 +155,6 @@ class Distribution implements Plugin<Project>
                                             extension "tar.gz"
                                         if (fileName.contains("-src."))
                                             classifier "src"
-                                        else if (fileName.contains(ClientApiDistribution.XML_SCHEMA_DOC))
-                                            classifier ClientApiDistribution.SCHEMA_DOC_CLASSIFIER
-                                        else if (fileName.contains(ClientApiDistribution.CLIENT_API_JSDOC))
-                                            classifier ClientApiDistribution.JSDOC_CLASSIFIER
                                     }
                                 }
                             }
@@ -180,7 +175,7 @@ class Distribution implements Plugin<Project>
 
                 project.artifactoryPublish {
                     project.tasks.each {
-                        if (it instanceof ModuleDistribution || it instanceof ClientApiDistribution)
+                        if (it instanceof ModuleDistribution)
                         {
                             dependsOn it
                         }
