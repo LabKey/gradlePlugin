@@ -9,12 +9,12 @@ but also make certain assumptions that you may not want to impose on your module
 
 ## Release Notes
 ### version 1.10.7
-*Released*: TBD
+*Released*: 11 June 2020
 (Earliest compatible LabKey version: 20.3)
 * Do not add projects to dedupe configuration dependency if they have buildFromSource=false
 
 ### version 1.10.6
-*Released*: 19 May 2019
+*Released*: 19 May 2020
 (Earliest compatible LabKey version: 20.3)
 
 * [Issue 40472](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=40472) Revert change in getLabKeyArtifactName for determining the group.  
