@@ -94,25 +94,35 @@ class DeployApp extends DefaultTask
     {
         deployBinDir.mkdirs()
 
-        ant.copy(
-                todir: project.serverDeploy.binDir,
-                preserveLastModified: true
-        )
-                {
-                    // Use cutdirsmapper to strip off the parent directory name to merge each subdirectory into a single parent
-                    ant.cutdirsmapper(dirs: 1)
-                    // first grab all the JAR files, which are the same for all platforms
-                    fileset(dir: "${externalDir}/windows")
-                            {
-                                include ( name: "**/*.jar")
-                            }
-                }
-        if (SystemUtils.IS_OS_MAC)
-            deployBinariesViaProjectCopy("osx")
-        else if (SystemUtils.IS_OS_LINUX)
-            deployBinariesViaProjectCopy("linux")
-        else if (SystemUtils.IS_OS_WINDOWS)
-            deployBinariesViaAntCopy("windows")
+        if (project.configurations.findByName("binaries") != null)
+        {
+            project.copy({
+                CopySpec copy ->
+                    copy.from(project.configurations.binaries.collect { project.zipTree(it) })
+                    copy.into deployBinDir
+            })
+        }
+        else if (project.file(externalDir).exists()) {
+            ant.copy(
+                    todir: project.serverDeploy.binDir,
+                    preserveLastModified: true
+            )
+                    {
+                        // Use cutdirsmapper to strip off the parent directory name to merge each subdirectory into a single parent
+                        ant.cutdirsmapper(dirs: 1)
+                        // first grab all the JAR files, which are the same for all platforms
+                        fileset(dir: "${externalDir}/windows")
+                                {
+                                    include ( name: "**/*.jar")
+                                }
+                    }
+            if (SystemUtils.IS_OS_MAC)
+                deployBinariesViaProjectCopy("osx")
+            else if (SystemUtils.IS_OS_LINUX)
+                deployBinariesViaProjectCopy("linux")
+            else if (SystemUtils.IS_OS_WINDOWS)
+                deployBinariesViaAntCopy("windows")
+        }
     }
 
     // Use this method to preserve file permissions, since ant.copy does not, but this does not preserve last modified times
