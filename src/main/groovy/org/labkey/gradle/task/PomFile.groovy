@@ -56,7 +56,7 @@ class PomFile extends DefaultTask
                 if (!asNode().dependencies.isEmpty())
                 {
                     def dependenciesNode = asNode().dependencies.first()
-                    DependencySet dependencySet = isModulePom ? project.configurations.modules.allDependencies : project.configurations.api.allDependencies
+                    DependencySet dependencySet = isModulePom ? project.configurations.modules.allDependencies : project.configurations.external.allDependencies
 
                     // FIXME it's possible to have external dependencies but no dependencies.
                     // add in the dependencies from the external configuration as well
