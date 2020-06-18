@@ -104,7 +104,7 @@ class DeployApp extends DefaultTask
             })
         }
         else if (project.file(externalDir).exists()) {
-            project.logger.query("Copying from ${externalDir} to ${project.serverDeploy.binDir}")
+            project.logger.quiet("Copying from ${externalDir} to ${project.serverDeploy.binDir}")
             ant.copy(
                     todir: project.serverDeploy.binDir,
                     preserveLastModified: true
