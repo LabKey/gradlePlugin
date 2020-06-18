@@ -96,6 +96,7 @@ class DeployApp extends DefaultTask
 
         if (project.configurations.findByName("binaries") != null)
         {
+            project.logger.quiet("Copying from binaries configuration to ${deployBinDir}")
             project.copy({
                 CopySpec copy ->
                     copy.from(project.configurations.binaries.collect { project.zipTree(it) })
@@ -103,6 +104,7 @@ class DeployApp extends DefaultTask
             })
         }
         else if (project.file(externalDir).exists()) {
+            project.logger.query("Copying from ${externalDir} to ${project.serverDeployBinDir}")
             ant.copy(
                     todir: project.serverDeploy.binDir,
                     preserveLastModified: true
