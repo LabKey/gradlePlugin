@@ -104,21 +104,11 @@ class DeployApp extends DefaultTask
             })
             project.logger.quiet("Contents of ${deployBinDir}\n" + deployBinDir.listFiles());
         }
-        else if (project.file(externalDir).exists()) {
+        // For TC builds, we deposit the artifacts of the Linux TPP Tools and Windows Proteomics Tools into
+        // the external directory, so we want to copy those over as well.
+        // TODO: package the output of these builds into the Artfactory artifact to simplify
+        if (project.file(externalDir).exists()) {
             project.logger.quiet("Copying from ${externalDir} to ${project.serverDeploy.binDir}")
-            ant.copy(
-                    todir: project.serverDeploy.binDir,
-                    preserveLastModified: true
-            )
-                    {
-                        // Use cutdirsmapper to strip off the parent directory name to merge each subdirectory into a single parent
-                        ant.cutdirsmapper(dirs: 1)
-                        // first grab all the JAR files, which are the same for all platforms
-                        fileset(dir: "${externalDir}/windows")
-                                {
-                                    include ( name: "**/*.jar")
-                                }
-                    }
             if (SystemUtils.IS_OS_MAC)
                 deployBinariesViaProjectCopy("osx")
             else if (SystemUtils.IS_OS_LINUX)
