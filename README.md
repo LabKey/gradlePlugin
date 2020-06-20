@@ -18,6 +18,8 @@ on how to do that, including how to develop and test locally and the versioning 
 * Increase default Tomcat heap to 2GB
 * Check if api project exists before depending on it
 * Remove deprecated apiCompile configuration from Api plugin
+* [Issue 40668](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=40668) Add property to use build-prod even if in dev mode]
+* Adjust deployApp and distribution tasks to pull utility and proteomics binaries from Artifactory
 
 ### version 1.12.2
 *Released*: 25 May 2020
