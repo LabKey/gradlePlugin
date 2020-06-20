@@ -46,8 +46,6 @@ class ModuleDistribution extends DefaultTask
     @Optional @Input
     String extraFileIdentifier = ""
     @Optional @Input
-    Boolean includeMassSpecBinaries = false
-    @Optional @Input
     String versionPrefix = null
     @Optional @Input
     String subDirName
@@ -136,7 +134,7 @@ class ModuleDistribution extends DefaultTask
         project.copy
         { CopySpec copy ->
             copy.from { project.configurations.distribution }
-            copy.duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+            copy.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
             copy.into modulesDir
         }
     }
@@ -217,11 +215,31 @@ class ModuleDistribution extends DefaultTask
         return "${getResolvedDistributionDir()}/${getArtifactName()}.war"
     }
 
+    private File getWindowsUtilDir()
+    {
+        return project.rootProject.file("external/windows/core")
+    }
+
+    private void copyWindowsCoreUtilities()
+    {
+        File utilsDir = getWindowsUtilDir()
+        if (project.configurations.findByName("utilities") != null && !utilsDir.exists())
+        {
+            project.copy({
+                CopySpec copy ->
+                    copy.from(project.configurations.utilities.collect { project.zipTree(it) })
+                    copy.into utilsDir
+            })
+        }
+    }
+
     private void tarArchives()
     {
         String archivePrefix = getResolvedArchivePrefix()
         if (makeDistribution)
         {
+            copyWindowsCoreUtilities()
+            def utilsDir = getWindowsUtilDir()
             StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
 
             ant.tar(tarfile: getTarArchivePath(),
@@ -242,22 +260,9 @@ class ModuleDistribution extends DefaultTask
                     exclude(name: "bootstrap.jar")
                 }
 
-                tarfileset(dir: "${project.rootProject.projectDir}/external/windows/",
-                        prefix: "${archivePrefix}/bin") {
-                    exclude(name: "**/.svn")
-                    include(name: "core/**/*")
-                    if (includeMassSpecBinaries)
-                    {
-                        include(name: "tpp/**/*")
-                        include(name: "comet/**/*")
-                        include(name: "msinspect/**/*")
-                        include(name: "labkey/**/*")
-                        include(name: "pwiz/**/*")
-                    }
-                }
+                tarfileset(dir: utilsDir.path, prefix: "${archivePrefix}/bin")
 
-                tarfileset(dir: staging.pipelineLibDir,
-                        prefix: "${archivePrefix}/pipeline-lib")
+                tarfileset(dir: staging.pipelineLibDir, prefix: "${archivePrefix}/pipeline-lib")
 
                 tarfileset(dir: "${project.buildDir}/",
                         prefix: archivePrefix,
@@ -294,6 +299,8 @@ class ModuleDistribution extends DefaultTask
         String archivePrefix = this.getResolvedArchivePrefix()
         if (makeDistribution)
         {
+            copyWindowsCoreUtilities();
+            def utilsDir = getWindowsUtilDir()
             StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
 
             ant.zip(destfile: getZipArchivePath()) {
@@ -312,22 +319,9 @@ class ModuleDistribution extends DefaultTask
                     exclude(name: "bootstrap.jar")
                 }
 
-                zipfileset(dir: "${project.rootProject.projectDir}/external/windows/",
-                        prefix: "${archivePrefix}/bin") {
-                    exclude(name: "**/.svn")
-                    include(name: "core/**/*")
-                    if (includeMassSpecBinaries)
-                    {
-                        include(name: "tpp/**/*")
-                        include(name: "comet/**/*")
-                        include(name: "msinspect/**/*")
-                        include(name: "labkey/**/*")
-                        include(name: "pwiz/**/*")
-                    }
-                }
+                zipfileset(dir: utilsDir.path, prefix: "${archivePrefix}/bin")
 
-                zipfileset(dir: staging.pipelineLibDir,
-                        prefix: "${archivePrefix}/pipeline-lib")
+                zipfileset(dir: staging.pipelineLibDir, prefix: "${archivePrefix}/pipeline-lib")
 
                 zipfileset(dir: "${project.buildDir}/",
                         prefix: "${archivePrefix}",

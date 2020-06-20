@@ -49,6 +49,7 @@ class Distribution implements Plugin<Project>
 
         // we depend on tasks from the server project, so it needs to have been evaluated first
         project.evaluationDependsOn(":server")
+        addDependencies(project)
         addConfigurations(project)
         addTasks(project)
         addTaskDependencies(project)
@@ -63,6 +64,23 @@ class Distribution implements Plugin<Project>
                 {
                     distribution
                 }
+        project.configurations.distribution.setDescription("Artifacts of creating a LabKey distribution (aka installer)")
+        if (project.configurations.findByName("utilities") == null)
+        {
+            project.configurations
+                    {
+                        utilities
+                    }
+            project.configurations.utilities.setDescription("Utility binaries for use on Windows platform")
+        }
+    }
+
+    private void addDependencies(Project project)
+    {
+        // we package these Windows utilities with each distribution so any distribution can be used on any platform
+        project.dependencies {
+            utilities "org.labkey.tools.windows:utils:${project.windowsUtilsVersion}@zip"
+        }
     }
 
     private static void addTasks(Project project)
