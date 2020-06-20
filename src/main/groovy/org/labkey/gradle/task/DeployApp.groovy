@@ -100,8 +100,9 @@ class DeployApp extends DefaultTask
             project.copy({
                 CopySpec copy ->
                     copy.from(project.configurations.binaries.collect { project.zipTree(it) })
-                    copy.into deployBinDir
+                    copy.into deployBinDir.path
             })
+            project.logger.quiet("Contents of ${deployBinDir}\n" + deployBinDir.listFiles());
         }
         else if (project.file(externalDir).exists()) {
             project.logger.quiet("Copying from ${externalDir} to ${project.serverDeploy.binDir}")
