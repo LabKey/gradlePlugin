@@ -78,9 +78,10 @@ class Distribution implements Plugin<Project>
     private void addDependencies(Project project)
     {
         // we package these Windows utilities with each distribution so any distribution can be used on any platform
-        project.dependencies {
-            utilities "org.labkey.tools.windows:utils:${project.windowsUtilsVersion}@zip"
-        }
+        if (project.hasProperty('windowsUtilsVersion'))
+            project.dependencies {
+                utilities "org.labkey.tools.windows:utils:${project.windowsUtilsVersion}@zip"
+            }
     }
 
     private static void addTasks(Project project)
