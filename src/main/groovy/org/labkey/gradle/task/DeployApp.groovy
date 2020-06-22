@@ -96,19 +96,19 @@ class DeployApp extends DefaultTask
 
         if (project.configurations.findByName("binaries") != null)
         {
-            project.logger.quiet("Copying from binaries configuration to ${deployBinDir}")
+            project.logger.info("Copying from binaries configuration to ${deployBinDir}")
             project.copy({
                 CopySpec copy ->
                     copy.from(project.configurations.binaries.collect { project.zipTree(it) })
                     copy.into deployBinDir.path
             })
-            project.logger.quiet("Contents of ${deployBinDir}\n" + deployBinDir.listFiles());
+            project.logger.info("Contents of ${deployBinDir}\n" + deployBinDir.listFiles());
         }
         // For TC builds, we deposit the artifacts of the Linux TPP Tools and Windows Proteomics Tools into
         // the external directory, so we want to copy those over as well.
         // TODO: package the output of these builds into the Artfactory artifact to simplify
         if (project.file(externalDir).exists()) {
-            project.logger.quiet("Copying from ${externalDir} to ${project.serverDeploy.binDir}")
+            project.logger.info("Copying from ${externalDir} to ${project.serverDeploy.binDir}")
             if (SystemUtils.IS_OS_MAC)
                 deployBinariesViaProjectCopy("osx")
             else if (SystemUtils.IS_OS_LINUX)
