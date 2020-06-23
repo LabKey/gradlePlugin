@@ -29,7 +29,6 @@ import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.task.PomFile
 import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
@@ -106,7 +105,6 @@ class FileModule implements Plugin<Project>
 
     protected void applyPlugins(Project project)
     {
-        project.apply plugin: 'maven' // TODO this is deprecated and will go away soon
         project.apply plugin: 'maven-publish'
 
         if (AntBuild.isApplicable(project))
@@ -392,20 +390,6 @@ class FileModule implements Plugin<Project>
         if (!AntBuild.isApplicable(project))
         {
             project.afterEvaluate {
-                project.tasks.register("pomFile", PomFile)  {
-                    PomFile pFile ->
-                        pFile.description = "Create the pom file for this project's api jar"
-                        pFile.group = GroupNames.PUBLISHING
-                        pFile.pomProperties = LabKeyExtension.getApiPomProperties(project)
-                        pFile.isModulePom = false
-                }
-                project.tasks.register("modulePomFile", PomFile)  {
-                    PomFile pFile ->
-                        pFile.description = "Create the pom file for this project's .module file"
-                        pFile.group = GroupNames.PUBLISHING
-                        pFile.pomProperties = LabKeyExtension.getModulePomProperties(project)
-                        pFile.isModulePom = true
-                }
                 project.publishing {
                     publications {
                         if (project.hasProperty('module'))
@@ -415,20 +399,17 @@ class FileModule implements Plugin<Project>
                                 // Use org.labkey.module for module dependency groupIds instead of "org.labkey"
                                 pub.groupId = pomProperties.get('groupId')
                                 pub.artifact(project.tasks.module)
-                                if (project.hasProperty('useMavenPublish'))
-                                {
-                                    PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, true)
-                                    pom {
-                                        name = project.name
-                                        description = pomProperties.getProperty("Description")
-                                        url = pomProperties.getProperty("OrganizationURL")
-    //                                    developers PomFileHelper.getLabKeyTeamDevelopers()
-                                        licenses pomUtil.getLicense()
-                                        organization pomUtil.getOrganization()
-    //                                    scm PomFileHelper.getLabKeyScm()
-                                        withXml {
-                                            pomUtil.getDependencyClosure(asNode(), true)
-                                        }
+                                PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, true)
+                                pom {
+                                    name = project.name
+                                    description = pomProperties.getProperty("Description")
+                                    url = pomProperties.getProperty("OrganizationURL")
+//                                    developers PomFileHelper.getLabKeyTeamDevelopers()
+                                    licenses pomUtil.getLicense()
+                                    organization pomUtil.getOrganization()
+//                                    scm PomFileHelper.getLabKeyScm()
+                                    withXml {
+                                        pomUtil.getDependencyClosure(asNode(), true)
                                     }
                                 }
                             }
@@ -440,22 +421,21 @@ class FileModule implements Plugin<Project>
                             apiLib(MavenPublication) { pub ->
                                 pub.groupId = pomProperties.get('groupId')
                                 pub.artifact(project.tasks.apiJar)
-                                if (project.hasProperty('useMavenPublish'))
-                                {
-                                    PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, false)
-                                    pom {
-                                        name = project.name
-                                        description = pomProperties.getProperty("Description")
-                                        url = pomProperties.getProperty("OrganizationURL")
-    //                                    developers PomFileHelper.getLabKeyTeamDevelopers()
-                                        licenses pomUtil.getLicense()
-                                        organization pomUtil.getOrganization()
-    //                                    scm PomFileHelper.getLabKeyScm()
-                                        withXml {
-                                            pomUtil.getDependencyClosure(asNode(), false)
-                                        }
+
+                                PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, false)
+                                pom {
+                                    name = project.name
+                                    description = pomProperties.getProperty("Description")
+                                    url = pomProperties.getProperty("OrganizationURL")
+//                                    developers PomFileHelper.getLabKeyTeamDevelopers()
+                                    licenses pomUtil.getLicense()
+                                    organization pomUtil.getOrganization()
+//                                    scm PomFileHelper.getLabKeyScm()
+                                    withXml {
+                                        pomUtil.getDependencyClosure(asNode(), false)
                                     }
                                 }
+
                             }
                         }
                         else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
@@ -466,22 +446,21 @@ class FileModule implements Plugin<Project>
                             apiLib(MavenPublication) { pub ->
                                 pub.groupId = pomProperties.get('groupId')
                                 pub.artifact(project.tasks.jar)
-                                if (project.hasProperty('useMavenPublish'))
-                                {
-                                    PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, false)
-                                    pom {
-                                        name = project.name
-                                        description = pomProperties.getProperty("Description")
-                                        url = PomFileHelper.LABKEY_ORG_URL
-                                        developers PomFileHelper.getLabKeyTeamDevelopers()
-                                        licenses pomUtil.getLicense()
-                                        organization pomUtil.getOrganization()
+
+                                PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, false)
+                                pom {
+                                    name = project.name
+                                    description = pomProperties.getProperty("Description")
+                                    url = PomFileHelper.LABKEY_ORG_URL
+                                    developers PomFileHelper.getLabKeyTeamDevelopers()
+                                    licenses pomUtil.getLicense()
+                                    organization pomUtil.getOrganization()
 //                                    scm PomFileHelper.getLabKeyScm()
-                                        withXml {
-                                            pomUtil.getDependencyClosure(asNode(), false)
-                                        }
+                                    withXml {
+                                        pomUtil.getDependencyClosure(asNode(), false)
                                     }
                                 }
+
                             }
                         }
                     }
@@ -491,7 +470,6 @@ class FileModule implements Plugin<Project>
                         project.artifactoryPublish {
                             if (project.hasProperty('module'))
                             {
-                                dependsOn project.tasks.modulePomFile
                                 dependsOn project.tasks.module
                             }
 
@@ -504,7 +482,6 @@ class FileModule implements Plugin<Project>
                             {
                                 dependsOn project.tasks.jar
                             }
-                            dependsOn project.tasks.pomFile
                             publications('modules', 'apiLib')
                         }
                     }
