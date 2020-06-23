@@ -94,25 +94,28 @@ class DeployApp extends DefaultTask
     {
         deployBinDir.mkdirs()
 
-        ant.copy(
-                todir: project.serverDeploy.binDir,
-                preserveLastModified: true
-        )
-                {
-                    // Use cutdirsmapper to strip off the parent directory name to merge each subdirectory into a single parent
-                    ant.cutdirsmapper(dirs: 1)
-                    // first grab all the JAR files, which are the same for all platforms
-                    fileset(dir: "${externalDir}/windows")
-                            {
-                                include ( name: "**/*.jar")
-                            }
-                }
-        if (SystemUtils.IS_OS_MAC)
-            deployBinariesViaProjectCopy("osx")
-        else if (SystemUtils.IS_OS_LINUX)
-            deployBinariesViaProjectCopy("linux")
-        else if (SystemUtils.IS_OS_WINDOWS)
-            deployBinariesViaAntCopy("windows")
+        if (project.configurations.findByName("binaries") != null)
+        {
+            project.logger.info("Copying from binaries configuration to ${deployBinDir}")
+            project.copy({
+                CopySpec copy ->
+                    copy.from(project.configurations.binaries.collect { project.zipTree(it) })
+                    copy.into deployBinDir.path
+            })
+            project.logger.info("Contents of ${deployBinDir}\n" + deployBinDir.listFiles());
+        }
+        // For TC builds, we deposit the artifacts of the Linux TPP Tools and Windows Proteomics Tools into
+        // the external directory, so we want to copy those over as well.
+        // TODO: package the output of these builds into the Artfactory artifact to simplify
+        if (project.file(externalDir).exists()) {
+            project.logger.info("Copying from ${externalDir} to ${project.serverDeploy.binDir}")
+            if (SystemUtils.IS_OS_MAC)
+                deployBinariesViaProjectCopy("osx")
+            else if (SystemUtils.IS_OS_LINUX)
+                deployBinariesViaProjectCopy("linux")
+            else if (SystemUtils.IS_OS_WINDOWS)
+                deployBinariesViaAntCopy("windows")
+        }
     }
 
     // Use this method to preserve file permissions, since ant.copy does not, but this does not preserve last modified times

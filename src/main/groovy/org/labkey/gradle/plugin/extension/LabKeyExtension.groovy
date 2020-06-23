@@ -55,7 +55,6 @@ class LabKeyExtension
 
     String srcGenDir
     String externalDir
-    String externalLibDir
     String ext3Dir = "ext-3.4.1"
     String ext4Dir = "ext-4.2.1"
 
@@ -82,7 +81,6 @@ class LabKeyExtension
         srcGenDir = "${project.buildDir}/gensrc"
 
         externalDir = "${project.rootDir}/external"
-        externalLibDir = "${externalDir}/lib"
     }
 
     private static Properties getBasePomProperties(String artifactPrefix, String description, Project project)

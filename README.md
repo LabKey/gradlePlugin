@@ -11,11 +11,17 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+
 ### version TBD
 *Released*: TBD
 (Earliest compatible LabKey version: 20.7)
 * Remove ClientApiDistribution task no longer used in client-api distribution
 * Increase default Tomcat heap to 2GB
+* Check if api project exists before depending on it
+* Remove deprecated apiCompile configuration from Api plugin
+* [Issue 40668](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=40668) Add property to use build-prod even if in dev mode
+* Adjust deployApp and distribution tasks to pull utility and proteomics binaries from Artifactory
+* Remove `includeMassSpecBinaries` property from Distribution configuration (available for download From Artifactory)
 
 ### version 1.12.2
 *Released*: 25 May 2020
@@ -50,6 +56,12 @@ We will always use a LabKey group here.
 that can be used to override this default (e.g., `PnpmInstallCommand=install`)
 * Add utility methods for getting path to sas and jdbc api projects
 * [Issue 40160](https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=40160) Fix war distribution to include missing jar files.
+
+### version 1.10.7
+*Released*: 11 June 2020 
+(Earliest compatible LabKey version: 20.3)
+            
+* Do not add projects to dedupe configuration dependency if they have buildFromSource=false
 
 ### version 1.10.6
 *Released*: 19 May 2019

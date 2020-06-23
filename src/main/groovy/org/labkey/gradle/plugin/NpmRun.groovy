@@ -182,7 +182,7 @@ class NpmRun implements Plugin<Project>
         addTaskInputOutput(project.tasks.npmRunBuild)
         addTaskInputOutput(project.tasks.getByName("npm_run_${project.npmRun.buildDev}"))
 
-        def runCommand = LabKeyExtension.isDevMode(project) ? npmRunBuild : npmRunBuildProd
+        def runCommand = LabKeyExtension.isDevMode(project) && !project.hasProperty('useNpmProd') ? npmRunBuild : npmRunBuildProd
         TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
         TaskUtils.configureTaskIfPresent(project, "processModuleResources", { mustRunAfter(runCommand) })
     }

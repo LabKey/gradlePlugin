@@ -37,7 +37,8 @@ class SpringConfig implements Plugin<Project>
     {
         _dirName = "${DIR_PREFIX}/${project.name}"
         project.apply plugin: 'java-base'
-        project.evaluationDependsOn(BuildUtils.getApiProjectPath(project.gradle))
+        if (project.findProject(BuildUtils.getApiProjectPath(project.gradle)))
+            project.evaluationDependsOn(BuildUtils.getApiProjectPath(project.gradle))
         addSourceSet(project)
         addDependencies(project)
     }
@@ -61,7 +62,13 @@ class SpringConfig implements Plugin<Project>
         // Issue 30155: without this, the spring xml files will not find the classes in the api jar
         if (BuildUtils.isIntellij())
         {
-            project.dependencies.add("springImplementation", project.project(BuildUtils.getApiProjectPath(project.gradle)).tasks.jar.outputs.files)
+            BuildUtils.addLabKeyDependency(
+                    project: project,
+                    config: "springImplementation",
+                    depProjectPath: BuildUtils.getApiProjectPath(project.gradle),
+                    depProjectConfig: 'apiJarFile',
+                    transitive: false
+            )
             if (project.tasks.findByName("jar") != null)
                 project.dependencies.add("springImplementation", project.tasks.jar.outputs.files)
             if (project.tasks.findByName("apiJar") != null)
