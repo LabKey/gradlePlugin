@@ -18,7 +18,6 @@ package org.labkey.gradle.util
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencySet
-import org.labkey.gradle.plugin.ServerBootstrap
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 
 /**
@@ -170,7 +169,7 @@ class PomFileHelper
                     if (artifactId.equals("java"))
                         it.get('artifactId').first().setValue(['labkey-client-api'])
                     else if (artifactId.equals("bootstrap"))
-                        it.get('artifactId').first().setValue(ServerBootstrap.JAR_BASE_NAME)
+                        it.get('artifactId').first().setValue(BuildUtils.BOOTSTRAP_JAR_BASE_NAME)
 
                     if ((artifactId.equals("java") || artifactId.equals("labkey-client-api"))) {
                         // labkey-client-api group was org.labkey until it was released with its own version number,

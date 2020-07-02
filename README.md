@@ -17,6 +17,7 @@ on how to do that, including how to develop and test locally and the versioning 
 (Earliest compatible LabKey version: 20.7)
 * Remove use of deprecated `maven` plugin (in favor of `maven-publish`)
 * Fix problem with copying from external directory that gets populated by TeamCity even after removed from SVN
+* Remove no-longer-used ServerBootstrap plugin
 
 ### version 1.13.0
 *Released*: 24 June 2020

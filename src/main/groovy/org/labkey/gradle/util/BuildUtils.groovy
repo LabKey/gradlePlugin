@@ -19,7 +19,6 @@ import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-import org.labkey.gradle.plugin.ServerBootstrap
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
@@ -88,6 +87,7 @@ class BuildUtils
     public static final int ARTIFACT_VERSION_INDEX = 2
     public static final int ARTIFACT_CLASSIFIER_INDEX = 7
     public static final int ARTIFACT_EXTENSION_INDEX = 8
+    public static final String BOOTSTRAP_JAR_BASE_NAME = "labkeyBootstrap"
 
     // the set of modules required for minimal LabKey server functionality
     static List<String> getBaseModules(Gradle gradle)
@@ -647,7 +647,7 @@ class BuildUtils
         else if (projectPath.equals(getBootstrapProjectPath(parentProject.gradle)))
         {
             group = LabKeyExtension.LABKEY_GROUP
-            moduleName = ServerBootstrap.JAR_BASE_NAME
+            moduleName = BOOTSTRAP_JAR_BASE_NAME
         }
         else
         {

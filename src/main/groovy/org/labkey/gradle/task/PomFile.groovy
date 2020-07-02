@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.labkey.gradle.plugin.ServerBootstrap
 import org.labkey.gradle.plugin.extension.LabKeyExtension
+import org.labkey.gradle.util.BuildUtils
 
 /**
  * This task creates a pom file in a location that artifactory expects it when publishing.  It is meant to
@@ -137,7 +137,7 @@ class PomFile extends DefaultTask
                         if (artifactId.equals("java"))
                             it.get('artifactId').first().setValue(['labkey-client-api'])
                         else if (artifactId.equals("bootstrap"))
-                            it.get('artifactId').first().setValue(ServerBootstrap.JAR_BASE_NAME)
+                            it.get('artifactId').first().setValue(BuildUtils.BOOTSTRAP_JAR_BASE_NAME)
 
                         if ((artifactId.equals("java") || artifactId.equals("labkey-client-api"))) {
                             // labkey-client-api group was org.labkey until it was released with its own version number,
