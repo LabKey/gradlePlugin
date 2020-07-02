@@ -31,7 +31,7 @@ class DeployApp extends DefaultTask
     @InputDirectory
     File stagingWebappDir = new File((String) project.staging.webappDir)
 
-    private File externalDir = new File((String) project.labkey.externalDir)
+    private File _externalDir = new File((String) project.labkey.externalDir)
 
     @InputDirectory
     File stagingPipelineJarDir = new File((String) project.staging.pipelineLibDir)
@@ -108,8 +108,8 @@ class DeployApp extends DefaultTask
         // For TC builds, we deposit the artifacts of the Linux TPP Tools and Windows Proteomics Tools into
         // the external directory, so we want to copy those over as well.
         // TODO: package the output of these builds into the Artfactory artifact to simplify
-        if (project.file(externalDir).exists()) {
-            project.logger.info("Copying from ${externalDir} to ${project.serverDeploy.binDir}")
+        if (project.file(_externalDir).exists()) {
+            project.logger.info("Copying from ${_externalDir} to ${project.serverDeploy.binDir}")
             if (SystemUtils.IS_OS_MAC)
                 deployBinariesViaProjectCopy("osx")
             else if (SystemUtils.IS_OS_LINUX)
@@ -122,7 +122,7 @@ class DeployApp extends DefaultTask
     // Use this method to preserve file permissions, since ant.copy does not, but this does not preserve last modified times
     private void deployBinariesViaProjectCopy(String osDirectory)
     {
-        File parentDir = new File(externalDir, "${osDirectory}")
+        File parentDir = new File(_externalDir, "${osDirectory}")
         if (parentDir.exists())
         {
             List<File> subDirs = parentDir.listFiles new FileFilter() {
@@ -142,7 +142,7 @@ class DeployApp extends DefaultTask
 
     private void deployBinariesViaAntCopy(String osDirectory)
     {
-        def fromDir = "${externalDir}/${osDirectory}"
+        def fromDir = "${_externalDir}/${osDirectory}"
         if (project.file(fromDir).exists())
         {
             ant.copy(
@@ -151,7 +151,7 @@ class DeployApp extends DefaultTask
             )
                     {
                         ant.cutdirsmapper(dirs: 1)
-                        fileset(dir: "${externalDir}/${osDirectory}")
+                        fileset(dir: fromDir)
                                 {
                                     exclude(name: "**.*")
                                 }
@@ -162,7 +162,7 @@ class DeployApp extends DefaultTask
     private void deployNlpEngine()
     {
 
-        File nlpSource = new File(externalDir, "nlp")
+        File nlpSource = new File(_externalDir, "nlp")
         if (nlpSource.exists())
         {
             File nlpDir = new File(deployBinDir, "nlp")
