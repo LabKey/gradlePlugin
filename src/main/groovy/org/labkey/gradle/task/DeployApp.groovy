@@ -122,36 +122,40 @@ class DeployApp extends DefaultTask
     private void deployBinariesViaProjectCopy(String osDirectory)
     {
         File parentDir = new File(externalDir, "${osDirectory}")
-        List<File> subDirs = parentDir.listFiles new FileFilter() {
-            @Override
-            boolean accept(File pathname)
-            {
-                return pathname.isDirectory()
-            }
-        }
-        for (File dir : subDirs)
+        if (parentDir.exists())
         {
-            project.copy { CopySpec copy ->
-                copy.from dir
-                copy.into "${project.serverDeploy.binDir}"
+            List<File> subDirs = parentDir.listFiles new FileFilter() {
+                @Override
+                boolean accept(File pathname) {
+                    return pathname.isDirectory()
+                }
+            }
+            for (File dir : subDirs) {
+                project.copy { CopySpec copy ->
+                    copy.from dir
+                    copy.into "${project.serverDeploy.binDir}"
+                }
             }
         }
     }
 
     private void deployBinariesViaAntCopy(String osDirectory)
     {
-        ant.copy(
-                todir: project.serverDeploy.binDir,
-                preserveLastModified: true
-        )
-                {
-                    ant.cutdirsmapper(dirs: 1)
-                    fileset(dir: "${externalDir}/${osDirectory}")
-                            {
-                                exclude(name: "**.*")
-                            }
-                }
-
+        def fromDir = "${externalDir}/${osDirectory}"
+        if (project.file(fromDir).exists())
+        {
+            ant.copy(
+                    todir: project.serverDeploy.binDir,
+                    preserveLastModified: true
+            )
+                    {
+                        ant.cutdirsmapper(dirs: 1)
+                        fileset(dir: "${externalDir}/${osDirectory}")
+                                {
+                                    exclude(name: "**.*")
+                                }
+                    }
+        }
     }
 
     private void deployNlpEngine()

@@ -57,7 +57,7 @@ dependencies {
 }
 
 
-project.version = "1.13.0-fb-removeMavenPlugin-SNAPSHOT"
+project.version = "1.14.0-fb-removeMavenPlugin-SNAPSHOT"
 
 if (project.file("moduleTemplate").exists())
 {
