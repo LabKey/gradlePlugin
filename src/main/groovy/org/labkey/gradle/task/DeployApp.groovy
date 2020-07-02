@@ -18,6 +18,7 @@ package org.labkey.gradle.task
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -30,8 +31,7 @@ class DeployApp extends DefaultTask
     @InputDirectory
     File stagingWebappDir = new File((String) project.staging.webappDir)
 
-    @InputDirectory
-    File externalDir = new File((String) project.labkey.externalDir)
+    private File externalDir = new File((String) project.labkey.externalDir)
 
     @InputDirectory
     File stagingPipelineJarDir = new File((String) project.staging.pipelineLibDir)
@@ -99,6 +99,7 @@ class DeployApp extends DefaultTask
             project.logger.info("Copying from binaries configuration to ${deployBinDir}")
             project.copy({
                 CopySpec copy ->
+                    copy.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
                     copy.from(project.configurations.binaries.collect { project.zipTree(it) })
                     copy.into deployBinDir.path
             })
