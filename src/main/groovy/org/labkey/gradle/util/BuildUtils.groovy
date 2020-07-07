@@ -56,8 +56,7 @@ class BuildUtils
             SERVER_MODULES_DIR,
             PLATFORM_MODULES_DIR,
             COMMON_ASSAYS_MODULES_DIR,
-            CUSTOM_MODULES_DIR,
-            OPTIONAL_MODULES_DIR
+            CUSTOM_MODULES_DIR
     ]
 
     public static final List<String> EHR_EXTERNAL_MODULE_DIRS = [
