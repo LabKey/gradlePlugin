@@ -112,18 +112,17 @@ class PomFileHelper
 
         // add in the dependencies from the external configuration as well
         getDependencySet().each {
-            def depNode = dependenciesNode.appendNode("dependency")
-
-            depNode.appendNode("artifactId", it.name)
-            depNode.appendNode("version", it.version)
-            depNode.appendNode("scope", pomProperties.getProperty("scope"))
-            if (isModulePom){
-                depNode.appendNode("type", pomProperties.getProperty("type"))
-                depNode.appendNode("groupId", pomProperties.getProperty("groupId"))
-            }
-            else
-            {
-                depNode.appendNode("groupId", it.group)
+            if (it.name != "unspecified" && it.version != null) {
+                def depNode = dependenciesNode.appendNode("dependency")
+                depNode.appendNode("artifactId", it.name)
+                depNode.appendNode("version", it.version)
+                depNode.appendNode("scope", pomProperties.getProperty("scope"))
+                if (isModulePom) {
+                    depNode.appendNode("type", pomProperties.getProperty("type"))
+                    depNode.appendNode("groupId", pomProperties.getProperty("groupId"))
+                } else {
+                    depNode.appendNode("groupId", it.group)
+                }
             }
         }
         if (!isModulePom)
