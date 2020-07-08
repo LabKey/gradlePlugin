@@ -19,7 +19,6 @@ import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-import org.labkey.gradle.plugin.ServerBootstrap
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
@@ -40,8 +39,6 @@ class BuildUtils
     public static final String PLATFORM_MODULES_DIR = "server/modules/platform"
     public static final String COMMON_ASSAYS_MODULES_DIR = "server/modules/commonAssays"
     public static final String CUSTOM_MODULES_DIR = "server/modules/customModules"
-    public static final String OPTIONAL_MODULES_DIR = "server/optionalModules" // TODO remove after 20.6
-    public static final String EXTERNAL_MODULES_DIR = "externalModules" // TODO remove after 20.6
 
 
     public static final List<String> EHR_MODULE_NAMES = [
@@ -59,8 +56,7 @@ class BuildUtils
             SERVER_MODULES_DIR,
             PLATFORM_MODULES_DIR,
             COMMON_ASSAYS_MODULES_DIR,
-            CUSTOM_MODULES_DIR,
-            OPTIONAL_MODULES_DIR
+            CUSTOM_MODULES_DIR
     ]
 
     public static final List<String> EHR_EXTERNAL_MODULE_DIRS = [
@@ -88,6 +84,7 @@ class BuildUtils
     public static final int ARTIFACT_VERSION_INDEX = 2
     public static final int ARTIFACT_CLASSIFIER_INDEX = 7
     public static final int ARTIFACT_EXTENSION_INDEX = 8
+    public static final String BOOTSTRAP_JAR_BASE_NAME = "labkeyBootstrap"
 
     // the set of modules required for minimal LabKey server functionality
     static List<String> getBaseModules(Gradle gradle)
@@ -647,7 +644,7 @@ class BuildUtils
         else if (projectPath.equals(getBootstrapProjectPath(parentProject.gradle)))
         {
             group = LabKeyExtension.LABKEY_GROUP
-            moduleName = ServerBootstrap.JAR_BASE_NAME
+            moduleName = BOOTSTRAP_JAR_BASE_NAME
         }
         else
         {

@@ -147,13 +147,6 @@ class Gwt implements Plugin<Project>
 
                         def paths = []
 
-                        if (!project.gwt.allBrowserCompile)
-                        {
-                            String gwtBrowser = project.gwtBrowser
-                            if (StringUtils.isEmpty(gwtBrowser))
-                                gwtBrowser = "gwt-user-chrome"
-                            paths += ["${project.rootProject.rootDir}/external/lib/build/${gwtBrowser}"]
-                        }
                         paths += [
                                 project.sourceSets.gwt.compileClasspath,       // Dep
                                 project.sourceSets.gwt.java.srcDirs           // Java source

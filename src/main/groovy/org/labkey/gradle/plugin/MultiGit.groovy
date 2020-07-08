@@ -163,12 +163,9 @@ class MultiGit implements Plugin<Project>
             clientLibrary('labkey-client-api', ":remoteapi"),
             gradlePlugin('gradle-plugin', ":buildSrc"),
             serverModule("labkey-module", ":server:modules"),
-            serverExternalModule("labkey-external", ":externalModules"), // TODO remove after 20.6
             serverModuleContainer("labkey-module-container", ":server:modules"),
-            serverOptionalModule("labkey-optional-module", ":server:optionalModules"), // TODO remove after 20.6
             testContainer("labkey-test-container", ":server"),
             other(null, ""),
-            svnExternalModule(null, ":externalModules") // TODO remove after 20.6
 
             private String topic
             private String enlistmentProject
@@ -202,11 +199,6 @@ class MultiGit implements Plugin<Project>
         {
             this.name = name
             this.isSvn = isSvn
-            if (isSvn)
-            {
-                if (rootProject.file("externalModules/${name}").exists())
-                    this.setType(Type.svnExternalModule)
-            }
             setProject(rootProject)
         }
 
@@ -221,11 +213,7 @@ class MultiGit implements Plugin<Project>
             {
                 this.setIsExternal(true)
             }
-            if (topics.contains('labkey-optional-module'))
-            {
-                this.setType(Type.serverOptionalModule)
-            }
-            else if (topics.contains('labkey-module-container'))
+            if (topics.contains('labkey-module-container'))
             {
                 this.setType(Type.serverModuleContainer)
             }
@@ -451,10 +439,6 @@ class MultiGit implements Plugin<Project>
             }
         }
 
-        private String getCheckoutProject()
-        {
-            return isExternal ? ":externalModules" : getType().enlistmentProject;
-        }
 
         void setProject(Project rootProject)
         {
@@ -530,7 +514,7 @@ class MultiGit implements Plugin<Project>
 
         String getProjectPath()
         {
-            return getCheckoutProject() + ":" + getName()
+            return getType().enlistmentProject + ":" + getName()
         }
 
         Type getType()

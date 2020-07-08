@@ -45,23 +45,10 @@ class StartTomcat extends DefaultTask
                 executable: SystemUtils.IS_OS_WINDOWS ? "cmd" : "bin/catalina.sh"
         )
         {
-            if (TeamCityExtension.isOnTeamCity(project))
-            {
-                if (SystemUtils.IS_OS_WINDOWS)
-                {
-                    env(
-                        key: "PATH",
-                        path: "${project.rootDir}/external/windows/core${File.pathSeparator}${System.getenv("PATH")}"
-                    )
-                }
-            }
-            else
-            {
-                env(
-                        key: "PATH",
-                        path: "${project.project(":server").serverDeploy.binDir}${File.pathSeparator}${System.getenv("PATH")}"
-                )
-            }
+            env(
+                key: "PATH",
+                path: "${project.project(":server").serverDeploy.binDir}${File.pathSeparator}${System.getenv("PATH")}"
+            )
 
             List<String> optsList = new ArrayList<>()
             optsList.add(project.tomcat.assertionFlag)

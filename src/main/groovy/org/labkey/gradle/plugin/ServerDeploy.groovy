@@ -346,7 +346,7 @@ class ServerDeploy implements Plugin<Project>
     {
         project.tomcat.validateCatalinaHome()
 
-        Files.newDirectoryStream(Paths.get(project.tomcat.catalinaHome, "lib"), "${ServerBootstrap.JAR_BASE_NAME}*.jar").each { Path path ->
+        Files.newDirectoryStream(Paths.get(project.tomcat.catalinaHome, "lib"), "${BuildUtils.BOOTSTRAP_JAR_BASE_NAME}*.jar").each { Path path ->
             project.delete path.toString()
         }
 

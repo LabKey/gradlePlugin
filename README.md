@@ -12,6 +12,14 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### version TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 20.7)
+* Remove use of deprecated `maven` plugin (in favor of `maven-publish`)
+* Fix problem with copying from external directory that gets populated by TeamCity even after removed from SVN
+* Remove no-longer-used ServerBootstrap plugin
+* Update path in StartTomcat to not reference `external/windows/core`
+
 ### version 1.13.0
 *Released*: 24 June 2020
 (Earliest compatible LabKey version: 20.7)
@@ -22,6 +30,7 @@ on how to do that, including how to develop and test locally and the versioning 
 * [Issue 40668](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=40668) Add property to use build-prod even if in dev mode
 * Adjust deployApp and distribution tasks to pull utility and proteomics binaries from Artifactory
 * Remove `includeMassSpecBinaries` property from Distribution configuration (available for download From Artifactory)
+
 
 ### version 1.12.2
 *Released*: 25 May 2020
