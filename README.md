@@ -12,8 +12,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### version TBD
-*Released*: TBD
+### version 1.14.0
+*Released*: 8 July 2020
 (Earliest compatible LabKey version: 20.7)
 * Remove use of deprecated `maven` plugin (in favor of `maven-publish`)
 * Fix problem with copying from external directory that gets populated by TeamCity even after removed from SVN
