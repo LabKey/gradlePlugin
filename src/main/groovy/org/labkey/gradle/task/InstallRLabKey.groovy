@@ -19,6 +19,7 @@ import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.file.CopySpec
 /**
  * Created by susanh on 3/16/17.
+ * TODO: Remove when 20.7 is no longer supported
  */
 class InstallRLabKey extends InstallRPackage
 {
