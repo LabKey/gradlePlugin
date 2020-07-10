@@ -57,7 +57,7 @@ dependencies {
 }
 
 
-project.version = "1.15.0-SNAPSHOT"
+project.version = "1.15.0-log4j2-SNAPSHOT"
 
 if (project.file("moduleTemplate").exists())
 {

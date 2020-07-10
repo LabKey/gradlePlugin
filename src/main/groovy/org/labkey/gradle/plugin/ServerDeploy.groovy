@@ -221,11 +221,12 @@ class ServerDeploy implements Plugin<Project>
 
         project.tasks.deployApp.dependsOn(project.tasks.setup)
 
-
+        String log4jFile = project.hasProperty('log4j2Version') ? 'log4j2.xml' : 'log4j.xml'
         project.tasks.register('configureLog4j', ConfigureLog4J) {
             ConfigureLog4J task ->
+                task.fileName = log4jFile
                 task.group = GroupNames.DEPLOY
-                task.description = "Edit and copy log4j.xml file"
+                task.description = "Edit and copy ${log4jFile} file"
         }
         project.tasks.stageApp.dependsOn(project.tasks.configureLog4j)
 
