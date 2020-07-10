@@ -57,7 +57,7 @@ dependencies {
 }
 
 
-project.version = "1.15.0-SNAPSHOT"
+project.version = "1.14.1-rPackages-SNAPSHOT"
 
 if (project.file("moduleTemplate").exists())
 {

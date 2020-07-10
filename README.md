@@ -12,6 +12,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### version 1.14.1
+*Released*: TBD
+(Earliest compatible LabKey version: 20.7)
+* Add `CopyAndInstallRPackage` task for installing pre-downloaded R packages
+
 ### version 1.14.0
 *Released*: 8 July 2020
 (Earliest compatible LabKey version: 20.7)
