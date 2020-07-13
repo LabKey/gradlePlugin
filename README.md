@@ -12,6 +12,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### version TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 20.7)
+* Allow for use of `logj2.xml` file based on presence of the property `log4j2Version`.
+
 ### version 1.14.0
 *Released*: 8 July 2020
 (Earliest compatible LabKey version: 20.7)
