@@ -45,7 +45,6 @@ class InstallRPackage extends DefaultTask
             logger.error("Unable to locate R executable. Make sure R_HOME is defined and points at your R install directory")
         if (rLibsUserDir == null)
             logger.error("Unable to install R dependencies. Make sure R_LIBS_USER is defined and points at sampledata/rlabkey")
-
         onlyIf {
             if (rPath == null)
                 return false
