@@ -33,8 +33,6 @@ class InstallRPackage extends DefaultTask
     List<String> packageNames
     @Optional @Input
     String installScript
-    @Optional @Input
-    File scriptDir
 
     protected String rPath
     protected File rLibsUserDir
@@ -47,9 +45,6 @@ class InstallRPackage extends DefaultTask
             logger.error("Unable to locate R executable. Make sure R_HOME is defined and points at your R install directory")
         if (rLibsUserDir == null)
             logger.error("Unable to install R dependencies. Make sure R_LIBS_USER is defined and points at sampledata/rlabkey")
-        if (scriptDir == null) {
-            scriptDir = project.projectDir
-        }
 
         onlyIf {
             if (rPath == null)
@@ -84,8 +79,8 @@ class InstallRPackage extends DefaultTask
     {
         String exitCode = ""
         ant.exec(executable: rPath,
-                dir: scriptDir,
-                input: new File(scriptDir, "check-installed.R"),
+                dir: project.projectDir,
+                input:project.file("check-installed.R"),
                 failifexecutionfails: true,
                 searchpath: true,
                 resultproperty: exitCode )
@@ -154,10 +149,10 @@ class InstallRPackage extends DefaultTask
     {
         ant.exec(
                 executable: rPath,
-                dir: scriptDir,
+                dir: project.projectDir,
                 failifexecutionfails: false,
                 searchpath: true,
-                input: new File(scriptDir, scriptName),
+                input: "${project.projectDir}/${scriptName}",
                 output: "${getRLibsUserPath(project)}/logs/${scriptName}.log",
                 logError: true
         )
