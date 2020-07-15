@@ -16,6 +16,7 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -27,19 +28,29 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
  */
 class ConfigureLog4J extends DefaultTask
 {
-    private static final String FILE_NAME = "log4j.xml";
-
-    @InputFile
-    File log4jXML = new File((String) project.serverDeploy.rootWebappsDir, FILE_NAME)
+    @Input
+    String fileName
 
     private File stagingDir = new File((String) project.staging.webappClassesDir)
     private File deployDir = new File("${project.serverDeploy.webappDir}/WEB-INF/classes");
 
-    @OutputFile
-    File stagingFile = new File(stagingDir, FILE_NAME)
+    @InputFile
+    File getLog4jXml()
+    {
+        return new File((String) project.serverDeploy.rootWebappsDir, fileName)
+    }
 
     @OutputFile
-    File deployFile = new File(deployDir, FILE_NAME)
+    File getStagingFile()
+    {
+        return new File(stagingDir, fileName)
+    }
+
+    @OutputFile
+    File getDeployFile()
+    {
+        return new File(deployDir, fileName)
+    }
 
     @TaskAction
     void copyFile()
@@ -54,7 +65,7 @@ class ConfigureLog4J extends DefaultTask
                 overwrite: true,
         )
         {
-            fileset(file: log4jXML)
+            fileset(file: getLog4jXml())
             filterset(beginToken: "@@", endToken: "@@")
                     {
                         filter (token: "consoleAppender",
@@ -67,7 +78,7 @@ class ConfigureLog4J extends DefaultTask
                 overwrite: true,
         )
         {
-            fileset(file: stagingFile)
+            fileset(file: getStagingFile())
         }
     }
 }
