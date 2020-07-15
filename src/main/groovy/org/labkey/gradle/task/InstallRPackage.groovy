@@ -164,7 +164,14 @@ class InstallRPackage extends DefaultTask
     void installFromArchive(String archiveFileName)
     {
 
-        project.ant.exec(dir: getRLibsUserPath(project), executable: rPath, failifexecutionfails: "false", searchpath: true)
+        ant.exec(
+                executable: rPath,
+                dir: getRLibsUserPath(project),
+                failifexecutionfails: true,
+                searchpath: true,
+                output: "${getRLibsUserPath(project)}/logs/${archiveFileName}.log",
+                logError: true
+        )
                 {
                     arg(line: "CMD INSTALL -l ${rLibsUserDir} ${rLibsUserDir}/${archiveFileName}")
                 }

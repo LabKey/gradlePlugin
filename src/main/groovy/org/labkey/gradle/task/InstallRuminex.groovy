@@ -19,6 +19,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.TaskAction
 /**
  * Created by susanh on 3/16/17.
+ * TODO: Remove when 20.7 is no longer supported
  */
 class InstallRuminex extends InstallRPackage
 {
