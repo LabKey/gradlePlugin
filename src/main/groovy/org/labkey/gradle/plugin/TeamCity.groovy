@@ -308,7 +308,7 @@ class TeamCity extends Tomcat
         arguments.get("port").setValue(Integer.toString(port));
         long startTime = System.currentTimeMillis()
         println("Waiting for graceful Tomcat shutdown.")
-        while (System.currentTimeMillis() - startTime > 15_000)
+        while (System.currentTimeMillis() - startTime < 15_000)
         {
             try
             {
