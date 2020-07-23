@@ -307,8 +307,9 @@ class TeamCity extends Tomcat
         arguments.get("hostname").setValue("localhost");
         arguments.get("port").setValue(Integer.toString(port));
         long startTime = System.currentTimeMillis()
-        println("Waiting for graceful Tomcat shutdown.");
-        do {
+        println("Waiting for graceful Tomcat shutdown.")
+        while (System.currentTimeMillis() - startTime > 15_000)
+        {
             try
             {
                 VirtualMachine vm = connector.attach(arguments)
@@ -319,7 +320,7 @@ class TeamCity extends Tomcat
             {
                 return
             }
-        } while (System.currentTimeMillis() - startTime > 15_000);
+        }
         println("Attempting to shutdown Tomcat on debug port: " + port);
         try
         {
