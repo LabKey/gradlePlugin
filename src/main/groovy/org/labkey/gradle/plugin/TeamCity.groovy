@@ -301,11 +301,25 @@ class TeamCity extends Tomcat
         }
     }
 
-    private static void connect(AttachingConnector connector, int port) throws IllegalConnectorArgumentsException, IOException, IncompatibleThreadStateException
+    private static void threadDumpAndKill(AttachingConnector connector, int port) throws IllegalConnectorArgumentsException, IOException, IncompatibleThreadStateException
     {
         Map<String, Connector.Argument> arguments = connector.defaultArguments();
         arguments.get("hostname").setValue("localhost");
         arguments.get("port").setValue(Integer.toString(port));
+        long startTime = System.currentTimeMillis()
+        println("Waiting for graceful Tomcat shutdown.");
+        do {
+            try
+            {
+                VirtualMachine vm = connector.attach(arguments)
+                vm.dispose()
+                sleep(500)
+            }
+            catch (ConnectException ignore)
+            {
+                return
+            }
+        } while (System.currentTimeMillis() - startTime > 15_000);
         println("Attempting to shutdown Tomcat on debug port: " + port);
         try
         {
@@ -414,7 +428,7 @@ class TeamCity extends Tomcat
                 else
                 {
                     int port = Integer.parseInt(debugPort)
-                    connect(socketConnector, port)
+                    threadDumpAndKill(socketConnector, port)
                 }
             }
             catch (NumberFormatException e)
