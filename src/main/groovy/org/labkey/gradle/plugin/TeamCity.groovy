@@ -37,6 +37,7 @@ import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PropertiesUtils
 
+import java.time.Duration
 import java.util.regex.Matcher
 
 /**
@@ -49,6 +50,7 @@ class TeamCity extends Tomcat
     private static final String TEST_CONFIGS_DIR = "configs/config-test"
     private static final String NLP_CONFIG_FILE = "nlpConfig.xml"
     private static final String PIPELINE_CONFIG_FILE =  "pipelineConfig.xml"
+    private static final Duration TOMCAT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(15);
 
     private TeamCityExtension extension
 
@@ -301,73 +303,92 @@ class TeamCity extends Tomcat
         }
     }
 
-    private static void connect(AttachingConnector connector, int port) throws IllegalConnectorArgumentsException, IOException, IncompatibleThreadStateException
+    private static void threadDumpAndKill(AttachingConnector connector, int port) throws IllegalConnectorArgumentsException, IOException, IncompatibleThreadStateException
     {
-        Map<String, Connector.Argument> arguments = connector.defaultArguments();
-        arguments.get("hostname").setValue("localhost");
-        arguments.get("port").setValue(Integer.toString(port));
-        println("Attempting to shutdown Tomcat on debug port: " + port);
+        Map<String, Connector.Argument> arguments = connector.defaultArguments()
+        arguments.get("hostname").setValue("localhost")
+        arguments.get("port").setValue(Integer.toString(port))
+        long startTime = System.currentTimeMillis()
+        VirtualMachine vm
+
         try
         {
-            VirtualMachine vm = connector.attach(arguments);
-            vm.suspend();
-            for (ThreadReference threadReference : vm.allThreads())
-            {
-                dumpThread(threadReference);
-                println();
-            }
-            vm.resume();
-            vm.exit(1);
-            println("Killed remote VM");
+            vm = connector.attach(arguments)
         }
-        catch (ConnectException e)
+        catch (IOException ignore)
         {
-            e.printStackTrace();
-            println("Unable to connect to VM at localhost:" + port + ", VM may already be shut down");
+            println("Unable to connect to VM at localhost:" + port + ", VM may already be shut down")
+            return
         }
+
+        println("Waiting for graceful Tomcat shutdown.")
+        while (System.currentTimeMillis() - startTime < TOMCAT_SHUTDOWN_TIMEOUT.toMillis())
+        {
+            try
+            {
+                vm.mirrorOf("") // Poke VM to see if alive
+                sleep(500)
+            }
+            catch (VMDisconnectedException ignore)
+            {
+                println("VM at localhost:" + port + " exited normally")
+                return
+            }
+        }
+
+        println("Tomcat did not shutdown. Forcing exit via debug port: " + port)
+        vm.suspend()
+        for (ThreadReference threadReference : vm.allThreads())
+        {
+            dumpThread(threadReference)
+            println()
+        }
+        vm.resume()
+        vm.exit(1)
+        println("Killed remote VM")
     }
 
     private static void dumpThread(ThreadReference threadReference) throws IncompatibleThreadStateException
     {
-        println("Thread '" + threadReference.name() + "', status = " + getStatus(threadReference));
-        ObjectReference objectRef = threadReference.currentContendedMonitor();
+        println("Thread '" + threadReference.name() + "', status = " + getStatus(threadReference))
+        ObjectReference objectRef = threadReference.currentContendedMonitor()
         if (objectRef != null)
         {
-            StringBuilder line = new StringBuilder();
-            line.append("\t\tAttempting to acquire monitor for ");
-            line.append(objectRef.referenceType().name());
-            line.append("@");
-            line.append(objectRef.uniqueID());
+            StringBuilder line = new StringBuilder()
+            line.append("\t\tAttempting to acquire monitor for ")
+            line.append(objectRef.referenceType().name())
+            line.append("@")
+            line.append(objectRef.uniqueID())
             if (objectRef.owningThread() != null)
             {
-                line.append(" held by thread '");
-                line.append(objectRef.owningThread().name());
-                line.append("'");
+                line.append(" held by thread '")
+                line.append(objectRef.owningThread().name())
+                line.append("'")
             }
-            println(line);
+            println(line)
         }
         for (ObjectReference ownedMonitor : threadReference.ownedMonitors())
         {
-            println("\t\tHolding monitor for " + ownedMonitor.referenceType().name() + "@" + ownedMonitor.uniqueID());
+            println("\t\tHolding monitor for " + ownedMonitor.referenceType().name() + "@" + ownedMonitor.uniqueID())
         }
         for (StackFrame stackFrame : threadReference.frames())
         {
-            StringBuilder line = new StringBuilder();
-            line.append("\t");
-            line.append(stackFrame.location().declaringType().name());
-            line.append(".").append(stackFrame.location().method().name());
-            line.append("(");
+            StringBuilder line = new StringBuilder()
+            line.append("\t")
+            line.append(stackFrame.location().declaringType().name())
+            line.append(".").append(stackFrame.location().method().name())
+            line.append("(")
             try
             {
-                line.append(stackFrame.location().sourceName());
+                line.append(stackFrame.location().sourceName())
             }
             catch (AbsentInformationException ignore)
             {
-                line.append("UnknownSource");
+                line.append("UnknownSource")
             }
-            line.append(":").append(stackFrame.location().lineNumber());
-            line.append(")");
-            println(line.toString());
+            line.append(":").append(stackFrame.location().lineNumber())
+            line.append(")")
+            println(line.toString())
         }
     }
 
@@ -376,19 +397,19 @@ class TeamCity extends Tomcat
         switch (threadReference.status())
         {
             case ThreadReference.THREAD_STATUS_MONITOR:
-                return "WAITING FOR MONITOR";
+                return "WAITING FOR MONITOR"
             case ThreadReference.THREAD_STATUS_NOT_STARTED:
-                return "NOT STARTED";
+                return "NOT STARTED"
             case ThreadReference.THREAD_STATUS_RUNNING:
-                return "RUNNING";
+                return "RUNNING"
             case ThreadReference.THREAD_STATUS_SLEEPING:
-                return "SLEEPING";
+                return "SLEEPING"
             case ThreadReference.THREAD_STATUS_WAIT:
-                return "WAITING";
+                return "WAITING"
             case ThreadReference.THREAD_STATUS_ZOMBIE:
-                return "ZOMBIE";
+                return "ZOMBIE"
             default:
-                return "UNKNOWN";
+                return "UNKNOWN"
         }
     }
 
@@ -400,13 +421,13 @@ class TeamCity extends Tomcat
             project.logger.debug("Ensuring shutdown using port ${debugPort}")
             try
             {
-                AttachingConnector socketConnector = null;
+                AttachingConnector socketConnector = null
                 for (AttachingConnector connector : Bootstrap.virtualMachineManager().attachingConnectors())
                 {
-                    project.logger.debug("Found connector ${connector.name()} with class ${connector.getClass().getName()}");
+                    project.logger.debug("Found connector ${connector.name()} with class ${connector.getClass().getName()}")
                     if ("com.sun.jdi.SocketAttach".equals(connector.name()))
                     {
-                        socketConnector = connector;
+                        socketConnector = connector
                     }
                 }
                 if (socketConnector == null)
@@ -414,7 +435,7 @@ class TeamCity extends Tomcat
                 else
                 {
                     int port = Integer.parseInt(debugPort)
-                    connect(socketConnector, port)
+                    threadDumpAndKill(socketConnector, port)
                 }
             }
             catch (NumberFormatException e)

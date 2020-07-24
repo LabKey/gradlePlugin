@@ -12,6 +12,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### version 1.15.1
+*Released*: TBD
+(Earliest compatible LabKey version: 20.7)
+* Wait for Tomcat to shutdown gracefully before killing VM directly 
+
 ### version 1.15.0
 *Released*: 15 July 2020
 (Earliest compatible LabKey version: 20.7)
