@@ -37,6 +37,7 @@ import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PropertiesUtils
 
+import java.time.Duration
 import java.util.regex.Matcher
 
 /**
@@ -49,6 +50,7 @@ class TeamCity extends Tomcat
     private static final String TEST_CONFIGS_DIR = "configs/config-test"
     private static final String NLP_CONFIG_FILE = "nlpConfig.xml"
     private static final String PIPELINE_CONFIG_FILE =  "pipelineConfig.xml"
+    private static final Duration TOMCAT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(15);
 
     private TeamCityExtension extension
 
@@ -320,7 +322,7 @@ class TeamCity extends Tomcat
         }
 
         println("Waiting for graceful Tomcat shutdown.")
-        while (System.currentTimeMillis() - startTime < 15_000)
+        while (System.currentTimeMillis() - startTime < TOMCAT_SHUTDOWN_TIMEOUT.toMillis())
         {
             try
             {
