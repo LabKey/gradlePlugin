@@ -133,4 +133,14 @@ class TeamCityExtension
     {
         return getTeamCityProperty(project, "labkey.server", "http://localhost")
     }
+
+    static String getLabKeyUsername(Project project)
+    {
+        return getTeamCityProperty(project, "labkey.server.email", "teamcity@labkey.test")
+    }
+
+    static String getLabKeyPassword(Project project)
+    {
+        return getTeamCityProperty(project, "labkey.server.password", "yekbal1!")
+    }
 }

@@ -57,7 +57,7 @@ dependencies {
 }
 
 
-project.version = "1.15.1-SNAPSHOT"
+project.version = "1.15.1-setPassword-SNAPSHOT"
 
 if (project.file("moduleTemplate").exists())
 {
