@@ -91,7 +91,7 @@ class TeamCity extends Tomcat
                             [project.configurations.uiTestRuntimeClasspath, project.tasks.testJar]
                         }
                         spec.systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
-                        spec.args = ["set", TeamCityExtension.getLabKeyUsername(), TeamCityExtension.getLabKeyPassword()]
+                        spec.args = ["set", TeamCityExtension.getLabKeyUsername(project), TeamCityExtension.getLabKeyPassword(project)]
                     })
                 }
         }
