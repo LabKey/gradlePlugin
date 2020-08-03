@@ -15,7 +15,8 @@ on how to do that, including how to develop and test locally and the versioning 
 ### version 1.15.1
 *Released*: TBD
 (Earliest compatible LabKey version: 20.7)
-* Wait for Tomcat to shutdown gracefully before killing VM directly 
+* Wait for Tomcat to shutdown gracefully before killing VM directly
+* Allow test server credentials to be customized on TeamCity
 
 ### version 1.15.0
 *Released*: 15 July 2020
