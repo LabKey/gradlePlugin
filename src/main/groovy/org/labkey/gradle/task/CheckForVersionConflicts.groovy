@@ -19,7 +19,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -89,12 +88,12 @@ class CheckForVersionConflicts  extends DefaultTask
                 }
                 else if (matcher.group(BuildUtils.ARTIFACT_VERSION_INDEX) != null)
                 {
-                    project.logger.debug("adding name (with classifier): ${nameWithClassifier} and version: ${matcher.group(BuildUtils.ARTIFACT_VERSION_INDEX)}")
+                    this.logger.debug("adding name (with classifier): ${nameWithClassifier} and version: ${matcher.group(BuildUtils.ARTIFACT_VERSION_INDEX)}")
                     nameVersionMap.put(nameWithClassifier, new Tuple2(matcher.group(BuildUtils.ARTIFACT_VERSION_INDEX).substring(1), dFile))
                 }
                 else
                 {
-                    project.logger.debug("adding name (with classifier): ${nameWithClassifier} and no version")
+                    this.logger.debug("adding name (with classifier): ${nameWithClassifier} and no version")
                     nameVersionMap.put(nameWithClassifier, new Tuple2(null, dFile))
                 }
             }
@@ -111,7 +110,7 @@ class CheckForVersionConflicts  extends DefaultTask
                     String version = matcher.group(BuildUtils.ARTIFACT_VERSION_INDEX)
                     if (version != null)
                         version = version.substring(1)
-                    project.logger.debug("Checking name (with classifier): ${name} and version ${version}")
+                    this.logger.debug("Checking name (with classifier): ${name} and version ${version}")
                     String existingVersion = nameVersionMap.get(name).first
                     if (existingVersion != version)
                     {
@@ -132,8 +131,8 @@ class CheckForVersionConflicts  extends DefaultTask
             // when there are multiple versions of some artifact, the user needs to decide which to keep and which to delete
             if (action == ConflictAction.delete && !haveMultiples)
             {
-                project.logger.warn("INFO: " + message)
-                project.logger.warn("INFO: Removing existing files that conflict with those from the build.")
+                this.logger.warn("INFO: " + message)
+                this.logger.warn("INFO: Removing existing files that conflict with those from the build.")
                 existingFilesInConflict.forEach({
                     File f ->
                         println("  Deleting ${f}")
@@ -141,7 +140,7 @@ class CheckForVersionConflicts  extends DefaultTask
                 })
             }
             else if (action == ConflictAction.warn)
-                project.logger.warn("WARNING: " + message)
+                this.logger.warn("WARNING: " + message)
             else
                 throw new GradleException(message)
         }
