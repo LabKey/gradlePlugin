@@ -38,6 +38,12 @@ class PomFileHelper
         this.isModulePom = isModulePom
     }
 
+    PomFileHelper (Project project)
+    {
+        this.project = project
+        this.isModulePom = false
+    }
+
     static Closure getLabKeyTeamDevelopers() {
         return {
             developer {

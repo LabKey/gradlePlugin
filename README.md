@@ -19,6 +19,9 @@ on how to do that, including how to develop and test locally and the versioning 
 * Allow test server credentials to be customized on TeamCity
 * Update default project paths for current reality
 * Update `deployModule` task to also copy in the modules that are required
+* Update logic for getting LabKey artifact name to account for testAutomation group `org.labkey.test`
+* Move dependency declarations out of TestRunner plugin in favor of `testAutomation/build.gradle` declarations 
+* Remove `testJar` task in favor of a default jar task declared in `testAutomatioin/build.gradle`
  
 
 ### version 1.15.0

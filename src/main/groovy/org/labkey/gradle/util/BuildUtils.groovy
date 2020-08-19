@@ -646,13 +646,12 @@ class BuildUtils
             group = LabKeyExtension.LABKEY_GROUP
             moduleName = BOOTSTRAP_JAR_BASE_NAME
         }
-        else if (projectPath.equals(getTestProjectPath(parentProject.gradle)))
-        {
-            group = LabKeyExtension.LABKEY_TEST_GROUP
-            moduleName = "testJar"
-        }
         else
         {
+            if (projectPath.equals(getTestProjectPath(parentProject.gradle)))
+            {
+                group = LabKeyExtension.LABKEY_TEST_GROUP
+            }
             int index = projectPath.lastIndexOf(":")
             moduleName = projectPath
             if (index >= 0)

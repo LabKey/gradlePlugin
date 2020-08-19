@@ -21,9 +21,7 @@ import org.labkey.gradle.plugin.extension.UiTestExtension
 import org.labkey.gradle.task.RunUiTest
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
-/**
- * Created by susanh on 12/21/16.
- */
+
 class UiTest implements Plugin<Project>
 {
     UiTestExtension testRunnerExt
@@ -77,19 +75,10 @@ class UiTest implements Plugin<Project>
     protected void addDependencies(Project project)
     {
         String testProjectPath = BuildUtils.getTestProjectPath(project.gradle)
-        if (project.findProject(testProjectPath) != null)
-        {
-            Project testProject = project.project(testProjectPath)
-            project.dependencies {
-                uiTestImplementation "org.seleniumhq.selenium:selenium-server:${testProject.seleniumVersion}"
-                uiTestRuntimeOnly "org.aspectj:aspectjrt:${testProject.aspectjVersion}"
-                uiTestImplementation "org.aspectj:aspectjtools:${testProject.aspectjVersion}"
-                uiTestImplementation "org.reflections:reflections:${testProject.reflectionsVersion}"
-            }
-        }
 
-        if (project.path != testProjectPath)
+        if (project.path != testProjectPath) {
             BuildUtils.addLabKeyDependency(project: project, config: 'uiTestImplementation', depProjectPath: testProjectPath, depVersion: project.labkeyVersion)
+        }
     }
 
     protected void addTasks(Project project)
