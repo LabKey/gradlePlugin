@@ -238,10 +238,12 @@ class FileModule implements Plugin<Project>
                     task.doLast {
                         project.copy { CopySpec copy ->
                             copy.from moduleFile
+                            copy.from project.configurations.modules
                             copy.into project.staging.modulesDir
                         }
                         project.copy { CopySpec copy ->
                             copy.from moduleFile
+                            copy.from project.configurations.modules
                             copy.into ServerDeployExtension.getModulesDeployDirectory(project)
                         }
                     }
@@ -261,12 +263,12 @@ class FileModule implements Plugin<Project>
                                     delete.inputs.file file
                         })
                         delete.outputs.dir "${ServerDeployExtension.getServerDeployDirectory(project)}/modules"
-                        delete.doFirst {
-                            undeployModule(project)
-                            undeployJspJar(project)
-                            Api.deleteModulesApiJar(project)
-                        }
                     })
+                    task.doFirst {
+                        undeployModule(project)
+                        undeployJspJar(project)
+                        Api.deleteModulesApiJar(project)
+                    }
             }
 
 
