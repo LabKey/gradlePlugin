@@ -274,7 +274,7 @@ class BuildUtils
 
     static String getApiProjectPath(Gradle gradle)
     {
-        return getProjectPath(gradle, "apiProjectPath", ":server:api")
+        return getProjectPath(gradle, "apiProjectPath", ":server:modules:platform:api")
     }
 
     static String getBootstrapProjectPath(Gradle gradle)
@@ -284,7 +284,7 @@ class BuildUtils
 
     static String getInternalProjectPath(Gradle gradle)
     {
-        return getProjectPath(gradle, "internalProjectPath", ":server:internal")
+        return getProjectPath(gradle, "internalProjectPath", ":server:modules:platform:internal")
     }
 
     static String getNodeBinProjectPath(Gradle gradle)
@@ -294,12 +294,12 @@ class BuildUtils
 
     static String getRemoteApiProjectPath(Gradle gradle)
     {
-        return getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:java")
+        return getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:labkey-api-java:labkey-client-api")
     }
 
     static String getSasApiProjectPath(Gradle gradle)
     {
-        return getProjectPath(gradle, "sasApiProjectPath", ":remoteapi:sas")
+        return getProjectPath(gradle, "sasApiProjectPath", ":remoteapi:labkey-api-java:labkey-api-sas")
     }
 
     static String getJdbcApiProjectPath(Gradle gradle)
@@ -314,12 +314,12 @@ class BuildUtils
 
     static String getSchemasProjectPath(Gradle gradle)
     {
-        return getProjectPath(gradle, "schemasProjectPath", ":schemas")
+        return getProjectPath(gradle, "schemasProjectPath", ":server:modules:platform:api")
     }
 
     static String getTestProjectPath(Gradle gradle)
     {
-        return getProjectPath(gradle, "testProjectPath", ":server:test")
+        return getProjectPath(gradle, "testProjectPath", ":server:testAutomation")
     }
 
     static boolean isGitModule(Project project)
@@ -645,6 +645,11 @@ class BuildUtils
         {
             group = LabKeyExtension.LABKEY_GROUP
             moduleName = BOOTSTRAP_JAR_BASE_NAME
+        }
+        else if (projectPath.equals(getTestProjectPath(parentProject.gradle)))
+        {
+            group = LabKeyExtension.LABKEY_TEST_GROUP
+            moduleName = "testJar"
         }
         else
         {
