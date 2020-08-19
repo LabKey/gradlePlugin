@@ -26,9 +26,6 @@ import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
 
-/**
- * Created by susanh on 12/7/16.
- */
 class TestRunner extends UiTest
 {
 
