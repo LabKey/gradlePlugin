@@ -646,12 +646,14 @@ class BuildUtils
             group = LabKeyExtension.LABKEY_GROUP
             moduleName = BOOTSTRAP_JAR_BASE_NAME
         }
+        else if (projectPath.equals(getTestProjectPath(parentProject.gradle)))
+        {
+            group = LabKeyExtension.LABKEY_API_GROUP
+            moduleName = 'labkey-api-selenium'
+        }
         else
         {
-            if (projectPath.equals(getTestProjectPath(parentProject.gradle)))
-            {
-                group = LabKeyExtension.LABKEY_TEST_GROUP
-            }
+
             int index = projectPath.lastIndexOf(":")
             moduleName = projectPath
             if (index >= 0)

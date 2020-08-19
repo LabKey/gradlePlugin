@@ -28,7 +28,7 @@ class LabKeyExtension
     public static final String API_GROUP_SUFFIX = ".api"
     public static final String LABKEY_MODULE_GROUP = LABKEY_GROUP + MODULE_GROUP_SUFFIX
     public static final String LABKEY_API_GROUP = LABKEY_GROUP + API_GROUP_SUFFIX
-    public static final String LABKEY_TEST_GROUP = LABKEY_GROUP + ".test"
+
     private static enum DeployMode {
 
         dev("Development"),
