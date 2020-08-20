@@ -135,14 +135,6 @@ class NpmRun implements Plugin<Project>
         TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
         TaskUtils.configureTaskIfPresent(project, "processModuleResources", { mustRunAfter(runCommand) })
 
-        project.tasks.npmInstall
-                {Task task ->
-                    task.inputs.file project.file(NPM_PROJECT_FILE)
-                    if (project.file(NPM_PROJECT_LOCK_FILE).exists())
-                        task.inputs.file project.file(NPM_PROJECT_LOCK_FILE)
-                }
-        project.tasks.npmInstall.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
-
         project.tasks.yarn_install {Task task ->
             task.inputs.file project.file(NPM_PROJECT_FILE)
             if (project.file(NPM_PROJECT_LOCK_FILE).exists())
@@ -181,6 +173,14 @@ class NpmRun implements Plugin<Project>
                 }
         addTaskInputOutput(project.tasks.npmRunBuild)
         addTaskInputOutput(project.tasks.getByName("npm_run_${project.npmRun.buildDev}"))
+
+        project.tasks.npmInstall
+                {Task task ->
+                    task.inputs.file project.file(NPM_PROJECT_FILE)
+                    if (project.file(NPM_PROJECT_LOCK_FILE).exists())
+                        task.inputs.file project.file(NPM_PROJECT_LOCK_FILE)
+                }
+        project.tasks.npmInstall.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
 
         def runCommand = LabKeyExtension.isDevMode(project) && !project.hasProperty('useNpmProd') ? npmRunBuild : npmRunBuildProd
         TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
