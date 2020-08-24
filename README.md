@@ -14,7 +14,7 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ### version TBD
 *Released*: TBD
-(Earliest compatible LabKey version: 20.7)
+(Earliest compatible LabKey version: 20.9)
 * Wait for Tomcat to shutdown gracefully before killing VM directly
 * Allow test server credentials to be customized on TeamCity
 * Update default project paths for current reality
