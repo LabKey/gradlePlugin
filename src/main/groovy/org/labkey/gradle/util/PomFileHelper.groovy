@@ -93,7 +93,7 @@ class PomFileHelper
         return {
             connection = 'scm:git:https://github.com/LabKey/'
             developerConnection = 'scm:git:https://github.com/LabKey/'
-            url = 'scm:git:https://github.com/LabKey/'
+            url = 'https://github.com/LabKey/'
         }
     }
 
