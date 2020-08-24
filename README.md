@@ -12,11 +12,19 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### version 1.15.1
+### version TBD
 *Released*: TBD
-(Earliest compatible LabKey version: 20.7)
+(Earliest compatible LabKey version: 20.9)
 * Wait for Tomcat to shutdown gracefully before killing VM directly
 * Allow test server credentials to be customized on TeamCity
+* Update default project paths for current reality
+* Update `deployModule` task to also copy in the modules that are required
+* Fix `undeployModule` so it actually does something
+* Update logic for getting LabKey artifact name to account for testAutomation artifact
+* Move dependency declarations out of TestRunner plugin in favor of `testAutomation/build.gradle` declarations 
+* Remove `testJar` task in favor of a default jar task declared in `testAutomatioin/build.gradle`
+* Fix input and output declarations for `npmInstall`
+ 
 
 ### version 1.15.0
 *Released*: 15 July 2020

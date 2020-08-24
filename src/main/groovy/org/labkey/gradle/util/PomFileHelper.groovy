@@ -38,6 +38,12 @@ class PomFileHelper
         this.isModulePom = isModulePom
     }
 
+    PomFileHelper (Project project)
+    {
+        this.project = project
+        this.isModulePom = false
+    }
+
     static Closure getLabKeyTeamDevelopers() {
         return {
             developer {
@@ -87,7 +93,7 @@ class PomFileHelper
         return {
             connection = 'scm:git:https://github.com/LabKey/'
             developerConnection = 'scm:git:https://github.com/LabKey/'
-            url = 'scm:git:https://github.com/LabKey/'
+            url = 'https://github.com/LabKey/'
         }
     }
 

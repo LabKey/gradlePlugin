@@ -26,16 +26,11 @@ import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
 
-/**
- * Created by susanh on 12/7/16.
- */
 class TestRunner extends UiTest
 {
 
     protected void addTasks(Project project)
     {
-        addJarTask(project)
-
         super.addTasks(project)
 
         addPasswordTasks(project)
@@ -84,24 +79,6 @@ class TestRunner extends UiTest
 
     }
 
-    @Override
-    protected void addConfigurations(Project project)
-    {
-        super.addConfigurations(project)
-        project.configurations {
-            aspectj
-        }
-    }
-
-    @Override
-    protected void addDependencies(Project project)
-    {
-        super.addDependencies(project)
-        project.dependencies {
-            aspectj "org.aspectj:aspectjtools:${project.aspectjVersion}"
-        }
-    }
-
 
     private void addPasswordTasks(Project project)
     {
@@ -110,12 +87,12 @@ class TestRunner extends UiTest
             Task task ->
                 task.group = GroupNames.TEST
                 task.description = "Set the password for use in running tests"
-                task.dependsOn(project.tasks.testJar)
+                task.dependsOn(project.tasks.jar)
                 task.doFirst({
                     project.javaexec({
                         main = "org.labkey.test.util.PasswordUtil"
                         classpath {
-                            [project.configurations.uiTestRuntimeClasspath, project.tasks.testJar]
+                            [project.configurations.uiTestRuntimeClasspath, project.tasks.jar]
                         }
                         systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
                         args = ["set"]
@@ -129,12 +106,12 @@ class TestRunner extends UiTest
             Task task ->
                 task.group = GroupNames.TEST
                 task.description = "Ensure that the password property used for running tests has been set"
-                task.dependsOn(project.tasks.testJar)
+                task.dependsOn(project.tasks.jar)
                 task.doFirst({
                     project.javaexec({
                         main = "org.labkey.test.util.PasswordUtil"
                         classpath {
-                            [project.configurations.uiTestRuntimeClasspath, project.tasks.testJar]
+                            [project.configurations.uiTestRuntimeClasspath, project.tasks.jar]
                         }
                         systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
                         args = ["ensure"]
@@ -228,19 +205,6 @@ class TestRunner extends UiTest
             RunTestSuite task ->
                 task.group = GroupNames.VERIFICATION
                 task.description = "Run a LabKey test suite as defined by ${project.file(testRunnerExt.propertiesFile)} and overridden on the command line by -P<prop>=<value> "
-        }
-    }
-
-    private void addJarTask(Project project)
-    {
-        project.tasks.register("testJar", Jar) {
-            Jar jar ->
-                jar.group = GroupNames.BUILD
-                jar.description = "produce jar file of test classes"
-                jar.from project.sourceSets.uiTest.output
-                jar.archiveBaseName.set("labkeyTest")
-                jar.archiveVersion.set((String) project.version)
-                jar.destinationDirectory = new File("${project.buildDir}/libs")
         }
     }
 
