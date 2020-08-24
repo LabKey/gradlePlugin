@@ -99,10 +99,8 @@ class JavaModule extends FileModule
                 {
                     labkey // use this configuration for dependencies to labkey API jars that are needed for a module
                            // but don't need to show up in the dependencies.txt and jars.txt
-                    api.extendsFrom(external) // TODO this is probably not necessary
-                    compile.extendsFrom(external)
+                    api.extendsFrom(external)
                     implementation.extendsFrom(external)
-                    compile.extendsFrom(labkey)
                     implementation.extendsFrom(labkey)
                     dedupe {
                         canBeConsumed = false
