@@ -109,7 +109,7 @@ class Jsp implements Plugin<Project>
         // they don't belong ("CLASSPATH element .../labkey.tld is not a JAR.").  These warnings may appear if
         // building within IntelliJ but perhaps we can live with that (for now).
         if (BuildUtils.isIntellij())
-            project.dependencies.add("compile", project.rootProject.tasks.copyTagLibsBase.inputs.files)
+            project.dependencies.add("implementation", project.rootProject.tasks.copyTagLibsBase.inputs.files)
     }
 
     private void addJspTasks(Project project)

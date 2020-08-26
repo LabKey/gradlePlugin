@@ -83,12 +83,12 @@ class TeamCity extends Tomcat
             Task task ->
                 task.group = GroupNames.TEST_SERVER
                 task.description = "Set the password for use in running tests"
-                task.dependsOn(project.tasks.testJar)
+                task.dependsOn(project.tasks.jar)
                 task.doLast {
                     project.javaexec({ JavaExecSpec spec ->
                         spec.main = "org.labkey.test.util.PasswordUtil"
                         spec.classpath {
-                            [project.configurations.uiTestRuntimeClasspath, project.tasks.testJar]
+                            [project.configurations.uiTestRuntimeClasspath, project.tasks.jar]
                         }
                         spec.systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
                         spec.args = ["set", TeamCityExtension.getLabKeyUsername(project), TeamCityExtension.getLabKeyPassword(project)]
