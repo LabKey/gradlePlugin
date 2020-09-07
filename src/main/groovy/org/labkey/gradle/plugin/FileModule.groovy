@@ -494,7 +494,7 @@ class FileModule implements Plugin<Project>
 
     private static void addDependencies(Project project)
     {
-        Project serverProject = project.findProject(":server")
+        Project serverProject = BuildUtils.getServerProject(project)
         if (serverProject != null)
         {
             BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: project.path, depProjectConfig: 'published', depExtension: 'module')

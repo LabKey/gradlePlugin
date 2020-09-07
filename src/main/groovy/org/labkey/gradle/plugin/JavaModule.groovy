@@ -212,7 +212,9 @@ class JavaModule extends FileModule
                     }
 
             project.tasks.copyExternalLibs.dependsOn(project.tasks.checkModuleJarVersions)
-            project.project(":server").tasks.checkVersionConflicts.dependsOn(project.tasks.checkModuleJarVersions)
+            Project serverProject = BuildUtils.getServerProject(project)
+            if (serverProject != null)
+                serverProject.tasks.checkVersionConflicts.dependsOn(project.tasks.checkModuleJarVersions)
         })
     }
 

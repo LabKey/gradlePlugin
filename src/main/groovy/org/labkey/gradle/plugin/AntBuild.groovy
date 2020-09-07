@@ -19,6 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.plugins.PluginInstantiationException
+import org.labkey.gradle.util.BuildUtils
 
 /**
  * Plugin that will import the tasks from an ant build.xml file and add a dependency between the
@@ -58,7 +59,7 @@ class AntBuild implements Plugin<Project>
 
     private static void setAntProperties(Project project)
     {
-        project.ant.setProperty('basedir', project.project(":server").projectDir)
+        project.ant.setProperty('basedir', BuildUtils.getServerProject(project).projectDir)
         project.ant.setProperty('modules.dir', project.projectDir.parent)
         project.ant.setProperty('build.modules.dir', project.buildDir.parent)
         project.ant.setProperty('build.dir', project.rootProject.buildDir)

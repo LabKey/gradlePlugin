@@ -127,7 +127,7 @@ class StageDistribution extends DefaultTask
         project.copy({ CopySpec spec ->
             spec.from isTar ? project.tarTree(distributionFile).files : project.zipTree(distributionFile).files
             spec.into tomcatJarStagingDir
-            project.project(":server").configurations.tomcatJars.files.each {
+            BuildUtils.getServerProject(project).configurations.tomcatJars.files.each {
                 File file ->
                     spec.include file.getName()
             }

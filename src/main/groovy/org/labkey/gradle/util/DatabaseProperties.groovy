@@ -76,7 +76,7 @@ class DatabaseProperties
 
     private static File getConfigFile(Project project, String dbConfigFile)
     {
-        return project.project(":server").file(dbConfigFile)
+        return BuildUtils.getServerProject(project).file(dbConfigFile)
     }
 
     void setProject(Project project)
@@ -216,7 +216,7 @@ class DatabaseProperties
     {
         if (getConfigFile(project, configFile).exists())
         {
-            Properties props = PropertiesUtils.readFileProperties(project.project(":server"), configFile)
+            Properties props = PropertiesUtils.readFileProperties(BuildUtils.getConfigsProject(project), configFile)
             return props
         }
         else

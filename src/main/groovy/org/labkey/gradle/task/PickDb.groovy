@@ -28,7 +28,7 @@ class PickDb extends DoThenSetup
     String dbType
 
     @InputDirectory
-    File configsDir = new File(project.project(":server").projectDir, "configs")
+    File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
 
     @Override
     protected void doDatabaseTask()

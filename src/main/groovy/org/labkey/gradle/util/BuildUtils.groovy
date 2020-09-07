@@ -241,6 +241,26 @@ class BuildUtils
         return whyNotBuildFromSource(project, BUILD_CLIENT_LIBS_FROM_SOURCE_PROP).isEmpty()
     }
 
+    static Project getConfigsProject(Project project)
+    {
+        return project.project(getConfigsProjectPath(project.gradle))
+    }
+
+    static String getConfigsProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "configsProjectPath", getServerProjectPath(gradle))
+    }
+
+    static Project getServerProject(Project project)
+    {
+        return project.findProject(getServerProjectPath(project.gradle))
+    }
+
+    static String getServerProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "serverProjectPath", ":server")
+    }
+
     static String getPlatformModuleProjectPath(Gradle gradle, String name)
     {
         // without the toString call below, you get the following error:

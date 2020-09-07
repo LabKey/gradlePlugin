@@ -47,7 +47,7 @@ class StartTomcat extends DefaultTask
         {
             env(
                 key: "PATH",
-                path: "${project.project(":server").serverDeploy.binDir}${File.pathSeparator}${System.getenv("PATH")}"
+                path: "${BuildUtils.getServerProject(project).serverDeploy.binDir}${File.pathSeparator}${System.getenv("PATH")}"
             )
 
             List<String> optsList = new ArrayList<>()

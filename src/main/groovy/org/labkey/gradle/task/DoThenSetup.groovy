@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.ServerDeploy
+import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.PropertiesUtils
 
@@ -37,8 +38,9 @@ class DoThenSetup extends DefaultTask
 
     DoThenSetup()
     {
-        if (project.findProject(":server") != null)
-            this.dependsOn project.project(":server").configurations.tomcatJars
+        Project serverProject = BuildUtils.getServerProject(project)
+        if (serverProject != null)
+            this.dependsOn serverProject.configurations.tomcatJars
     }
 
     // Currently this type of task will always run because there are no declared inputs and outputs
@@ -143,7 +145,7 @@ class DoThenSetup extends DefaultTask
             })
         }
 
-        if (project.findProject(":server") != null)
+        if (BuildUtils.getServerProject(project) != null)
             copyTomcatJars()
 
 
@@ -175,7 +177,7 @@ class DoThenSetup extends DefaultTask
 
     private void copyTomcatJars()
     {
-        Project serverProject = project.project(":server")
+        Project serverProject = BuildUtils.getServerProject(project)
         // Remove the staging tomcatLib directory before copying into it to avoid duplicates.
         project.delete project.staging.tomcatLibDir
         // for consistency with a distribution deployment and the treatment of all other deployment artifacts,
