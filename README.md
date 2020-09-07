@@ -20,6 +20,7 @@ on how to do that, including how to develop and test locally and the versioning 
 * Add missing dependency version numbers for some base module dependencies
 * Parameterize path for server module project and config project (allowing for them to be separate)
 * Remove additional assumptions on presence of server modules project when not needed
+* Update configurations in JavaModule plugin to no longer reference the compile configuration (being deprecated for dependency resolution)
 
 ### version 1.16.0
 *Released*: 26 August 2020
