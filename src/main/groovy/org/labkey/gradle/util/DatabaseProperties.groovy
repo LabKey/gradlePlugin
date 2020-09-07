@@ -76,7 +76,7 @@ class DatabaseProperties
 
     private static File getConfigFile(Project project, String dbConfigFile)
     {
-        return BuildUtils.getServerProject(project).file(dbConfigFile)
+        return BuildUtils.getConfigsProject(project).file(dbConfigFile)
     }
 
     void setProject(Project project)
