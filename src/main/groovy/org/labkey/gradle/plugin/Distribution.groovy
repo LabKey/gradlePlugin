@@ -31,6 +31,7 @@ import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.ModuleDistribution
 import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.GroupNames
+import org.labkey.gradle.util.BuildUtils
 
 class Distribution implements Plugin<Project>
 {
