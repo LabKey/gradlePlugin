@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
+import org.labkey.gradle.util.BuildUtils
 
 /**
  * Created by susanh on 11/15/16.
