@@ -12,8 +12,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### version TBD
-*Released*: TBD
+### version 1.17.0
+*Released*: 10 September 2020
 (Earliest compatible LabKey verson: 20.9)
 * Remove gradlePlugin type (no longer included under regular enlistment) and update module paths in comments
 * Adjust moduleTemplate for removal of appendNavTrail in favor of addNavTrail
