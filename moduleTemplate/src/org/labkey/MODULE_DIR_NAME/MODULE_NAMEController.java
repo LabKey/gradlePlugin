@@ -43,9 +43,6 @@ public class @@MODULE_NAME@@Controller extends SpringActionController
             return new JspView("/org/labkey/@@MODULE_LOWERCASE_NAME@@/view/hello.jsp");
         }
 
-        public NavTree appendNavTrail(NavTree root)
-        {
-            return root;
-        }
+        public void addNavTrail(NavTrail root) { }
     }
 }

@@ -167,7 +167,7 @@ class Jsp implements Plugin<Project>
                         })
                 }
 
-        if (project.findProject(":server") != null)
+        if (BuildUtils.getServerProject(project) != null)
             project.tasks.copyTagLibs.dependsOn(project.rootProject.tasks.copyTagLibsBase)
 
         project.tasks.register('jsp2Java', JspCompile2Java) {

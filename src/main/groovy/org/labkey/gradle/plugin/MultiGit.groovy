@@ -161,7 +161,6 @@ class MultiGit implements Plugin<Project>
         enum Type
         {
             clientLibrary('labkey-client-api', ":remoteapi"),
-            gradlePlugin('gradle-plugin', ":buildSrc"),
             serverModule("labkey-module", ":server:modules"),
             serverModuleContainer("labkey-module-container", ":server:modules"),
             testContainer("labkey-test-container", ":server"),
@@ -228,10 +227,6 @@ class MultiGit implements Plugin<Project>
             else if (topics.contains("labkey-client-api"))
             {
                 this.setType(Type.clientLibrary)
-            }
-            else if (topics.contains("gradle-plugin"))
-            {
-                this.setType(Type.gradlePlugin)
             }
             else
             {
@@ -549,24 +544,24 @@ class MultiGit implements Plugin<Project>
         }
 
         /**
-         * :server:optionalModules:biologics
+         * :server:modules:biologics
          *         Type: private active serverModule
          *         License: LabKey Software License (https://www.labkey.com/license)
          *         Repo: https://github.com/LabKey/biologics
-         * :server:optionalModules:tnprc_ehr
+         * :server:modules:tnprc_ehr
          *         Type: private active serverModule
          *         Description: LabKey Server module for Tulane National Primate Research Center's EHR implementation
          *         License: Apache License 2.0
          *         Repo: https://github.com/LabKey/tnprc_ehr
-         * :server:optionalModules:workflow
+         * :server:modules:workflow
          *         Description: Workflow processing engine and services
          *         License: Apache License 2.0
          *         Repo: https://github.com/LabKey/workflow
          *         Type: public active serverModule
          *
-         * :server:optionalModules:biologics (https://github.com/LabKey/biologics) - [serverModule] Description here
-         * :server:optionalModules:tnprc_ehr (https://github.com/LabKey/tnprc_ehr) - [serverModule] LabKey Server module for Tulane National Primate Research Center's EHR implementation
-         * :server:optionalModules:workflow (https://github.com/LabKey/workflow) - [serverModule] Workflow processing engine and services
+         * :server:modules:biologics (https://github.com/LabKey/biologics) - [serverModule] Description here
+         * :server:modules:tnprc_ehr (https://github.com/LabKey/tnprc_ehr) - [serverModule] LabKey Server module for Tulane National Primate Research Center's EHR implementation
+         * :server:modules:workflow (https://github.com/LabKey/workflow) - [serverModule] Workflow processing engine and services
          * @param verbose
          * @return
          */

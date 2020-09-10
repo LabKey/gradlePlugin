@@ -17,6 +17,7 @@ package org.labkey.gradle.task
 
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileTree
@@ -65,8 +66,9 @@ class ModuleDistribution extends DefaultTask
         description = "Make a LabKey modules distribution"
         distExtension = project.extensions.findByType(DistributionExtension.class)
 
-        this.dependsOn(project.project(":server").tasks.setup)
-        this.dependsOn(project.project(":server").tasks.stageApp)
+        Project serverProject = BuildUtils.getServerProject(project)
+        this.dependsOn(serverProject.tasks.setup)
+        this.dependsOn(serverProject.tasks.stageApp)
     }
 
     @OutputDirectory

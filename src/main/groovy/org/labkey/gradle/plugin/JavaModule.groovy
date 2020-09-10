@@ -100,10 +100,8 @@ class JavaModule extends FileModule
                     labkey // use this configuration for dependencies to labkey API jars that are needed for a module
                            // but don't need to show up in the dependencies.txt and jars.txt
                     api.extendsFrom(external)
-                    compile.extendsFrom(external)
                     implementation.extendsFrom(external)
                     implementation.extendsFrom(labkey)
-                    compile.extendsFrom(labkey)
                     dedupe {
                         canBeConsumed = false
                         canBeResolved = true
@@ -212,7 +210,9 @@ class JavaModule extends FileModule
                     }
 
             project.tasks.copyExternalLibs.dependsOn(project.tasks.checkModuleJarVersions)
-            project.project(":server").tasks.checkVersionConflicts.dependsOn(project.tasks.checkModuleJarVersions)
+            Project serverProject = BuildUtils.getServerProject(project)
+            if (serverProject != null)
+                serverProject.tasks.checkVersionConflicts.dependsOn(project.tasks.checkModuleJarVersions)
         })
     }
 

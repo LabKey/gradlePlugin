@@ -135,7 +135,7 @@ class TeamCity extends Tomcat
             Copy task ->
                 task.group = GroupNames.TEST_SERVER
                 task.description = "Create NLP engine configs for the test server"
-                task.from project.project(":server").file(TEST_CONFIGS_DIR)
+                task.from BuildUtils.getServerProject(project).file(TEST_CONFIGS_DIR)
                 task.include NLP_CONFIG_FILE
                 task.filter({ String line ->
                     Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
@@ -209,8 +209,8 @@ class TeamCity extends Tomcat
                         task.group = GroupNames.DEPLOY
                         task.description = "Undeploy modules that are either not supposed to be built or are not supported by database ${properties.dbTypeAndVersion}"
                         task.dbType = properties.shortType
-                        task.mustRunAfter(project.project(":server").tasks.pickMSSQL)
-                        task.mustRunAfter(project.project(":server").tasks.pickPg)
+                        task.mustRunAfter(BuildUtils.getServerProject(project).tasks.pickMSSQL)
+                        task.mustRunAfter(BuildUtils.getServerProject(project).tasks.pickPg)
                 }
             }
             TaskProvider undeployTaskProvider = project.tasks.named(undeployTaskName)

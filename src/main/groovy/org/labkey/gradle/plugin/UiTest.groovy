@@ -88,8 +88,11 @@ class UiTest implements Plugin<Project>
             RunUiTest task ->
                 task.group = GroupNames.VERIFICATION
                 task.description = "Run UI (Selenium) tests for this module"
-                task.mustRunAfter(project.project(":server").tasks.pickPg)
-                task.mustRunAfter(project.project(":server").tasks.pickMSSQL)
+                Project serverProject = BuildUtils.getServerProject(project)
+                if (serverProject != null) {
+                    task.mustRunAfter(serverProject.tasks.pickPg)
+                    task.mustRunAfter(serverProject.tasks.pickMSSQL)
+                }
         }
     }
 

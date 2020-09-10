@@ -31,6 +31,7 @@ import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.ModuleDistribution
 import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.GroupNames
+import org.labkey.gradle.util.BuildUtils
 
 class Distribution implements Plugin<Project>
 {
@@ -48,7 +49,7 @@ class Distribution implements Plugin<Project>
             project.extensions.create("teamCity", TeamCityExtension, project)
 
         // we depend on tasks from the server project, so it needs to have been evaluated first
-        project.evaluationDependsOn(":server")
+        project.evaluationDependsOn(BuildUtils.getServerProjectPath(project.gradle))
         addDependencies(project)
         addConfigurations(project)
         addTasks(project)

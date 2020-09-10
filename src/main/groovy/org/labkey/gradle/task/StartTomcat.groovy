@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
+import org.labkey.gradle.util.BuildUtils
 
 /**
  * Created by susanh on 11/15/16.
@@ -47,7 +48,7 @@ class StartTomcat extends DefaultTask
         {
             env(
                 key: "PATH",
-                path: "${project.project(":server").serverDeploy.binDir}${File.pathSeparator}${System.getenv("PATH")}"
+                path: "${BuildUtils.getServerProject(project).serverDeploy.binDir}${File.pathSeparator}${System.getenv("PATH")}"
             )
 
             List<String> optsList = new ArrayList<>()

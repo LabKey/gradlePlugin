@@ -18,6 +18,7 @@ package org.labkey.gradle.task
 import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
+import org.labkey.gradle.util.BuildUtils
 
 /**
  * Created by susanh on 8/11/16.
@@ -28,7 +29,7 @@ class PickDb extends DoThenSetup
     String dbType
 
     @InputDirectory
-    File configsDir = new File(project.project(":server").projectDir, "configs")
+    File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
 
     @Override
     protected void doDatabaseTask()

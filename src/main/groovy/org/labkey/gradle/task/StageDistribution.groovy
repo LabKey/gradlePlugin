@@ -23,6 +23,7 @@ import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.util.BuildUtils
 
 import java.nio.file.Paths
 
@@ -127,7 +128,7 @@ class StageDistribution extends DefaultTask
         project.copy({ CopySpec spec ->
             spec.from isTar ? project.tarTree(distributionFile).files : project.zipTree(distributionFile).files
             spec.into tomcatJarStagingDir
-            project.project(":server").configurations.tomcatJars.files.each {
+            BuildUtils.getServerProject(project).configurations.tomcatJars.files.each {
                 File file ->
                     spec.include file.getName()
             }
