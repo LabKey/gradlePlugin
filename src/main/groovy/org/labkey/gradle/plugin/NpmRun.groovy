@@ -133,7 +133,8 @@ class NpmRun implements Plugin<Project>
 
         def runCommand = LabKeyExtension.isDevMode(project) ? yarnRunBuild : yarnRunBuildProd
         TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
-        TaskUtils.configureTaskIfPresent(project, "processModuleResources", { mustRunAfter(runCommand) })
+        TaskUtils.configureTaskIfPresent(project, "processWebappResources", { dependsOn(runCommand) })
+        TaskUtils.configureTaskIfPresent(project, "processModuleResources", { dependsOn(runCommand) })
 
         project.tasks.yarn_install {Task task ->
             task.inputs.file project.file(NPM_PROJECT_FILE)
