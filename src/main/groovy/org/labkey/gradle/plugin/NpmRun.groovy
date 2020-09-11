@@ -133,8 +133,7 @@ class NpmRun implements Plugin<Project>
 
         def runCommand = LabKeyExtension.isDevMode(project) ? yarnRunBuild : yarnRunBuildProd
         TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
-        TaskUtils.configureTaskIfPresent(project, "processWebappResources", { dependsOn(runCommand) })
-        TaskUtils.configureTaskIfPresent(project, "processModuleResources", { dependsOn(runCommand) })
+        TaskUtils.configureTaskIfPresent(project, "processResources", { dependsOn(runCommand) })
 
         project.tasks.yarn_install {Task task ->
             task.inputs.file project.file(NPM_PROJECT_FILE)
@@ -185,8 +184,7 @@ class NpmRun implements Plugin<Project>
 
         def runCommand = LabKeyExtension.isDevMode(project) && !project.hasProperty('useNpmProd') ? npmRunBuild : npmRunBuildProd
         TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
-        TaskUtils.configureTaskIfPresent(project, "processWebappResources", { dependsOn(runCommand) })
-        TaskUtils.configureTaskIfPresent(project, "processModuleResources", { dependsOn(runCommand) })
+        TaskUtils.configureTaskIfPresent(project, "processResources", { dependsOn(runCommand) })
     }
 
     static boolean useYarn(Project project)

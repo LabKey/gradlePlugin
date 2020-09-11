@@ -114,8 +114,7 @@ class FileModule implements Plugin<Project>
         }
         else
         {
-            if (ModuleResources.isApplicable(project))
-                project.apply plugin: 'org.labkey.moduleResources'
+            project.apply plugin: 'org.labkey.moduleResources'
 
             if (SpringConfig.isApplicable(project))
                 project.apply plugin: 'org.labkey.springConfig'
@@ -212,8 +211,8 @@ class FileModule implements Plugin<Project>
             }
 
             Task moduleFile = project.tasks.module
-            if (ModuleResources.isApplicable(project))
-                moduleFile.dependsOn(project.tasks.processModuleResources)
+
+            moduleFile.dependsOn(project.tasks.processModuleResources)
             if (SpringConfig.isApplicable(project))
                 moduleFile.dependsOn(project.tasks.processResources)
             moduleFile.dependsOn(moduleXmlTask)
