@@ -47,7 +47,6 @@ class ClientLibsCompress extends DefaultTask
     FileTree xmlFiles
     private List<File> inputFiles = null
     private List<File> outputFiles = null
-    protected Map<File, XmlImporter> _importerMap = null
 
     /**
      * Creates a map between the individual .lib.xml files and the importers used to parse these files and
@@ -56,15 +55,12 @@ class ClientLibsCompress extends DefaultTask
      */
     private Map<File, XmlImporter> getImporterMap()
     {
-        if (_importerMap == null)
-        {
-            _importerMap = new HashMap<>()
-            xmlFiles.files.each() {
-                File file ->
-                    _importerMap.put(file, parseXmlFile(getSourceDir(file), file))
-            }
+        Map<File, XmlImporter> importerMap = new HashMap<>()
+        xmlFiles.files.each() {
+            File file ->
+                importerMap.put(file, parseXmlFile(getSourceDir(file), file))
         }
-        return _importerMap;
+        return importerMap;
     }
 
     static File getSourceDir(File libXmlFile)
@@ -144,15 +140,19 @@ class ClientLibsCompress extends DefaultTask
     void compressAllFiles()
     {
         FileTree libXmlFiles = xmlFiles
+        Map<File, XmlImporter> importerMap = getImporterMap();
         libXmlFiles.files.each() {
-            File file -> compressSingleFile(file)
+            File file -> compressSingleFile(file, importerMap.get(file))
         }
     }
 
-    void compressSingleFile(File xmlFile)
+    void compressSingleFile(File xmlFile, XmlImporter importer)
     {
-        XmlImporter importer = getImporterMap().get(xmlFile)
-        if (importer.doCompile)
+        if (importer == null)
+        {
+            this.logger.warn("No importer found for file ${xmlFile}")
+        }
+        else if (importer.doCompile)
         {
             try
             {
@@ -168,7 +168,7 @@ class ClientLibsCompress extends DefaultTask
         }
         else
         {
-            project.logger.info("No compile necessary");
+            this.logger.info("No compile necessary");
         }
     }
 
@@ -199,11 +199,11 @@ class ClientLibsCompress extends DefaultTask
         File workingFile = new File(xmlFile.getAbsolutePath().replace(sourceDir.getAbsolutePath(), workingDir.getAbsolutePath()))
         File minFile = getOutputFile(workingFile, "min", extension);
 
-        project.logger.info("Concatenating " + extension + " files into single file");
+        this.logger.info("Concatenating " + extension + " files into single file");
         File concatFile = getOutputFile(workingFile, "combined", extension);
         concatenateFiles(srcFiles, concatFile);
 
-        project.logger.info("Minifying " + extension + " files with YUICompressor");
+        this.logger.info("Minifying " + extension + " files with YUICompressor");
         minFile.delete();
 
         minifyFile(concatFile, minFile);
@@ -212,7 +212,7 @@ class ClientLibsCompress extends DefaultTask
 
         if (!LabKeyExtension.isDevMode(project))
         {
-            project.logger.info("Compressing " + extension + " files");
+            this.logger.info("Compressing " + extension + " files");
             project.ant.gzip(
                     src: minFile,
                     destfile: "${minFile.toString()}.gz"
@@ -368,7 +368,7 @@ class ClientLibsCompress extends DefaultTask
                     else if (scriptFile.getName().endsWith(".css"))
                         cssFiles.add(scriptFile);
                     else
-                        project.logger.info("Unknown file extension, ignoring: " + scriptFile.getName());
+                        this.logger.info("Unknown file extension, ignoring: " + scriptFile.getName());
                 }
             }
         }

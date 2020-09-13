@@ -60,8 +60,7 @@ class JavaModule extends FileModule
 
             setJavaBuildProperties(project)
 
-            if (ModuleResources.isApplicable(project))
-                project.apply plugin: 'org.labkey.moduleResources'
+            project.apply plugin: 'org.labkey.moduleResources'
             if (Api.isApplicable(project))
                 project.apply plugin: 'org.labkey.api'
 
