@@ -12,9 +12,16 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### version 1.17.1
+*Released*: 13 September 2020
+(Earliest compatible LabKey version: 20.9)
+* Add explicit dependency between the process*Resources tasks and the npmRun task since we may produce *.lib.xml files
+from npmRun now
+* When finding lib.xml files to compress, don't use a cached map of these files since they may now be being created by npm
+
 ### version 1.17.0
 *Released*: 10 September 2020
-(Earliest compatible LabKey verson: 20.9)
+(Earliest compatible LabKey version: 20.9)
 * Remove gradlePlugin type (no longer included under regular enlistment) and update module paths in comments
 * Adjust moduleTemplate for removal of appendNavTrail in favor of addNavTrail
 * Add missing dependency version numbers for some base module dependencies
