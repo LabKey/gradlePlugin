@@ -12,6 +12,13 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### version TBD
+*Release*: TBD
+(Earliest compatible LabKey version: 20.9)
+* Fix typo in module template controller class
+* Remove duplicate jars in war file artifact
+* 
+
 ### version 1.17.1
 *Released*: 13 September 2020
 (Earliest compatible LabKey version: 20.9)

@@ -370,7 +370,7 @@ class ModuleDistribution extends DefaultTask
             ant.unzip(src: new File(getModulesDir(),moduleFile), dest: explodedDir)
         })
 
-        ant.zip(destfile: warArchivePath) {
+        ant.zip(destfile: warArchivePath, duplicate:preserve) {
 
             zipfileset(dir: staging.webappDir,
                     prefix: "") {
