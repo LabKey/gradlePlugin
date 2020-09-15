@@ -163,7 +163,6 @@ class Jsp implements Plugin<Project>
                             copy.into "${project.buildDir}/${project.jspCompile.tempDir}/webapp"
                             copy.include 'WEB-INF/web.xml'
                             copy.include 'WEB-INF/*.tld'
-                            copy.include 'WEB-INF/tags/**'
                             copy.include 'WEB-INF/*.jspf'
                         })
                 }
