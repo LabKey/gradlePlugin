@@ -17,7 +17,7 @@ on how to do that, including how to develop and test locally and the versioning 
 (Earliest compatible LabKey version: 20.9)
 * Fix typo in module template controller class
 * Remove duplicate jars in war file artifact
-* 
+* Allow for module dependencies to come from different groups
 
 ### version 1.17.1
 *Released*: 13 September 2020

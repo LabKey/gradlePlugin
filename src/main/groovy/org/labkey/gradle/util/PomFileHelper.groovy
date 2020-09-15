@@ -125,7 +125,7 @@ class PomFileHelper
                 depNode.appendNode("scope", pomProperties.getProperty("scope"))
                 if (isModulePom) {
                     depNode.appendNode("type", pomProperties.getProperty("type"))
-                    depNode.appendNode("groupId", pomProperties.getProperty("groupId"))
+                    depNode.appendNode("groupId", it.group + ".module")
                 } else {
                     depNode.appendNode("groupId", it.group)
                 }
