@@ -18,6 +18,7 @@ on how to do that, including how to develop and test locally and the versioning 
 * Fix typo in module template controller class
 * Remove duplicate jars in war file artifact
 * Allow for module dependencies to come from different groups
+* Support use of JSP Fragment (`.jspf`) files in WEB-INF directories for JSP compilation
 
 ### version 1.17.1
 *Released*: 13 September 2020
