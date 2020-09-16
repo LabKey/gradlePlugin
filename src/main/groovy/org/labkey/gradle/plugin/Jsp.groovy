@@ -157,7 +157,7 @@ class Jsp implements Plugin<Project>
                 {
                     Copy task ->
                         task.group =  GroupNames.JSP
-                        task.description = "Copy the tag library (.tld) and JSP Fragment .jspf files to jsp compile directory"
+                        task.description = "Copy the web.xml, tag library (.tld), and JSP Fragment (.jspf) files to jsp compile directory"
                         task.configure({ CopySpec copy ->
                             copy.from "${project.rootProject.buildDir}/webapp"
                             copy.into "${project.buildDir}/${project.jspCompile.tempDir}/webapp"
