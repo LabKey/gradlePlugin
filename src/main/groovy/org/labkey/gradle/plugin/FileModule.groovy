@@ -29,12 +29,13 @@ import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
+import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.PropertiesUtils
 
 import java.util.regex.Matcher
+
 /**
  * This class is used for building a LabKey file-based module, which contains only client-side code.
  * It also serves as a base class for the Java module classes.
@@ -72,6 +73,7 @@ class FileModule implements Plugin<Project>
         })
 
         project.extensions.create("lkModule", ModuleExtension, project)
+        addSourceSet(project)
         applyPlugins(project)
         addConfigurations(project)
         addTasks(project)
@@ -88,7 +90,10 @@ class FileModule implements Plugin<Project>
     {
         List<String> indicators = new ArrayList<>()
         if (project.file(SKIP_BUILD_FILE).exists())
+        {
+            project.logger.quiet("Support for the use of " + SKIP_BUILD_FILE + " is deprecated and will be removed after LabKey version 20.11")
             indicators.add(SKIP_BUILD_FILE + " exists")
+        }
         if (!project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
             indicators.add(ModuleExtension.MODULE_PROPERTIES_FILE + " does not exist")
         if (project.labkey.skipBuild)
@@ -102,6 +107,10 @@ class FileModule implements Plugin<Project>
     }
 
 
+    private void addSourceSet(Project project)
+    {
+        ModuleResources.addSourceSet(project)
+    }
 
     protected void applyPlugins(Project project)
     {
@@ -114,16 +123,13 @@ class FileModule implements Plugin<Project>
         }
         else
         {
-            project.apply plugin: 'org.labkey.moduleResources'
-
             if (SpringConfig.isApplicable(project))
                 project.apply plugin: 'org.labkey.springConfig'
 
             if (Webapp.isApplicable(project))
                 project.apply plugin: 'org.labkey.webapp'
 
-            if (ClientLibraries.isApplicable(project))
-                project.apply plugin: 'org.labkey.clientLibraries'
+            ClientLibraries.addTasks(project)
 
             if (NpmRun.isApplicable(project))
                 project.apply plugin: 'org.labkey.npmRun'
@@ -140,6 +146,8 @@ class FileModule implements Plugin<Project>
 
     protected void addTasks(Project project)
     {
+        ModuleResources.addTasks(project)
+
         File moduleXmlFile = new File("${project.labkey.explodedModuleConfigDir}/module.xml")
         project.tasks.register('moduleXml') {
             Task task ->
@@ -217,7 +225,7 @@ class FileModule implements Plugin<Project>
                 moduleFile.dependsOn(project.tasks.processResources)
             moduleFile.dependsOn(moduleXmlTask)
             setJarManifestAttributes(project, (Manifest) moduleFile.manifest)
-            if (project.getPlugins().findPlugin(ClientLibraries.class) != null && !LabKeyExtension.isDevMode(project))
+            if (!LabKeyExtension.isDevMode(project))
                 moduleFile.dependsOn(project.tasks.compressClientLibs)
             project.tasks.build.dependsOn(moduleFile)
             project.tasks.clean.dependsOn(project.tasks.cleanModule)
@@ -291,12 +299,6 @@ class FileModule implements Plugin<Project>
                 "Implementation-Title": project.lkModule.getPropertyValue("Label", project.name),
                 "Implementation-Vendor": "LabKey"
         )
-
-    }
-
-    static boolean hasClientLibraries(Project project)
-    {
-        return ClientLibraries.isApplicable(project) || Gwt.isApplicable(project) || Webapp.isApplicable(project)
     }
 
     static undeployModule(Project project)

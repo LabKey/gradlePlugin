@@ -60,7 +60,6 @@ class JavaModule extends FileModule
 
             setJavaBuildProperties(project)
 
-            project.apply plugin: 'org.labkey.moduleResources'
             if (Api.isApplicable(project))
                 project.apply plugin: 'org.labkey.api'
 
@@ -70,8 +69,7 @@ class JavaModule extends FileModule
             if (Webapp.isApplicable(project))
                 project.apply plugin: 'org.labkey.webapp'
 
-            if (ClientLibraries.isApplicable(project))
-                project.apply plugin: 'org.labkey.clientLibraries'
+            ClientLibraries.addTasks(project)
 
             if (Jsp.isApplicable(project))
                 project.apply plugin: 'org.labkey.jsp'
@@ -130,6 +128,7 @@ class JavaModule extends FileModule
 
     private void addSourceSets(Project project)
     {
+        ModuleResources.addSourceSet(project)
         project.sourceSets {
             main {
                 java {
