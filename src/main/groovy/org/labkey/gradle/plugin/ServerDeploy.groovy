@@ -308,7 +308,7 @@ class ServerDeploy implements Plugin<Project>
     private linkBinaries(Project project, String packageMgr, String version, workDirectory) {
 
         Project pmLinkProject = project.findProject(BuildUtils.getNodeBinProjectPath(project.gradle))
-        if (pmLiinkProject == null)
+        if (pmLinkProject == null)
             return
 
         File linkContainer = new File("${project.rootDir}/${project.npmWorkDirectory}")
