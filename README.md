@@ -12,6 +12,15 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### version 1.18.0
+*Release*: 17 September 2020
+(Earliest compatible LabKey version: 20.9)
+* Fix typo in module template controller class
+* Remove duplicate jars in war file artifact
+* Allow for module dependencies to come from different groups
+* Support use of JSP Fragment (`.jspf`) files in WEB-INF directories for JSP compilation
+* Convert ModuleResources and ClientLibraries from plugins to helper classes (for efficiency)
+
 ### version 1.17.1
 *Released*: 13 September 2020
 (Earliest compatible LabKey version: 20.9)

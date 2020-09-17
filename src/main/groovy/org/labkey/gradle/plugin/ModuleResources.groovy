@@ -15,34 +15,19 @@
  */
 package org.labkey.gradle.plugin
 
-import org.gradle.api.Plugin
+
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.SourceSet
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.task.GzipAction
 import org.labkey.gradle.task.WriteDependenciesFile
-/**
- * TODO probably more efficient to fold this into the SimpleModule plugin
- */
-class ModuleResources implements Plugin<Project>
+
+class ModuleResources
 {
     private static final String DIR_NAME = "resources"
 
-    static boolean isApplicable(Project project)
-    {
-        return project.file(DIR_NAME).exists()
-    }
-
-    @Override
-    void apply(Project project)
-    {
-        project.apply plugin: 'java-base'
-        addSourceSet(project)
-        addTasks(project)
-    }
-
-    private void addTasks(Project project)
+    static void addTasks(Project project)
     {
         project.tasks.register("writeDependenciesList", WriteDependenciesFile) {
             Task task ->
@@ -53,7 +38,7 @@ class ModuleResources implements Plugin<Project>
         project.tasks.clean.dependsOn(project.tasks.cleanWriteDependenciesList)
     }
 
-    private void addSourceSet(Project project)
+    static void addSourceSet(Project project)
     {
         project.sourceSets
                 {

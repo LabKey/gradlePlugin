@@ -60,7 +60,6 @@ class JavaModule extends FileModule
 
             setJavaBuildProperties(project)
 
-            project.apply plugin: 'org.labkey.moduleResources'
             if (Api.isApplicable(project))
                 project.apply plugin: 'org.labkey.api'
 
@@ -70,8 +69,7 @@ class JavaModule extends FileModule
             if (Webapp.isApplicable(project))
                 project.apply plugin: 'org.labkey.webapp'
 
-            if (ClientLibraries.isApplicable(project))
-                project.apply plugin: 'org.labkey.clientLibraries'
+            ClientLibraries.addTasks(project)
 
             if (Jsp.isApplicable(project))
                 project.apply plugin: 'org.labkey.jsp'
@@ -98,6 +96,10 @@ class JavaModule extends FileModule
                 {
                     labkey // use this configuration for dependencies to labkey API jars that are needed for a module
                            // but don't need to show up in the dependencies.txt and jars.txt
+                    // TODO I think what's really wanted here is external.extendsFrom(api) and external.extendsFrom(implementation)
+                    // Then we change the gradle files to use api and implementation as per usual.  Perhaps we can then do away with
+                    // external altogether if we also get rid of jars.txt and we'll just copy from the api and implementation configurations
+                    // into explodedModule/lib. (Will also want to accommodate runtimeOnly)
                     api.extendsFrom(external)
                     implementation.extendsFrom(external)
                     implementation.extendsFrom(labkey)
@@ -130,6 +132,7 @@ class JavaModule extends FileModule
 
     private void addSourceSets(Project project)
     {
+        ModuleResources.addSourceSet(project)
         project.sourceSets {
             main {
                 java {

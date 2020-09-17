@@ -306,10 +306,13 @@ class ServerDeploy implements Plugin<Project>
     }
 
     private linkBinaries(Project project, String packageMgr, String version, workDirectory) {
+
+        Project pmLinkProject = project.findProject(BuildUtils.getNodeBinProjectPath(project.gradle))
+        if (pmLinkProject == null)
+            return
+
         File linkContainer = new File("${project.rootDir}/${project.npmWorkDirectory}")
         linkContainer.mkdirs()
-
-        Project pmLinkProject = project.project(BuildUtils.getNodeBinProjectPath(project.gradle))
 
         Path pmLinkPath = Paths.get("${linkContainer.getPath()}/${packageMgr}")
         String pmDirName = "${packageMgr}-v${version}"
