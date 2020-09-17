@@ -96,6 +96,10 @@ class JavaModule extends FileModule
                 {
                     labkey // use this configuration for dependencies to labkey API jars that are needed for a module
                            // but don't need to show up in the dependencies.txt and jars.txt
+                    // TODO I think what's really wanted here is external.extendsFrom(api) and external.extendsFrom(implementation)
+                    // Then we change the gradle files to use api and implementation as per usual.  Perhaps we can then do away with
+                    // external altogether if we also get rid of jars.txt and we'll just copy from the api and implementation configurations
+                    // into explodedModule/lib. (Will also want to accommodate runtimeOnly)
                     api.extendsFrom(external)
                     implementation.extendsFrom(external)
                     implementation.extendsFrom(labkey)
