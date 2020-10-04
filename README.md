@@ -17,6 +17,7 @@ on how to do that, including how to develop and test locally and the versioning 
 (Earliest compatible LabKey version: 20.9)
 * Make sure we don't duplicate the .module suffix in the groupId for modules dependencies
 * Prepare for relocation of webapps directory under server/configs/webapps
+* Make external config extend from runtimeOnly so we pick up those jars in the module's lib directory as well.
 
 ### version 1.18.0
 *Release*: 17 September 2020
