@@ -12,6 +12,12 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### version TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 20.9)
+* Make sure we don't duplicate the .module suffix in the groupId for modules dependencies
+* Prepare for relocation of webapps directory under server/configs/webapps
+
 ### version 1.18.0
 *Release*: 17 September 2020
 (Earliest compatible LabKey version: 20.9)

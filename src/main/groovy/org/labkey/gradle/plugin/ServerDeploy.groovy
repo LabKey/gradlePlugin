@@ -55,7 +55,7 @@ class ServerDeploy implements Plugin<Project>
         serverDeploy.modulesDir = "${serverDeploy.dir}/modules"
         serverDeploy.webappDir = "${serverDeploy.dir}/labkeyWebapp"
         serverDeploy.binDir = "${serverDeploy.dir}/bin"
-        serverDeploy.rootWebappsDir = "${project.rootDir}/webapps"
+        serverDeploy.rootWebappsDir = BuildUtils.getWebappConfigPath(project)
         serverDeploy.pipelineLibDir = "${serverDeploy.dir}/pipelineLib"
         addTasks(project)
     }

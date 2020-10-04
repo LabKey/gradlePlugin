@@ -106,9 +106,9 @@ class DoThenSetup extends DefaultTask
             Properties configProperties = databaseProperties.getConfigProperties()
             configProperties.setProperty("appDocBase", appDocBase)
             boolean isNextLineComment = false
-
+            String webappsDir = BuildUtils.getWebappConfigPath(project)
             project.copy({ CopySpec copy ->
-                copy.from "${project.rootProject.projectDir}/webapps"
+                copy.from webappsDir
                 copy.into "${project.rootProject.buildDir}"
                 copy.include "labkey.xml"
                 copy.filter({ String line ->
