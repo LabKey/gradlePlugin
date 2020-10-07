@@ -12,6 +12,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### version 1.18.1
+*Release*: ??
+(Earliest compatible LabKey version: 20.9)
+* Add TeamCity property to allow LabKey to load resources from module source
+
 ### version 1.18.0
 *Release*: 17 September 2020
 (Earliest compatible LabKey version: 20.9)
