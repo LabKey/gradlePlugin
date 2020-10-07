@@ -69,9 +69,9 @@ class TeamCity extends Tomcat
             project.tomcat.trustStore = "-Djavax.net.ssl.trustStore=${project.tomcat.catalinaHome}/localhost.truststore"
             project.tomcat.trustStorePassword = "-Djavax.net.ssl.trustStorePassword=changeit"
         }
+        project.tomcat.disableRecompileJsp = true
         if (extension.getTeamCityProperty("allowResourceReloading", null) == null)
         {
-            project.tomcat.disableRecompileJsp = true
             project.tomcat.ignoreModuleSource = true
         }
         project.tomcat.debugPort = extension.getTeamCityProperty("tomcat.debug") // Tomcat intermittently hangs on shutdown if we don't specify a debug port
