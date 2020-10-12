@@ -99,9 +99,10 @@ class JavaModule extends FileModule
                     // TODO I think what's really wanted here is external.extendsFrom(api) and external.extendsFrom(implementation)
                     // Then we change the gradle files to use api and implementation as per usual.  Perhaps we can then do away with
                     // external altogether if we also get rid of jars.txt and we'll just copy from the api and implementation configurations
-                    // into explodedModule/lib. (Will also want to accommodate runtimeOnly)
+                    // into explodedModule/lib.
                     api.extendsFrom(external)
                     implementation.extendsFrom(external)
+                    external.extendsFrom(runtimeOnly)
                     implementation.extendsFrom(labkey)
                     dedupe {
                         canBeConsumed = false
@@ -235,6 +236,7 @@ class JavaModule extends FileModule
             return null
 
         config = labkeyConfig == null ? config : (config == null ? labkeyConfig : config + labkeyConfig)
+
 
         // trim nothing from api
         if (BuildUtils.isApi(project))

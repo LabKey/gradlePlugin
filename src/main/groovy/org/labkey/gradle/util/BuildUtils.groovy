@@ -16,6 +16,7 @@
 package org.labkey.gradle.util
 
 import org.apache.commons.lang3.StringUtils
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
@@ -66,8 +67,6 @@ class BuildUtils
             "externalModules/snprcEHRModules",
             "externalModules/DISCVR"
     ]
-
-    public static final List<String> EXTERNAL_MODULE_DIRS = ["externalModules/scharp"] + EHR_EXTERNAL_MODULE_DIRS
 
     // matches on: name-X.Y.Z-SNAPSHOT.jar, name-X.Y.Z.word[-SNAPSHOT][-classifier].jar, name-X.Y.Z-SNAPSHOT-classifier.jar, name-X.Y.Z_branch-SNAPSHOT.jar, name-X.Y.Z_branch-SNAPSHOT-classifier.extension name-X.Y.Z.extension
     // Groups are:
@@ -748,5 +747,15 @@ class BuildUtils
     static String getProjectPath(Gradle gradle, String propertyName, String defaultValue)
     {
         return gradle.hasProperty(propertyName) ? gradle.getProperty(propertyName) : defaultValue
+    }
+
+    static String getWebappConfigPath(Project project)
+    {
+        if (project.rootProject.file("webapps").exists())
+            return "${project.rootProject.projectDir}/webapps/"
+        else if (project.rootProject.file("server/configs/webapps").exists())
+            return "${project.rootProject.projectDir}/server/configs/webapps/"
+        else
+            throw new GradleException("Unable to find webapps config directory")
     }
 }
