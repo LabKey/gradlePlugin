@@ -31,7 +31,7 @@ class Module extends JavaModule
     {
         super.apply(project)
 
-        if (!AntBuild.isApplicable(project))
+        if (!AntBuild.isApplicable(project) && _shouldDoBuild(project, false))
         {
             addDependencies(project)
         }

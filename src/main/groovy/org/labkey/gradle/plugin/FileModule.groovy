@@ -67,18 +67,15 @@ class FileModule implements Plugin<Project>
         }
 
         project.apply plugin: 'java-base'
-
-        project.build.onlyIf ({
-            return shouldDoBuild(project)
-        })
-
-        project.extensions.create("lkModule", ModuleExtension, project)
-        addSourceSet(project)
-        applyPlugins(project)
-        addConfigurations(project)
-        addTasks(project)
-        addDependencies(project)
-        addArtifacts(project)
+        if (shouldDoBuild(project)) {
+            project.extensions.create("lkModule", ModuleExtension, project)
+            addSourceSet(project)
+            applyPlugins(project)
+            addConfigurations(project)
+            addTasks(project)
+            addDependencies(project)
+            addArtifacts(project)
+        }
     }
 
     static boolean shouldDoBuild(Project project)
@@ -86,7 +83,7 @@ class FileModule implements Plugin<Project>
         return _shouldDoBuild(project, true)
     }
 
-    private static boolean _shouldDoBuild(Project project, boolean logMessages)
+    protected static boolean _shouldDoBuild(Project project, boolean logMessages)
     {
         List<String> indicators = new ArrayList<>()
         if (project.file(SKIP_BUILD_FILE).exists())
@@ -96,7 +93,7 @@ class FileModule implements Plugin<Project>
         }
         if (!project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
             indicators.add(ModuleExtension.MODULE_PROPERTIES_FILE + " does not exist")
-        if (project.labkey.skipBuild)
+        if (project.hasProperty("skipBuild"))
             indicators.add("skipBuild property set for Gradle project")
 
         if (indicators.size() > 0 && logMessages)
@@ -235,7 +232,7 @@ class FileModule implements Plugin<Project>
                         published moduleFile
                     }
 
-        project.tasks.register('deployModule')
+            project.tasks.register('deployModule')
                 { Task task ->
                     task.group = GroupNames.MODULE
                     task.description = "copy a project's .module file to the local deploy directory"
@@ -504,10 +501,15 @@ class FileModule implements Plugin<Project>
                 if (project.configurations.findByName("modules") != null)
                     project.configurations.modules.dependencies.each {
                         Dependency dep ->
-                            if (dep instanceof ProjectDependency && dep.dependencyProject.getProjectDir().exists())
+                            if (dep instanceof ProjectDependency)
                             {
                                 ProjectDependency projectDep = (ProjectDependency) dep
-                                BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: projectDep.dependencyProject.getPath(), depProjectConfig: 'published', depExtension: 'module')
+                                if (_shouldDoBuild(projectDep.dependencyProject, false)) {
+                                    BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: projectDep.dependencyProject.getPath(), depProjectConfig: 'published', depExtension: 'module')
+                                }
+                                else {
+                                    serverProject.dependencies.add("modules", BuildUtils.getLabKeyArtifactName(project, projectDep.dependencyProject.getPath(), projectDep.version, "module"))
+                                }
                             }
                             else
                             {
