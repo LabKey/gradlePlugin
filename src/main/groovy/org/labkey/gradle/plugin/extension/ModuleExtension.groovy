@@ -74,8 +74,14 @@ class ModuleExtension
     {
         this.modProperties = new Properties()
         File propertiesFile = project.file(MODULE_PROPERTIES_FILE)
-        if (propertiesFile.exists())
+        if (propertiesFile.exists()) {
             PropertiesUtils.readProperties(propertiesFile, this.modProperties)
+            if (this.modProperties.get(MODULE_DEPENDENCIES_PROPERTY))
+                project.logger.quiet("${propertiesFile.absolutePath}: Use of the '" + MODULE_DEPENDENCIES_PROPERTY + "' property in " + MODULE_PROPERTIES_FILE + " has been deprecated and will be removed with the 21.3.0 release of LabKey Server." +
+                        " Declare the dependency in the module's build.gradle file instead using the 'modules' configuration." +
+                        " See https://www.labkey.org/Documentation/wiki-page.view?name=gradleDepend for more information.")
+
+        }
         else
             project.logger.info("${project.path} - no ${MODULE_PROPERTIES_FILE} found")
 
