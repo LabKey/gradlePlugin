@@ -19,6 +19,7 @@ on how to do that, including how to develop and test locally and the versioning 
 * Prepare for relocation of webapps directory under server/configs/webapps
 * Make external config extend from runtimeOnly so we pick up those jars in the module's lib directory as well.
 * Add TeamCity property to allow LabKey to load resources from module source
+* Officially Deprecate the use of `ModuleDependencies` in the `module.properties` file
 
 ### version 1.18.0
 *Release*: 17 September 2020
