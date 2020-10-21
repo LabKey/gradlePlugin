@@ -353,103 +353,70 @@ class BuildUtils
 
     static String getVersionNumber(Project project)
     {
+        String version = project.labkeyVersion
+
         if (project.hasProperty("versioning"))
         {
             String branch = project.versioning.info.branchId
-            // When a git module is on the "master" branch in git, this corresponds to the alpha branch
-            // at the root and we want to use that version for consistency with the SVN modules
-            if (branch.equalsIgnoreCase("master"))
-                return project.rootProject.version
-            else if (["trunk", "develop", "none"].contains(branch) || branch.toLowerCase().matches("release.*-snapshot"))
-                return project.labkeyVersion
-            else
+            if (!["trunk", "develop", ""].contains(branch) && !branch.toLowerCase().matches("release.*-snapshot"))
             {
-                String currentVersion = project.labkeyVersion
-                return currentVersion.replace("-SNAPSHOT", "_${branch}-SNAPSHOT")
+                Matcher matcher = Pattern.compile(".*fb_(.+)").matcher(branch)
+                if (matcher.matches()) {
+                    branch = matcher.group(1) // Trim leading 'fb_' or 'XX.Y_fb_'
+                }
+                version = version.replace("-SNAPSHOT", "-${branch}-SNAPSHOT")
             }
         }
-        return project.labkeyVersion
+
+        return version
     }
 
     /**
      * Gets the versioning string to be inserted into distribution artifacts.  This string has a slightly different
      * format depending on the branch in which the distributions are created:
-     *     Trunk - 19.1-SNAPSHOT-62300.800 (<Current labkeyVersion>-<VCSRevision>.<BuildCounter>)
-     *     Sprint (deprecated) - 17.3Sprint3-46992.4 (<labkey release version>Sprint<sprint number>-<VCSRevision>.<BuildNumber>)
-     *     Alpha - 19.1Alpha3-62239.3 (<labkey release version>Alpha<sprint number>-<VCSRevision>.<BuildCounter>)
-     *     Beta - 17.3Beta-47540.6 (<labkey release version>Beta-<VCSRevision>.<BuildNumber>)
+     *     Trunk/Develop - 20.11-SNAPSHOT-1500 (<Current labkeyVersion>-[<VCSRevision>.]<BuildNumber>)
+     *     Beta - 20.11Beta-6 (<labkey release version>Beta-[<VCSRevision>.]<BuildNumber>)
      *     (Beta means we are in a release branch, but have not yet released and updated from the snapshot version)
-     *     Release - 17.3-47926.26 (<labkey release version>-<VCSRevision>.<BuildNumber>)
+     *     Release - 20.11.0-1 (<Current labkeyVersion>-[<VCSRevision>.]<BuildNumber>)
      * See Issue 31165.
-     * @param project the distribution project
+     * @param project the distribution project. e.g. ':distributions:community'
      * @return the version string for this distribution project
      */
     static String getDistributionVersion(Project project)
     {
-        String version = project.labkeyVersion
-        project.logger.info("${project.path} version ${version}")
+        String distVersion = project.labkeyVersion
+        project.logger.info("${project.path} version ${distVersion}")
+
+        TeamCityExtension extension = project.getExtensions().findByType(TeamCityExtension.class)
+        if (extension != null)
+        {
+            if (!extension.buildBranchDefault)
+            {
+                distVersion = distVersion.replace("-SNAPSHOT", "-${extension.buildBranch}-SNAPSHOT")
+            }
+            String buildNumber = extension.getTeamCityProperty("build.number")
+            if (!StringUtils.isEmpty(buildNumber))
+            {
+                // Sometimes (probably when the root VCS is SVN), the build.number has the
+                // format <vcs revision>.<build counter> and sometimes (probably when the
+                // VCS is git) it's just <build counter>.  Preparing for the future.
+                String[] numberParts = buildNumber.split("\\.")
+                distVersion += ".${numberParts[numberParts.length-1]}"
+            }
+        }
+
         if (project.hasProperty("versioning"))
         {
             String rootBranch = project.rootProject.versioning.info.branchId
-            String lowerBranch = rootBranch.toLowerCase()
             project.logger.info("${project.path} rootBranch ${rootBranch}")
-
-            if (!["trunk", "master", "develop", "none"].contains(rootBranch))
+            if (rootBranch.startsWith("release") && /* e.g. release20.11-SNAPSHOT */
+                    project.labkeyVersion.contains("-SNAPSHOT")) /* e.g. 20.11-SNAPSHOT */
             {
-                if (lowerBranch.startsWith("alpha")) /* e.g. alpha_19.1_3 */
-                {
-                    version = version.replace("-SNAPSHOT", "")
-                    version += "Alpha"
-                    String[] nameParts = rootBranch.split("_")
-                    if (nameParts.length != 3)
-                        project.logger.error("Root branch name '${rootBranch}' not as expected.  Distribution name may not be as expected.");
-                    else
-                        version += nameParts[2]
-                }
-                else if (lowerBranch.startsWith("release") &&
-                        project.labkeyVersion.contains("-SNAPSHOT")) /* e.g. release18.3-SNAPSHOT */
-                {
-                    version = version.replace("-SNAPSHOT", "Beta");
-                }
+                distVersion = distVersion.replace("-SNAPSHOT", "Beta");
             }
-            // on trunk at the root and a feature branch in the project (rare, but possible, I guess)
-            String branch = project.versioning.info.branchId
-            project.logger.info("${project.path} branch ${branch}, version so far ${version}, vcsRevision ${project.rootProject.vcsRevision}")
-            if (!["trunk", "master", "develop", "none"].contains(branch))
-                version = version.replace("-SNAPSHOT", "_${branch}-SNAPSHOT")
-            version += "-" + project.rootProject.vcsRevision
-            TeamCityExtension extension  = project.getExtensions().findByType(TeamCityExtension.class)
-            if (extension != null)
-            {
-                String buildNumber = extension.getTeamCityProperty("build.number")
-                if (!StringUtils.isEmpty(buildNumber))
-                {
-                    // Sometimes (probably when the root VCS is SVN), the build.number has the
-                    // format <vcs revision>.<build counter> and sometimes (probably when the
-                    // VCS is git) it's just <build counter>.  Preparing for the future.
-                    String[] numberParts = buildNumber.split("\\.")
-                    version += ".${numberParts[numberParts.length-1]}"
-                }
-            }
-            project.logger.info("${project.path} version ${version}")
+            project.logger.info("${project.path} version ${distVersion}")
         }
-        return version
-    }
-
-    static String getModuleFileVersion(Project project)
-    {
-        String version = project.version
-        if (project.hasProperty("versioning"))
-        {
-            String branch = project.versioning.info.branchId
-            // When a git module is on the "master" branch in git, this corresponds to the alpha branch
-            // at the root and we want to use that version for consistency with the SVN modules
-            if (branch.equalsIgnoreCase("master"))
-            {
-                version = project.rootProject.version
-            }
-        }
-        return version
+        return distVersion
     }
 
     /**
@@ -496,7 +463,7 @@ class BuildUtils
             ret.setProperty("VcsTag", "Unknown")
             ret.setProperty("VcsURL", "Unknown")
             ret.setProperty("VcsRevision", "Unknown")
-            ret.setProperty("BuildNumber", "Unknown")
+            ret.setProperty("BuildNumber", (String) TeamCityExtension.getTeamCityProperty(project, "build.number", "Unknown"))
         }
         return ret
     }
