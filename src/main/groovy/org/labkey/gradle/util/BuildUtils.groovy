@@ -358,7 +358,8 @@ class BuildUtils
         if (project.hasProperty("versioning"))
         {
             String branch = project.versioning.info.branchId
-            if (!["trunk", "develop", ""].contains(branch) && !branch.toLowerCase().matches("release.*-snapshot"))
+            if (!["trunk", "develop", "master", "main", "none", ""].contains(branch) &&
+                    !branch.toLowerCase().matches("release.*-snapshot"))
             {
                 Matcher matcher = Pattern.compile(".*fb_(.+)").matcher(branch)
                 if (matcher.matches()) {
@@ -379,7 +380,7 @@ class BuildUtils
      *     (Beta means we are in a release branch, but have not yet released and updated from the snapshot version)
      *     Release - 20.11.0-1 (<Current labkeyVersion>-[<VCSRevision>.]<BuildNumber>)
      * See Issue 31165.
-     * @param project the distribution project. e.g. ':distributions:community'
+     * @param project the distribution project. e.g. project(':distributions:community')
      * @return the version string for this distribution project
      */
     static String getDistributionVersion(Project project)
