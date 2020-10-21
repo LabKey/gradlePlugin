@@ -16,6 +16,7 @@ on how to do that, including how to develop and test locally and the versioning 
 *Released*: TBD
 (Earliest compatible LabKey version: 20.9)
 * Fix distribution and module versioning to work with Git server respository
+* Add warnings about unsupported Version and ConsolidateScripts properties when found in module.properties files
 
 ### version 1.19.0
 *Released*: 14 October 2020
