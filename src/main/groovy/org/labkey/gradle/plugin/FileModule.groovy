@@ -213,7 +213,6 @@ class FileModule implements Plugin<Project>
                     jar.exclude "META-INF/${project.name}/**"
                     jar.exclude 'gwt-unitCache/**'
                     jar.archiveBaseName.set(project.name)
-                    jar.archiveVersion.set(BuildUtils.getModuleFileVersion(project))
                     jar.archiveExtension.set('module')
                     jar.destinationDirectory = project.buildDir
             }
