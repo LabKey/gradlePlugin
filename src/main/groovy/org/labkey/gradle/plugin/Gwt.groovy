@@ -119,6 +119,7 @@ class Gwt implements Plugin<Project>
                 String taskName ='compileGwt' + gwtModuleClass.getKey()
                 project.tasks.register(taskName, JavaExec) {
                     JavaExec java ->
+                        java.outputs.cacheIf {true}
                         java.group = GroupNames.GWT
                         java.description = "compile GWT source files for " + gwtModuleClass.getKey() + " into JS"
 

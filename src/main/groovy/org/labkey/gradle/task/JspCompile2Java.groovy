@@ -17,12 +17,14 @@ package org.labkey.gradle.task
 
 import org.apache.commons.io.FileUtils
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
 /**
  * Created by susanh on 4/5/16.
  */
+@CacheableTask
 class JspCompile2Java extends DefaultTask
 {
     @OutputDirectory

@@ -81,15 +81,15 @@ class NpmRun implements Plugin<Project>
             // If false, it will try to use globally installed node.
             download = project.hasProperty('nodeVersion') && project.hasProperty('npmVersion')
 
-            // Set the work directory for unpacking node
-            workDir = project.file("${project.buildDir}/${project.nodeWorkDirectory}/")
-
-            // Set the work directory for NPM
-            npmWorkDir = project.file("${project.buildDir}/${project.npmWorkDirectory}/")
-
-            if (project.hasProperty('yarnWorkDirectory'))
-                // Set the work directory for Yarn
-                yarnWorkDir = project.file("${project.buildDir}/${project.yarnWorkDirectory}")
+//            // Set the work directory for unpacking node
+//            workDir = project.file("${project.buildDir}/${project.nodeWorkDirectory}/")
+//
+//            // Set the work directory for NPM
+//            npmWorkDir = project.file("${project.buildDir}/${project.npmWorkDirectory}/")
+//
+//            if (project.hasProperty('yarnWorkDirectory'))
+//                // Set the work directory for Yarn
+//                yarnWorkDir = project.file("${project.buildDir}/${project.yarnWorkDirectory}")
 
             // Set the work directory where node_modules should be located
             nodeModulesDir = project.file("${project.projectDir}")
@@ -156,12 +156,22 @@ class NpmRun implements Plugin<Project>
         if (project.tasks.findByName("clean") != null)
             project.tasks.clean.dependsOn(project.tasks.npmRunClean)
 
+        // TODO is this necessary if we are using the default locations?
+        project.tasks.nodeSetup.onlyIf {
+            !project.tasks.nodeSetup.nodeDir.exists()
+        }
+
+        project.tasks.npmSetup.onlyIf {
+            !project.tasks.npmSetup.npmDir.exists()
+        }
+
         def npmRunBuildProd = project.tasks.register("npmRunBuildProd")
                 {Task task ->
                     task.group = GroupNames.NPM_RUN
                     task.description = "Runs 'npm run ${project.npmRun.buildProd}'"
                     task.dependsOn "npm_run_${project.npmRun.buildProd}"
                     task.mustRunAfter "npmInstall"
+
                 }
         addTaskInputOutput(project.tasks.npmRunBuildProd)
         addTaskInputOutput(project.tasks.getByName("npm_run_${project.npmRun.buildProd}"))
@@ -173,6 +183,7 @@ class NpmRun implements Plugin<Project>
                     task.dependsOn "npm_run_${project.npmRun.buildDev}"
                     task.mustRunAfter "npmInstall"
                 }
+
         addTaskInputOutput(project.tasks.npmRunBuild)
         addTaskInputOutput(project.tasks.getByName("npm_run_${project.npmRun.buildDev}"))
 
@@ -256,7 +267,9 @@ class NpmRun implements Plugin<Project>
         task.inputs.files task.project.fileTree(dir: "resources", includes: ["styles/**/*", "themes/**/*"])
 
         // common output file pattern for client artifacts
-        task.outputs.files task.project.fileTree(dir: "resources", includes: ["web/**/*"])
+//        task.outputs.files task.project.fileTree(dir: "resources", includes: ["web/**/*"])
+        task.outputs.dir task.project.file("resources/web/${task.project.name}/gen")
+        task.outputs.cacheIf({true})
     }
 }
 

@@ -185,6 +185,7 @@ class Jsp implements Plugin<Project>
                if (project.hasProperty('apiJar'))
                    task.dependsOn('apiJar')
                task.dependsOn('jar')
+               task.outputs.cacheIf({true})
         }
 
         project.tasks.compileJspJava {
@@ -200,6 +201,7 @@ class Jsp implements Plugin<Project>
                  jar.archiveBaseName.set("${project.name}${BASE_NAME_EXTENSION}")
                  jar.destinationDirectory = project.file(project.labkey.explodedModuleLibDir)
                  jar.dependsOn(project.tasks.compileJspJava)
+                 jar.outputs.cacheIf({true})
          }
 
         project.artifacts {
