@@ -32,10 +32,15 @@ class ModuleExtension
     private Properties modProperties
     private Project project
 
-    ModuleExtension(Project project)
+    ModuleExtension(Project project, boolean logDeprecations)
     {
         this.project = project
-        setModuleProperties(project)
+        setModuleProperties(project, logDeprecations)
+    }
+
+    ModuleExtension(Project project)
+    {
+        this(project, true);
     }
 
     Project getProject()
@@ -70,17 +75,28 @@ class ModuleExtension
         modProperties.setProperty(propertyName, value)
     }
 
-    void setModuleProperties(Project project)
+    void setModuleProperties(Project project, boolean logDeprecations)
     {
         this.modProperties = new Properties()
         File propertiesFile = project.file(MODULE_PROPERTIES_FILE)
         if (propertiesFile.exists()) {
             PropertiesUtils.readProperties(propertiesFile, this.modProperties)
-            if (this.modProperties.get(MODULE_DEPENDENCIES_PROPERTY))
-                project.logger.quiet("${propertiesFile.absolutePath}: Use of the '" + MODULE_DEPENDENCIES_PROPERTY + "' property in " + MODULE_PROPERTIES_FILE + " has been deprecated and will be removed with the 21.3.0 release of LabKey Server." +
-                        " Declare the dependency in the module's build.gradle file instead using the 'modules' configuration." +
-                        " See https://www.labkey.org/Documentation/wiki-page.view?name=gradleDepend for more information.")
+            if (logDeprecations) {
+                List<String> deprecationMsgs = [];
+                if (this.modProperties.get(MODULE_DEPENDENCIES_PROPERTY))
+                    deprecationMsgs += "Use of the '" + MODULE_DEPENDENCIES_PROPERTY + "' property in " + MODULE_PROPERTIES_FILE + " has been deprecated and will be removed with the 21.3.0 release of LabKey Server." +
+                            " Declare the dependency in the module's build.gradle file instead using the 'modules' configuration." +
+                            " See https://www.labkey.org/Documentation/wiki-page.view?name=gradleDepend for more information."
 
+                if (this.modProperties.get("ConsolidateScripts"))
+                    deprecationMsgs += "The 'ConsolidateScripts' property is no longer supported."
+                if (this.modProperties.get("Version"))
+                    deprecationMsgs += "The 'Version' property is no longer supported."
+                if (!deprecationMsgs.isEmpty())
+                    project.logger.quiet("${propertiesFile.absolutePath}: Deprecated or unsupported properties detected.\n\t"
+                            + deprecationMsgs.join("\n\t")
+                            + "\nRefer to https://www.labkey.org/Documentation/wiki-page.view?name=includeModulePropertiesFile for the current set of supported properties.")
+            }
         }
         else
             project.logger.info("${project.path} - no ${MODULE_PROPERTIES_FILE} found")

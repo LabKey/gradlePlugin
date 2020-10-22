@@ -92,7 +92,7 @@ class LabKeyExtension
         pomProperties.put("OrganizationURL", "http://www.labkey.org")
         pomProperties.put("License", "The Apache Software License, Version 2.0")
         pomProperties.put("LicenseURL", "http://www.apache.org/licenses/LICENSE-2.0.txt")
-        ModuleExtension modExtension = new ModuleExtension(project)
+        ModuleExtension modExtension = new ModuleExtension(project, false)
         pomProperties.putAll(modExtension.getModProperties())
 
         if (description != null)
