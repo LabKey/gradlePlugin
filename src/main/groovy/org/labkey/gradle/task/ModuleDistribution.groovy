@@ -15,18 +15,12 @@
  */
 package org.labkey.gradle.task
 
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileTree
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.OutputFiles
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.plugin.extension.StagingExtension
 import org.labkey.gradle.util.BuildUtils
@@ -51,15 +45,14 @@ class ModuleDistribution extends DefaultTask
     @Optional @Input
     String subDirName
     @Optional @Input
-    String artifactName
+    String archivePrefix = "LabKey"
+    @Optional @Input
+    String archiveName
 
     @OutputDirectory
     File distributionDir
 
-    @Optional @Input
-    String archivePrefix
-
-    private DistributionExtension distExtension
+    private final DistributionExtension distExtension
 
     ModuleDistribution()
     {
@@ -106,27 +99,12 @@ class ModuleDistribution extends DefaultTask
 
     }
 
-    private String getResolvedVersionPrefix()
-    {
-        if (versionPrefix == null)
-            versionPrefix = "LabKey${BuildUtils.getDistributionVersion(project)}${extraFileIdentifier}"
-        return versionPrefix
-    }
-
-    private String getResolvedArchivePrefix()
-    {
-        if (archivePrefix == null)
-            archivePrefix = "${getResolvedVersionPrefix()}-bin"
-        return archivePrefix
-    }
-
     @OutputDirectory
     File getModulesDir()
     {
         // we use a common directory to save on disk space for TeamCity.  This mimics the behavior of the ant build.
         // (This is just a conjecture about why it continues to run out of space and not be able to copy files from one place to the other).
         return new File("${project.rootProject.buildDir}/distModules")
-//        return new File(project.buildDir, "modules")
     }
 
     private void gatherModules()
@@ -190,31 +168,28 @@ class ModuleDistribution extends DefaultTask
         return subDirName
     }
 
-    String getArtifactName()
+    String getArchiveName()
     {
-        if (artifactName == null)
+        if (archiveName == null)
         {
-            if (makeDistribution)
-                artifactName = getResolvedArchivePrefix()
-            else
-                artifactName = getResolvedVersionPrefix()
+            archiveName = "${archivePrefix}${BuildUtils.getDistributionVersion(project)}${extraFileIdentifier}"
         }
-        return artifactName
+        return archiveName
     }
 
     private String getTarArchivePath()
     {
-        return "${getResolvedDistributionDir()}/${getArtifactName()}.tar.gz"
+        return "${getResolvedDistributionDir()}/${getArchiveName()}.tar.gz"
     }
 
     private String getZipArchivePath()
     {
-        return "${getResolvedDistributionDir()}/${getArtifactName()}.zip"
+        return "${getResolvedDistributionDir()}/${getArchiveName()}.zip"
     }
 
     private String getWarArchivePath()
     {
-        return "${getResolvedDistributionDir()}/${getArtifactName()}.war"
+        return "${getResolvedDistributionDir()}/${getArchiveName()}.war"
     }
 
     private File getWindowsUtilDir()
@@ -237,7 +212,6 @@ class ModuleDistribution extends DefaultTask
 
     private void tarArchives()
     {
-        String archivePrefix = getResolvedArchivePrefix()
         if (makeDistribution)
         {
             copyWindowsCoreUtilities()
@@ -248,32 +222,32 @@ class ModuleDistribution extends DefaultTask
                     longfile: "gnu",
                     compression: "gzip") {
                 tarfileset(dir: staging.webappDir,
-                        prefix: "${archivePrefix}/labkeywebapp") {
+                        prefix: "${archiveName}/labkeywebapp") {
                     exclude(name: "WEB-INF/classes/distribution")
                 }
                 tarfileset(dir: getModulesDir(),
-                        prefix: "${archivePrefix}/modules") {
+                        prefix: "${archiveName}/modules") {
                     include(name: "*.module")
                 }
-                tarfileset(dir: staging.tomcatLibDir, prefix: "${archivePrefix}/tomcat-lib") {
+                tarfileset(dir: staging.tomcatLibDir, prefix: "${archiveName}/tomcat-lib") {
                     // this exclusion is necessary because for some reason when buildFromSource=false,
                     // the tomcat bootstrap jar is included in the staged libraries and the LabKey bootstrap jar is not.
                     // Not sure why.
                     exclude(name: "bootstrap.jar")
                 }
 
-                tarfileset(dir: utilsDir.path, prefix: "${archivePrefix}/bin")
+                tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
 
-                tarfileset(dir: staging.pipelineLibDir, prefix: "${archivePrefix}/pipeline-lib")
+                tarfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
 
                 tarfileset(dir: "${project.buildDir}/",
-                        prefix: archivePrefix,
+                        prefix: archiveName,
                         mode: 744) {
                     include(name: "manual-upgrade.sh")
                 }
 
                 tarfileset(dir: project.buildDir,
-                        prefix: archivePrefix) {
+                        prefix: archiveName) {
                     include(name: "README.txt")
                     include(name: "VERSION")
                     include(name: "labkeywebapp/**")
@@ -288,7 +262,7 @@ class ModuleDistribution extends DefaultTask
                     longfile: "gnu",
                     compression: "gzip") {
                 tarfileset(dir: getModulesDir(),
-                        prefix: "${archivePrefix}/modules") {
+                        prefix: "${archiveName}/modules") {
                     include(name: "*.module")
                 }
             }
@@ -298,7 +272,6 @@ class ModuleDistribution extends DefaultTask
 
     private void zipArchives()
     {
-        String archivePrefix = this.getResolvedArchivePrefix()
         if (makeDistribution)
         {
             copyWindowsCoreUtilities();
@@ -307,32 +280,32 @@ class ModuleDistribution extends DefaultTask
 
             ant.zip(destfile: getZipArchivePath()) {
                 zipfileset(dir: staging.webappDir,
-                        prefix: "${archivePrefix}/labkeywebapp") {
+                        prefix: "${archiveName}/labkeywebapp") {
                     exclude(name: "WEB-INF/classes/distribution")
                 }
                 zipfileset(dir: getModulesDir(),
-                        prefix: "${archivePrefix}/modules") {
+                        prefix: "${archiveName}/modules") {
                     include(name: "*.module")
                 }
-                zipfileset(dir: staging.tomcatLibDir, prefix: "${archivePrefix}/tomcat-lib") {
+                zipfileset(dir: staging.tomcatLibDir, prefix: "${archiveName}/tomcat-lib") {
                     // this exclusion is necessary because for some reason when buildFromSource=false,
                     // the tomcat bootstrap jar is included in the staged libraries and the LabKey bootstrap jar is not.
                     // Not sure why.
                     exclude(name: "bootstrap.jar")
                 }
 
-                zipfileset(dir: utilsDir.path, prefix: "${archivePrefix}/bin")
+                zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
 
-                zipfileset(dir: staging.pipelineLibDir, prefix: "${archivePrefix}/pipeline-lib")
+                zipfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
 
                 zipfileset(dir: "${project.buildDir}/",
-                        prefix: "${archivePrefix}",
+                        prefix: "${archiveName}",
                         filemode: 744){
                     include(name: "manual-upgrade.sh")
                 }
 
                 zipfileset(dir: "${project.buildDir}/",
-                        prefix: "${archivePrefix}") {
+                        prefix: "${archiveName}") {
                     include(name: "README.txt")
                     include(name: "VERSION")
                     include(name: "labkeywebapp/**")
@@ -345,7 +318,7 @@ class ModuleDistribution extends DefaultTask
         {
             ant.zip(destfile: getZipArchivePath()) {
                 zipfileset(dir: getModulesDir(),
-                        prefix: "${archivePrefix}/modules") {
+                        prefix: "${archiveName}/modules") {
                     include(name: "*.module")
                 }
             }

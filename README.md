@@ -18,6 +18,12 @@ on how to do that, including how to develop and test locally and the versioning 
 * Designate certain tasks as cacheable for more efficient builds
 * Use default locations, not in the build directory, for NpmRun tasks for more efficient builds
 
+### version 1.20.0
+*Released*: 22 October 2020
+(Earliest compatible LabKey version: 20.9)
+* Fix distribution and module versioning to work with Git server repository
+* Add warnings about unsupported Version and ConsolidateScripts properties when found in module.properties files
+
 ### version 1.19.0
 *Released*: 14 October 2020
 (Earliest compatible LabKey version: 20.9)
