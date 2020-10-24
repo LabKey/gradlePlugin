@@ -22,7 +22,6 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
-import org.labkey.gradle.plugin.extension.JspCompileExtension
 import org.labkey.gradle.task.JspCompile2Java
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
@@ -58,7 +57,6 @@ class Jsp implements Plugin<Project>
     void apply(Project project)
     {
         project.apply plugin: 'java-base'
-        project.extensions.create("jspCompile", JspCompileExtension)
 
         addConfiguration(project)
         addDependencies(project)
@@ -72,7 +70,7 @@ class Jsp implements Plugin<Project>
                 {
                     jsp {
                         java {
-                            srcDirs = ["${project.buildDir}/${project.jspCompile.classDir}"]
+                            srcDirs = ["${project.buildDir}/${JspCompile2Java.CLASSES_DIR}"]
                         }
                     }
                 }
