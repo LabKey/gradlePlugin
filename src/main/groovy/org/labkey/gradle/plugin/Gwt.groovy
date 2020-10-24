@@ -15,7 +15,7 @@
  */
 package org.labkey.gradle.plugin
 
-import org.apache.commons.lang3.StringUtils
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -27,6 +27,7 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.task.GzipAction
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
+
 /**
  * Used to compile GWT source files into Javascript
  */

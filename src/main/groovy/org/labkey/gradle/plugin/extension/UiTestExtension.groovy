@@ -21,9 +21,6 @@ import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.PropertiesUtils
 
-/**
- * Created by susanh on 4/23/17.
- */
 class UiTestExtension
 {
     String propertiesFile = "test.properties"

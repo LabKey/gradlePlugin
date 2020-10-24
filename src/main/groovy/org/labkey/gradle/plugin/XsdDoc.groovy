@@ -23,9 +23,7 @@ import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.XsdDocExtension
 import org.labkey.gradle.task.CreateXsdDocs
 import org.labkey.gradle.util.GroupNames
-/**
- * Created by susanh on 10/30/16.
- */
+
 class XsdDoc implements Plugin<Project>
 {
     static File getClientDocsBuildDir(Project project)
