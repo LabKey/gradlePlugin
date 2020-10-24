@@ -128,6 +128,7 @@ class JavaModule extends FileModule
             }
             jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
             jar.exclude '**/*.java'
+            jar.outputs.cacheIf({true})
         }
     }
 
