@@ -43,26 +43,6 @@ class DoThenSetup extends DefaultTask
             this.dependsOn serverProject.configurations.tomcatJars
     }
 
-    // Currently this type of task will always run because there are no declared inputs and outputs
-    // The following methods are probably close to the right things, but need to be tested thoroughly
-//    @InputFiles
-//    FileCollection getInputFiles() {
-//        FileCollection files = project.project(":server").configurations.tomcatJars
-//        return files.add(project.files(new File("${project.rootProject.projectDir}/webapps/labkey.xml")))
-//    }
-//
-//    @OutputFiles
-//    List<File> getOutputFiles() {
-//        List<File> files = new ArrayList<>();
-//        for (String jar : ServerDeploy.TOMCAT_LIB_UNVERSIONED_JARS) {
-//            files.add(new File(project.staging.tomcatLibDir, jar))
-//            files.add(new File("${project.tomcat.catalinaHome}/lib/${jar}"))
-//        }
-//        files.add(new File("${project.rootProject.buildDir}/labkey.xml"))
-//        files.add(new File("${project.tomcat.tomcatConfDir}/labkey.xml"))
-//        return files
-//    }
-
     private boolean canCreate(File file)
     {
         file = file.getParentFile()
