@@ -222,7 +222,6 @@ class FileModule implements Plugin<Project>
             Task moduleFile = project.tasks.module
 
             moduleFile.dependsOn(project.tasks.processModuleResources)
-            project.tasks.processModuleResources.outputs.cacheIf({true})
             if (SpringConfig.isApplicable(project))
                 moduleFile.dependsOn(project.tasks.processResources)
             moduleFile.dependsOn(moduleXmlTask)
