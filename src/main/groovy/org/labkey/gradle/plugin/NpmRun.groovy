@@ -22,6 +22,7 @@ import org.gradle.api.file.DeleteSpec
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.NpmRunExtension
+import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.TaskUtils
 
@@ -80,16 +81,6 @@ class NpmRun implements Plugin<Project>
             // If true, it will download node using above parameters.
             // If false, it will try to use globally installed node.
             download = project.hasProperty('nodeVersion') && project.hasProperty('npmVersion')
-
-//            // Set the work directory for unpacking node
-//            workDir = project.file("${project.buildDir}/${project.nodeWorkDirectory}/")
-//
-//            // Set the work directory for NPM
-//            npmWorkDir = project.file("${project.buildDir}/${project.npmWorkDirectory}/")
-//
-//            if (project.hasProperty('yarnWorkDirectory'))
-//                // Set the work directory for Yarn
-//                yarnWorkDir = project.file("${project.buildDir}/${project.yarnWorkDirectory}")
 
             // Set the work directory where node_modules should be located
             nodeModulesDir = project.file("${project.projectDir}")
@@ -267,8 +258,10 @@ class NpmRun implements Plugin<Project>
         task.inputs.files task.project.fileTree(dir: "resources", includes: ["styles/**/*", "themes/**/*"])
 
         // common output file pattern for client artifacts
-//        task.outputs.files task.project.fileTree(dir: "resources", includes: ["web/**/*"])
         task.outputs.dir task.project.file("resources/web/${task.project.name}/gen")
+        task.outputs.dir task.project.file("resources/web/${task.project.name}/css")
+        if (task.project.path.equals(BuildUtils.getPlatformModuleProjectPath(task.project.gradle, "core")))
+            task.outputs.dir task.project.file("resources/web/clientapi")
         task.outputs.cacheIf({true})
     }
 }
