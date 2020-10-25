@@ -43,7 +43,7 @@ class DoThenSetup extends DefaultTask
             this.dependsOn serverProject.configurations.tomcatJars
     }
 
-    private boolean canCreate(File file)
+    private static boolean canCreate(File file)
     {
         file = file.getParentFile()
 
@@ -160,8 +160,12 @@ class DoThenSetup extends DefaultTask
         Project serverProject = BuildUtils.getServerProject(project)
         // Remove the staging tomcatLib directory before copying into it to avoid duplicates.
         project.delete project.staging.tomcatLibDir
+        // set debug logging for ant to see what's going wrong with the pickMssql task on Windows
+        ant.project.buildListeners[0].messageOutputLevel = 4
         // for consistency with a distribution deployment and the treatment of all other deployment artifacts,
         // first copy the tomcat jars into the staging directory
+
+        this.logger.info("Copying to ${project.staging.tomcatLibDir}")
         project.ant.copy(
 
                 todir: project.staging.tomcatLibDir,
@@ -203,6 +207,7 @@ class DoThenSetup extends DefaultTask
         ServerDeploy.JDBC_JARS.each{String name -> new File("${project.tomcat.catalinaHome}/lib/${name}").delete()}
 
         // Then copy them into the tomcat/lib directory
+        this.logger.info("Copying files from ${project.staging.tomcatLibDir} to ${project.tomcat.catalinaHome}/lib")
         project.ant.copy(
                 todir: "${project.tomcat.catalinaHome}/lib",
                 preserveLastModified: true,
