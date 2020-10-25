@@ -70,7 +70,7 @@ class StartTomcat extends DefaultTask
 
             String catalinaOpts = optsList.join(" ").replaceAll("\\s+", " ")
 
-            project.logger.debug("setting CATALINA_OPTS to ${catalinaOpts}")
+            this.logger.debug("setting CATALINA_OPTS to ${catalinaOpts}")
             env(
                     key: "CATALINA_OPTS",
                     value: catalinaOpts
