@@ -38,6 +38,7 @@ class NpmRun implements Plugin<Project>
     public static final String TYPESCRIPT_CONFIG_FILE = "tsconfig.json"
     public static final String NODE_MODULES_DIR = "node_modules"
     public static final String WEBPACK_DIR = "webpack"
+    public static final String ENTRY_POINTS_FILE = "src/client/entryPoints.js"
 
     private static final String EXTENSION_NAME = "npmRun"
 
@@ -250,6 +251,8 @@ class NpmRun implements Plugin<Project>
             task.inputs.file task.project.file(TYPESCRIPT_CONFIG_FILE)
         if (task.project.file(WEBPACK_DIR).exists())
             task.inputs.dir task.project.file(WEBPACK_DIR)
+        if (task.project.file(ENTRY_POINTS_FILE).exists())
+            task.inputs.files task.project.file(ENTRY_POINTS_FILE)
 
         // common input file pattern for client source
         task.inputs.files task.project.fileTree(dir: "src", includes: ["client/**/*", "theme/**/*"])
@@ -259,9 +262,12 @@ class NpmRun implements Plugin<Project>
 
         // common output file pattern for client artifacts
         task.outputs.dir task.project.file("resources/web/${task.project.name}/gen")
-        task.outputs.dir task.project.file("resources/web/${task.project.name}/css")
-        if (task.project.path.equals(BuildUtils.getPlatformModuleProjectPath(task.project.gradle, "core")))
+        task.outputs.dir task.project.file("resources/views/gen")
+        if (task.project.path.equals(BuildUtils.getPlatformModuleProjectPath(task.project.gradle, "core"))) {
             task.outputs.dir task.project.file("resources/web/clientapi")
+            task.outputs.dir task.project.file("resources/web/${task.project.name}/css")
+        }
+
         task.outputs.cacheIf({true})
     }
 }
