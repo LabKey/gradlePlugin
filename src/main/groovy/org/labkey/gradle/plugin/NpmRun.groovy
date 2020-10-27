@@ -257,9 +257,6 @@ class NpmRun implements Plugin<Project>
         // common input file pattern for client source
         task.inputs.files task.project.fileTree(dir: "src", includes: ["client/**/*", "theme/**/*"])
 
-        // "core" theme building
-        task.inputs.files task.project.fileTree(dir: "resources", includes: ["styles/**/*", "themes/**/*"])
-
         // common output file pattern for client artifacts
         task.outputs.dir task.project.file("resources/web/${task.project.name}/gen")
         task.outputs.dir task.project.file("resources/views/gen")
