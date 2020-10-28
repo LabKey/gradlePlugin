@@ -148,15 +148,6 @@ class NpmRun implements Plugin<Project>
         if (project.tasks.findByName("clean") != null)
             project.tasks.clean.dependsOn(project.tasks.npmRunClean)
 
-        // TODO is this necessary if we are using the default locations?
-        project.tasks.nodeSetup.onlyIf {
-            !project.tasks.nodeSetup.nodeDir.exists()
-        }
-
-        project.tasks.npmSetup.onlyIf {
-            !project.tasks.npmSetup.npmDir.exists()
-        }
-
         def npmRunBuildProd = project.tasks.register("npmRunBuildProd")
                 {Task task ->
                     task.group = GroupNames.NPM_RUN
