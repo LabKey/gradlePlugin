@@ -188,6 +188,7 @@ class FileModule implements Plugin<Project>
         else
             project.logger.info("${project.path} - ${ModuleExtension.MODULE_PROPERTIES_FILE} not found so not added as input to 'moduleXml'")
         moduleXmlTask.outputs.file(moduleXmlFile)
+        moduleXmlTask.outputs.cacheIf {true} // enable build caching
 
         // This is added because Intellij started creating this "out" directory when you build through IntelliJ.
         // It copies files there that are actually input files to the build, which causes some problems when later
@@ -215,6 +216,7 @@ class FileModule implements Plugin<Project>
                     jar.archiveBaseName.set(project.name)
                     jar.archiveExtension.set('module')
                     jar.destinationDirectory = project.buildDir
+                    jar.outputs.cacheIf({true})
             }
 
             Task moduleFile = project.tasks.module

@@ -19,9 +19,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-/**
- * Created by susanh on 5/1/17.
- */
+
 class CreateJsDocs extends DefaultTask
 {
     @InputFiles

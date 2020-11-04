@@ -22,9 +22,6 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
 
-/**
- * Created by susanh on 11/15/16.
- */
 class StartTomcat extends DefaultTask
 {
     @TaskAction
@@ -73,7 +70,7 @@ class StartTomcat extends DefaultTask
 
             String catalinaOpts = optsList.join(" ").replaceAll("\\s+", " ")
 
-            project.logger.debug("setting CATALINA_OPTS to ${catalinaOpts}")
+            this.logger.debug("setting CATALINA_OPTS to ${catalinaOpts}")
             env(
                     key: "CATALINA_OPTS",
                     value: catalinaOpts

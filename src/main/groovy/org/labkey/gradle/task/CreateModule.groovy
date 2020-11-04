@@ -113,7 +113,7 @@ class CreateModule extends DefaultTask
 
         if (deleteExisting) {
             boolean deleted = moduleDestinationFile.deleteDir()
-            project.logger.lifecycle("Attempting to delete existing module directory... " + deleted ? "Succeeded" : "Failed")
+            this.logger.lifecycle("Attempting to delete existing module directory... " + deleted ? "Succeeded" : "Failed")
             if (!deleted) {
                 throw new GradleException("Failed to delete existing module directory: ${moduleDestinationFile.getAbsolutePath()}")
             }
@@ -188,8 +188,8 @@ class CreateModule extends DefaultTask
         //copy.rename only looks at file names, rather than files and directories.
         renameCrawler(moduleDestinationFile, substitutions)
 
-        project.logger.quiet("Module created in ${moduleDestinationFile.getAbsolutePath()}")
-        project.logger.quiet("Refresh the Gradle window to add this module to your IntelliJ project to start editing the code.")
+        this.logger.quiet("Module created in ${moduleDestinationFile.getAbsolutePath()}")
+        this.logger.quiet("Refresh the Gradle window to add this module to your IntelliJ project to start editing the code.")
     }
 
     void renameCrawler(File currFile, Map<String, String> substitutions) {

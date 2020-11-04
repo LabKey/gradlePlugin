@@ -82,6 +82,7 @@ class Antlr implements Plugin<Project>
                                              file.getPath()
                                      ]
                          })
+                         task.outputs.cacheIf({true})
                     }
                     antlrTasks.add(project.tasks.named(taskName))
             }

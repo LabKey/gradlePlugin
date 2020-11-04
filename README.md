@@ -12,6 +12,13 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### version TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 20.9)
+* Designate certain tasks as cacheable for more efficient builds
+* Use default locations, not in the build directory, for NpmRun tasks for more efficient builds
+* Remove InstallRLabkey and InstallRuminex tasks as they are defined separately where used for tests
+
 ### version 1.20.0
 *Released*: 22 October 2020
 (Earliest compatible LabKey version: 20.9)

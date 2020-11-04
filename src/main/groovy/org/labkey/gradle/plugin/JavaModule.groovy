@@ -27,7 +27,7 @@ import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
 /**
- * This class is used for building a LabKey Java module (one that typically resides in a *modules
+ * This class is used for building a LabKey Java module (one that typically resides in the server/modules
  * directory).  It defines tasks for building the jar files (<module>_jsp.jar, <module>.jar)
  * as well as tasks for copying resources to the build directory.
  *
@@ -128,6 +128,7 @@ class JavaModule extends FileModule
             }
             jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
             jar.exclude '**/*.java'
+            jar.outputs.cacheIf({true})
         }
     }
 

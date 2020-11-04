@@ -18,9 +18,6 @@ package org.labkey.gradle.plugin.extension
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 
-/**
- * Created by susanh on 4/23/17.
- */
 class TomcatExtension
 {
     private final Project project

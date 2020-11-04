@@ -20,9 +20,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.labkey.gradle.util.BuildUtils
 
-/**
- * Created by susanh on 8/11/16.
- */
 class PickDb extends DoThenSetup
 {
     @Input

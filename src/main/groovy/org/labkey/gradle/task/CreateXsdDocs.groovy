@@ -21,9 +21,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.XsdDoc
 
-/**
- * Created by susanh on 4/17/17.
- */
 class CreateXsdDocs extends DefaultTask
 {
     @InputFiles
