@@ -12,8 +12,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### version TBD
-*Released*: TBD
+### version 1.21.0
+*Released*: 4 November 2020
 (Earliest compatible LabKey version: 20.9)
 * Designate certain tasks as cacheable for more efficient builds
 * Use default locations, not in the build directory, for NpmRun tasks for more efficient builds
