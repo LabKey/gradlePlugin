@@ -13,7 +13,7 @@ on how to do that, including how to develop and test locally and the versioning 
 ## Release Notes
 
 ### version 1.21.1
-*Released*: TBD
+*Released*: 5 November 2020
 (Earliest compatible LabKey version: 20.9)
 * Resolve the tomcatJars configuration before adding files to the ant task that copies them
 
