@@ -29,6 +29,7 @@ import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.PropertiesUtils
 
+
 class DoThenSetup extends DefaultTask
 {
     @Optional @Input
@@ -92,29 +93,29 @@ class DoThenSetup extends DefaultTask
                 copy.into "${project.rootProject.buildDir}"
                 copy.include "labkey.xml"
                 copy.filter({ String line ->
-                    String newLine = line;
+                    String newLine = line
 
                     if (project.ext.has('enableJms') && project.ext.enableJms)
                     {
-                        newLine = newLine.replace("<!--@@jmsConfig@@", "");
-                        newLine = newLine.replace("@@jmsConfig@@-->", "");
-                        return newLine;
+                        newLine = newLine.replace("<!--@@jmsConfig@@", "")
+                        newLine = newLine.replace("@@jmsConfig@@-->", "")
+                        return newLine
                     }
                     // If we want to automatically enable an LDAP Sync that is hardcoded in the labkey.xml
                     // for testing purposes, this will uncomment that stanza if the enableLdapSync
                     // property is defined.
                     if (project.hasProperty('enableLdapSync'))
                     {
-                        newLine = newLine.replace("<!--@@ldapSyncConfig@@", "");
-                        newLine = newLine.replace("@@ldapSyncConfig@@-->", "");
-                        return newLine;
+                        newLine = newLine.replace("<!--@@ldapSyncConfig@@", "")
+                        newLine = newLine.replace("@@ldapSyncConfig@@-->", "")
+                        return newLine
                     }
                     if (isNextLineComment || newLine.contains("<!--"))
                     {
-                        isNextLineComment = !newLine.contains("-->");
-                        return newLine;
+                        isNextLineComment = !newLine.contains("-->")
+                        return newLine
                     }
-                    return PropertiesUtils.replaceProps(line, configProperties, true);
+                    return PropertiesUtils.replaceProps(line, configProperties, true)
                 })
             })
 
@@ -137,7 +138,7 @@ class DoThenSetup extends DefaultTask
     boolean labkeyXmlUpToDate(String appDocBase)
     {
         if (this.dbPropertiesChanged)
-            return false;
+            return false
 
         File dbPropFile = DatabaseProperties.getPickedConfigFile(project)
         File tomcatLabkeyXml = new File("${project.tomcat.tomcatConfDir}", "labkey.xml")
@@ -165,9 +166,16 @@ class DoThenSetup extends DefaultTask
         // for consistency with a distribution deployment and the treatment of all other deployment artifacts,
         // first copy the tomcat jars into the staging directory
 
+        // We resolve the tomcatJars files outside of the ant copy because this seems to avoid
+        // an error we saw on TeamCity when running the pickMssql task on Windows when updating to Gradle 6.7
+        // The error in the gradle log was:
+        //       org.apache.tools.ant.BuildException: copy doesn't support the nested "exec" element.
+        // Theory is that when the files in the configuration have not been resolved, they get resolved
+        // inside the node being added to the ant task below and that is not supported.
+        Set<File> tomcatFiles = serverProject.configurations.tomcatJars.files
         this.logger.info("Copying to ${project.staging.tomcatLibDir}")
+        this.logger.info("tomcatFiles are ${tomcatFiles}")
         project.ant.copy(
-
                 todir: project.staging.tomcatLibDir,
                 preserveLastModified: true,
                 overwrite: true // Issue 33473: overwrite the existing jars to facilitate switching to older versions of labkey with older dependencies
@@ -176,6 +184,7 @@ class DoThenSetup extends DefaultTask
                 serverProject.configurations.tomcatJars { Configuration collection ->
                     collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
                 }
+
                 // Put unversioned files into the tomcatLibDir.  These files are meant to be copied into
                 // the tomcat/lib directory when deploying a build or a distribution.  When version numbers change,
                 // you will end up with multiple versions of these jar files on the classpath, which will often
