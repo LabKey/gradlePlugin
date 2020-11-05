@@ -56,7 +56,7 @@ dependencies {
     api "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
 }
 
-project.version = "1.22.0-SNAPSHOT"
+project.version = "1.22.0-pickDbForTC-SNAPSHOT"
 
 if (project.file("moduleTemplate").exists())
 {

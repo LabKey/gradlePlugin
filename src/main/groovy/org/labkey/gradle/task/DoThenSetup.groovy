@@ -18,7 +18,6 @@ package org.labkey.gradle.task
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Input
@@ -92,29 +91,29 @@ class DoThenSetup extends DefaultTask
                 copy.into "${project.rootProject.buildDir}"
                 copy.include "labkey.xml"
                 copy.filter({ String line ->
-                    String newLine = line;
+                    String newLine = line
 
                     if (project.ext.has('enableJms') && project.ext.enableJms)
                     {
-                        newLine = newLine.replace("<!--@@jmsConfig@@", "");
-                        newLine = newLine.replace("@@jmsConfig@@-->", "");
-                        return newLine;
+                        newLine = newLine.replace("<!--@@jmsConfig@@", "")
+                        newLine = newLine.replace("@@jmsConfig@@-->", "")
+                        return newLine
                     }
                     // If we want to automatically enable an LDAP Sync that is hardcoded in the labkey.xml
                     // for testing purposes, this will uncomment that stanza if the enableLdapSync
                     // property is defined.
                     if (project.hasProperty('enableLdapSync'))
                     {
-                        newLine = newLine.replace("<!--@@ldapSyncConfig@@", "");
-                        newLine = newLine.replace("@@ldapSyncConfig@@-->", "");
-                        return newLine;
+                        newLine = newLine.replace("<!--@@ldapSyncConfig@@", "")
+                        newLine = newLine.replace("@@ldapSyncConfig@@-->", "")
+                        return newLine
                     }
                     if (isNextLineComment || newLine.contains("<!--"))
                     {
-                        isNextLineComment = !newLine.contains("-->");
-                        return newLine;
+                        isNextLineComment = !newLine.contains("-->")
+                        return newLine
                     }
-                    return PropertiesUtils.replaceProps(line, configProperties, true);
+                    return PropertiesUtils.replaceProps(line, configProperties, true)
                 })
             })
 
@@ -137,7 +136,7 @@ class DoThenSetup extends DefaultTask
     boolean labkeyXmlUpToDate(String appDocBase)
     {
         if (this.dbPropertiesChanged)
-            return false;
+            return false
 
         File dbPropFile = DatabaseProperties.getPickedConfigFile(project)
         File tomcatLabkeyXml = new File("${project.tomcat.tomcatConfDir}", "labkey.xml")
@@ -165,17 +164,17 @@ class DoThenSetup extends DefaultTask
         // for consistency with a distribution deployment and the treatment of all other deployment artifacts,
         // first copy the tomcat jars into the staging directory
 
+        FileCollection tomcatFiles = serverProject.configurations.tomcatJars.fileCollection
         this.logger.info("Copying to ${project.staging.tomcatLibDir}")
+        this.logger.info("tomcatFiles are ${tomcatFiles}")
         project.ant.copy(
-
                 todir: project.staging.tomcatLibDir,
                 preserveLastModified: true,
                 overwrite: true // Issue 33473: overwrite the existing jars to facilitate switching to older versions of labkey with older dependencies
         )
             {
-                serverProject.configurations.tomcatJars { Configuration collection ->
-                    collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-                }
+                tomcatFiles.addToAntBuilder(project.ant, 'fileset', FileCollection.AntType.FileSet)
+
                 // Put unversioned files into the tomcatLibDir.  These files are meant to be copied into
                 // the tomcat/lib directory when deploying a build or a distribution.  When version numbers change,
                 // you will end up with multiple versions of these jar files on the classpath, which will often
