@@ -166,6 +166,12 @@ class DoThenSetup extends DefaultTask
         // for consistency with a distribution deployment and the treatment of all other deployment artifacts,
         // first copy the tomcat jars into the staging directory
 
+        // We resolve the tomcatJars files outside of the ant copy because this seems to avoid
+        // an error we saw on TeamCity when running the pickMssql task on Windows when updating to Gradle 6.7
+        // The error in the gradle log was:
+        //       org.apache.tools.ant.BuildException: copy doesn't support the nested "exec" element.
+        // Theory is that when the files in the configuration have not been resolved, they get resolved
+        // inside the node being added to the ant task below and that is not supported.
         Set<File> tomcatFiles = serverProject.configurations.tomcatJars.files
         this.logger.info("Copying to ${project.staging.tomcatLibDir}")
         this.logger.info("tomcatFiles are ${tomcatFiles}")
