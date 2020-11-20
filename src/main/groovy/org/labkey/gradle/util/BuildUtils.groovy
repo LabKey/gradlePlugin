@@ -375,10 +375,10 @@ class BuildUtils
     /**
      * Gets the versioning string to be inserted into distribution artifacts.  This string has a slightly different
      * format depending on the branch in which the distributions are created:
-     *     Trunk/Develop - 20.11-SNAPSHOT-1500 (<Current labkeyVersion>-[<VCSRevision>.]<BuildNumber>)
-     *     Beta - 20.11Beta-6 (<labkey release version>Beta-[<VCSRevision>.]<BuildNumber>)
-     *     (Beta means we are in a release branch, but have not yet released and updated from the snapshot version)
-     *     Release - 20.11.0-1 (<Current labkeyVersion>-[<VCSRevision>.]<BuildNumber>)
+     *     Trunk/Develop - 20.11-SNAPSHOT-1500 (<Current labkeyVersion>[-<BuildCounter>])
+     *     Beta - 20.11Beta-6 (<labkey release version>Beta[-<BuildCounter>])
+     *       (Beta means we are in a release branch, but have not yet released and updated from the snapshot version)
+     *     Release - 20.11.0-1 (<Current labkeyVersion>[-<BuildCounter>])
      * See Issue 31165.
      * @param project the distribution project. e.g. project(':distributions:community')
      * @return the version string for this distribution project
@@ -402,7 +402,7 @@ class BuildUtils
                 // format <vcs revision>.<build counter> and sometimes (probably when the
                 // VCS is git) it's just <build counter>.  Preparing for the future.
                 String[] numberParts = buildNumber.split("\\.")
-                distVersion += ".${numberParts[numberParts.length-1]}"
+                distVersion += "-${numberParts[numberParts.length-1]}"
             }
         }
 
@@ -441,6 +441,9 @@ class BuildUtils
 
     static Properties getStandardVCSProperties(project)
     {
+        String buildNumber =
+                (String) TeamCityExtension.getTeamCityProperty(project, "system.teamcity.agent.dotnet.build_id", // Unique build ID
+                        TeamCityExtension.getTeamCityProperty(project,"build.number", null))
         Properties ret = new Properties()
         if (project.plugins.hasPlugin("org.labkey.versioning"))
         {
@@ -456,7 +459,7 @@ class BuildUtils
             if (vcsProject.versioning.info.tag != null)
                ret.setProperty("VcsTag", vcsProject.versioning.info.tag)
             ret.setProperty("VcsRevision", vcsProject.versioning.info.commit)
-            ret.setProperty("BuildNumber", (String) TeamCityExtension.getTeamCityProperty(project, "build.number", vcsProject.versioning.info.build))
+            ret.setProperty("BuildNumber", buildNumber != null ? buildNumber : vcsProject.versioning.info.build)
         }
         else
         {
@@ -464,7 +467,7 @@ class BuildUtils
             ret.setProperty("VcsTag", "Unknown")
             ret.setProperty("VcsURL", "Unknown")
             ret.setProperty("VcsRevision", "Unknown")
-            ret.setProperty("BuildNumber", (String) TeamCityExtension.getTeamCityProperty(project, "build.number", "Unknown"))
+            ret.setProperty("BuildNumber", buildNumber != null ? buildNumber : "Unknown")
         }
         return ret
     }

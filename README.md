@@ -12,6 +12,12 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### version 1.21.2
+*Released*: TBD
+(Earliest compatible LabKey version: 20.9)
+* Fix distribution filenames; use '-' to separate version from build number
+* Include unique TeamCity build ID in module.xml properties
+
 ### version 1.21.1
 *Released*: 5 November 2020
 (Earliest compatible LabKey version: 20.9)
