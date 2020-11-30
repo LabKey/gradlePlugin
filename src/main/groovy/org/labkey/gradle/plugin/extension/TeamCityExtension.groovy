@@ -64,8 +64,8 @@ class TeamCityExtension
         else
         {
             String name = getTeamCityProperty("teamcity.buildType.id")
-            if (!(Boolean) getTeamCityProperty("teamcity.build.branch.is_default", true))
-                name = "${getTeamCityProperty('teamcity.build.branch')}_${name}"
+            if (!isBuildBranchDefault())
+                name = "${getBuildBranch()}_${name}"
             this.databaseName = name.replaceAll("[/\\.\\s-]", "_")
             String dropProperty = getTeamCityProperty('drop.database')
             this.dropDatabase = dropProperty.equals("1") || dropProperty.equalsIgnoreCase("true")
@@ -102,6 +102,16 @@ class TeamCityExtension
             props.setJdbcPassword(getTeamCityProperty("database.${typeAndVersion}.password"))
 
         this.databaseTypes.add(props)
+    }
+
+    String getBuildBranch()
+    {
+        getTeamCityProperty('teamcity.build.branch')
+    }
+
+    boolean isBuildBranchDefault()
+    {
+        (Boolean) getTeamCityProperty("teamcity.build.branch.is_default", true)
     }
 
     static boolean isOnTeamCity(Project project)

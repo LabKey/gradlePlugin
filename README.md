@@ -12,6 +12,39 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### version 1.21.2
+*Released*: 23 November 2020
+(Earliest compatible LabKey version: 20.9)
+* Fix distribution filenames; use '-' to separate version from build number
+* Include unique TeamCity build ID in module.xml properties
+
+### version 1.21.1
+*Released*: 5 November 2020
+(Earliest compatible LabKey version: 20.9)
+* Resolve the tomcatJars configuration before adding files to the ant task that copies them
+
+### version 1.21.0
+*Released*: 4 November 2020
+(Earliest compatible LabKey version: 20.9)
+* Designate certain tasks as cacheable for more efficient builds
+* Use default locations, not in the build directory, for NpmRun tasks for more efficient builds
+* Remove InstallRLabkey and InstallRuminex tasks as they are defined separately where used for tests
+
+### version 1.20.0
+*Released*: 22 October 2020
+(Earliest compatible LabKey version: 20.9)
+* Fix distribution and module versioning to work with Git server repository
+* Add warnings about unsupported Version and ConsolidateScripts properties when found in module.properties files
+
+### version 1.19.0
+*Released*: 14 October 2020
+(Earliest compatible LabKey version: 20.9)
+* Make sure we don't duplicate the .module suffix in the groupId for modules dependencies
+* Prepare for relocation of webapps directory under server/configs/webapps
+* Make external config extend from runtimeOnly so we pick up those jars in the module's lib directory as well.
+* Add TeamCity property to allow LabKey to load resources from module source
+* Officially Deprecate the use of `ModuleDependencies` in the `module.properties` file
+
 ### version 1.18.0
 *Release*: 17 September 2020
 (Earliest compatible LabKey version: 20.9)

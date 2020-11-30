@@ -96,14 +96,14 @@ class DeployApp extends DefaultTask
 
         if (project.configurations.findByName("binaries") != null)
         {
-            project.logger.info("Copying from binaries configuration to ${deployBinDir}")
+            project.logger.debug("Copying from binaries configuration to ${deployBinDir}")
             project.copy({
                 CopySpec copy ->
                     copy.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
                     copy.from(project.configurations.binaries.collect { project.zipTree(it) })
                     copy.into deployBinDir.path
             })
-            project.logger.info("Contents of ${deployBinDir}\n" + deployBinDir.listFiles());
+            project.logger.debug("Contents of ${deployBinDir}\n" + deployBinDir.listFiles());
         }
         // For TC builds, we deposit the artifacts of the Linux TPP Tools and Windows Proteomics Tools into
         // the external directory, so we want to copy those over as well.

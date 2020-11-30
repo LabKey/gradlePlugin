@@ -27,7 +27,7 @@ import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
 /**
- * This class is used for building a LabKey Java module (one that typically resides in a *modules
+ * This class is used for building a LabKey Java module (one that typically resides in the server/modules
  * directory).  It defines tasks for building the jar files (<module>_jsp.jar, <module>.jar)
  * as well as tasks for copying resources to the build directory.
  *
@@ -99,9 +99,10 @@ class JavaModule extends FileModule
                     // TODO I think what's really wanted here is external.extendsFrom(api) and external.extendsFrom(implementation)
                     // Then we change the gradle files to use api and implementation as per usual.  Perhaps we can then do away with
                     // external altogether if we also get rid of jars.txt and we'll just copy from the api and implementation configurations
-                    // into explodedModule/lib. (Will also want to accommodate runtimeOnly)
+                    // into explodedModule/lib.
                     api.extendsFrom(external)
                     implementation.extendsFrom(external)
+                    external.extendsFrom(runtimeOnly)
                     implementation.extendsFrom(labkey)
                     dedupe {
                         canBeConsumed = false
@@ -127,6 +128,7 @@ class JavaModule extends FileModule
             }
             jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
             jar.exclude '**/*.java'
+            jar.outputs.cacheIf({true})
         }
     }
 
@@ -235,6 +237,7 @@ class JavaModule extends FileModule
             return null
 
         config = labkeyConfig == null ? config : (config == null ? labkeyConfig : config + labkeyConfig)
+
 
         // trim nothing from api
         if (BuildUtils.isApi(project))

@@ -17,9 +17,6 @@ package org.labkey.gradle.plugin.extension
 
 import org.gradle.api.Project
 
-/**
- * Created by susanh on 4/23/17.
- */
 class ServerDeployExtension
 {
     String dir

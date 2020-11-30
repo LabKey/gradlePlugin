@@ -16,18 +16,23 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.XmlBeans
 
 /**
  * Task to compile XSD schema files into Java class files using the ant XMLBean
  */
+@CacheableTask
 class SchemaCompile extends DefaultTask {
 
 
   @InputDirectory
+  @PathSensitive(PathSensitivity.RELATIVE)
   File getSchemasDir()
   {
     return project.file(XmlBeans.SCHEMAS_DIR)

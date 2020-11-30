@@ -89,6 +89,7 @@ class Api implements Plugin<Project>
                  jar.archiveBaseName.set("${project.name}_api")
                  jar.destinationDirectory = project.file(project.labkey.explodedModuleLibDir)
                  jar.dependsOn(project.apiClasses)
+                 jar.outputs.cacheIf({true})
          }
 
         project.tasks.processApiResources.enabled = false
