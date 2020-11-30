@@ -53,21 +53,23 @@ class FileModule implements Plugin<Project>
     {
         def moduleKey = project.getName().toLowerCase()
         def otherPath = _foundModules.get(moduleKey)
+        def shouldBuild = shouldDoBuild(project);
         if (otherPath != null && !otherPath.equals(project.getPath()) && project.findProject(otherPath) != null)
         {
-            if (_shouldDoBuild(project, false))
+            if (shouldBuild)
                 throw new IllegalStateException("Found duplicate module '${project.getName()}' in ${project.getPath()} and ${otherPath}. Modules should have unique names; Rename one or exclude it from your build.")
         }
         else
         {
-            if (_shouldDoBuild(project, false))
+            if (shouldBuild)
                 _foundModules.put(moduleKey, project.getPath())
             else
                 _foundModules.remove(moduleKey)
         }
 
         project.apply plugin: 'java-base'
-        if (shouldDoBuild(project)) {
+
+        if (shouldBuild) {
             project.extensions.create("lkModule", ModuleExtension, project)
             addSourceSet(project)
             applyPlugins(project)
@@ -185,6 +187,7 @@ class FileModule implements Plugin<Project>
         else
             project.logger.info("${project.path} - ${ModuleExtension.MODULE_PROPERTIES_FILE} not found so not added as input to 'moduleXml'")
         moduleXmlTask.outputs.file(moduleXmlFile)
+        moduleXmlTask.outputs.cacheIf {true} // enable build caching
 
         // This is added because Intellij started creating this "out" directory when you build through IntelliJ.
         // It copies files there that are actually input files to the build, which causes some problems when later
@@ -210,9 +213,9 @@ class FileModule implements Plugin<Project>
                     jar.exclude "META-INF/${project.name}/**"
                     jar.exclude 'gwt-unitCache/**'
                     jar.archiveBaseName.set(project.name)
-                    jar.archiveVersion.set(BuildUtils.getModuleFileVersion(project))
                     jar.archiveExtension.set('module')
                     jar.destinationDirectory = project.buildDir
+                    jar.outputs.cacheIf({true})
             }
 
             Task moduleFile = project.tasks.module
