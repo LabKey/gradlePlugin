@@ -100,7 +100,7 @@ class FileModule implements Plugin<Project>
 
         if (indicators.size() > 0 && logMessages)
         {
-            project.logger.info("$project.name build skipped because: " + indicators.join("; "))
+            project.logger.quiet("${project.path} build skipped because: " + indicators.join("; "))
         }
         return indicators.isEmpty()
     }
