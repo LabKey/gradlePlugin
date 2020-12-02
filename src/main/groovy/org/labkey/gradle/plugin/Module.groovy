@@ -54,7 +54,7 @@ class Module extends JavaModule
                     {
                         for (String path : BuildUtils.getBaseModules(project.gradle))
                         {
-                            if (project.findProject(path) && BuildUtils.shouldBuildFromSource(project.project(path))) // exclude dependencies only if building that module (otherwise we don't have the external configuration)
+                            if ( project.findProject(path) && BuildUtils.shouldBuildFromSource(project.project(path)) && project.project(path).configurations.findByName("external") != null) // exclude dependencies only if building that module (otherwise we don't have the external configuration)
                             {
                                 BuildUtils.addLabKeyDependency(project: project, config: "dedupe", depProjectPath: path, depProjectConfig: "external")
                             }
