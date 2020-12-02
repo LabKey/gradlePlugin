@@ -1,4 +1,4 @@
-// N.B.  Whenever the gradlePlugis are compiled, you will see a warning about 
+// N.B.  Whenever the gradlePlugins are compiled, you will see a warning about
 //  "An illegal reflective access operation has occurred"
 // until this issue is resolved: https://issues.apache.org/jira/browse/GROOVY-8339
 // and Gradle is updated to whatever version of groovy has that fix.
@@ -21,6 +21,7 @@ plugins {
     id "com.jfrog.artifactory" version "${artifactoryPluginVersion}" apply false
     id "org.ajoberstar.grgit" version "${grgitGradleVersion}" apply false
     id "maven-publish"
+    id 'java-gradle-plugin'
 }
 
 repositories {
@@ -56,7 +57,106 @@ dependencies {
     api "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
 }
 
-project.version = "1.22.0-SNAPSHOT"
+group 'org.labkey.build'
+project.version = "1.22.0-modernizePublishing-SNAPSHOT"
+
+gradlePlugin {
+    // TODO after transitioning to using these plugin ids, remove the properties files from resources/META-INF.gradle-plugins
+    plugins {
+        antBuild {
+            id = 'org.labkey.build.antBuild'
+            implementationClass = 'org.labkey.gradle.plugin.AntBuild'
+        }
+        antlr {
+            id = 'org.labkey.build.antlr'
+            implementationClass = 'org.labkey.gradle.plugin.Antlr'
+        }
+        api {
+            id = 'org.labkey.build.api'
+            implementationClass = 'org.labkey.gradle.plugin.Api'
+        }
+        base {
+            id = 'org.labkey.build.base'
+            implementationClass = 'org.labkey.gradle.plugin.LabKey'
+        }
+        database {
+            id = 'org.labkey.build.database'
+            implementationClass = 'org.labkey.gradle.plugin.Database'
+        }
+        distribution {
+            id = 'org.labkey.build.distribution'
+            implementationClass = 'org.labkey.gradle.plugin.Distribution'
+        }
+        fileModule {
+            id = 'org.labkey.build.fileModule'
+            implementationClass = 'org.labkey.gradle.plugin.FileModule'
+        }
+        gwt {
+            id = 'org.labkey.build.gwt'
+            implementationClass = 'org.labkey.gradle.plugin.Gwt'
+        }
+        javaModule {
+            id = 'org.labkey.build.javaModule'
+            implementationClass = 'org.labkey.gradle.plugin.JavaModule'
+        }
+        jsdoc {
+            id = 'org.labkey.build.jsdoc'
+            implementationClass = 'org.labkey.gradle.plugin.JsDoc'
+        }
+        jsp {
+            id = 'org.labkey.build.jsp'
+            implementationClass = 'org.labkey.gradle.plugin.Jsp'
+        }
+        module {
+            id = 'org.labkey.build.module'
+            implementationClass = 'org.labkey.gradle.plugin.Module'
+        }
+        multiGit {
+            id = 'org.labkey.build.multiGit'
+            implementationClass = 'org.labkey.gradle.plugin.MultiGit'
+        }
+        npmRun {
+            id = 'org.labkey.build.npmRun'
+            implementationClass = 'org.labkey.gradle.plugin.NpmRun'
+        }
+        serverDeploy {
+            id = 'org.labkey.build.serverDeploy'
+            implementationClass = 'org.labkey.gradle.plugin.ServerDeploy'
+        }
+        springConfig {
+            id = 'org.labkey.build.springConfig'
+            implementationClass = 'org.labkey.gradle.plugin.SpringConfig'
+        }
+        teamCity {
+            id = 'org.labkey.build.teamCity'
+            implementationClass = 'org.labkey.gradle.plugin.TeamCity'
+        }
+        testRunner {
+            id = 'org.labkey.build.testRunner'
+            implementationClass = 'org.labkey.gradle.plugin.TestRunner'
+        }
+        tomcat {
+            id = 'org.labkey.build.tomcat'
+            implementationClass = 'org.labkey.gradle.plugin.Tomcat'
+        }
+        uiTest {
+            id = 'org.labkey.build.uiTest'
+            implementationClass = 'org.labkey.gradle.plugin.UiTest'
+        }
+        webapp {
+            id = 'org.labkey.build.webapp'
+            implementationClass = 'org.labkey.gradle.plugin.Webapp'
+        }
+        xmlBeans {
+            id = 'org.labkey.build.xmlBeans'
+            implementationClass = 'org.labkey.gradle.plugin.XmlBeans'
+        }
+        xsddoc {
+            id = 'org.labkey.build.xsddoc'
+            implementationClass = 'org.labkey.gradle.plugin.XsdDoc'
+        }
+    }
+}
 
 if (project.file("moduleTemplate").exists())
 {
@@ -89,34 +189,35 @@ project.tasks.register("zipDistributionResources", Zip) {
 project.tasks.processResources.dependsOn(project.tasks.zipDistributionResources)
 
 publishing {
-    publications {
-        mavenJava (MavenPublication) {
-            groupId 'org.labkey.build'
-            artifactId 'gradlePlugins'
-            from components.java
+    repositories {
+        if (project.version.contains("SNAPSHOT")) {
+            maven {
+                url "${artifactory_contextUrl}/plugins-snapshot-local"
+                credentials {
+                    username = artifactory_user
+                    password = artifactory_password
+                }
+                authentication {
+                    basic(BasicAuthentication)
+                    // enable preemptive authentication to get around https://www.jfrog.com/jira/browse/RTFACT-4434
+                }
+            }
+        }
+        else {
+            maven {
+                url "${artifactory_contextUrl}/plugins-release"
+                credentials {
+                    username = artifactory_user
+                    password = artifactory_password
+                }
+                authentication {
+                    basic(BasicAuthentication)
+                    // enable preemptive authentication to get around https://www.jfrog.com/jira/browse/RTFACT-4434
+                }
+            }
+
         }
     }
 }
 
-
-if (project.hasProperty("doPluginPublishing") && project.hasProperty('artifactory_contextUrl') && project.hasProperty('artifactory_user') && project.hasProperty('artifactory_password'))
-{
-    apply plugin: 'com.jfrog.artifactory'
-    artifactory {
-        contextUrl = "${artifactory_contextUrl}"
-        publish {
-            repository {
-                repoKey = project.version.endsWith('-SNAPSHOT') ? 'plugins-snapshot-local' : "plugins-release-local"
-                username = "${artifactory_user}"
-                password = "${artifactory_password}"
-                maven = true
-            }
-            defaults {
-                publications ('mavenJava')
-                publishPom = true
-                publishIvy = false
-            }
-        }
-    }
-}
 

@@ -16,6 +16,10 @@ on how to do that, including how to develop and test locally and the versioning 
 (Earliest compatible LabKey version: 20.9)
 * [Issue 41833](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=41833) Fix handling of modules that are
 not meant to be built, either because they lack a module.properties file or because the skipBuild property is set.
+* Do not apply more than one Module plugin, and issue warning when trying to do more than once.
+* Update plugin publishing to use java-gradle-plugin, enabling use of modern plugin DSL when applying individual plugins
+* Apply the java and base plugins within the plugins that depend on it
+
 
 ### version 1.21.2
 *Released*: 23 November 2020
