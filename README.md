@@ -11,6 +11,11 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+### version TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 20.9)
+* [Issue 41833](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=41833) Fix handling of modules that are
+not meant to be built, either because they lack a module.properties file or because the skipBuild property is set.
 
 ### version 1.21.2
 *Released*: 23 November 2020
