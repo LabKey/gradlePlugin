@@ -20,6 +20,8 @@ import org.gradle.api.Project
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.StagingExtension
 import org.labkey.gradle.util.ModuleFinder
+import org.labkey.gradle.util.BuildUtils
+
 /**
  * Defines a set of extension properties for ease of reference. This also adds a two extensions
  * for some basic properties.
@@ -35,6 +37,7 @@ class LabKey implements Plugin<Project>
     void apply(Project project)
     {
         project.group = LabKeyExtension.LABKEY_GROUP
+        project.version = BuildUtils.getVersionNumber(project)
         project.subprojects { Project subproject ->
             if (ModuleFinder.isDistributionProject(subproject))
                 subproject.buildDir = "${project.rootProject.buildDir}/installer/${subproject.name}"
