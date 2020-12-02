@@ -51,6 +51,13 @@ class FileModule implements Plugin<Project>
     @Override
     void apply(Project project)
     {
+        Plugin existing = project.plugins.find({it instanceof FileModule})
+        if (existing != null)
+        {
+            project.logger.quiet("${project.path}: WARNING: attempting to apply more than one module plugin (${this.class.name} and ${existing.class.name}); only ${existing.class.name} will be used.");
+            return
+        }
+
         def moduleKey = project.getName().toLowerCase()
         def otherPath = _foundModules.get(moduleKey)
         def shouldBuild = shouldDoBuild(project);
