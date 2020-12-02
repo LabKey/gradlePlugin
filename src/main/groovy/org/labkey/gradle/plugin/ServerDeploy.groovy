@@ -57,6 +57,8 @@ class ServerDeploy implements Plugin<Project>
         serverDeploy.binDir = "${serverDeploy.dir}/bin"
         serverDeploy.rootWebappsDir = BuildUtils.getWebappConfigPath(project)
         serverDeploy.pipelineLibDir = "${serverDeploy.dir}/pipelineLib"
+
+        project.apply plugin: 'org.labkey.build.base'
         addTasks(project)
     }
 
@@ -68,7 +70,6 @@ class ServerDeploy implements Plugin<Project>
                 task.group = GroupNames.DEPLOY
                 task.description = "Deploy the application locally into ${serverDeploy.dir}"
         }
-
 
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
 

@@ -74,7 +74,8 @@ class FileModule implements Plugin<Project>
                 _foundModules.remove(moduleKey)
         }
 
-        project.apply plugin: 'java-base'
+        project.apply plugin: 'java'
+        project.apply plugin: 'org.labkey.build.base'
 
         if (shouldBuild) {
             project.extensions.create("lkModule", ModuleExtension, project)
