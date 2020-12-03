@@ -63,10 +63,10 @@ class FileModule implements Plugin<Project>
                 _foundModules.remove(moduleKey)
         }
 
-        project.apply plugin: 'java'
-        project.apply plugin: 'org.labkey.build.base'
-
         if (shouldBuild) {
+            project.apply plugin: 'java'
+            project.apply plugin: 'org.labkey.build.base'
+
             project.extensions.create("lkModule", ModuleExtension, project)
             addSourceSet(project)
             applyPlugins(project)
@@ -101,6 +101,7 @@ class FileModule implements Plugin<Project>
     protected static void applyPlugins(Project project)
     {
         project.apply plugin: 'maven-publish'
+
 
         if (AntBuild.isApplicable(project))
         {
