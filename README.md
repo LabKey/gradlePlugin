@@ -20,7 +20,7 @@ not meant to be built, either because they lack a module.properties file or beca
 * Update plugin publishing to use java-gradle-plugin, enabling use of modern plugin DSL when applying individual plugins
 * Apply the java and base plugins within the plugins that depend on it
 * Remove CoreScripts plugin in favor of defining the single task within the core module build.gradle
-
+* Use an independent output directory for GWT compilation so the task can more reliably be cached
 
 ### version 1.21.2
 *Released*: 23 November 2020
