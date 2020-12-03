@@ -23,6 +23,7 @@ class GwtExtension
     String style = "OBF"
     String logLevel = "INFO"
     String extrasDir = "gwtExtras"
+    String outputDir = "gwtOut"
     Boolean draftCompile = false
     Boolean allBrowserCompile = true
 }

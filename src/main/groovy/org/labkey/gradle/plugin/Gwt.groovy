@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.FileTree
 import org.gradle.api.specs.AndSpec
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
 import org.labkey.gradle.plugin.extension.GwtExtension
 import org.labkey.gradle.plugin.extension.LabKeyExtension
@@ -125,7 +126,7 @@ class Gwt implements Plugin<Project>
                         java.description = "compile GWT source files for " + gwtModuleClass.getKey() + " into JS"
 
                         GString extrasDir = "${project.buildDir}/${project.gwt.extrasDir}"
-                        String outputDir = project.labkey.explodedModuleWebDir
+                        String outputDir = "${project.buildDir}/${project.gwt.outputDir}"
 
                         java.inputs.files(project.sourceSets.gwt.java.srcDirs)
 
@@ -181,11 +182,12 @@ class Gwt implements Plugin<Project>
                 }
                 gwtTasks.add(project.tasks.named(taskName))
         }
-        project.tasks.register("compileGwt") {
-            Task task ->
-                task.dependsOn (gwtTasks)
-                task.description = 'compile all GWT source files into JS'
-                task.group = GroupNames.GWT
+        project.tasks.register('compileGwt', Copy) {
+            Copy copy ->
+                copy.from gwtTasks
+                copy.into project.labkey.explodedModuleWebDir
+                copy.description = "compile all GWT source files into JS and copy them to the module's web directory"
+                copy.group = GroupNames.GWT
         }
 
         project.tasks.classes.dependsOn(project.tasks.compileGwt)
