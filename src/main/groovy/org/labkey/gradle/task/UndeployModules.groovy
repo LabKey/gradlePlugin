@@ -39,7 +39,7 @@ class UndeployModules extends DefaultTask
     {
         project.rootProject.allprojects.each { Project p ->
             if (isLabKeyModule(p) &&
-                    (dbType == null || !FileModule.shouldDoBuild(p) || !JavaModule.isDatabaseSupported(p, dbType)))
+                    (dbType == null || !FileModule.shouldDoBuild(p, true) || !JavaModule.isDatabaseSupported(p, dbType)))
             {
                 this.logger.info("Undeploying module ${p.path} for dbType ${dbType}")
                 FileModule.undeployModule(p)
