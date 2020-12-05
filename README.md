@@ -23,6 +23,8 @@ not meant to be built, either because they lack a module.properties file or beca
 * Remove CoreScripts plugin in favor of defining the single task within the core module build.gradle
 * Use an independent output directory for GWT compilation so the task can more reliably be cached
 * Apply versioning plugin withing base plugin
+* [Issue 41986](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=41986) Remove processing of clientapi/core
+JS scripts. These no longer require script concatenation as the full scripts are now checked in to the server side scripts directory.
 
 ### version 1.21.2
 *Released*: 23 November 2020
