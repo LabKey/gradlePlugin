@@ -38,16 +38,6 @@ class ServerSideJS extends DefaultTask
     {
         concatenateExt3JsFiles()
         concatenateExt4JsFiles()
-        // copy some of the clientapi into the core module's server-side scripts
-        concatenateLabKeyJsFile("ActionURL")
-        concatenateLabKeyJsFile("Ajax")
-        concatenateLabKeyJsFile("Filter")
-        concatenateLabKeyJsFile("Message")
-        concatenateLabKeyJsFile("Query")
-        concatenateLabKeyJsFile("Report")
-        concatenateLabKeyJsFile("Security")
-        concatenateLabKeyJsFile("FieldKey")
-        concatenateLabKeyJsFile("Utils")
     }
 
     // create combined Ext.js usable by the core module's server-side scripts
@@ -103,24 +93,5 @@ class ServerSideJS extends DefaultTask
         if (!destFile.exists())
             throw new GradleException("Output file ${destFile} not created")
 
-    }
-
-    private void concatenateLabKeyJsFile(String baseName)
-    {
-        File baseFile = project.project(BuildUtils.getApiProjectPath(project.gradle)).file("webapp/clientapi/core/${baseName}.js")
-        if (!baseFile.exists())
-            throw new GradleException("Unable to create server-side javascript files. Missing source file: ${baseFile}")
-        if (!scriptsDir.canWrite())
-            throw new GradleException("Unable to create server-side javascript files. Output directory ${scriptsDir} not writable.")
-
-        ant.concat(destFile: "${scriptsDir}/labkey/${baseName}.js", force: true)
-                {
-                    header(file: "${scriptFragmentsDir}/labkey/${baseName}.header.js")
-                    fileset(file: baseFile)
-                    footer(file: "${scriptFragmentsDir}/labkey/${baseName}.footer.js")
-                }
-        File destFile = new File("${scriptsDir}/labkey/${baseName}.js")
-        if (!destFile.exists())
-            throw new GradleException("Output file ${destFile} not created")
     }
 }
