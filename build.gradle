@@ -58,7 +58,7 @@ dependencies {
 }
 
 group 'org.labkey.build'
-project.version = "1.22.0-SNAPSHOT"
+project.version = "1.22.0-removeServerSideScripts-SNAPSHOT"
 
 
 gradlePlugin {
