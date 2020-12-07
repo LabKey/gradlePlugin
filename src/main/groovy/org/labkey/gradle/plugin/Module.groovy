@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.plugin
 
+import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.labkey.gradle.util.BuildUtils
 
@@ -24,14 +25,14 @@ import org.labkey.gradle.util.BuildUtils
  * as well as tasks for copying resources to the module's build directory.  This differs from java module
  * in that it allows for a separate api jar and xml schemas classes that the compileJava tasks depend on.
  */
-class Module extends JavaModule
-{
+class Module implements Plugin<Project> {
+
     @Override
     void apply(Project project)
     {
-        super.apply(project)
+        project.apply plugin: 'org.labkey.build.javaModule'
 
-        if (!AntBuild.isApplicable(project) && _shouldDoBuild(project, false))
+        if (!AntBuild.isApplicable(project) && FileModule.shouldDoBuild(project, false))
         {
             addDependencies(project)
         }
@@ -54,7 +55,7 @@ class Module extends JavaModule
                     {
                         for (String path : BuildUtils.getBaseModules(project.gradle))
                         {
-                            if (project.findProject(path) && BuildUtils.shouldBuildFromSource(project.project(path))) // exclude dependencies only if building that module (otherwise we don't have the external configuration)
+                            if ( project.findProject(path) && BuildUtils.shouldBuildFromSource(project.project(path)) && project.project(path).configurations.findByName("external") != null) // exclude dependencies only if building that module (otherwise we don't have the external configuration)
                             {
                                 BuildUtils.addLabKeyDependency(project: project, config: "dedupe", depProjectPath: path, depProjectConfig: "external")
                             }

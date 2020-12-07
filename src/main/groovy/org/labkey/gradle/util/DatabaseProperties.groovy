@@ -38,7 +38,7 @@ class DatabaseProperties
     String version // database version, e.g. 9.2
 
     Properties configProperties
-    private Project _project
+    transient private Project _project
 
     DatabaseProperties(String dbTypeAndVersion, String shortType, version)
     {

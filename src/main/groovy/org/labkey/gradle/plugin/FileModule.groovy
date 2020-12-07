@@ -42,10 +42,6 @@ import java.util.regex.Matcher
  */
 class FileModule implements Plugin<Project>
 {
-    // Deprecated: instead of creating the skipBuild.txt file,
-    // set the skipBuild property to true in the module's build.gradle file
-    //   ext.skipBuild = true
-    private static final String SKIP_BUILD_FILE = "skipBuild.txt"
     private static final Map<String, String> _foundModules = new HashMap<>();
 
     @Override
@@ -53,7 +49,7 @@ class FileModule implements Plugin<Project>
     {
         def moduleKey = project.getName().toLowerCase()
         def otherPath = _foundModules.get(moduleKey)
-        def shouldBuild = shouldDoBuild(project);
+        def shouldBuild = shouldDoBuild(project, true);
         if (otherPath != null && !otherPath.equals(project.getPath()) && project.findProject(otherPath) != null)
         {
             if (shouldBuild)
@@ -67,9 +63,10 @@ class FileModule implements Plugin<Project>
                 _foundModules.remove(moduleKey)
         }
 
-        project.apply plugin: 'java-base'
-
         if (shouldBuild) {
+            project.apply plugin: 'java'
+            project.apply plugin: 'org.labkey.build.base'
+
             project.extensions.create("lkModule", ModuleExtension, project)
             addSourceSet(project)
             applyPlugins(project)
@@ -80,19 +77,9 @@ class FileModule implements Plugin<Project>
         }
     }
 
-    static boolean shouldDoBuild(Project project)
-    {
-        return _shouldDoBuild(project, true)
-    }
-
-    protected static boolean _shouldDoBuild(Project project, boolean logMessages)
+    static boolean shouldDoBuild(Project project, boolean logMessages)
     {
         List<String> indicators = new ArrayList<>()
-        if (project.file(SKIP_BUILD_FILE).exists())
-        {
-            project.logger.quiet("Support for the use of " + SKIP_BUILD_FILE + " is deprecated and will be removed after LabKey version 20.11")
-            indicators.add(SKIP_BUILD_FILE + " exists")
-        }
         if (!project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
             indicators.add(ModuleExtension.MODULE_PROPERTIES_FILE + " does not exist")
         if (project.hasProperty("skipBuild"))
@@ -111,27 +98,27 @@ class FileModule implements Plugin<Project>
         ModuleResources.addSourceSet(project)
     }
 
-    protected void applyPlugins(Project project)
+    protected static void applyPlugins(Project project)
     {
         project.apply plugin: 'maven-publish'
 
+
         if (AntBuild.isApplicable(project))
         {
-            if (shouldDoBuild(project))
-                project.apply plugin: 'org.labkey.antBuild'
+            project.apply plugin: 'org.labkey.build.antBuild'
         }
         else
         {
             if (SpringConfig.isApplicable(project))
-                project.apply plugin: 'org.labkey.springConfig'
+                project.apply plugin: 'org.labkey.build.springConfig'
 
             if (Webapp.isApplicable(project))
-                project.apply plugin: 'org.labkey.webapp'
+                project.apply plugin: 'org.labkey.build.webapp'
 
             ClientLibraries.addTasks(project)
 
             if (NpmRun.isApplicable(project))
-                project.apply plugin: 'org.labkey.npmRun'
+                project.apply plugin: 'org.labkey.build.npmRun'
         }
     }
 
@@ -507,7 +494,7 @@ class FileModule implements Plugin<Project>
                             if (dep instanceof ProjectDependency)
                             {
                                 ProjectDependency projectDep = (ProjectDependency) dep
-                                if (_shouldDoBuild(projectDep.dependencyProject, false)) {
+                                if (shouldDoBuild(projectDep.dependencyProject, false)) {
                                     BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: projectDep.dependencyProject.getPath(), depProjectConfig: 'published', depExtension: 'module')
                                 }
                                 else {

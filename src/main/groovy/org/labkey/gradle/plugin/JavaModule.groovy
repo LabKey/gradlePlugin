@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.plugin
 
+import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
@@ -32,7 +33,7 @@ import org.labkey.gradle.util.GroupNames
  * as well as tasks for copying resources to the build directory.
  *
  */
-class JavaModule extends FileModule
+class JavaModule implements Plugin<Project>
 {
     public static final DIR_NAME = "src";
 
@@ -42,56 +43,47 @@ class JavaModule extends FileModule
     }
 
     @Override
+    void apply(Project project)
+    {
+        if (FileModule.shouldDoBuild(project, false)) {
+            applyPlugins(project)
+            addConfigurations(project)
+            addTasks(project)
+        }
+    }
+
     protected void applyPlugins(Project project)
     {
         project.apply plugin: 'maven-publish'
+        project.apply plugin: 'org.labkey.build.fileModule'
 
-        if (AntBuild.isApplicable(project))
-        {
-            if (shouldDoBuild(project))
-                project.apply plugin: 'org.labkey.antBuild'
-        }
-        else
+        if (!AntBuild.isApplicable(project))
         {
             // this comes before the setJavaBuildProperties because we declare
             // dependencies to tasks from this plugin in the jar configuration
             if (XmlBeans.isApplicable(project))
-                project.apply plugin: 'org.labkey.xmlBeans'
+                project.apply plugin: 'org.labkey.build.xmlBeans'
 
             setJavaBuildProperties(project)
 
             if (Api.isApplicable(project))
-                project.apply plugin: 'org.labkey.api'
-
-            if (SpringConfig.isApplicable(project))
-                project.apply plugin: 'org.labkey.springConfig'
-
-            if (Webapp.isApplicable(project))
-                project.apply plugin: 'org.labkey.webapp'
-
-            ClientLibraries.addTasks(project)
+                project.apply plugin: 'org.labkey.build.api'
 
             if (Jsp.isApplicable(project))
-                project.apply plugin: 'org.labkey.jsp'
+                project.apply plugin: 'org.labkey.build.jsp'
 
             if (Gwt.isApplicable(project))
-                project.apply plugin: 'org.labkey.gwt'
-
-            if (NpmRun.isApplicable(project))
-                project.apply plugin: 'org.labkey.npmRun'
-
+                project.apply plugin: 'org.labkey.build.gwt'
 
             if (UiTest.isApplicable(project))
             {
-                project.apply plugin: 'org.labkey.uiTest'
+                project.apply plugin: 'org.labkey.build.uiTest'
             }
         }
     }
 
-    @Override
     protected void addConfigurations(Project project)
     {
-        super.addConfigurations(project)
         project.configurations
                 {
                     labkey // use this configuration for dependencies to labkey API jars that are needed for a module
@@ -151,12 +143,8 @@ class JavaModule extends FileModule
         return supported == null || supported.contains(database)
     }
 
-    @Override
     protected void addTasks(Project project)
     {
-        super.addTasks(project)
-        setJarManifestAttributes(project, project.jar.manifest)
-
         // We do this afterEvaluate to allow all dependencies to be declared before checking
         project.afterEvaluate({
             FileCollection externalFiles = getTrimmedExternalFiles(project)

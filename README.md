@@ -13,9 +13,16 @@ on how to do that, including how to develop and test locally and the versioning 
 ## Release Notes
 ### version TBD
 *Released*: TBD
-(Earliest compatible LabKey version: 20.9)
+(Earliest compatible LabKey version: 21.1)
 * [Issue 41833](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=41833) Fix handling of modules that are
 not meant to be built, either because they lack a module.properties file or because the skipBuild property is set.
+* Remove support for skipbuild.txt file
+* Change class structure for module plugins so we do not apply the plugins more than once.
+* Update plugin publishing to use java-gradle-plugin, enabling use of modern plugin DSL when applying individual plugins
+* Apply the java and base plugins within the plugins that depend on it
+* Remove CoreScripts plugin in favor of defining the single task within the core module build.gradle
+* Use an independent output directory for GWT compilation so the task can more reliably be cached
+* Apply versioning plugin withing base plugin
 
 ### version 1.21.2
 *Released*: 23 November 2020
