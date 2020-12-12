@@ -720,6 +720,14 @@ class BuildUtils
         return gradle.hasProperty(propertyName) ? gradle.getProperty(propertyName) : defaultValue
     }
 
+    static String getEmbeddedConfigPath(Project project)
+    {
+        if (project.rootProject.file("server/embedded/config").exists())
+            return "${project.rootProject.projectDir}/server/embedded/config"
+        else
+            throw new GradleException("Unable to find embedded config directory")
+    }
+
     static String getWebappConfigPath(Project project)
     {
         if (project.rootProject.file("webapps").exists())
