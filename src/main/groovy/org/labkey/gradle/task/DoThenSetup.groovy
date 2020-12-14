@@ -66,6 +66,7 @@ class DoThenSetup extends DefaultTask
 
     @TaskAction
     void setup() {
+        doDatabaseTask()
         boolean embeddedProjectPresent = project.rootProject.file("server/embedded/config").exists()
         if (!embeddedProjectPresent)
         {
@@ -78,8 +79,6 @@ class DoThenSetup extends DefaultTask
                     throw new GradleException("Directory ${tomcatConfDir.absolutePath} does not have proper permissions")
             } else if (!canCreate(tomcatConfDir))
                 throw new GradleException("Insufficient permissions to create ${tomcatConfDir.absolutePath}")
-
-            doDatabaseTask()
 
             String appDocBase = project.serverDeploy.webappDir.toString().split("[/\\\\]").join("${File.separator}")
 
