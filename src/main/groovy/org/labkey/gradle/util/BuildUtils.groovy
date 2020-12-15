@@ -741,6 +741,6 @@ class BuildUtils
 
     static boolean useEmbeddedTomcat(Project project)
     {
-        return project.hasProperty(USE_EMBEDDED_TOMCAT) ? project.property(USE_EMBEDDED_TOMCAT) : false
+        return project.hasProperty(USE_EMBEDDED_TOMCAT) && project.property(USE_EMBEDDED_TOMCAT) == "true"
     }
 }
