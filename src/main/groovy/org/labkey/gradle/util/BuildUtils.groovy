@@ -35,6 +35,7 @@ import java.util.regex.Pattern
 class BuildUtils
 {
     public static final String BUILD_FROM_SOURCE_PROP = "buildFromSource"
+    public static final String USE_EMBEDDED_TOMCAT = "useEmbeddedTomcat"
     public static final String BUILD_CLIENT_LIBS_FROM_SOURCE_PROP = "buildClientLibsFromSource"
     public static final String SERVER_MODULES_DIR = "server/modules"
     public static final String PLATFORM_MODULES_DIR = "server/modules/platform"
@@ -736,5 +737,10 @@ class BuildUtils
             return "${project.rootProject.projectDir}/server/configs/webapps/"
         else
             throw new GradleException("Unable to find webapps config directory")
+    }
+
+    static boolean useEmbeddedTomcat(Project project)
+    {
+        return project.hasProperty(USE_EMBEDDED_TOMCAT) ? project.property(USE_EMBEDDED_TOMCAT) : false
     }
 }
