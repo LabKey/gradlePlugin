@@ -11,6 +11,13 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+### version TBD
+*Release*: TBD
+(Earliest compatible LabKey version: 21.1)
+* Add ability to create distributions that contain an embedded tomcat distribution
+  * Adjust pickDb tasks to no longer copy the labkey.xml
+* Remove includeWarArchive property for distributions
+
 ### version 1.22.0
 *Released*: 7 December 2020
 (Earliest compatible LabKey version: 21.1)

@@ -35,8 +35,6 @@ class ModuleDistribution extends DefaultTask
     @Optional @Input
     Boolean includeTarGZArchive = false
     @Optional @Input
-    Boolean includeWarArchive = false
-    @Optional @Input
     Boolean makeDistribution = true // set to false for just an archive of modules
     @Optional @Input
     String extraFileIdentifier = ""
@@ -74,15 +72,29 @@ class ModuleDistribution extends DefaultTask
         return distributionDir
     }
 
+    private boolean shouldBuildEmbeddedArchive() {
+        return BuildUtils.useEmbeddedTomcat(project) && makeDistribution
+    }
+
     @OutputFiles
     List<File> getDistFiles()
     {
         List<File> distFiles = new ArrayList<>()
 
-        if (includeTarGZArchive)
+        if (shouldBuildEmbeddedArchive())
+            distFiles.add(new File(getEmbeddedTomcatJarPath()))
+
+        if (includeTarGZArchive) {
             distFiles.add(new File(getTarArchivePath()))
-        if (includeZipArchive)
+            if (shouldBuildEmbeddedArchive())
+                distFiles.add(new File(getEmbeddedTarArchivePath()))
+        }
+        if (includeZipArchive) {
             distFiles.add(new File(getZipArchivePath()))
+            if (shouldBuildEmbeddedArchive())
+                distFiles.add(new File(getEmbeddedZipArchivePath()))
+        }
+
         if (makeDistribution)
         {
             distFiles.add(getDistributionFile())
@@ -153,15 +165,20 @@ class ModuleDistribution extends DefaultTask
         if (includeTarGZArchive)
         {
             tarArchives()
+            if (BuildUtils.useEmbeddedTomcat(project) && makeDistribution)
+            {
+                embeddedTomcatTarArchive()
+            }
         }
         if (includeZipArchive)
         {
             zipArchives()
+            if (BuildUtils.useEmbeddedTomcat(project) && makeDistribution)
+            {
+                embeddedTomcatZipArchive()
+            }
         }
-        if (includeWarArchive)
-        {
-            warArchives()
-        }
+
     }
 
     @Input
@@ -179,14 +196,29 @@ class ModuleDistribution extends DefaultTask
         return archiveName
     }
 
+    private String getEmbeddedTomcatJarPath()
+    {
+        return "${project.buildDir}/labkeyServer-${project.version}.jar"
+    }
+
     private String getTarArchivePath()
     {
         return "${getResolvedDistributionDir()}/${getArchiveName()}.tar.gz"
     }
 
+    private String getEmbeddedTarArchivePath()
+    {
+        return "${getResolvedDistributionDir()}/${getArchiveName()}-embedded.tar.gz"
+    }
+
     private String getZipArchivePath()
     {
         return "${getResolvedDistributionDir()}/${getArchiveName()}.zip"
+    }
+
+    private String getEmbeddedZipArchivePath()
+    {
+        return "${getResolvedDistributionDir()}/${getArchiveName()}-embedded.zip"
     }
 
     private String getWarArchivePath()
@@ -327,83 +359,96 @@ class ModuleDistribution extends DefaultTask
         }
     }
 
-    // CONSIDER sort module by module dependencies
-    //   I don't think this is a problem with core labkey modules today, but it could be
-    private void warArchives()
+    private makeEmbeddedTomcatJar()
     {
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
-        String warArchivePath = getWarArchivePath()
 
-        String[] modules = getModulesDir().list { File dir, String name -> name.endsWith(".module") }
-
-        // explode the modules before trying to assemble the .war
-        List<File> explodedModules = new ArrayList<>()
-        Arrays.asList(modules).forEach({ String moduleFile ->
-            String moduleName = moduleFile.substring(0, moduleFile.size() - ".module".size())
-            File explodedDir = new File(new File(warArchivePath).parentFile, moduleName)
-            explodedModules.push(explodedDir)
-            ant.unzip(src: new File(getModulesDir(),moduleFile), dest: explodedDir)
-        })
-
-        ant.zip(destfile: warArchivePath, duplicate:preserve) {
-
+        File embeddedJarFile = project.project(BuildUtils.getEmbeddedProjectPath(project.gradle)).tasks.jar.outputs.files.singleFile
+        File modulesZipFile = new File(project.buildDir, "distribution.zip")
+        File serverJarFile = new File(getEmbeddedTomcatJarPath())
+        ant.zip(destFile: modulesZipFile.getAbsolutePath()) {
             zipfileset(dir: staging.webappDir,
-                    prefix: "") {
+                    prefix: "labkeywebapp") {
                 exclude(name: "WEB-INF/classes/distribution")
             }
-
-            // TODO mail.jar should be picked up from api module (like jdbc jars)
-            zipfileset(dir: staging.tomcatLibDir, prefix: "WEB-INF/lib") {
-                include(name: "mail.jar")
+            zipfileset(dir: new File("${project.rootProject.buildDir}/distModules"),
+                    prefix: "modules") {
+                include(name: "*.module")
             }
-
-            // NOTE: if we want to enable running w/o LabKeyBootstrapClassLoader we have to do some of its work here (see ExplodedModule)
-            // NOTE: in particular some files need to be moved out of the module and into the WEB-INF directory
-
-            explodedModules.forEach({ File moduleDir ->
-                String moduleName = moduleDir.getName()
-
-                // copy the modules files that stay in the exploded module directory
-                zipfileset(dir: moduleDir,
-                        prefix: "WEB-INF/modules/" + moduleName) {
-                    exclude(name: "lib/**/*.jar")
-                    exclude(name: "web/**/*.gwt.rpc")
-                    exclude(name: "**/*Context.xml")
-                }
-
-                // WEB-INF (web.xml, labkey.tld)
-                zipfileset(dir: new File(moduleDir, "web/WEB-INF"),
-                        prefix: "WEB-INF/",
-                        erroronmissingdir: false) {
-                    include(name: "*")
-                }
-
-                // WEB-INF/lib (*.jar)
-                zipfileset(dir: moduleDir,
-                        prefix: "WEB-INF",
-                        erroronmissingdir: false) {
-                    include(name: "lib/*.jar")
-                }
-
-                // gwt.rpc
-                zipfileset(dir: new File(moduleDir, "web"),
-                        prefix: "",
-                        erroronmissingdir: false) {
-                    include(name: "**/*.gwt.rpc")
-                }
-
-                // spring Context.xml files
-                zipfileset(dir: new File(moduleDir, "config"),
-                        prefix: "WEB-INF/",
-                        erroronmissingdir: false) {
-                    include(name: "**/*Context.xml")
-                }
-            })
+            zipfileset(dir: staging.pipelineLibDir, prefix: "pipeline-lib")
+            zipfileset(dir: "${project.buildDir}/") {
+                include(name: "labkeywebapp/**")
+            }
         }
 
-        explodedModules.forEach({ File moduleDir -> moduleDir.deleteDir() })
+        project.copy {
+            CopySpec copy ->
+                copy.from(embeddedJarFile)
+                copy.into(project.buildDir)
+                copy.rename(embeddedJarFile.getName(), serverJarFile.getName())
+        }
+        ant.zip(
+                destfile: new File(project.buildDir, serverJarFile.getName()),
+                update: true) {
+            zipfileset(dir: modulesZipFile.getParent(), prefix: "labkey", includes: modulesZipFile.getName())
+        }
     }
 
+    private void embeddedTomcatTarArchive()
+    {
+        File serverJarFile = new File(getEmbeddedTomcatJarPath())
+        if (!serverJarFile.exists())
+            makeEmbeddedTomcatJar()
+
+        copyWindowsCoreUtilities()
+        def utilsDir = getWindowsUtilDir()
+
+        ant.tar(tarfile: getEmbeddedTarArchivePath(),
+                longfile: "gnu",
+                compression: "gzip") {
+            tarfileset(dir: project.buildDir, prefix: archiveName) { include(name: serverJarFile.getName()) }
+
+            tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
+
+            tarfileset(dir: "${project.buildDir}/",
+                    prefix: archiveName,
+                    mode: 744) {
+                include(name: "manual-upgrade.sh")
+            }
+
+            tarfileset(dir: project.buildDir,
+                    prefix: archiveName) {
+                include(name: "README.txt")
+                include(name: "VERSION")
+                include(name: "nlp/**")
+            }
+        }
+    }
+
+    private void embeddedTomcatZipArchive()
+    {
+        copyWindowsCoreUtilities();
+        def utilsDir = getWindowsUtilDir()
+
+        File serverJarFile = new File(getEmbeddedTomcatJarPath())
+        if (!serverJarFile.exists())
+            makeEmbeddedTomcatJar()
+
+        ant.zip(destfile: getEmbeddedZipArchivePath()) {
+            zipfileset(dir: project.buildDir, prefix: archiveName) { include(name: serverJarFile.getName()) }
+            zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
+            zipfileset(dir: project.buildDir, prefix: archiveName, filemode: 744){
+                include(name: "manual-upgrade.sh")
+            }
+
+            zipfileset(dir: "${project.buildDir}/",
+                    prefix: "${archiveName}") {
+                include(name: "README.txt")
+                include(name: "VERSION")
+                include(name: "nlp/**")
+            }
+        }
+    }
 
     private void createDistributionFiles()
     {
