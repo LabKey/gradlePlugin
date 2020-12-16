@@ -292,6 +292,11 @@ class BuildUtils
         return project.path.equals(getApiProjectPath(project.gradle))
     }
 
+    static String getEmbeddedProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "embeddedProjectPath", ":server:embedded")
+    }
+
     static String getApiProjectPath(Gradle gradle)
     {
         return getProjectPath(gradle, "apiProjectPath", ":server:modules:platform:api")
@@ -723,10 +728,7 @@ class BuildUtils
 
     static String getEmbeddedConfigPath(Project project)
     {
-        if (project.rootProject.file("server/embedded/config").exists())
-            return "${project.rootProject.projectDir}/server/embedded/config"
-        else
-            throw new GradleException("Unable to find embedded config directory")
+        return project.project(getEmbeddedProjectPath(project.gradle)).file("configs").absolutePath
     }
 
     static String getWebappConfigPath(Project project)
@@ -741,6 +743,6 @@ class BuildUtils
 
     static boolean useEmbeddedTomcat(Project project)
     {
-        return project.hasProperty(USE_EMBEDDED_TOMCAT) && project.property(USE_EMBEDDED_TOMCAT) == "true"
+        return project.hasProperty(USE_EMBEDDED_TOMCAT) && project.findProject(getEmbeddedProjectPath(project.gradle)) != null
     }
 }
