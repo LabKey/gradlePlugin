@@ -35,6 +35,8 @@ class ModuleDistribution extends DefaultTask
     @Optional @Input
     Boolean includeTarGZArchive = false
     @Optional @Input
+    Boolean includeEmbeddedArchive = false
+    @Optional @Input
     Boolean makeDistribution = true // set to false for just an archive of modules
     @Optional @Input
     String extraFileIdentifier = ""
@@ -73,7 +75,7 @@ class ModuleDistribution extends DefaultTask
     }
 
     private boolean shouldBuildEmbeddedArchive() {
-        return BuildUtils.useEmbeddedTomcat(project) && makeDistribution
+        return includeEmbeddedArchive && makeDistribution
     }
 
     @OutputFiles
@@ -364,7 +366,7 @@ class ModuleDistribution extends DefaultTask
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
 
         File embeddedJarFile = project.project(BuildUtils.getEmbeddedProjectPath(project.gradle)).tasks.jar.outputs.files.singleFile
-        File modulesZipFile = new File(project.buildDir, "distribution.zip")
+        File modulesZipFile = new File(project.buildDir, "labkey/distribution.zip")
         File serverJarFile = new File(getEmbeddedTomcatJarPath())
         ant.zip(destFile: modulesZipFile.getAbsolutePath()) {
             zipfileset(dir: staging.webappDir,
@@ -375,7 +377,6 @@ class ModuleDistribution extends DefaultTask
                     prefix: "modules") {
                 include(name: "*.module")
             }
-            zipfileset(dir: staging.pipelineLibDir, prefix: "pipeline-lib")
             zipfileset(dir: "${project.buildDir}/") {
                 include(name: "labkeywebapp/**")
             }
@@ -387,10 +388,11 @@ class ModuleDistribution extends DefaultTask
                 copy.into(project.buildDir)
                 copy.rename(embeddedJarFile.getName(), serverJarFile.getName())
         }
-        ant.zip(
+
+        ant.jar(
                 destfile: new File(project.buildDir, serverJarFile.getName()),
                 update: true) {
-            zipfileset(dir: modulesZipFile.getParent(), prefix: "labkey", includes: modulesZipFile.getName())
+            fileset(dir: "${project.buildDir}", includes: "labkey/**")
         }
     }
 
