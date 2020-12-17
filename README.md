@@ -14,8 +14,10 @@ on how to do that, including how to develop and test locally and the versioning 
 ### version TBD
 *Release*: TBD
 (Earliest compatible LabKey version: 21.1)
-* Add ability to create distributions that contain an embedded tomcat distribution
-  * Adjust pickDb tasks to no longer copy the labkey.xml
+* Add support for using embedded tomcat
+    * Add ability to create distributions that contain an embedded tomcat distribution 
+      by setting a new includeEmbeddedArchive property on the ModuleDistribution task
+    * Adjust pickDb tasks to no longer copy the labkey.xml
 * Remove includeWarArchive property for distributions
 
 ### version 1.22.0
