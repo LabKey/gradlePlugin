@@ -128,6 +128,7 @@ class DoThenSetup extends DefaultTask
         else {
             if (!embeddedConfigUpToDate()) {
                 Properties configProperties = databaseProperties.getConfigProperties()
+                configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath())
                 String embeddedDir = BuildUtils.getEmbeddedConfigPath(project);
                 File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
                 project.copy({ CopySpec copy ->
