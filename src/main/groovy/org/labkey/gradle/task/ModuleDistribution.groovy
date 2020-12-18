@@ -390,8 +390,10 @@ class ModuleDistribution extends DefaultTask
         }
 
         ant.jar(
-                destfile: new File(project.buildDir, serverJarFile.getName()),
-                update: true) {
+            destfile: new File(project.buildDir, serverJarFile.getName()),
+            update: true,
+            keepcompression: true
+        ) {
             fileset(dir: "${project.buildDir}", includes: "labkey/**")
         }
     }
@@ -418,8 +420,7 @@ class ModuleDistribution extends DefaultTask
                 include(name: "manual-upgrade.sh")
             }
 
-            tarfileset(dir: project.buildDir,
-                    prefix: archiveName) {
+            tarfileset(dir: project.buildDir, prefix: archiveName) {
                 include(name: "README.txt")
                 include(name: "VERSION")
                 include(name: "nlp/**")
