@@ -62,6 +62,8 @@ class ModuleDistribution extends DefaultTask
         Project serverProject = BuildUtils.getServerProject(project)
         this.dependsOn(serverProject.tasks.setup)
         this.dependsOn(serverProject.tasks.stageApp)
+        if (BuildUtils.useEmbeddedTomcat(project))
+            this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.build)
 
         project.apply plugin: 'org.labkey.build.base'
     }
