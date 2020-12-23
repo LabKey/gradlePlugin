@@ -128,7 +128,8 @@ class DoThenSetup extends DefaultTask
         else {
             if (!embeddedConfigUpToDate()) {
                 Properties configProperties = databaseProperties.getConfigProperties()
-                configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath())
+                if (project.hasProperty("useLocalBuild"))
+                    configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath())
                 String embeddedDir = BuildUtils.getEmbeddedConfigPath(project);
                 File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
                 project.copy({ CopySpec copy ->
@@ -136,6 +137,9 @@ class DoThenSetup extends DefaultTask
                     copy.into embeddedDir
                     copy.include "application.properties"
                     copy.filter({ String line ->
+
+                        if (project.hasProperty("useLocalBuild"))
+                            line = line.replace("#context.webAppLocation=", "context.webApplication=")
                         return PropertiesUtils.replaceProps(line, configProperties, false)
                     })
                 })
