@@ -139,7 +139,7 @@ class DoThenSetup extends DefaultTask
                     copy.filter({ String line ->
 
                         if (project.hasProperty("useLocalBuild"))
-                            line = line.replace("#context.webAppLocation=", "context.webApplication=")
+                            line = line.replace("#context.webAppLocation=", "context.webAppLocation=")
                         return PropertiesUtils.replaceProps(line, configProperties, false)
                     })
                 })
