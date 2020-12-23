@@ -251,7 +251,7 @@ class DoThenSetup extends DefaultTask
             return false
 
         File dbPropFile = DatabaseProperties.getPickedConfigFile(project)
-        File applicationPropsFile = new File("${project.rootProject.projectDir}/server/embedded/config", "application.properties")
+        File applicationPropsFile = new File(BuildUtils.getEmbeddedConfigPath(project), "application.properties")
         if (!dbPropFile.exists() || !applicationPropsFile.exists())
             return false
         if (dbPropFile.lastModified() < applicationPropsFile.lastModified())
