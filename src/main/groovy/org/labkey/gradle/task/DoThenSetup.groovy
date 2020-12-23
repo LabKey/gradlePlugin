@@ -138,8 +138,10 @@ class DoThenSetup extends DefaultTask
                     copy.include "application.properties"
                     copy.filter({ String line ->
 
-                        if (project.hasProperty("useLocalBuild"))
+                        if (project.hasProperty("useLocalBuild")) {
                             line = line.replace("#context.webAppLocation=", "context.webAppLocation=")
+                            line = line.replace("#spring.devtools.restart.additional-paths=", "spring.devtools.restart.additional-paths=")
+                        }
                         return PropertiesUtils.replaceProps(line, configProperties, false)
                     })
                 })
