@@ -59,6 +59,10 @@ class ServerDeploy implements Plugin<Project>
         serverDeploy.pipelineLibDir = "${serverDeploy.dir}/pipelineLib"
 
         project.apply plugin: 'org.labkey.build.base'
+        // we depend on the jar task from the embedded project, if available
+        if (BuildUtils.useEmbeddedTomcat(project))
+            project.evaluationDependsOn(BuildUtils.getEmbeddedProjectPath(project.gradle))
+
         addTasks(project)
     }
 
@@ -210,6 +214,8 @@ class ServerDeploy implements Plugin<Project>
         }
 
         project.tasks.deployApp.dependsOn(project.tasks.stageApp)
+        if (BuildUtils.useEmbeddedTomcat(project))
+            project.tasks.stageApp.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.build)
 
         project.tasks.register(
                 "setup",  DoThenSetup) {

@@ -121,9 +121,6 @@ class DoThenSetup extends DefaultTask
                     copy.include "labkey.xml"
                 })
             }
-
-            if (BuildUtils.getServerProject(project) != null)
-                copyTomcatJars()
         }
         else {
             if (!embeddedConfigUpToDate()) {
@@ -147,6 +144,8 @@ class DoThenSetup extends DefaultTask
                 })
             }
         }
+        if (BuildUtils.getServerProject(project) != null)
+            copyTomcatJars()
 
     }
 
