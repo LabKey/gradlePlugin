@@ -126,6 +126,7 @@ class DoThenSetup extends DefaultTask
             if (!embeddedConfigUpToDate()) {
                 Properties configProperties = databaseProperties.getConfigProperties()
                 if (project.hasProperty("useLocalBuild"))
+                    // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes
                     configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
                 if (project.hasProperty("serverPort"))
                     configProperties.setProperty("serverPort", (String) project.property("serverPort"))
