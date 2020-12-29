@@ -93,4 +93,11 @@ class PropertiesUtils
             }
         }
     }
+
+    static Properties getApplicationProperties(Project project)
+    {
+        def applicationProperties = new Properties()
+        readProperties(new File(BuildUtils.getEmbeddedConfigPath(project), "application.properties"), applicationProperties)
+        return applicationProperties
+    }
 }

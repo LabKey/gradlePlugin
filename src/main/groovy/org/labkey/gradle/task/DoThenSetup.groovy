@@ -126,15 +126,23 @@ class DoThenSetup extends DefaultTask
             if (!embeddedConfigUpToDate()) {
                 Properties configProperties = databaseProperties.getConfigProperties()
                 if (project.hasProperty("useLocalBuild"))
-                    configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath())
-                String embeddedDir = BuildUtils.getEmbeddedConfigPath(project);
+                    configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
+                if (project.hasProperty("serverPort"))
+                    configProperties.setProperty("serverPort", (String) project.property("serverPort"))
+                else if (project.hasProperty("useSsl"))
+                    configProperties.setProperty("serverPort", "8443")
+                else
+                    configProperties.setProperty("serverPort", "8080")
+                String embeddedDir = BuildUtils.getEmbeddedConfigPath(project)
                 File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
                 project.copy({ CopySpec copy ->
                     copy.from configsDir
                     copy.into embeddedDir
                     copy.include "application.properties"
                     copy.filter({ String line ->
-
+                        if (project.hasProperty("useSsl")) {
+                            line = line.replace("#server.ssl", "server.ssl")
+                        }
                         if (project.hasProperty("useLocalBuild")) {
                             line = line.replace("#context.webAppLocation=", "context.webAppLocation=")
                             line = line.replace("#spring.devtools.restart.additional-paths=", "spring.devtools.restart.additional-paths=")

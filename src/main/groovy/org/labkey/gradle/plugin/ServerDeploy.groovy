@@ -16,11 +16,13 @@
 package org.labkey.gradle.plugin
 
 import org.apache.commons.lang3.SystemUtils
+import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -52,6 +54,7 @@ class ServerDeploy implements Plugin<Project>
         serverDeploy = project.extensions.create("serverDeploy", ServerDeployExtension)
 
         serverDeploy.dir = ServerDeployExtension.getServerDeployDirectory(project)
+        serverDeploy.embeddedDir = "${serverDeploy.dir}/embedded"
         serverDeploy.modulesDir = "${serverDeploy.dir}/modules"
         serverDeploy.webappDir = "${serverDeploy.dir}/labkeyWebapp"
         serverDeploy.binDir = "${serverDeploy.dir}/bin"
@@ -213,10 +216,6 @@ class ServerDeploy implements Plugin<Project>
                 task.dependsOn project.tasks.stageRemotePipelineJars
         }
 
-        project.tasks.deployApp.dependsOn(project.tasks.stageApp)
-        if (BuildUtils.useEmbeddedTomcat(project))
-            project.tasks.stageApp.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.build)
-
         project.tasks.register(
                 "setup",  DoThenSetup) {
             DoThenSetup task ->
@@ -227,6 +226,31 @@ class ServerDeploy implements Plugin<Project>
         }
 
         project.tasks.deployApp.dependsOn(project.tasks.setup)
+        project.tasks.deployApp.dependsOn(project.tasks.stageApp)
+
+        if (BuildUtils.useEmbeddedTomcat(project)) {
+            def embeddedProject = project.project(BuildUtils.getEmbeddedProjectPath())
+
+            project.tasks.register("cleanEmbeddedDeploy", DefaultTask) {
+                DefaultTask task ->
+                    task.group = GroupNames.DEPLOY
+                    task.description = "Remove the ${project.serverDeploy.embeddedDir} directory"
+                    task.doLast {
+                        project.delete project.serverDeploy.embeddedDir
+                    }
+            }
+            project.tasks.deployApp.dependsOn(project.tasks.cleanEmbeddedDeploy)
+            project.tasks.stageApp.dependsOn(embeddedProject.tasks.build)
+            project.tasks.setup.mustRunAfter(project.tasks.cleanEmbeddedDeploy)
+            project.tasks.deployApp.doLast({
+                project.delete()
+                project.copy {
+                    CopySpec copy ->
+                        copy.from new File(embeddedProject.buildDir, "libs")
+                        copy.into project.serverDeploy.embeddedDir
+                }
+            })
+        }
 
         String log4jFile = project.hasProperty('log4j2Version') ? 'log4j2.xml' : 'log4j.xml'
         project.tasks.register('configureLog4j', ConfigureLog4J) {
@@ -248,6 +272,13 @@ class ServerDeploy implements Plugin<Project>
                 task.group = GroupNames.DISTRIBUTION
                 task.description = "Deploy a LabKey distribution file from directory dist or directory specified with distDir property.  Use property distType to specify zip or tar.gz (default)."
                 task.dependsOn(project.tasks.stageDistribution, project.tasks.configureLog4j, project.tasks.setup)
+        }
+
+        project.tasks.register("deployEmbeddedDistribution", DeployEmbeddedDistribution) {
+            DeployEmbeddedDistribution task ->
+                task.group = GroupNames.DISTRIBUTION
+                task.description = "Extract the executable jar from a distribution and put it and the included binaries in the appropriate deploy directory"
+                task.dependsOn(project.tasks.cleanEmbeddedDeploy, project.tasks.setup)
         }
 
         // This may prevent multiple Tomcat restarts

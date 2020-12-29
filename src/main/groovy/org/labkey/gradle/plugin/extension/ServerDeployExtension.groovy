@@ -20,6 +20,7 @@ import org.gradle.api.Project
 class ServerDeployExtension
 {
     String dir
+    String embeddedDir
     String modulesDir
     String webappDir
     String binDir

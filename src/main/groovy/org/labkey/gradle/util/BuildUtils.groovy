@@ -728,7 +728,7 @@ class BuildUtils
 
     static String getEmbeddedConfigPath(Project project)
     {
-        return project.project(getEmbeddedProjectPath(project.gradle)).file("config").absolutePath
+        return new File(project.serverDeploy.embeddedDir, "config").absolutePath
     }
 
     static String getWebappConfigPath(Project project)
