@@ -12,8 +12,10 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 ### version TBD
-*Release*: TBD
+*Released*: TBD
 (Earliest compatible LabKey version: 21.1)
+* Add build.gradle file to module created with `createModule` task.
+* Fix relative path input for `createModule` so it is relative to the current directory not the gradle Daemon
 * Add support for using embedded tomcat
     * Add ability to create distributions that contain an embedded tomcat distribution 
       by setting a new includeEmbeddedArchive property on the ModuleDistribution task
