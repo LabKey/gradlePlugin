@@ -47,7 +47,7 @@ class CreateModule extends DefaultTask
         }
         else {
             project.ant.input(
-                    message: "\nEnter the name for your new module: ",
+                    message: "\nEnter the (Java) name for your new module: ",
                     addProperty: "new_moduleName"
             )
             moduleName = ant.new_moduleName.trim()
@@ -65,7 +65,7 @@ class CreateModule extends DefaultTask
         }
         else {
             project.ant.input(
-                    message: "\nEnter the location for the new module (absolute or relative to '" + new File("").getAbsolutePath() + "'): ",
+                    message: "\nEnter the location for the new module (absolute or relative to '" + project.projectDir.getAbsolutePath() + "'): ",
                     addProperty: "new_moduleDestination"
             )
             moduleDestination = ant.new_moduleDestination.trim()
@@ -73,7 +73,7 @@ class CreateModule extends DefaultTask
         if (moduleDestination == null || moduleDestination == "") {
             throw new GradleException("moduleDestination is not specified")
         }
-        File moduleDestinationFile = new File(moduleDestination).getAbsoluteFile()
+        File moduleDestinationFile = project.file(moduleDestination).getAbsoluteFile()
         if (moduleDestinationFile.exists())
         {
             ant.input(
