@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.ServerDeploy
+import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.PropertiesUtils
@@ -128,7 +129,9 @@ class DoThenSetup extends DefaultTask
                 if (project.hasProperty("useLocalBuild"))
                     // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes, even on Windows
                     configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
-                if (project.hasProperty("serverPort"))
+                if (TeamCityExtension.getLabKeyServerPort(project) != null)
+                    configProperties.setProperty("serverPort", TeamCityExtension.getLabKeyServerPort(project))
+                else if (project.hasProperty("serverPort"))
                     configProperties.setProperty("serverPort", (String) project.property("serverPort"))
                 else if (project.hasProperty("useSsl"))
                     configProperties.setProperty("serverPort", "8443")
