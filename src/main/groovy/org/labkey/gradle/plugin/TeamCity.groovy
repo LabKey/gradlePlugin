@@ -248,6 +248,19 @@ class TeamCity extends Tomcat
                 )
         }
         project.tasks.startTomcat.mustRunAfter(project.tasks.cleanTestLogs)
+
+        project.tasks.register("embeddedCiTests") {
+            Task task ->
+                task.group = GroupNames.TEST_SERVER
+                task.dependsOn(ciTests)
+                task.dependsOn(project.tasks.validateConfiguration, project.tasks.startEmbeddedTomcat)
+                task.description = "Run a test suite on TeamCity using the embedded Tomcat installer"
+                task.doLast(
+                        {
+                            killFirefox(project)
+                        }
+                )
+        }
     }
 
     private static void killChrome(Project project)
