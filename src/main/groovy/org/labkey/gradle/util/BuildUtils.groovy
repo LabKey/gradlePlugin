@@ -22,6 +22,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
+import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 
 import java.nio.file.Files
@@ -729,6 +730,23 @@ class BuildUtils
     static String getEmbeddedConfigPath(Project project)
     {
         return new File(project.serverDeploy.embeddedDir, "config").absolutePath
+    }
+
+    static File getExecutableServerJar(Project project)
+    {
+        File deployDir = new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project))
+        File[] jarFiles = deployDir.listFiles(new FilenameFilter() {
+            @Override
+            boolean accept(File dir, String name) {
+                return name.endsWith("jar");
+            }
+        })
+        if (jarFiles.size() == 0)
+            return null
+        else if (jarFiles.size() > 1)
+            throw new GradleException("Found ${jarFiles.size()} jar files in ${deployDir}.")
+        else
+            return jarFiles[0]
     }
 
     static String getWebappConfigPath(Project project)

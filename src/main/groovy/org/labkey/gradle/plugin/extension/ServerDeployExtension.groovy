@@ -32,6 +32,11 @@ class ServerDeployExtension
         return "${project.rootProject.buildDir}/deploy"
     }
 
+    static String getEmbeddedServerDeployDirectory(Project project)
+    {
+        return "${getServerDeployDirectory(project)}/embedded"
+    }
+
     static String getModulesDeployDirectory(Project project)
     {
         return "${getServerDeployDirectory(project)}/modules"

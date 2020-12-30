@@ -153,6 +153,7 @@ class TeamCity extends Tomcat
         }
 
         project.tasks.startTomcat.dependsOn(project.tasks.createNlpConfig)
+        project.tasks.startEmbeddedTomcat.dependsOn(project.tasks.createNlpConfig)
 
         project.tasks.register("validateConfiguration") {
             Task task ->
@@ -217,6 +218,7 @@ class TeamCity extends Tomcat
             project.tasks.startTomcat.mustRunAfter(undeployTaskProvider)
 
             project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startTomcat.mustRunAfter(setUpDbTask)
+            project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startEmbeddedTomcat.mustRunAfter(setUpDbTask)
             String ciTestTaskName = "ciTests" + properties.dbTypeAndVersion.capitalize()
             project.tasks.register(ciTestTaskName, RunTestSuite) {
                 RunTestSuite task ->
@@ -227,6 +229,7 @@ class TeamCity extends Tomcat
                     task.mustRunAfter(project.tasks.validateConfiguration)
                     task.mustRunAfter(project.tasks.cleanTestLogs)
                     task.mustRunAfter(project.tasks.startTomcat)
+                    task.mustRunAfter(project.tasks.startEmbeddedTomcat)
             }
 
             ciTests.add(project.tasks.named(ciTestTaskName))
