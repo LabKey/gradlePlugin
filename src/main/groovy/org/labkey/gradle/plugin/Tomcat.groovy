@@ -100,6 +100,10 @@ class Tomcat implements Plugin<Project>
                             logFile.createNewFile()
                         FileOutputStream outputStream = new FileOutputStream(logFile)
                         def env = []
+                        env += "PATH=${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/bin${File.pathSeparator}${System.getenv("PATH")}"
+                        if (TeamCityExtension.isOnTeamCity(project))
+                            env +="R_LIBS_USER=${System.getenv("R_LIBS_USER") != null ? System.getenv("R_LIBS_USER") : project.rootProject.file("sampledata/rlabkey")}"
+                        task.logger.quiet("Starting embedded tomcat with command ${commandParts} and env ${env} in directory ${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}")
                         Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
                         process.consumeProcessOutput(outputStream, outputStream)
                     }
