@@ -91,8 +91,7 @@ class Tomcat implements Plugin<Project>
                         if (!javaExec.exists())
                             throw new GradleException("Invalid value for JAVA_HOME. Could not find java command in ${javaExec}")
                         String[] commandParts = [javaExec.getAbsolutePath()]
-                        if (LabKeyExtension.isDevMode(project))
-                            commandParts += "-Ddevmode=true"
+                        commandParts += StartTomcat.getStartupOpts(project)
                         commandParts += ["-jar", jarFile.getName()]
                         File logFile = new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project), EMBEDDED_LOG_FILE_NAME)
                         if (!logFile.getParentFile().exists())
@@ -100,8 +99,7 @@ class Tomcat implements Plugin<Project>
                         if (!logFile.exists())
                             logFile.createNewFile()
                         FileOutputStream outputStream = new FileOutputStream(logFile)
-                        def env = ["JAVA_HOME=${System.getenv('JAVA_HOME')}", "JRE_HOME=", "JDK_HOME="]
-                        task.logger.quiet("Starting process with environment ${env}")
+                        def env = []
                         Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
                         process.consumeProcessOutput(outputStream, outputStream)
                     }

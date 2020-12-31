@@ -15,12 +15,16 @@
  */
 package org.labkey.gradle.task
 
+import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
+
+import java.util.stream.Collectors
 
 class StartTomcat extends DefaultTask
 {
@@ -48,27 +52,7 @@ class StartTomcat extends DefaultTask
                 path: "${BuildUtils.getServerProject(project).serverDeploy.binDir}${File.pathSeparator}${System.getenv("PATH")}"
             )
 
-            List<String> optsList = new ArrayList<>()
-            optsList.add(project.tomcat.assertionFlag)
-            optsList.add("-Ddevmode=${LabKeyExtension.isDevMode(project)}")
-            optsList.add(project.tomcat.catalinaOpts)
-            optsList.add("-Xmx${TeamCityExtension.getTeamCityProperty(project, "Xmx", project.tomcat.maxMemory)}")
-            if (project.tomcat.disableRecompileJsp)
-                optsList.add("-Dlabkey.disableRecompileJsp=true")
-            if (project.tomcat.ignoreModuleSource)
-                optsList.add("-Dlabkey.ignoreModuleSource=true")
-            optsList.add(project.tomcat.trustStore)
-            optsList.add(project.tomcat.trustStorePassword)
-
-            if (TeamCityExtension.isOnTeamCity(project) && SystemUtils.IS_OS_UNIX)
-            {
-                optsList.add("-DsequencePipelineEnabled=${TeamCityExtension.getTeamCityProperty(project, "sequencePipelineEnabled", false)}")
-            }
-
-            if (project.hasProperty("extraCatalinaOpts"))
-                optsList.add(project.property("extraCatalinaOpts"))
-
-            String catalinaOpts = optsList.join(" ").replaceAll("\\s+", " ")
+            String catalinaOpts = getStartupOpts(project).join(" ").replaceAll("\\s+", " ")
 
             this.logger.debug("setting CATALINA_OPTS to ${catalinaOpts}")
             env(
@@ -109,5 +93,33 @@ class StartTomcat extends DefaultTask
         println("Waiting 5 seconds for tomcat to start...")
         project.ant.sleep(seconds: 5)
         println("Tomcat started.")
+    }
+
+    static List<String> getStartupOpts(Project project)
+    {
+        List<String> optsList = new ArrayList<>()
+        optsList.add(project.tomcat.assertionFlag)
+        optsList.add("-Ddevmode=${LabKeyExtension.isDevMode(project)}")
+        optsList.add(project.tomcat.catalinaOpts)
+        optsList.add("-Xmx${TeamCityExtension.getTeamCityProperty(project, "Xmx", project.tomcat.maxMemory)}")
+        if (project.tomcat.disableRecompileJsp)
+            optsList.add("-Dlabkey.disableRecompileJsp=true")
+        if (project.tomcat.ignoreModuleSource)
+            optsList.add("-Dlabkey.ignoreModuleSource=true")
+        optsList.add(project.tomcat.trustStore)
+        optsList.add(project.tomcat.trustStorePassword)
+
+        if (TeamCityExtension.isOnTeamCity(project) && SystemUtils.IS_OS_UNIX)
+        {
+            optsList.add("-DsequencePipelineEnabled=${TeamCityExtension.getTeamCityProperty(project, "sequencePipelineEnabled", false)}")
+        }
+
+        if (project.hasProperty("extraCatalinaOpts"))
+            optsList.add((String) project.property("extraCatalinaOpts"))
+
+        return optsList.stream()
+                .filter({String opt -> return !StringUtils.isEmpty(opt)})
+                .collect(Collectors.toList())
+
     }
 }
