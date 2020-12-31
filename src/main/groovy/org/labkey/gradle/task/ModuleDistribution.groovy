@@ -24,6 +24,7 @@ import org.gradle.api.tasks.*
 import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.plugin.extension.StagingExtension
 import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.PropertiesUtils
 
 import java.nio.file.Files
@@ -62,10 +63,11 @@ class ModuleDistribution extends DefaultTask
         Project serverProject = BuildUtils.getServerProject(project)
         this.dependsOn(serverProject.tasks.setup)
         this.dependsOn(serverProject.tasks.stageApp)
-        if (BuildUtils.useEmbeddedTomcat(project))
+        if (shouldBuildEmbeddedArchive())
             this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.build)
 
         project.apply plugin: 'org.labkey.build.base'
+        PomFileHelper.LABKEY_ORG_URL
     }
 
     @OutputDirectory
@@ -170,17 +172,14 @@ class ModuleDistribution extends DefaultTask
         {
             tarArchives()
             if (shouldBuildEmbeddedArchive())
-            {
                 embeddedTomcatTarArchive()
-            }
+
         }
         if (includeZipArchive)
         {
             zipArchives()
             if (shouldBuildEmbeddedArchive())
-            {
                 embeddedTomcatZipArchive()
-            }
         }
 
     }
