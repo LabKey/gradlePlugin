@@ -249,6 +249,12 @@ class ServerDeploy implements Plugin<Project>
                         copy.into project.serverDeploy.embeddedDir
                 }
             })
+            project.tasks.register("deployEmbeddedDistribution", DeployEmbeddedDistribution) {
+                DeployEmbeddedDistribution task ->
+                    task.group = GroupNames.DISTRIBUTION
+                    task.description = "Extract the executable jar from a distribution and put it and the included binaries in the appropriate deploy directory"
+                    task.dependsOn(project.tasks.cleanEmbeddedDeploy, project.tasks.setup)
+            }
         }
 
         String log4jFile = project.hasProperty('log4j2Version') ? 'log4j2.xml' : 'log4j.xml'
@@ -273,12 +279,7 @@ class ServerDeploy implements Plugin<Project>
                 task.dependsOn(project.tasks.stageDistribution, project.tasks.configureLog4j, project.tasks.setup)
         }
 
-        project.tasks.register("deployEmbeddedDistribution", DeployEmbeddedDistribution) {
-            DeployEmbeddedDistribution task ->
-                task.group = GroupNames.DISTRIBUTION
-                task.description = "Extract the executable jar from a distribution and put it and the included binaries in the appropriate deploy directory"
-                task.dependsOn(project.tasks.cleanEmbeddedDeploy, project.tasks.setup)
-        }
+
 
         // This may prevent multiple Tomcat restarts
         project.tasks.setup.mustRunAfter(project.tasks.stageDistribution)
