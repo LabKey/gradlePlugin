@@ -92,7 +92,9 @@ class Tomcat implements Plugin<Project>
                         if (!logFile.exists())
                             logFile.createNewFile()
                         FileOutputStream outputStream = new FileOutputStream(logFile)
-                        Process process = commandParts.execute([], new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
+                        def env = System.getenv().collect { k, v -> "$k=$v" }
+                        Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
+
 //                        Process process = new ProcessBuilder()
 //                                .directory(new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
 //                                .command(commandParts)
@@ -101,6 +103,7 @@ class Tomcat implements Plugin<Project>
 //                                .start()
 //                        process.consumeProcessOutput(logFile, logFile)
                         process.consumeProcessOutput(outputStream, outputStream)
+
 //                        logger.quiet("executed process command")
 //                        int exitCode = process.waitFor()
 //                        task.logger.quiet("Process exit code ${exitCode}")
