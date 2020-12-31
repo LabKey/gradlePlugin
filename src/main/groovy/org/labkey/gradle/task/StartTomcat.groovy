@@ -115,7 +115,7 @@ class StartTomcat extends DefaultTask
         }
 
         if (project.hasProperty("extraCatalinaOpts"))
-            optsList.add((String) project.property("extraCatalinaOpts"))
+            optsList.addAll(((String) project.property("extraCatalinaOpts")).split(" "))
 
         return optsList.stream()
                 .filter({String opt -> return !StringUtils.isEmpty(opt)})
