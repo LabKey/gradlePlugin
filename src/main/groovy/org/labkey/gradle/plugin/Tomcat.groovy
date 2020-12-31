@@ -92,7 +92,8 @@ class Tomcat implements Plugin<Project>
                         if (!logFile.exists())
                             logFile.createNewFile()
                         FileOutputStream outputStream = new FileOutputStream(logFile)
-                        def env = System.getenv().collect { k, v -> "$k=$v" }
+                        def env = ["JAVA_HOME=${System.getenv('JAVA_HOME')}"]
+//                        def env = System.getenv().collect { k, v -> "$k=$v" }
                         task.logger.quiet("Starting process with environment ${env}")
                         Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
 
