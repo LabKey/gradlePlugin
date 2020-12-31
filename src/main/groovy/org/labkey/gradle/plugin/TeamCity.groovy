@@ -201,6 +201,10 @@ class TeamCity extends Tomcat
 
             TaskProvider setUpDbTask = project.tasks.named(setUpTaskName)
 
+            // TODO we need a counterpart of this for embedded tomcat server.  Probably we'll want to
+            // make the deployment extract the module files so we can walk through them to remove the
+            // ones that are not supported.  But, undeployModule currently knows nothing about the build/deploy/embedded
+            // directory, so that needs to be updated as well.
             String undeployTaskName = "undeployModulesNotFor${properties.shortType.capitalize()}"
             Task undeployTask = project.tasks.findByName(undeployTaskName)
             if (undeployTask == null)
