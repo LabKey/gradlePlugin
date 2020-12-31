@@ -100,7 +100,7 @@ class StartTomcat extends DefaultTask
         List<String> optsList = new ArrayList<>()
         optsList.add(project.tomcat.assertionFlag)
         optsList.add("-Ddevmode=${LabKeyExtension.isDevMode(project)}")
-        optsList.add(project.tomcat.catalinaOpts)
+        optsList.addAll(project.tomcat.catalinaOpts.split(" "))
         optsList.add("-Xmx${TeamCityExtension.getTeamCityProperty(project, "Xmx", project.tomcat.maxMemory)}")
         if (project.tomcat.disableRecompileJsp)
             optsList.add("-Dlabkey.disableRecompileJsp=true")
