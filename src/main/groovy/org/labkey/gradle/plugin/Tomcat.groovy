@@ -49,7 +49,7 @@ class Tomcat implements Plugin<Project>
         if (project.plugins.hasPlugin(TestRunner.class))
         {
             UiTestExtension testEx = (UiTestExtension) project.getExtensions().getByType(UiTestExtension.class)
-            tomcat.assertionFlag = Boolean.valueOf(testEx.getTestConfig("disableAssertions")) ? "-da" : "-ea"
+            tomcat.assertionFlag = Boolean.valueOf((String) testEx.getTestConfig("disableAssertions")) ? "-da" : "-ea"
         }
         tomcat.catalinaOpts = "-Dproject.root=${project.rootProject.projectDir.absolutePath}"
 
@@ -92,7 +92,7 @@ class Tomcat implements Plugin<Project>
                         if (!logFile.exists())
                             logFile.createNewFile()
                         FileOutputStream outputStream = new FileOutputStream(logFile)
-                        def env = ["JAVA_HOME=${System.getenv('JAVA_HOME')}"]
+                        def env = ["JAVA_HOME=${System.getenv('JAVA_HOME')}", "JRE_HOME=", "JDK_HOME="]
 //                        def env = System.getenv().collect { k, v -> "$k=$v" }
                         task.logger.quiet("Starting process with environment ${env}")
                         Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
