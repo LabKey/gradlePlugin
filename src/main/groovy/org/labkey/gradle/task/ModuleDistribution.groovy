@@ -77,7 +77,7 @@ class ModuleDistribution extends DefaultTask
     }
 
     private boolean shouldBuildEmbeddedArchive() {
-        return includeEmbeddedArchive && makeDistribution
+        return includeEmbeddedArchive && makeDistribution && BuildUtils.useEmbeddedTomcat(project)
     }
 
     @OutputFiles
@@ -169,7 +169,7 @@ class ModuleDistribution extends DefaultTask
         if (includeTarGZArchive)
         {
             tarArchives()
-            if (BuildUtils.useEmbeddedTomcat(project) && makeDistribution)
+            if (shouldBuildEmbeddedArchive())
             {
                 embeddedTomcatTarArchive()
             }
@@ -177,7 +177,7 @@ class ModuleDistribution extends DefaultTask
         if (includeZipArchive)
         {
             zipArchives()
-            if (BuildUtils.useEmbeddedTomcat(project) && makeDistribution)
+            if (shouldBuildEmbeddedArchive())
             {
                 embeddedTomcatZipArchive()
             }
