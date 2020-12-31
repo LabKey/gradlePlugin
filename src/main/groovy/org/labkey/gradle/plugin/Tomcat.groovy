@@ -82,10 +82,11 @@ class Tomcat implements Plugin<Project>
                         throw new GradleException("No jar file found in ${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}.")
                     }
                     else {
-                        String[] commandParts = ["java"]
-                        if (LabKeyExtension.isDevMode(project))
-                            commandParts += "-Ddevmode=true"
-                        commandParts += ["-jar", jarFile.getName()]
+                        String[] commandParts = ["java", "--version"]
+//                        commandParts += ["java"]
+//                        if (LabKeyExtension.isDevMode(project))
+//                            commandParts += "-Ddevmode=true"
+//                        commandParts += ["-jar", jarFile.getName()]
                         File logFile = new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project), EMBEDDED_LOG_FILE_NAME)
                         if (!logFile.getParentFile().exists())
                             logFile.getParentFile().mkdirs()
