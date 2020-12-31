@@ -93,22 +93,9 @@ class Tomcat implements Plugin<Project>
                             logFile.createNewFile()
                         FileOutputStream outputStream = new FileOutputStream(logFile)
                         def env = ["JAVA_HOME=${System.getenv('JAVA_HOME')}", "JRE_HOME=", "JDK_HOME="]
-//                        def env = System.getenv().collect { k, v -> "$k=$v" }
                         task.logger.quiet("Starting process with environment ${env}")
                         Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
-
-//                        Process process = new ProcessBuilder()
-//                                .directory(new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
-//                                .command(commandParts)
-//                                .redirectOutput(logFile)
-//                                .redirectError(logFile)
-//                                .start()
-//                        process.consumeProcessOutput(logFile, logFile)
                         process.consumeProcessOutput(outputStream, outputStream)
-
-//                        logger.quiet("executed process command")
-//                        int exitCode = process.waitFor()
-//                        task.logger.quiet("Process exit code ${exitCode}")
                     }
                 }
         }
