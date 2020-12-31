@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.plugin
 
+import org.apache.commons.lang3.StringUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -23,6 +24,7 @@ import org.gradle.api.file.DeleteSpec
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
+import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
 import org.labkey.gradle.task.StartTomcat
@@ -82,7 +84,13 @@ class Tomcat implements Plugin<Project>
                         throw new GradleException("No jar file found in ${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}.")
                     }
                     else {
-                        String[] commandParts = ["java"]
+                        String javaHome = TeamCityExtension.getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
+                        if (StringUtils.isEmpty(javaHome))
+                            throw new GradleException("JAVA_HOME must be set in order to start your embedded tomcat server.")
+                        File javaExec = new File(javaHome, "bin/java")
+                        if (!javaExec.exists())
+                            throw new GradleException("Invalid value for JAVA_HOME. Could not find java command in ${javaExec}")
+                        String[] commandParts = [javaExec.getAbsolutePath()]
                         if (LabKeyExtension.isDevMode(project))
                             commandParts += "-Ddevmode=true"
                         commandParts += ["-jar", jarFile.getName()]
