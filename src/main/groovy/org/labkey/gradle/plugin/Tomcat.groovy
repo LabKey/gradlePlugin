@@ -82,20 +82,26 @@ class Tomcat implements Plugin<Project>
                         throw new GradleException("No jar file found in ${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}.")
                     }
                     else {
-                        String[] commandParts = ["java", "--version"]
-//                        commandParts += ["java"]
-//                        if (LabKeyExtension.isDevMode(project))
-//                            commandParts += "-Ddevmode=true"
-//                        commandParts += ["-jar", jarFile.getName()]
+                        String[] commandParts = ["java"]
+                        if (LabKeyExtension.isDevMode(project))
+                            commandParts += "-Ddevmode=true"
+                        commandParts += ["-jar", jarFile.getName()]
                         File logFile = new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project), EMBEDDED_LOG_FILE_NAME)
+                        FileOutputStream outputStream = new FileOutputStream(logFile)
                         if (!logFile.getParentFile().exists())
                             logFile.getParentFile().mkdirs()
-                        new ProcessBuilder()
-                                .directory(new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
-                                .command(commandParts)
-                                .redirectOutput(logFile)
-                                .redirectError(logFile)
-                                .start()
+                        Process process = commandParts.execute([], new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
+//                        Process process = new ProcessBuilder()
+//                                .directory(new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
+//                                .command(commandParts)
+//                                .redirectOutput(logFile)
+//                                .redirectError(logFile)
+//                                .start()
+//                        process.consumeProcessOutput(logFile, logFile)
+                        process.consumeProcessOutput(outputStream, outputStream)
+//                        logger.quiet("executed process command")
+//                        int exitCode = process.waitFor()
+//                        task.logger.quiet("Process exit code ${exitCode}")
                     }
                 }
         }
