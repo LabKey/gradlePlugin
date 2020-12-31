@@ -243,7 +243,6 @@ class ServerDeploy implements Plugin<Project>
             project.tasks.stageApp.dependsOn(embeddedProject.tasks.build)
             project.tasks.setup.mustRunAfter(project.tasks.cleanEmbeddedDeploy)
             project.tasks.deployApp.doLast({
-                project.delete()
                 project.copy {
                     CopySpec copy ->
                         copy.from new File(embeddedProject.buildDir, "libs")
