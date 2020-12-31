@@ -93,6 +93,7 @@ class Tomcat implements Plugin<Project>
                             logFile.createNewFile()
                         FileOutputStream outputStream = new FileOutputStream(logFile)
                         def env = System.getenv().collect { k, v -> "$k=$v" }
+                        task.logger.quiet("Starting process with environment ${env}")
                         Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
 
 //                        Process process = new ProcessBuilder()
