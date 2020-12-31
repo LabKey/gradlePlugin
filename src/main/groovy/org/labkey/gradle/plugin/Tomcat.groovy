@@ -87,9 +87,11 @@ class Tomcat implements Plugin<Project>
                             commandParts += "-Ddevmode=true"
                         commandParts += ["-jar", jarFile.getName()]
                         File logFile = new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project), EMBEDDED_LOG_FILE_NAME)
-                        FileOutputStream outputStream = new FileOutputStream(logFile)
                         if (!logFile.getParentFile().exists())
                             logFile.getParentFile().mkdirs()
+                        if (!logFile.exists())
+                            logFile.createNewFile()
+                        FileOutputStream outputStream = new FileOutputStream(logFile)
                         Process process = commandParts.execute([], new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
 //                        Process process = new ProcessBuilder()
 //                                .directory(new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
