@@ -15,7 +15,6 @@
  */
 package org.labkey.gradle.task
 
-import org.apache.commons.io.FilenameUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
@@ -23,6 +22,7 @@ import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.DistributionExtension
+import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.util.BuildUtils
 
 class StageDistribution extends DefaultTask
@@ -46,8 +46,8 @@ class StageDistribution extends DefaultTask
     void action()
     {
         distributionFile = DistributionExtension.getDistributionFile(project)
-
-        Boolean isTar = FilenameUtils.getExtension(distributionFile.getName()).equals("gz")
+        String extension = distributionFile.getName().endsWith(DistributionExtension.ZIP_ARCHIVE_EXTENSION) ? DistributionExtension.ZIP_ARCHIVE_EXTENSION : DistributionExtension.TAR_ARCHIVE_EXTENSION
+        Boolean isTar = extension.equals(DistributionExtension.TAR_ARCHIVE_EXTENSION)
 
         // first clean out the staging directory so we don't pick up modules not in this distribution
         project.delete modulesStagingDir
