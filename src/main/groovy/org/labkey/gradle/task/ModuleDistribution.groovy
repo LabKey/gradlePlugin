@@ -36,7 +36,7 @@ class ModuleDistribution extends DefaultTask
     @Optional @Input
     Boolean includeTarGZArchive = false
     @Optional @Input
-    Boolean includeEmbeddedArchive = false
+    String embeddedArchive = null
     @Optional @Input
     Boolean makeDistribution = true // set to false for just an archive of modules
     @Optional @Input
@@ -63,7 +63,7 @@ class ModuleDistribution extends DefaultTask
         Project serverProject = BuildUtils.getServerProject(project)
         this.dependsOn(serverProject.tasks.setup)
         this.dependsOn(serverProject.tasks.stageApp)
-        if (shouldBuildEmbeddedArchive())
+        if (BuildUtils.useEmbeddedTomcat(project))
             this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.build)
 
         project.apply plugin: 'org.labkey.build.base'
@@ -78,8 +78,9 @@ class ModuleDistribution extends DefaultTask
         return distributionDir
     }
 
-    private boolean shouldBuildEmbeddedArchive() {
-        return includeEmbeddedArchive && makeDistribution && BuildUtils.useEmbeddedTomcat(project)
+    private boolean shouldBuildEmbeddedArchive(String extension = null) {
+        return (embeddedArchive != null && (extension == null || embeddedArchive.indexOf(extension) >= 0)) &&
+                makeDistribution && BuildUtils.useEmbeddedTomcat(project)
     }
 
     @OutputFiles
@@ -90,16 +91,14 @@ class ModuleDistribution extends DefaultTask
         if (shouldBuildEmbeddedArchive())
             distFiles.add(new File(getEmbeddedTomcatJarPath()))
 
-        if (includeTarGZArchive) {
+        if (includeTarGZArchive)
             distFiles.add(new File(getTarArchivePath()))
-            if (shouldBuildEmbeddedArchive())
-                distFiles.add(new File(getEmbeddedTarArchivePath()))
-        }
-        if (includeZipArchive) {
+        if (shouldBuildEmbeddedArchive(DistributionExtension.TAR_ARCHIVE_EXTENSION))
+            distFiles.add(new File(getEmbeddedTarArchivePath()))
+        if (includeZipArchive)
             distFiles.add(new File(getZipArchivePath()))
-            if (shouldBuildEmbeddedArchive())
-                distFiles.add(new File(getEmbeddedZipArchivePath()))
-        }
+        if (shouldBuildEmbeddedArchive(DistributionExtension.ZIP_ARCHIVE_EXTENSION))
+            distFiles.add(new File(getEmbeddedZipArchivePath()))
 
         if (makeDistribution)
         {
@@ -169,19 +168,13 @@ class ModuleDistribution extends DefaultTask
     private void packageArchives()
     {
         if (includeTarGZArchive)
-        {
             tarArchives()
-            if (shouldBuildEmbeddedArchive())
-                embeddedTomcatTarArchive()
-
-        }
+        if (shouldBuildEmbeddedArchive(DistributionExtension.TAR_ARCHIVE_EXTENSION))
+            embeddedTomcatTarArchive()
         if (includeZipArchive)
-        {
             zipArchives()
-            if (shouldBuildEmbeddedArchive())
-                embeddedTomcatZipArchive()
-        }
-
+        if (shouldBuildEmbeddedArchive(DistributionExtension.ZIP_ARCHIVE_EXTENSION))
+            embeddedTomcatZipArchive()
     }
 
     @Input

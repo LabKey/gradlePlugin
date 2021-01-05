@@ -27,6 +27,8 @@ class DistributionExtension
     public static final String DIST_FILE_DIR = "labkeywebapp/WEB-INF/classes"
     public static final String DIST_FILE_NAME = "distribution"
     public static final String VERSION_FILE_NAME = "VERSION"
+    public static final String TAR_ARCHIVE_EXTENSION = "tar.gz"
+    public static final String ZIP_ARCHIVE_EXTENSION = "zip"
 
     String dir = "${project.rootProject.projectDir}/dist"
     String artifactId
@@ -50,7 +52,7 @@ class DistributionExtension
         }
         if (!distDir.exists())
             throw new GradleException("Distribution directory ${distDir} not found")
-        String extension = project.hasProperty("distType") ? project.property('distType') : "tar.gz"
+        String extension = project.hasProperty("distType") ? project.property('distType') : TAR_ARCHIVE_EXTENSION
         String suffix = isEmbedded ? "-embedded.${extension}" : ".${extension}";
         File[] distFiles = distDir.listFiles(new FilenameFilter() {
 
