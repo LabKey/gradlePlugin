@@ -18,9 +18,12 @@ package org.labkey.gradle.task
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.plugin.Tomcat
 import org.labkey.gradle.plugin.extension.LabKeyExtension
+import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
 
@@ -30,6 +33,49 @@ class StartTomcat extends DefaultTask
 {
     @TaskAction
     void action()
+    {
+        if (BuildUtils.useEmbeddedTomcat(project))
+            startEmbeddedTomcat()
+        else
+            startLocalTomcat()
+    }
+
+    private startEmbeddedTomcat()
+    {
+        File jarFile = BuildUtils.getExecutableServerJar(project)
+        if (jarFile == null)
+        {
+            throw new GradleException("No jar file found in ${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}.")
+        }
+        else
+        {
+            String javaHome = TeamCityExtension.getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
+            if (StringUtils.isEmpty(javaHome))
+                throw new GradleException("JAVA_HOME must be set in order to start your embedded tomcat server.")
+            File javaExec = new File(javaHome, "bin/java")
+            if (!javaExec.exists())
+                throw new GradleException("Invalid value for JAVA_HOME. Could not find java command in ${javaExec}")
+            String[] commandParts = [javaExec.getAbsolutePath()]
+            commandParts += getStartupOpts(project)
+            commandParts += ["-jar", jarFile.getName()]
+
+            File logFile = new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project), Tomcat.EMBEDDED_LOG_FILE_NAME)
+            if (!logFile.getParentFile().exists())
+                logFile.getParentFile().mkdirs()
+            if (!logFile.exists())
+                logFile.createNewFile()
+            FileOutputStream outputStream = new FileOutputStream(logFile)
+            def env = []
+            env += "PATH=${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/bin${File.pathSeparator}${System.getenv("PATH")}"
+            if (System.getenv("R_LIBS_USER") != null)
+                env += "R_LIBS_USER=${System.getenv("R_LIBS_USER")}"
+            this.logger.info("Starting embedded tomcat with command ${commandParts} and env ${env} in directory ${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}")
+            Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
+            process.consumeProcessOutput(outputStream, outputStream)
+        }
+    }
+
+    private void startLocalTomcat()
     {
         project.tomcat.validateCatalinaHome()
 
@@ -46,50 +92,50 @@ class StartTomcat extends DefaultTask
                 dir: SystemUtils.IS_OS_WINDOWS ? "${project.tomcat.catalinaHome}/bin" : project.tomcat.catalinaHome,
                 executable: SystemUtils.IS_OS_WINDOWS ? "cmd" : "bin/catalina.sh"
         )
-        {
-            env(
-                key: "PATH",
-                path: "${BuildUtils.getServerProject(project).serverDeploy.binDir}${File.pathSeparator}${System.getenv("PATH")}"
-            )
+                {
+                    env(
+                            key: "PATH",
+                            path: "${BuildUtils.getServerProject(project).serverDeploy.binDir}${File.pathSeparator}${System.getenv("PATH")}"
+                    )
 
-            String catalinaOpts = getStartupOpts(project).join(" ").replaceAll("\\s+", " ")
+                    String catalinaOpts = getStartupOpts(project).join(" ").replaceAll("\\s+", " ")
 
-            this.logger.debug("setting CATALINA_OPTS to ${catalinaOpts}")
-            env(
-                    key: "CATALINA_OPTS",
-                    value: catalinaOpts
-            )
-            if (TeamCityExtension.isOnTeamCity(project))
-            {
-                env(
-                        key: "R_LIBS_USER",
-                        value: System.getenv("R_LIBS_USER") != null ? System.getenv("R_LIBS_USER") : project.rootProject.file("sampledata/rlabkey")
-                )
+                    this.logger.debug("setting CATALINA_OPTS to ${catalinaOpts}")
+                    env(
+                            key: "CATALINA_OPTS",
+                            value: catalinaOpts
+                    )
+                    if (TeamCityExtension.isOnTeamCity(project))
+                    {
+                        env(
+                                key: "R_LIBS_USER",
+                                value: System.getenv("R_LIBS_USER") != null ? System.getenv("R_LIBS_USER") : project.rootProject.file("sampledata/rlabkey")
+                        )
 
-                def javaHome = TeamCityExtension.getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
-                env (
-                        key: "JAVA_HOME",
-                        value: javaHome
-                )
-                env (
-                        key: "JRE_HOME",
-                        value: javaHome
-                )
-            }
+                        def javaHome = TeamCityExtension.getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
+                        env (
+                                key: "JAVA_HOME",
+                                value: javaHome
+                        )
+                        env (
+                                key: "JRE_HOME",
+                                value: javaHome
+                        )
+                    }
 
-            if (SystemUtils.IS_OS_WINDOWS)
-            {
-                env(
-                        key: "CLOSE_WINDOW",
-                        value: true
-                )
-                arg(line: "/c start ")
-                arg(value: "'Tomcat Server'")
-                arg(value: "/B")
-                arg(value: "${project.tomcat.catalinaHome}/bin/catalina.bat")
-            }
-            arg(value: "start")
-        }
+                    if (SystemUtils.IS_OS_WINDOWS)
+                    {
+                        env(
+                                key: "CLOSE_WINDOW",
+                                value: true
+                        )
+                        arg(line: "/c start ")
+                        arg(value: "'Tomcat Server'")
+                        arg(value: "/B")
+                        arg(value: "${project.tomcat.catalinaHome}/bin/catalina.bat")
+                    }
+                    arg(value: "start")
+                }
         println("Waiting 5 seconds for tomcat to start...")
         project.ant.sleep(seconds: 5)
         println("Tomcat started.")

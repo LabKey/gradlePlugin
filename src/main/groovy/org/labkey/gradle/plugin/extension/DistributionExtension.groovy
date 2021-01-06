@@ -29,6 +29,7 @@ class DistributionExtension
     public static final String VERSION_FILE_NAME = "VERSION"
     public static final String TAR_ARCHIVE_EXTENSION = "tar.gz"
     public static final String ZIP_ARCHIVE_EXTENSION = "zip"
+    public static final String EMBEDDED_SUFFIX = "-embedded"
 
     String dir = "${project.rootProject.projectDir}/dist"
     String artifactId
@@ -53,12 +54,12 @@ class DistributionExtension
         if (!distDir.exists())
             throw new GradleException("Distribution directory ${distDir} not found")
         String extension = project.hasProperty("distType") ? project.property('distType') : TAR_ARCHIVE_EXTENSION
-        String suffix = isEmbedded ? "-embedded.${extension}" : ".${extension}";
+        String suffix = isEmbedded ? "${EMBEDDED_SUFFIX}.${extension}" : ".${extension}"
         File[] distFiles = distDir.listFiles(new FilenameFilter() {
 
             @Override
             boolean accept(File dir, String name) {
-                return name.endsWith(suffix);
+                return name.endsWith(suffix) && (isEmbedded || !name.contains(EMBEDDED_SUFFIX))
             }
         })
         if (distFiles == null || distFiles.length == 0)

@@ -153,7 +153,6 @@ class TeamCity extends Tomcat
         }
 
         project.tasks.startTomcat.dependsOn(project.tasks.createNlpConfig)
-        project.tasks.startEmbeddedTomcat.dependsOn(project.tasks.createNlpConfig)
 
         project.tasks.register("validateConfiguration") {
             Task task ->
@@ -222,7 +221,6 @@ class TeamCity extends Tomcat
             project.tasks.startTomcat.mustRunAfter(undeployTaskProvider)
 
             project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startTomcat.mustRunAfter(setUpDbTask)
-            project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startEmbeddedTomcat.mustRunAfter(setUpDbTask)
             String ciTestTaskName = "ciTests" + properties.dbTypeAndVersion.capitalize()
             project.tasks.register(ciTestTaskName, RunTestSuite) {
                 RunTestSuite task ->
@@ -233,7 +231,6 @@ class TeamCity extends Tomcat
                     task.mustRunAfter(project.tasks.validateConfiguration)
                     task.mustRunAfter(project.tasks.cleanTestLogs)
                     task.mustRunAfter(project.tasks.startTomcat)
-                    task.mustRunAfter(project.tasks.startEmbeddedTomcat)
             }
 
             ciTests.add(project.tasks.named(ciTestTaskName))
@@ -243,7 +240,8 @@ class TeamCity extends Tomcat
         project.tasks.register("ciTests") {
             Task task ->
                 task.group = GroupNames.TEST_SERVER
-                task.dependsOn ( ciTests + project.tasks.validateConfiguration + project.tasks.startTomcat + project.tasks.cleanTestLogs)
+                task.dependsOn( ciTests )
+                task.dependsOn( project.tasks.validateConfiguration, project.tasks.startTomcat, project.tasks.cleanTestLogs)
                 task.description = "Run a test suite on the TeamCity server"
                 task.doLast(
              {
@@ -252,19 +250,6 @@ class TeamCity extends Tomcat
                 )
         }
         project.tasks.startTomcat.mustRunAfter(project.tasks.cleanTestLogs)
-
-        project.tasks.register("embeddedCiTests") {
-            Task task ->
-                task.group = GroupNames.TEST_SERVER
-                task.dependsOn(ciTests)
-                task.dependsOn(project.tasks.validateConfiguration, project.tasks.startEmbeddedTomcat)
-                task.description = "Run a test suite on TeamCity using the embedded Tomcat installer"
-                task.doLast(
-                        {
-                            killFirefox(project)
-                        }
-                )
-        }
     }
 
     private static void killChrome(Project project)
@@ -436,7 +421,7 @@ class TeamCity extends Tomcat
     private void ensureShutdown(Project project)
     {
         String debugPort = extension.getTeamCityProperty("tomcat.debug")
-        if (!debugPort.isEmpty())
+        if (!debugPort.isEmpty() && !BuildUtils.useEmbeddedTomcat(project))
         {
             project.logger.debug("Ensuring shutdown using port ${debugPort}")
             try

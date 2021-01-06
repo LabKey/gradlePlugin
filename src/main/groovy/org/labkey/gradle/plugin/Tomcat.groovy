@@ -15,30 +15,24 @@
  */
 package org.labkey.gradle.plugin
 
-import org.apache.commons.lang3.StringUtils
+
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.tasks.Delete
-import org.labkey.gradle.plugin.extension.LabKeyExtension
-import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
 import org.labkey.gradle.task.StartTomcat
 import org.labkey.gradle.task.StopTomcat
-import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
-import org.labkey.gradle.util.PropertiesUtils
 
 /**
  * Plugin for starting and stopping tomcat
  */
 class Tomcat implements Plugin<Project>
 {
-    private static final String EMBEDDED_LOG_FILE_NAME = "logs/embeddedTomcat.log"
+    public static final String EMBEDDED_LOG_FILE_NAME = "logs/embeddedTomcat.log"
 
     @Override
     void apply(Project project)
@@ -64,70 +58,14 @@ class Tomcat implements Plugin<Project>
         project.tasks.register("startTomcat", StartTomcat) {
             StartTomcat task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Start the local Tomcat instance"
+                task.description = "Start the local or embedded (if property useEmbeddedTomcat is defined) Tomcat instance"
         }
 
         project.tasks.register(
                 "stopTomcat", StopTomcat) {
             StopTomcat task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Stop the local Tomcat instance"
-        }
-
-        project.tasks.register("startEmbeddedTomcat", DefaultTask) {
-            DefaultTask task ->
-                task.group=GroupNames.WEB_APPLICATION
-                task.description="Start the embedded Tomcat server"
-                task.doFirst {
-                    File jarFile = BuildUtils.getExecutableServerJar(project)
-                    if (jarFile == null) {
-                        throw new GradleException("No jar file found in ${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}.")
-                    }
-                    else {
-                        String javaHome = TeamCityExtension.getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
-                        if (StringUtils.isEmpty(javaHome))
-                            throw new GradleException("JAVA_HOME must be set in order to start your embedded tomcat server.")
-                        File javaExec = new File(javaHome, "bin/java")
-                        if (!javaExec.exists())
-                            throw new GradleException("Invalid value for JAVA_HOME. Could not find java command in ${javaExec}")
-                        String[] commandParts = [javaExec.getAbsolutePath()]
-                        commandParts += StartTomcat.getStartupOpts(project)
-                        commandParts += ["-jar", jarFile.getName()]
-                        File logFile = new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project), EMBEDDED_LOG_FILE_NAME)
-                        if (!logFile.getParentFile().exists())
-                            logFile.getParentFile().mkdirs()
-                        if (!logFile.exists())
-                            logFile.createNewFile()
-                        FileOutputStream outputStream = new FileOutputStream(logFile)
-                        def env = []
-                        env += "PATH=${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/bin${File.pathSeparator}${System.getenv("PATH")}"
-                        if (System.getenv("R_LIBS_USER") != null)
-                            env +="R_LIBS_USER=${System.getenv("R_LIBS_USER")}"
-                        task.logger.quiet("Starting embedded tomcat with command ${commandParts} and env ${env} in directory ${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}")
-                        Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
-                        process.consumeProcessOutput(outputStream, outputStream)
-                    }
-                }
-        }
-
-        project.tasks.register("stopEmbeddedTomcat", DefaultTask) {
-            DefaultTask task ->
-                task.group=GroupNames.WEB_APPLICATION
-                task.description = "Shut down embedded Tomcat server"
-                task.doLast {
-
-                    def applicationProperties = PropertiesUtils.getApplicationProperties(project)
-                    def port = applicationProperties["server.port"]
-                    def endpoint =  "${project.hasProperty("useSsl") ? "https" : "http"}://localhost:$port/actuator/shutdown"
-                    def command = "curl -X POST $endpoint"
-                    task.logger.quiet("Sending command to $endpoint")
-                    def proc = command.execute()
-                    proc.waitFor()
-                    if (proc.exitValue() != 0)
-                        task.logger.warn("Shutdown command exited with non-zero status ${proc.exitValue()}.")
-                    else
-                        task.logger.quiet("Shutdown successful")
-                }
+                task.description = "Stop the local or embedded (if property useEmbeddedTomcat is defined) Tomcat instance"
         }
 
         project.tasks.register("cleanLogs", Delete) {
