@@ -36,7 +36,7 @@ class ModuleDistribution extends DefaultTask
     @Optional @Input
     Boolean includeTarGZArchive = false
     @Optional @Input
-    String embeddedArchive = null
+    String embeddedArchiveType = null
     @Optional @Input
     Boolean makeDistribution = true // set to false for just an archive of modules
     @Optional @Input
@@ -79,7 +79,7 @@ class ModuleDistribution extends DefaultTask
     }
 
     private boolean shouldBuildEmbeddedArchive(String extension = null) {
-        return (embeddedArchive != null && (extension == null || embeddedArchive.indexOf(extension) >= 0)) &&
+        return (embeddedArchiveType != null && (extension == null || embeddedArchiveType.indexOf(extension) >= 0)) &&
                 makeDistribution && BuildUtils.useEmbeddedTomcat(project)
     }
 
@@ -199,22 +199,22 @@ class ModuleDistribution extends DefaultTask
 
     private String getTarArchivePath()
     {
-        return "${getResolvedDistributionDir()}/${getArchiveName()}.tar.gz"
+        return "${getResolvedDistributionDir()}/${getArchiveName()}.${DistributionExtension.TAR_ARCHIVE_EXTENSION}"
     }
 
     private String getEmbeddedTarArchivePath()
     {
-        return "${getResolvedDistributionDir()}/${getArchiveName()}-embedded.tar.gz"
+        return "${getResolvedDistributionDir()}/${getArchiveName()}${DistributionExtension.EMBEDDED_SUFFIX}.${DistributionExtension.TAR_ARCHIVE_EXTENSION}"
     }
 
     private String getZipArchivePath()
     {
-        return "${getResolvedDistributionDir()}/${getArchiveName()}.zip"
+        return "${getResolvedDistributionDir()}/${getArchiveName()}.${DistributionExtension.ZIP_ARCHIVE_EXTENSION}"
     }
 
     private String getEmbeddedZipArchivePath()
     {
-        return "${getResolvedDistributionDir()}/${getArchiveName()}-embedded.zip"
+        return "${getResolvedDistributionDir()}/${getArchiveName()}${DistributionExtension.EMBEDDED_SUFFIX}.${DistributionExtension.ZIP_ARCHIVE_EXTENSION}"
     }
 
     private String getWarArchivePath()
