@@ -20,6 +20,7 @@ import org.gradle.api.Project
 class ServerDeployExtension
 {
     String dir
+    String embeddedDir
     String modulesDir
     String webappDir
     String binDir
@@ -29,6 +30,11 @@ class ServerDeployExtension
     static String getServerDeployDirectory(Project project)
     {
         return "${project.rootProject.buildDir}/deploy"
+    }
+
+    static String getEmbeddedServerDeployDirectory(Project project)
+    {
+        return "${getServerDeployDirectory(project)}/embedded"
     }
 
     static String getModulesDeployDirectory(Project project)

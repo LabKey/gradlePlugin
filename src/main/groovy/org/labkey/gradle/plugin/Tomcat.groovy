@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.plugin
 
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -31,6 +32,8 @@ import org.labkey.gradle.util.GroupNames
  */
 class Tomcat implements Plugin<Project>
 {
+    public static final String EMBEDDED_LOG_FILE_NAME = "logs/embeddedTomcat.log"
+
     @Override
     void apply(Project project)
     {
@@ -42,7 +45,7 @@ class Tomcat implements Plugin<Project>
         if (project.plugins.hasPlugin(TestRunner.class))
         {
             UiTestExtension testEx = (UiTestExtension) project.getExtensions().getByType(UiTestExtension.class)
-            tomcat.assertionFlag = Boolean.valueOf(testEx.getTestConfig("disableAssertions")) ? "-da" : "-ea"
+            tomcat.assertionFlag = Boolean.valueOf((String) testEx.getTestConfig("disableAssertions")) ? "-da" : "-ea"
         }
         tomcat.catalinaOpts = "-Dproject.root=${project.rootProject.projectDir.absolutePath}"
 
@@ -55,14 +58,14 @@ class Tomcat implements Plugin<Project>
         project.tasks.register("startTomcat", StartTomcat) {
             StartTomcat task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Start the local Tomcat instance"
+                task.description = "Start the local or embedded (if property useEmbeddedTomcat is defined) Tomcat instance"
         }
 
         project.tasks.register(
                 "stopTomcat", StopTomcat) {
             StopTomcat task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Stop the local Tomcat instance"
+                task.description = "Stop the local or embedded (if property useEmbeddedTomcat is defined) Tomcat instance"
         }
 
         project.tasks.register("cleanLogs", Delete) {

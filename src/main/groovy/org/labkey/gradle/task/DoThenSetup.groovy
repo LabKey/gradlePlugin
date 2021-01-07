@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.ServerDeploy
+import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.PropertiesUtils
@@ -66,69 +67,97 @@ class DoThenSetup extends DefaultTask
 
     @TaskAction
     void setup() {
-        project.tomcat.validateCatalinaHome()
-        File tomcatConfDir = project.file(project.tomcat.tomcatConfDir)
-        if (tomcatConfDir.exists())
-        {
-            if (!tomcatConfDir.isDirectory())
-                throw new GradleException("No such directory: ${tomcatConfDir.absolutePath}")
-            if (!tomcatConfDir.canWrite() || !tomcatConfDir.canRead())
-                throw new GradleException("Directory ${tomcatConfDir.absolutePath} does not have proper permissions")
-        }
-        else if (!canCreate(tomcatConfDir))
-            throw new GradleException("Insufficient permissions to create ${tomcatConfDir.absolutePath}")
-
         doDatabaseTask()
-
-        String appDocBase = project.serverDeploy.webappDir.toString().split("[/\\\\]").join("${File.separator}")
-
-        if (!labkeyXmlUpToDate(appDocBase))
+        boolean useEmbeddedTomcat = BuildUtils.useEmbeddedTomcat(project)
+        if (!useEmbeddedTomcat)
         {
-            Properties configProperties = databaseProperties.getConfigProperties()
-            configProperties.setProperty("appDocBase", appDocBase)
-            boolean isNextLineComment = false
-            String webappsDir = BuildUtils.getWebappConfigPath(project)
-            project.copy({ CopySpec copy ->
-                copy.from webappsDir
-                copy.into "${project.rootProject.buildDir}"
-                copy.include "labkey.xml"
-                copy.filter({ String line ->
-                    String newLine = line
+            project.tomcat.validateCatalinaHome()
+            File tomcatConfDir = project.file(project.tomcat.tomcatConfDir)
+            if (tomcatConfDir.exists()) {
+                if (!tomcatConfDir.isDirectory())
+                    throw new GradleException("No such directory: ${tomcatConfDir.absolutePath}")
+                if (!tomcatConfDir.canWrite() || !tomcatConfDir.canRead())
+                    throw new GradleException("Directory ${tomcatConfDir.absolutePath} does not have proper permissions")
+            } else if (!canCreate(tomcatConfDir))
+                throw new GradleException("Insufficient permissions to create ${tomcatConfDir.absolutePath}")
 
-                    if (project.ext.has('enableJms') && project.ext.enableJms)
-                    {
-                        newLine = newLine.replace("<!--@@jmsConfig@@", "")
-                        newLine = newLine.replace("@@jmsConfig@@-->", "")
-                        return newLine
-                    }
-                    // If we want to automatically enable an LDAP Sync that is hardcoded in the labkey.xml
-                    // for testing purposes, this will uncomment that stanza if the enableLdapSync
-                    // property is defined.
-                    if (project.hasProperty('enableLdapSync'))
-                    {
-                        newLine = newLine.replace("<!--@@ldapSyncConfig@@", "")
-                        newLine = newLine.replace("@@ldapSyncConfig@@-->", "")
-                        return newLine
-                    }
-                    if (isNextLineComment || newLine.contains("<!--"))
-                    {
-                        isNextLineComment = !newLine.contains("-->")
-                        return newLine
-                    }
-                    return PropertiesUtils.replaceProps(line, configProperties, true)
+            String appDocBase = project.serverDeploy.webappDir.toString().split("[/\\\\]").join("${File.separator}")
+
+            if (!labkeyXmlUpToDate(appDocBase)) {
+                Properties configProperties = databaseProperties.getConfigProperties()
+                configProperties.setProperty("appDocBase", appDocBase)
+                boolean isNextLineComment = false
+                String webappsDir = BuildUtils.getWebappConfigPath(project)
+                project.copy({ CopySpec copy ->
+                    copy.from webappsDir
+                    copy.into "${project.rootProject.buildDir}"
+                    copy.include "labkey.xml"
+                    copy.filter({ String line ->
+                        String newLine = line
+
+                        if (project.ext.has('enableJms') && project.ext.enableJms) {
+                            newLine = newLine.replace("<!--@@jmsConfig@@", "")
+                            newLine = newLine.replace("@@jmsConfig@@-->", "")
+                            return newLine
+                        }
+                        // If we want to automatically enable an LDAP Sync that is hardcoded in the labkey.xml
+                        // for testing purposes, this will uncomment that stanza if the enableLdapSync
+                        // property is defined.
+                        if (project.hasProperty('enableLdapSync')) {
+                            newLine = newLine.replace("<!--@@ldapSyncConfig@@", "")
+                            newLine = newLine.replace("@@ldapSyncConfig@@-->", "")
+                            return newLine
+                        }
+                        if (isNextLineComment || newLine.contains("<!--")) {
+                            isNextLineComment = !newLine.contains("-->")
+                            return newLine
+                        }
+                        return PropertiesUtils.replaceProps(line, configProperties, true)
+                    })
                 })
-            })
 
-            project.copy({ CopySpec copy ->
-                copy.from "${project.rootProject.buildDir}"
-                copy.into "${project.tomcat.tomcatConfDir}"
-                copy.include "labkey.xml"
-            })
+                project.copy({ CopySpec copy ->
+                    copy.from "${project.rootProject.buildDir}"
+                    copy.into "${project.tomcat.tomcatConfDir}"
+                    copy.include "labkey.xml"
+                })
+            }
         }
-
+        else {
+            if (!embeddedConfigUpToDate()) {
+                Properties configProperties = databaseProperties.getConfigProperties()
+                if (project.hasProperty("useLocalBuild"))
+                    // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes, even on Windows
+                    configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
+                if (TeamCityExtension.getLabKeyServerPort(project) != null)
+                    configProperties.setProperty("serverPort", TeamCityExtension.getLabKeyServerPort(project))
+                else if (project.hasProperty("serverPort"))
+                    configProperties.setProperty("serverPort", (String) project.property("serverPort"))
+                else if (project.hasProperty("useSsl"))
+                    configProperties.setProperty("serverPort", "8443")
+                else
+                    configProperties.setProperty("serverPort", "8080")
+                String embeddedDir = BuildUtils.getEmbeddedConfigPath(project)
+                File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
+                project.copy({ CopySpec copy ->
+                    copy.from configsDir
+                    copy.into embeddedDir
+                    copy.include "application.properties"
+                    copy.filter({ String line ->
+                        if (project.hasProperty("useSsl")) {
+                            line = line.replace("#server.ssl", "server.ssl")
+                        }
+                        if (project.hasProperty("useLocalBuild")) {
+                            line = line.replace("#context.webAppLocation=", "context.webAppLocation=")
+                            line = line.replace("#spring.devtools.restart.additional-paths=", "spring.devtools.restart.additional-paths=")
+                        }
+                        return PropertiesUtils.replaceProps(line, configProperties, false)
+                    })
+                })
+            }
+        }
         if (BuildUtils.getServerProject(project) != null)
             copyTomcatJars()
-
 
     }
 
@@ -225,6 +254,22 @@ class DoThenSetup extends DefaultTask
         {
             fileset(dir: project.staging.tomcatLibDir)
         }
+    }
+
+    boolean embeddedConfigUpToDate()
+    {
+        if (this.dbPropertiesChanged)
+            return false
+
+        File dbPropFile = DatabaseProperties.getPickedConfigFile(project)
+        File applicationPropsFile = new File(BuildUtils.getEmbeddedConfigPath(project), "application.properties")
+        if (!dbPropFile.exists() || !applicationPropsFile.exists())
+            return false
+        if (dbPropFile.lastModified() < applicationPropsFile.lastModified())
+        {
+            return true
+        }
+        return false
     }
 
     protected void setDatabaseProperties()

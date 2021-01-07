@@ -22,6 +22,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
+import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 
 import java.nio.file.Files
@@ -35,6 +36,7 @@ import java.util.regex.Pattern
 class BuildUtils
 {
     public static final String BUILD_FROM_SOURCE_PROP = "buildFromSource"
+    public static final String USE_EMBEDDED_TOMCAT = "useEmbeddedTomcat"
     public static final String BUILD_CLIENT_LIBS_FROM_SOURCE_PROP = "buildClientLibsFromSource"
     public static final String SERVER_MODULES_DIR = "server/modules"
     public static final String PLATFORM_MODULES_DIR = "server/modules/platform"
@@ -289,6 +291,11 @@ class BuildUtils
     static boolean isApi(Project project)
     {
         return project.path.equals(getApiProjectPath(project.gradle))
+    }
+
+    static String getEmbeddedProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "embeddedProjectPath", ":server:embedded")
     }
 
     static String getApiProjectPath(Gradle gradle)
@@ -720,6 +727,28 @@ class BuildUtils
         return gradle.hasProperty(propertyName) ? gradle.getProperty(propertyName) : defaultValue
     }
 
+    static String getEmbeddedConfigPath(Project project)
+    {
+        return new File(project.serverDeploy.embeddedDir, "config").absolutePath
+    }
+
+    static File getExecutableServerJar(Project project)
+    {
+        File deployDir = new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project))
+        File[] jarFiles = deployDir.listFiles(new FilenameFilter() {
+            @Override
+            boolean accept(File dir, String name) {
+                return name.endsWith("jar");
+            }
+        })
+        if (jarFiles.size() == 0)
+            return null
+        else if (jarFiles.size() > 1)
+            throw new GradleException("Found ${jarFiles.size()} jar files in ${deployDir}.")
+        else
+            return jarFiles[0]
+    }
+
     static String getWebappConfigPath(Project project)
     {
         if (project.rootProject.file("webapps").exists())
@@ -728,5 +757,10 @@ class BuildUtils
             return "${project.rootProject.projectDir}/server/configs/webapps/"
         else
             throw new GradleException("Unable to find webapps config directory")
+    }
+
+    static boolean useEmbeddedTomcat(Project project)
+    {
+        return project.hasProperty(USE_EMBEDDED_TOMCAT) && project.findProject(getEmbeddedProjectPath(project.gradle)) != null
     }
 }

@@ -18,6 +18,8 @@ package org.labkey.gradle.task
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.JavaExecSpec
+import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.util.PropertiesUtils
 
 /**
  * Task for stopping a tomcat instance
@@ -25,7 +27,15 @@ import org.gradle.process.JavaExecSpec
 class StopTomcat extends DefaultTask
 {
     @TaskAction
-    void exec()
+    void action()
+    {
+        if (BuildUtils.useEmbeddedTomcat(project))
+            stopEmbeddedTomcat()
+        else
+            stopLocalTomcat()
+    }
+
+    void stopLocalTomcat()
     {
         project.tomcat.validateCatalinaHome()
         project.javaexec( {
@@ -36,5 +46,20 @@ class StopTomcat extends DefaultTask
                 java.args = ["stop"]
                 java.ignoreExitValue = true
         })
+    }
+
+    void stopEmbeddedTomcat()
+    {
+        def applicationProperties = PropertiesUtils.getApplicationProperties(project)
+        def port = applicationProperties["server.port"]
+        def endpoint =  "${project.hasProperty("useSsl") ? "https" : "http"}://localhost:$port/actuator/shutdown"
+        def command = "curl -X POST $endpoint"
+        this.logger.info("Sending command to $endpoint")
+        def proc = command.execute()
+        proc.waitFor()
+        if (proc.exitValue() != 0)
+            this.logger.warn("Shutdown command exited with non-zero status ${proc.exitValue()}.")
+        else
+            this.logger.quiet("Shutdown successful")
     }
 }

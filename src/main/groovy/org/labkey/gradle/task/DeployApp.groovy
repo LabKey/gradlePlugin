@@ -15,15 +15,12 @@
  */
 package org.labkey.gradle.task
 
-import org.apache.commons.lang3.SystemUtils
-import org.gradle.api.DefaultTask
 import org.gradle.api.file.CopySpec
-import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
-class DeployApp extends DefaultTask
+class DeployApp extends DeployAppBase
 {
     @InputDirectory
     File stagingModulesDir = new File((String) project.staging.modulesDir)
@@ -31,11 +28,9 @@ class DeployApp extends DefaultTask
     @InputDirectory
     File stagingWebappDir = new File((String) project.staging.webappDir)
 
-    private File _externalDir = new File((String) project.labkey.externalDir)
-
     @InputDirectory
     File stagingPipelineJarDir = new File((String) project.staging.pipelineLibDir)
-
+    
     @OutputDirectory
     File deployModulesDir = new File((String) project.serverDeploy.modulesDir)
 
@@ -48,15 +43,14 @@ class DeployApp extends DefaultTask
     @OutputDirectory
     File deployBinDir = new File((String) project.serverDeploy.binDir)
 
-
     @TaskAction
     void action()
     {
         deployWebappDir()
         deployModules()
         deployPipelineJars()
-        deployNlpEngine()
-        deployPlatformBinaries()
+        deployNlpEngine(deployBinDir)
+        deployPlatformBinaries(deployBinDir)
     }
 
 
@@ -88,95 +82,5 @@ class DeployApp extends DefaultTask
             copy.from stagingPipelineJarDir
             copy.into deployPipelineLibDir
         })
-    }
-
-    private void deployPlatformBinaries()
-    {
-        deployBinDir.mkdirs()
-
-        if (project.configurations.findByName("binaries") != null)
-        {
-            project.logger.debug("Copying from binaries configuration to ${deployBinDir}")
-            project.copy({
-                CopySpec copy ->
-                    copy.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-                    copy.from(project.configurations.binaries.collect { project.zipTree(it) })
-                    copy.into deployBinDir.path
-            })
-            project.logger.debug("Contents of ${deployBinDir}\n" + deployBinDir.listFiles());
-        }
-        // For TC builds, we deposit the artifacts of the Linux TPP Tools and Windows Proteomics Tools into
-        // the external directory, so we want to copy those over as well.
-        // TODO: package the output of these builds into the Artfactory artifact to simplify
-        if (project.file(_externalDir).exists()) {
-            project.logger.info("Copying from ${_externalDir} to ${project.serverDeploy.binDir}")
-            if (SystemUtils.IS_OS_MAC)
-                deployBinariesViaProjectCopy("osx")
-            else if (SystemUtils.IS_OS_LINUX)
-                deployBinariesViaProjectCopy("linux")
-            else if (SystemUtils.IS_OS_WINDOWS)
-                deployBinariesViaAntCopy("windows")
-        }
-    }
-
-    // Use this method to preserve file permissions, since ant.copy does not, but this does not preserve last modified times
-    private void deployBinariesViaProjectCopy(String osDirectory)
-    {
-        File parentDir = new File(_externalDir, "${osDirectory}")
-        if (parentDir.exists())
-        {
-            List<File> subDirs = parentDir.listFiles new FileFilter() {
-                @Override
-                boolean accept(File pathname) {
-                    return pathname.isDirectory()
-                }
-            }
-            for (File dir : subDirs) {
-                project.copy { CopySpec copy ->
-                    copy.from dir
-                    copy.into "${project.serverDeploy.binDir}"
-                }
-            }
-        }
-    }
-
-    private void deployBinariesViaAntCopy(String osDirectory)
-    {
-        def fromDir = "${_externalDir}/${osDirectory}"
-        if (project.file(fromDir).exists())
-        {
-            ant.copy(
-                    todir: project.serverDeploy.binDir,
-                    preserveLastModified: true
-            )
-                    {
-                        ant.cutdirsmapper(dirs: 1)
-                        fileset(dir: fromDir)
-                                {
-                                    exclude(name: "**.*")
-                                }
-                    }
-        }
-    }
-
-    private void deployNlpEngine()
-    {
-
-        File nlpSource = new File(_externalDir, "nlp")
-        if (nlpSource.exists())
-        {
-            File nlpDir = new File(deployBinDir, "nlp")
-            nlpDir.mkdirs();
-            ant.copy(
-                    toDir: nlpDir,
-                    preserveLastModified: true
-            )
-                    {
-                        fileset(dir: nlpSource)
-                                {
-                                    exclude(name: "**/*.py?")
-                                }
-                    }
-        }
     }
 }

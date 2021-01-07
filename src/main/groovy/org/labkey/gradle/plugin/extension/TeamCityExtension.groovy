@@ -52,6 +52,8 @@ class TeamCityExtension
             validationMessages.add("'teamcity.projectName' property not specified")
         if (getTeamCityProperty('tomcat.debug').isEmpty())
             validationMessages.add("'tomcat.debug' property (for debug port) not specified")
+        if (getTeamCityProperty('tomcat.port').isEmpty())
+            validationMessages.add("'tomcat.port' property not specified")
     }
 
     private void setDatabaseProperties()
@@ -142,6 +144,11 @@ class TeamCityExtension
     static String getLabKeyServer(Project project)
     {
         return getTeamCityProperty(project, "labkey.server", "http://localhost")
+    }
+
+    static String getLabKeyServerPort(Project project)
+    {
+        return getTeamCityProperty(project, 'tomcat.port', null)
     }
 
     static String getLabKeyUsername(Project project)

@@ -15,7 +15,10 @@
  */
 package org.labkey.gradle.plugin.extension
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
+
+import java.nio.file.Paths
 
 class DistributionExtension
 {
@@ -24,6 +27,9 @@ class DistributionExtension
     public static final String DIST_FILE_DIR = "labkeywebapp/WEB-INF/classes"
     public static final String DIST_FILE_NAME = "distribution"
     public static final String VERSION_FILE_NAME = "VERSION"
+    public static final String TAR_ARCHIVE_EXTENSION = "tar.gz"
+    public static final String ZIP_ARCHIVE_EXTENSION = "zip"
+    public static final String EMBEDDED_SUFFIX = "-embedded"
 
     String dir = "${project.rootProject.projectDir}/dist"
     String artifactId
@@ -36,4 +42,30 @@ class DistributionExtension
         this.project = project
     }
 
+    static File getDistributionFile(Project project, boolean isEmbedded = false) {
+        File distDir = new File(project.rootDir, "dist")
+        if (project.hasProperty("distDir"))
+        {
+            if (Paths.get((String) project.property('distDir')).isAbsolute())
+                distDir = new File((String) project.property('distDir'));
+            else
+                distDir = new File(project.rootDir, (String) project.property("distDir"))
+        }
+        if (!distDir.exists())
+            throw new GradleException("Distribution directory ${distDir} not found")
+        String extension = project.hasProperty("distType") ? project.property('distType') : TAR_ARCHIVE_EXTENSION
+        String suffix = isEmbedded ? "${EMBEDDED_SUFFIX}.${extension}" : ".${extension}"
+        File[] distFiles = distDir.listFiles(new FilenameFilter() {
+
+            @Override
+            boolean accept(File dir, String name) {
+                return name.endsWith(suffix) && (isEmbedded || !name.contains(EMBEDDED_SUFFIX))
+            }
+        })
+        if (distFiles == null || distFiles.length == 0)
+            throw new GradleException("No distribution found in directory ${distDir} with suffix ${suffix}")
+        else if (distFiles.length > 1)
+            throw new GradleException("${distDir} contains ${distFiles.length} files with suffix ${suffix}.  Only one is allowed.")
+        return distFiles[0]
+    }
 }
