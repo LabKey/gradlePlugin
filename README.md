@@ -14,13 +14,17 @@ on how to do that, including how to develop and test locally and the versioning 
 ### version TBD
 *Released*: TBD
 (Earliest compatible LabKey version: 21.1)
-* Add build.gradle file to module created with `createModule` task.
+* Add `build.gradle` file to module created with `createModule` task.
 * Fix relative path input for `createModule` so it is relative to the current directory not the gradle Daemon
-* Add support for using embedded tomcat
+* Add support for using embedded tomcat when the `useEmbeddedTomcat` property is set
     * Add ability to create distributions that contain an embedded tomcat distribution 
-      by setting a new includeEmbeddedArchive property on the ModuleDistribution task
-    * Adjust pickDb tasks to no longer copy the labkey.xml
-* Remove includeWarArchive property for distributions
+      by setting a new embeddedArchiveType property on the ModuleDistribution task
+    * Adjust `pickDb` tasks to copy and filter an `application.properties` file into `build/deploy/embedded/configs` 
+      instead of copying `labkey.xml` into the Tomcat configs directory.
+    * Adjust deployApp, startTomcat, stopTomcat, and deployDistribution tasks to use the embedded installation 
+      if the `useEmbeddedTomcat` property is set.
+    * Add a `cleanEmbeddedDeploy` task for targeted cleaning of the `build/deploy/embedded` directory.
+* Remove `includeWarArchive` property for distributions
 
 ### version 1.22.0
 *Released*: 7 December 2020
