@@ -11,8 +11,8 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
-### version TBD
-*Released*: TBD
+### version 1.23.0
+*Released*: 7 January 2021
 (Earliest compatible LabKey version: 21.1)
 * Add `build.gradle` file to module created with `createModule` task.
 * Fix relative path input for `createModule` so it is relative to the current directory not the gradle Daemon
