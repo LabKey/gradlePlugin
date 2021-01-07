@@ -249,12 +249,7 @@ class ServerDeploy implements Plugin<Project>
                         copy.into project.serverDeploy.embeddedDir
                 }
             })
-            project.tasks.register("deployEmbeddedDistribution", DeployEmbeddedDistribution) {
-                DeployEmbeddedDistribution task ->
-                    task.group = GroupNames.DISTRIBUTION
-                    task.description = "Extract the executable jar from a distribution and put it and the included binaries in the appropriate deploy directory"
-                    task.dependsOn(project.tasks.cleanEmbeddedDeploy, project.tasks.setup)
-            }
+
         }
 
         String log4jFile = project.hasProperty('log4j2Version') ? 'log4j2.xml' : 'log4j.xml'
@@ -272,13 +267,20 @@ class ServerDeploy implements Plugin<Project>
                 task.description = "Populate the staging directory using a LabKey distribution file from directory dist or directory specified with distDir property. Use property distType to specify zip or tar.gz (default)."
         }
 
-        project.tasks.register("deployDistribution", DeployApp) {
-            DeployApp task ->
-                task.group = GroupNames.DISTRIBUTION
-                task.description = "Deploy a LabKey distribution file from directory dist or directory specified with distDir property.  Use property distType to specify zip or tar.gz (default)."
-                task.dependsOn(project.tasks.stageDistribution, project.tasks.configureLog4j, project.tasks.setup)
-        }
-
+        if (BuildUtils.useEmbeddedTomcat(project))
+            project.tasks.register("deployDistribution", DeployEmbeddedDistribution) {
+                DeployEmbeddedDistribution task ->
+                    task.group = GroupNames.DISTRIBUTION
+                    task.description = "Extract the executable jar from a distribution and put it and the included binaries in the appropriate deploy directory"
+                    task.dependsOn(project.tasks.cleanEmbeddedDeploy, project.tasks.setup)
+            }
+        else
+            project.tasks.register("deployDistribution", DeployApp) {
+                DeployApp task ->
+                    task.group = GroupNames.DISTRIBUTION
+                    task.description = "Deploy a LabKey distribution file from directory dist or directory specified with distDir property.  Use property distType to specify zip or tar.gz (default)."
+                    task.dependsOn(project.tasks.stageDistribution, project.tasks.configureLog4j, project.tasks.setup)
+            }
 
 
         // This may prevent multiple Tomcat restarts
