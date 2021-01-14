@@ -160,7 +160,7 @@ class DoThenSetup extends DefaultTask
                         }
                         if (databaseProperties.getProperty("extraJdbcDataSource"))
                         {
-                            line = line.replace("#@@extraJdbcDataSource@@.", "")
+                            line = line.replaceAll("^#(context\\..+\\[1].*)", "\$1")
                         }
                         if (line.startsWith("#")) {
                             return line // Don't apply replacements to comments
