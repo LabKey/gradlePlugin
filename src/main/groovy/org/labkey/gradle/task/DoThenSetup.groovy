@@ -158,6 +158,10 @@ class DoThenSetup extends DefaultTask
                             line = line.replace("#context.webAppLocation=", "context.webAppLocation=")
                             line = line.replace("#spring.devtools.restart.additional-paths=", "spring.devtools.restart.additional-paths=")
                         }
+                        if (databaseProperties.getProperty("extraJdbcDataSource"))
+                        {
+                            line = line.replace("#@@extraJdbcDataSource@@.", "")
+                        }
                         if (line.startsWith("#")) {
                             return line // Don't apply replacements to comments
                         }
