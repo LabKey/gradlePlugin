@@ -85,6 +85,7 @@ class DoThenSetup extends DefaultTask
 
             if (!labkeyXmlUpToDate(appDocBase)) {
                 Properties configProperties = databaseProperties.getConfigProperties()
+                configProperties.putAll(getExtraJdbcProperties())
                 configProperties.setProperty("appDocBase", appDocBase)
                 boolean isNextLineComment = false
                 String webappsDir = BuildUtils.getWebappConfigPath(project)
@@ -108,9 +109,14 @@ class DoThenSetup extends DefaultTask
                             newLine = newLine.replace("@@ldapSyncConfig@@-->", "")
                             return newLine
                         }
+                        if (project.hasProperty("extraJdbcDataSource"))
+                        {
+                            newLine = newLine.replace("<!--@@extraJdbcDataSource@@", "")
+                            newLine = newLine.replace("@@extraJdbcDataSource@@-->", "")
+                        }
                         if (isNextLineComment || newLine.contains("<!--")) {
                             isNextLineComment = !newLine.contains("-->")
-                            return newLine
+                            return newLine // Don't apply replacements to comments
                         }
                         return PropertiesUtils.replaceProps(line, configProperties, true)
                     })
@@ -126,6 +132,7 @@ class DoThenSetup extends DefaultTask
         else {
             if (!embeddedConfigUpToDate()) {
                 Properties configProperties = databaseProperties.getConfigProperties()
+                configProperties.putAll(getExtraJdbcProperties())
                 if (project.hasProperty("useLocalBuild"))
                     // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes, even on Windows
                     configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
@@ -151,6 +158,9 @@ class DoThenSetup extends DefaultTask
                             line = line.replace("#context.webAppLocation=", "context.webAppLocation=")
                             line = line.replace("#spring.devtools.restart.additional-paths=", "spring.devtools.restart.additional-paths=")
                         }
+                        if (line.startsWith("#")) {
+                            return line // Don't apply replacements to comments
+                        }
                         return PropertiesUtils.replaceProps(line, configProperties, false)
                     })
                 })
@@ -159,6 +169,20 @@ class DoThenSetup extends DefaultTask
         if (BuildUtils.getServerProject(project) != null)
             copyTomcatJars()
 
+    }
+
+    private Properties getExtraJdbcProperties()
+    {
+        def extraJdbcProperties = new Properties();
+        def tcProperties = TeamCityExtension.getTeamCityProperties(project)
+        for (Map.Entry entry : tcProperties.entrySet())
+        {
+            if (entry.getKey().startsWith("extraJdbc"))
+            {
+                extraJdbcProperties.put(entry.getKey(), entry.getValue())
+            }
+        }
+        return extraJdbcProperties
     }
 
 
