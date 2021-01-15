@@ -94,29 +94,27 @@ class DoThenSetup extends DefaultTask
                     copy.into "${project.rootProject.buildDir}"
                     copy.include "labkey.xml"
                     copy.filter({ String line ->
-                        String newLine = line
-
                         if (project.ext.has('enableJms') && project.ext.enableJms) {
-                            newLine = newLine.replace("<!--@@jmsConfig@@", "")
-                            newLine = newLine.replace("@@jmsConfig@@-->", "")
-                            return newLine
+                            line = line.replace("<!--@@jmsConfig@@", "")
+                            line = line.replace("@@jmsConfig@@-->", "")
+                            return line
                         }
                         // If we want to automatically enable an LDAP Sync that is hardcoded in the labkey.xml
                         // for testing purposes, this will uncomment that stanza if the enableLdapSync
                         // property is defined.
                         if (project.hasProperty('enableLdapSync')) {
-                            newLine = newLine.replace("<!--@@ldapSyncConfig@@", "")
-                            newLine = newLine.replace("@@ldapSyncConfig@@-->", "")
-                            return newLine
+                            line = line.replace("<!--@@ldapSyncConfig@@", "")
+                            line = line.replace("@@ldapSyncConfig@@-->", "")
+                            return line
                         }
                         if (project.hasProperty("extraJdbcDataSource"))
                         {
-                            newLine = newLine.replace("<!--@@extraJdbcDataSource@@", "")
-                            newLine = newLine.replace("@@extraJdbcDataSource@@-->", "")
+                            line = line.replace("<!--@@extraJdbcDataSource@@", "")
+                            line = line.replace("@@extraJdbcDataSource@@-->", "")
                         }
-                        if (isNextLineComment || newLine.contains("<!--")) {
-                            isNextLineComment = !newLine.contains("-->")
-                            return newLine // Don't apply replacements to comments
+                        if (isNextLineComment || line.contains("<!--")) {
+                            isNextLineComment = !line.contains("-->")
+                            return line // Don't apply replacements to comments
                         }
                         return PropertiesUtils.replaceProps(line, configProperties, true)
                     })
