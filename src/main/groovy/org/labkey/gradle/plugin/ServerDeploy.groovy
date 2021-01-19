@@ -239,7 +239,7 @@ class ServerDeploy implements Plugin<Project>
                         project.delete project.serverDeploy.embeddedDir
                     }
             }
-            project.tasks.deployApp.dependsOn(project.tasks.cleanEmbeddedDeploy)
+            project.tasks.deployApp.mustRunAfter(project.tasks.cleanEmbeddedDeploy)
             project.tasks.stageApp.dependsOn(embeddedProject.tasks.build)
             project.tasks.setup.mustRunAfter(project.tasks.cleanEmbeddedDeploy)
             project.tasks.deployApp.doLast({
@@ -314,6 +314,7 @@ class ServerDeploy implements Plugin<Project>
                     spec.delete serverDeploy.dir
                 })
         }
+        project.tasks.deployApp.mustRunAfter(project.tasks.cleanDeploy)
 
         project.tasks.register("cleanTomcatLib") {
             Task task ->
@@ -341,6 +342,7 @@ class ServerDeploy implements Plugin<Project>
                     spec.delete project.rootProject.buildDir
                 })
         }
+        project.tasks.deployApp.mustRunAfter(project.tasks.cleanBuild)
 
 
     }
