@@ -41,10 +41,6 @@ class Distribution implements Plugin<Project>
     @Override
     void apply(Project project)
     {
-        if (LabKeyExtension.isDevMode(project) && !project.hasProperty("devDistribution"))
-            throw new GradleException("Distributions should never be created with deployMode=dev as dev modules are not portable. " +
-                    "Use -PdevDistribution if you need to override this exception for debugging.")
-
         project.group = DISTRIBUTION_GROUP
         project.extensions.create("dist", DistributionExtension, project)
         // We add the TeamCity extension here if it doesn't exist because we will use the build
