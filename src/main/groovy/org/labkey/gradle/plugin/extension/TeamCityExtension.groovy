@@ -141,6 +141,18 @@ class TeamCityExtension
             return defaultValue
     }
 
+    static Properties getTeamCityProperties(Project project)
+    {
+        if (isOnTeamCity(project))
+        {
+            def tcProps = new Properties()
+            tcProps.putAll(project.teamcity)
+            return tcProps
+        }
+        else
+            return new Properties()
+    }
+
     static String getLabKeyServer(Project project)
     {
         return getTeamCityProperty(project, "labkey.server", "http://localhost")
