@@ -15,7 +15,9 @@ on how to do that, including how to develop and test locally and the versioning 
 *Released*: TBD
 (Earliest compatible LabKey version: 21.1)
 * [Issue 42227](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=42227) 
-  Don't automatically clean the embedded deploy directory since it won't get copied to if the deployApp task is otherwise up-to-date
+  Don't automatically clean the embedded deploy directory since it won't get copied to if the deployApp task is otherwise up-to-date\
+* [Issue 42187](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=42187) 
+  Throw exceptions if trying to publish artifacts produced in dev mode or create distributions in dev mode. 
 
 ### version 1.23.0
 *Released*: 7 January 2021

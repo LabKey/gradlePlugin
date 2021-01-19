@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.plugin
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -40,6 +41,10 @@ class Distribution implements Plugin<Project>
     @Override
     void apply(Project project)
     {
+        if (LabKeyExtension.isDevMode(project) && !project.hasProperty("devDistribution"))
+            throw new GradleException("Distributions should never be created with deployMode=dev as dev modules are not portable. " +
+                    "Use -PdevDistribution if you need to override this exception for debugging.")
+
         project.group = DISTRIBUTION_GROUP
         project.extensions.create("dist", DistributionExtension, project)
         // We add the TeamCity extension here if it doesn't exist because we will use the build
@@ -57,6 +62,7 @@ class Distribution implements Plugin<Project>
         addConfigurations(project)
         addTasks(project)
         addTaskDependencies(project)
+
         // commented out until we start publishing distribution artifacts, and then we'll examine the publications more closely
 //        if (BuildUtils.shouldPublishDistribution(project))
 //            addArtifacts(project)
