@@ -65,6 +65,8 @@ class ModuleDistribution extends DefaultTask
         Project serverProject = BuildUtils.getServerProject(project)
         this.dependsOn(serverProject.tasks.setup)
         this.dependsOn(serverProject.tasks.stageApp)
+        if (!isOpenSource)
+            this.dependsOn(project.project(BuildUtils.getApiProjectPath(project.gradle)).tasks.patchModule)
         if (BuildUtils.useEmbeddedTomcat(project))
             this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.build)
 
@@ -140,7 +142,6 @@ class ModuleDistribution extends DefaultTask
         }
         if (!isOpenSource)
         {
-            this.logger.quiet("Copying patched api module")
             project.copy {
                 CopySpec copy ->
                     copy.from(project.configurations.extJsCommercial)
