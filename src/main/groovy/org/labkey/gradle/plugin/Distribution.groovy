@@ -53,8 +53,8 @@ class Distribution implements Plugin<Project>
         // we also depend on the jar task from the embedded project, if available
         if (BuildUtils.useEmbeddedTomcat(project))
             project.evaluationDependsOn(BuildUtils.getEmbeddedProjectPath(project.gradle))
-        addDependencies(project)
         addConfigurations(project)
+        addDependencies(project)
         addTasks(project)
         addTaskDependencies(project)
         // commented out until we start publishing distribution artifacts, and then we'll examine the publications more closely
@@ -67,8 +67,11 @@ class Distribution implements Plugin<Project>
         project.configurations
                 {
                     distribution
+                    extJsCommercial
                 }
         project.configurations.distribution.setDescription("Artifacts of creating a LabKey distribution (aka installer)")
+        project.configurations.extJsCommercial.setDescription("Module patched with extJs commercial license libraries")
+
         if (project.configurations.findByName("utilities") == null)
         {
             project.configurations
@@ -86,6 +89,7 @@ class Distribution implements Plugin<Project>
             project.dependencies {
                 utilities "org.labkey.tools.windows:utils:${project.windowsUtilsVersion}@zip"
             }
+        project.dependencies.add("extJsCommercial", project.dependencies.project(path: BuildUtils.getApiProjectPath(project.gradle), configuration: "extJsCommercial"))
     }
 
     private static void addTasks(Project project)

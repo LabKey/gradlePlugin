@@ -49,6 +49,8 @@ class ModuleDistribution extends DefaultTask
     String archivePrefix = "LabKey"
     @Optional @Input
     String archiveName
+    @Optional @Input
+    Boolean isOpenSource = false
 
     @OutputDirectory
     File distributionDir
@@ -130,11 +132,24 @@ class ModuleDistribution extends DefaultTask
     {
         File modulesDir = getModulesDir()
         modulesDir.deleteDir()
-        project.copy
-        { CopySpec copy ->
-            copy.from { project.configurations.distribution }
-            copy.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-            copy.into modulesDir
+        project.copy {
+            CopySpec copy ->
+                copy.from { project.configurations.distribution }
+                copy.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+                copy.into modulesDir
+        }
+        if (!isOpenSource)
+        {
+            this.logger.quiet("Copying patched api module")
+            project.copy {
+                CopySpec copy ->
+                    copy.from(project.configurations.extJsCommercial)
+                    copy.rename { String fileName ->
+                        fileName.replace("-extJsCommercial", "")
+                    }
+                    copy.into modulesDir
+                    copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
+            }
         }
     }
 
