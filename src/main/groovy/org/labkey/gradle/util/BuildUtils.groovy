@@ -427,6 +427,11 @@ class BuildUtils
         return distVersion
     }
 
+    static boolean isOpenSource(Project project)
+    {
+        return project.hasProperty("isOpenSource") && Boolean.valueOf((String) project.property("isOpenSource"))
+    }
+
     /**
      * Returns a module version to be used as a LabKey Module property.  This must be a decimal
      * number (e.g., 19.1), so we use only the first two parts of the artifact version number

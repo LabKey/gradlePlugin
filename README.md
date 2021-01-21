@@ -11,12 +11,13 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
-### TBD
-*Released*: TBD
+### 1.24.0
+*Released*: 21 January 2021
 (Earliest compatible LabKey version: 21.1)
 * [Issue 42227](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=42227) 
   Don't automatically clean the embedded deploy directory since it won't get copied to if the deployApp task is otherwise up-to-date
-* Enable configuring an additional data source when deploying on TeamCity
+* Enable configuring an additional data source when deploying on TeamCity 
+* Add check for isOpenSource project property in Distribution plugin to support packaging differently licensed libraries 
 * [Issue 42187](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=42187) 
   Throw exceptions if trying to publish artifacts produced in dev mode or create distributions in dev mode. 
 
