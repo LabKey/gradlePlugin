@@ -17,7 +17,7 @@ on how to do that, including how to develop and test locally and the versioning 
 * [Issue 42227](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=42227) 
   Don't automatically clean the embedded deploy directory since it won't get copied to if the deployApp task is otherwise up-to-date
 * Enable configuring an additional data source when deploying on TeamCity 
-* Add isOpenSource property to ModuleDistribution task (default is false) to support packaging differently licensed libraries 
+* Add check for isOpenSource project property in Distribution plugin to support packaging differently licensed libraries 
 
 ### version 1.23.0
 *Released*: 7 January 2021
