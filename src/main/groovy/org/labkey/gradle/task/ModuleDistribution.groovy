@@ -24,7 +24,6 @@ import org.gradle.api.tasks.*
 import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.plugin.extension.StagingExtension
 import org.labkey.gradle.util.BuildUtils
-import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.PropertiesUtils
 
 import java.nio.file.Files
@@ -49,8 +48,6 @@ class ModuleDistribution extends DefaultTask
     String archivePrefix = "LabKey"
     @Optional @Input
     String archiveName
-    @Optional @Input
-    Boolean isOpenSource = false
 
     @OutputDirectory
     File distributionDir
@@ -63,15 +60,14 @@ class ModuleDistribution extends DefaultTask
         distExtension = project.extensions.findByType(DistributionExtension.class)
 
         Project serverProject = BuildUtils.getServerProject(project)
-        this.dependsOn(serverProject.tasks.setup)
-        this.dependsOn(serverProject.tasks.stageApp)
-        if (!isOpenSource)
-            this.dependsOn(project.project(BuildUtils.getApiProjectPath(project.gradle)).tasks.patchModule)
+        this.dependsOn(serverProject.tasks.named("setup"))
+        this.dependsOn(serverProject.tasks.named("stageApp"))
+        if (!BuildUtils.isOpenSource(project))
+            this.dependsOn(project.tasks.named("patchApiModule"))
         if (BuildUtils.useEmbeddedTomcat(project))
-            this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.build)
+            this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.named("build"))
 
         project.apply plugin: 'org.labkey.build.base'
-        PomFileHelper.LABKEY_ORG_URL
     }
 
     @OutputDirectory
@@ -140,7 +136,7 @@ class ModuleDistribution extends DefaultTask
                 copy.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
                 copy.into modulesDir
         }
-        if (!isOpenSource)
+        if (!BuildUtils.isOpenSource(project))
         {
             project.copy {
                 CopySpec copy ->

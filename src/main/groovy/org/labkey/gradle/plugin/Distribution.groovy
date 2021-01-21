@@ -22,9 +22,11 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.DeleteSpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
@@ -72,7 +74,7 @@ class Distribution implements Plugin<Project>
                     extJsCommercial
                 }
         project.configurations.distribution.setDescription("Artifacts of creating a LabKey distribution (aka installer)")
-        project.configurations.extJsCommercial.setDescription("Module patched with extJs commercial license libraries")
+        project.configurations.extJsCommercial.setDescription("extJs commercial license libraries")
 
         if (project.configurations.findByName("utilities") == null)
         {
@@ -84,6 +86,7 @@ class Distribution implements Plugin<Project>
         }
     }
 
+
     private void addDependencies(Project project)
     {
         // we package these Windows utilities with each distribution so any distribution can be used on any platform
@@ -91,7 +94,12 @@ class Distribution implements Plugin<Project>
             project.dependencies {
                 utilities "org.labkey.tools.windows:utils:${project.windowsUtilsVersion}@zip"
             }
-        project.dependencies.add("extJsCommercial", project.dependencies.project(path: BuildUtils.getApiProjectPath(project.gradle), configuration: "extJsCommercial"))
+        if (!BuildUtils.isOpenSource(project)) {
+            project.dependencies {
+                extJsCommercial "com.sencha.extjs:extjs:4.2.1:commercial@zip"
+                extJsCommercial "com.sencha.extjs:extjs:3.4.1:commercial@zip"
+            }
+        }
     }
 
     private static void addTasks(Project project)
@@ -114,6 +122,29 @@ class Distribution implements Plugin<Project>
                         spec.delete project.buildDir
                         spec.delete "${project.dist.dir}/${project.name}"
                 })
+        }
+
+        if (!BuildUtils.isOpenSource(project)) {
+            project.tasks.register('patchApiModule', Jar) {
+                Jar jar ->
+                    jar.group = GroupNames.MODULE
+                    jar.description = "Patches the api module to replace ExtJS libraries with commercial versions"
+                    jar.archiveClassifier.set("extJsCommercial")
+                    jar.archiveExtension.set('module')
+                    jar.destinationDirectory = project.buildDir
+                    jar.outputs.cacheIf({ true })
+                    // first include the ext-3.4.1 and ext-4.2.1 directories from the extjs configuration artifacts
+                    jar.into('web') {
+                        from project.configurations.extJsCommercial.collect {
+                            project.zipTree(it)
+                        }
+                    }
+                    // include the original module file ...
+                    Project apiProject = project.project(BuildUtils.getApiProjectPath(project.gradle))
+                    jar.from(project.zipTree(apiProject.tasks.module.outputs.files.singleFile))
+                    // ... but don't use the ext directories that come from that file
+                    jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+            }
         }
     }
 
