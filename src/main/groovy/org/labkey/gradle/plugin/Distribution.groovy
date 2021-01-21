@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.plugin
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -62,6 +63,7 @@ class Distribution implements Plugin<Project>
         addDependencies(project)
         addTasks(project)
         addTaskDependencies(project)
+
         // commented out until we start publishing distribution artifacts, and then we'll examine the publications more closely
 //        if (BuildUtils.shouldPublishDistribution(project))
 //            addArtifacts(project)
