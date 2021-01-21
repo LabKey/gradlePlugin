@@ -130,7 +130,7 @@ class Distribution implements Plugin<Project>
         if (!BuildUtils.isOpenSource(project)) {
             project.tasks.register('patchApiModule', Jar) {
                 Jar jar ->
-                    jar.group = GroupNames.MODULE
+                    jar.group = GroupNames.DISTRIBUTION
                     jar.description = "Patches the api module to replace ExtJS libraries with commercial versions"
                     Project apiProject = project.project(BuildUtils.getApiProjectPath(project.gradle))
                     jar.archiveBaseName.set(apiProject.name)
