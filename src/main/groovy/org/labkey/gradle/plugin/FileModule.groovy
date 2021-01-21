@@ -457,6 +457,8 @@ class FileModule implements Plugin<Project>
 
                     if (BuildUtils.shouldPublish(project))
                     {
+                        if (LabKeyExtension.isDevMode(project))
+                            throw new GradleException("Modules produced with deployMode=dev are not portable and should never be published.")
                         project.artifactoryPublish {
                             if (project.hasProperty('module'))
                             {

@@ -16,12 +16,14 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.*
 import org.labkey.gradle.plugin.extension.DistributionExtension
+import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.StagingExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.PomFileHelper
@@ -111,6 +113,10 @@ class ModuleDistribution extends DefaultTask
     @TaskAction
     void doAction()
     {
+        if (LabKeyExtension.isDevMode(project) && !project.hasProperty("devDistribution"))
+            throw new GradleException("Distributions should never be created with deployMode=dev as dev modules are not portable. " +
+                    "Use -PdevDistribution if you need to override this exception for debugging.")
+
         if (makeDistribution)
             createDistributionFiles()
         gatherModules()
