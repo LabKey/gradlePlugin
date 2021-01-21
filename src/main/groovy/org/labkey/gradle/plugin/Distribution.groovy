@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
+import org.gradle.api.java.archives.Manifest
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Jar
@@ -129,9 +130,12 @@ class Distribution implements Plugin<Project>
                 Jar jar ->
                     jar.group = GroupNames.MODULE
                     jar.description = "Patches the api module to replace ExtJS libraries with commercial versions"
+                    Project apiProject = project.project(BuildUtils.getApiProjectPath(project.gradle))
+                    jar.archiveBaseName.set(apiProject.name)
+                    jar.archiveVersion.set(project.getVersion().toString())
                     jar.archiveClassifier.set("extJsCommercial")
                     jar.archiveExtension.set('module')
-                    jar.destinationDirectory = project.buildDir
+                    jar.destinationDirectory = project.file("${project.rootProject.buildDir}/installer/patchApiModule")
                     jar.outputs.cacheIf({ true })
                     // first include the ext-3.4.1 and ext-4.2.1 directories from the extjs configuration artifacts
                     jar.into('web') {
@@ -140,10 +144,10 @@ class Distribution implements Plugin<Project>
                         }
                     }
                     // include the original module file ...
-                    Project apiProject = project.project(BuildUtils.getApiProjectPath(project.gradle))
                     jar.from(project.zipTree(apiProject.tasks.module.outputs.files.singleFile))
                     // ... but don't use the ext directories that come from that file
                     jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+                    FileModule.setJarManifestAttributes(apiProject, (Manifest) jar.manifest)
             }
         }
     }
