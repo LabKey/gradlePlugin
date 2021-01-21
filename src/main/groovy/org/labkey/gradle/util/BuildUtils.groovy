@@ -429,7 +429,7 @@ class BuildUtils
 
     static boolean isOpenSource(Project project)
     {
-        return project.hasProperty("isOpenSource")
+        return project.hasProperty("isOpenSource") && Boolean.valueOf((String) project.property("isOpenSource"))
     }
 
     /**
