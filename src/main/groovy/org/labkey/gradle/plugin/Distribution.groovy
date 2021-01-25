@@ -57,8 +57,9 @@ class Distribution implements Plugin<Project>
         // we also depend on the jar task from the embedded project, if available
         if (BuildUtils.useEmbeddedTomcat(project))
             project.evaluationDependsOn(BuildUtils.getEmbeddedProjectPath(project.gradle))
-        // for non-open-source distributions, we depend on a task from the api project. No need to di things differently for open source, though.
-        project.evaluationDependsOn(BuildUtils.getApiProjectPath(project.gradle))
+        // for non-open-source distributions, we depend on a task from the api project.
+        if (project.findProject(BuildUtils.getApiProjectPath(project.gradle)) && BuildUtils.isOpenSource(project))
+            project.evaluationDependsOn(BuildUtils.getApiProjectPath(project.gradle))
         addConfigurations(project)
         addDependencies(project)
         addTasks(project)
@@ -75,9 +76,11 @@ class Distribution implements Plugin<Project>
                 {
                     distribution
                     extJsCommercial
+                    licensePatch
                 }
         project.configurations.distribution.setDescription("Artifacts of creating a LabKey distribution (aka installer)")
         project.configurations.extJsCommercial.setDescription("extJs commercial license libraries")
+        project.configurations.licensePatch.setDescription("Modules that require patching with commercial-license libraries")
 
         if (project.configurations.findByName("utilities") == null)
         {
@@ -102,6 +105,8 @@ class Distribution implements Plugin<Project>
                 extJsCommercial "com.sencha.extjs:extjs:4.2.1:commercial@zip"
                 extJsCommercial "com.sencha.extjs:extjs:3.4.1:commercial@zip"
             }
+
+            BuildUtils.addLabKeyDependency(project, "licensePatch", BuildUtils.getApiProjectPath(project.gradle), "published", project.getVersion().toString(), "module")
         }
     }
 
@@ -132,8 +137,7 @@ class Distribution implements Plugin<Project>
                 Jar jar ->
                     jar.group = GroupNames.DISTRIBUTION
                     jar.description = "Patches the api module to replace ExtJS libraries with commercial versions"
-                    Project apiProject = project.project(BuildUtils.getApiProjectPath(project.gradle))
-                    jar.archiveBaseName.set(apiProject.name)
+                    jar.archiveBaseName.set("api")
                     jar.archiveVersion.set(project.getVersion().toString())
                     jar.archiveClassifier.set("extJsCommercial")
                     jar.archiveExtension.set('module')
@@ -146,10 +150,26 @@ class Distribution implements Plugin<Project>
                         }
                     }
                     // include the original module file ...
-                    jar.from(project.zipTree(apiProject.tasks.module.outputs.files.singleFile))
+                    jar.from project.configurations.licensePatch.collect {
+                        project.zipTree(it)
+                    }
+//                    if (project.findProject(BuildUtils.getApiProjectPath(project.gradle)))
+//                    {
+//                        Project apiProject = project.project(BuildUtils.getApiProjectPath(project.gradle))
+//
+//                        jar.from(project.zipTree(apiProject.tasks.module.outputs.files.singleFile))
+//                    }
+//                    else
+//                    {
+//                        jar.from(project.zipTree(BuildUtils.getLabKeyArtifactName(project, BuildUtils.getApiProjectPath(project.gradle), project.getVersion().toString(), "module")))
+//                    }
                     // ... but don't use the ext directories that come from that file
                     jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-                    FileModule.setJarManifestAttributes(apiProject, (Manifest) jar.manifest)
+                    jar.manifest.attributes(
+                            "Implementation-Version": project.version,
+                            "Implementation-Title": "Internal API classes",
+                            "Implementation-Vendor": "LabKey"
+                    )
             }
         }
     }
