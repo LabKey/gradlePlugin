@@ -153,16 +153,6 @@ class Distribution implements Plugin<Project>
                     jar.from project.configurations.licensePatch.collect {
                         project.zipTree(it)
                     }
-//                    if (project.findProject(BuildUtils.getApiProjectPath(project.gradle)))
-//                    {
-//                        Project apiProject = project.project(BuildUtils.getApiProjectPath(project.gradle))
-//
-//                        jar.from(project.zipTree(apiProject.tasks.module.outputs.files.singleFile))
-//                    }
-//                    else
-//                    {
-//                        jar.from(project.zipTree(BuildUtils.getLabKeyArtifactName(project, BuildUtils.getApiProjectPath(project.gradle), project.getVersion().toString(), "module")))
-//                    }
                     // ... but don't use the ext directories that come from that file
                     jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
                     jar.manifest.attributes(
