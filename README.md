@@ -11,6 +11,12 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+### 1.24.1
+*Released*: 26 January 2021
+(Earliest compatible LabKey version: 21.1)
+* Fix Distribution patchApiModule task to work when not building the api module 
+* Fix gatherModules to use the proper configuration
+
 ### 1.24.0
 *Released*: 21 January 2021
 (Earliest compatible LabKey version: 21.1)

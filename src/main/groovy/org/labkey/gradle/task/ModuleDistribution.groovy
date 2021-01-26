@@ -146,7 +146,7 @@ class ModuleDistribution extends DefaultTask
         {
             project.copy {
                 CopySpec copy ->
-                    copy.from(project.configurations.extJsCommercial)
+                    copy.from(project.tasks.patchApiModule.outputs.files.singleFile)
                     copy.rename { String fileName ->
                         fileName.replace("-extJsCommercial", "")
                     }
