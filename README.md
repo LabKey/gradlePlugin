@@ -11,6 +11,12 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+### 1.24.2
+*Released*: TBD
+(Earliest compatible LabKey version: 21.1)
+* move `patchApiModule` task into distributions project so the patched module can be built just once and avoid the race
+condition when multiple distributions are being built.
+
 ### 1.24.1
 *Released*: 26 January 2021
 (Earliest compatible LabKey version: 21.1)

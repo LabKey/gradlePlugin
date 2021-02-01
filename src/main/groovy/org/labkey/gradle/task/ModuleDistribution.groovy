@@ -65,7 +65,7 @@ class ModuleDistribution extends DefaultTask
         this.dependsOn(serverProject.tasks.named("setup"))
         this.dependsOn(serverProject.tasks.named("stageApp"))
         if (!BuildUtils.isOpenSource(project))
-            this.dependsOn(project.tasks.named("patchApiModule"))
+            this.dependsOn(project.project(":distributions").tasks.named("patchApiModule"))
         if (BuildUtils.useEmbeddedTomcat(project))
             this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.named("build"))
 
@@ -146,7 +146,7 @@ class ModuleDistribution extends DefaultTask
         {
             project.copy {
                 CopySpec copy ->
-                    copy.from(project.tasks.patchApiModule.outputs.files.singleFile)
+                    copy.from(project.project(":distributions").tasks.patchApiModule.outputs.files.singleFile)
                     copy.rename { String fileName ->
                         fileName.replace("-extJsCommercial", "")
                     }
