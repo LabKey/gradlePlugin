@@ -57,9 +57,6 @@ class Distribution implements Plugin<Project>
         // we also depend on the jar task from the embedded project, if available
         if (BuildUtils.useEmbeddedTomcat(project))
             project.evaluationDependsOn(BuildUtils.getEmbeddedProjectPath(project.gradle))
-        // for non-open-source distributions, we depend on a task from the api project.
-        if (project.findProject(BuildUtils.getApiProjectPath(project.gradle)) && BuildUtils.isOpenSource(project))
-            project.evaluationDependsOn(BuildUtils.getApiProjectPath(project.gradle))
         addConfigurations(project)
         addDependencies(project)
         addTasks(project)
