@@ -84,7 +84,7 @@ class ModuleExtension
             if (logDeprecations) {
                 List<String> deprecationMsgs = [];
                 if (this.modProperties.get(MODULE_DEPENDENCIES_PROPERTY))
-                    deprecationMsgs += "Use of the '" + MODULE_DEPENDENCIES_PROPERTY + "' property in " + MODULE_PROPERTIES_FILE + " has been deprecated and will be removed with the 21.3.0 release of LabKey Server." +
+                    deprecationMsgs += "The '" + MODULE_DEPENDENCIES_PROPERTY + "' property is no longer supported as of gradlePlugin version 1.25.0 (LabKey Server version 21.3.0)." +
                             " Declare the dependency in the module's build.gradle file instead using the 'modules' configuration." +
                             " See https://www.labkey.org/Documentation/wiki-page.view?name=gradleDepend for more information."
 
@@ -97,6 +97,8 @@ class ModuleExtension
                             + deprecationMsgs.join("\n\t")
                             + "\nRefer to https://www.labkey.org/Documentation/wiki-page.view?name=includeModulePropertiesFile for the current set of supported properties.")
             }
+            if (this.modProperties.get(MODULE_DEPENDENCIES_PROPERTY))
+                this.modProperties.remove(MODULE_DEPENDENCIES_PROPERTY)
         }
         else
             project.logger.info("${project.path} - no ${MODULE_PROPERTIES_FILE} found")
