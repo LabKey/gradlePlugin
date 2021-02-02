@@ -12,7 +12,7 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 ### 1.24.2
-*Released*: TBD
+*Released*: 2 February 2021
 (Earliest compatible LabKey version: 21.1)
 * Separate `patchApiModule` task, its dependencies and configurations to a new plugin that can be applied where needed 
 
