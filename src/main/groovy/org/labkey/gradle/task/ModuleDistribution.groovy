@@ -22,6 +22,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.*
+import org.labkey.gradle.plugin.ApplyLicenses
 import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.StagingExtension
@@ -55,6 +56,7 @@ class ModuleDistribution extends DefaultTask
     File distributionDir
 
     private final DistributionExtension distExtension
+    private Project licensingProject
 
     ModuleDistribution()
     {
@@ -64,8 +66,9 @@ class ModuleDistribution extends DefaultTask
         Project serverProject = BuildUtils.getServerProject(project)
         this.dependsOn(serverProject.tasks.named("setup"))
         this.dependsOn(serverProject.tasks.named("stageApp"))
-        if (!BuildUtils.isOpenSource(project))
-            this.dependsOn(project.project(":distributions").tasks.named("patchApiModule"))
+        if (!BuildUtils.isOpenSource(project)) {
+            this.dependsOn(findLicensingProject().tasks.named("patchApiModule"))
+        }
         if (BuildUtils.useEmbeddedTomcat(project))
             this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.named("build"))
 
@@ -132,6 +135,22 @@ class ModuleDistribution extends DefaultTask
         return new File("${project.rootProject.buildDir}/distModules")
     }
 
+    Project findLicensingProject()
+    {
+        if (licensingProject == null) {
+            Project currProject = project
+            while (licensingProject == null && currProject != null) {
+                if (currProject.plugins.findPlugin(ApplyLicenses))
+                    licensingProject = currProject
+                currProject = project.parent
+            }
+
+            if (!BuildUtils.isOpenSource(project) && licensingProject == null)
+                throw new GradleException("Cannot build non-open source distribution. Unable to find project with the plugin org.labkey.build.applyLicenses in ${project.path} ancestors.")
+        }
+        return licensingProject;
+    }
+
     private void gatherModules()
     {
         File modulesDir = getModulesDir()
@@ -146,7 +165,7 @@ class ModuleDistribution extends DefaultTask
         {
             project.copy {
                 CopySpec copy ->
-                    copy.from(project.project(":distributions").tasks.patchApiModule.outputs.files.singleFile)
+                    copy.from(findLicensingProject().tasks.patchApiModule.outputs.files.singleFile)
                     copy.rename { String fileName ->
                         fileName.replace("-extJsCommercial", "")
                     }

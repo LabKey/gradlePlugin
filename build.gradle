@@ -63,6 +63,10 @@ gradlePlugin {
             id = 'org.labkey.build.api'
             implementationClass = 'org.labkey.gradle.plugin.Api'
         }
+        applyLicenses {
+            id = 'org.labkey.build.applyLicenses'
+            implementationClass = 'org.labkey.gradle.plugin.ApplyLicenses'
+        }
         base {
             id = 'org.labkey.build.base'
             implementationClass = 'org.labkey.gradle.plugin.LabKey'
