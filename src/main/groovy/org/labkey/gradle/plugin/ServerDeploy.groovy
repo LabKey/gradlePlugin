@@ -76,6 +76,9 @@ class ServerDeploy implements Plugin<Project>
             DeployApp task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Deploy the application locally into ${serverDeploy.dir}"
+                task.doLast {
+
+                }
         }
 
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
@@ -344,7 +347,29 @@ class ServerDeploy implements Plugin<Project>
         }
         project.tasks.deployApp.mustRunAfter(project.tasks.cleanBuild)
 
+        project.tasks.register(
+                'checkModuleTasks', DefaultTask) {
+            DefaultTask task ->
+                task.group = GroupNames.MODULE
+                task.description = "Verify that all modules with module.properties files have a module task"
+                task.doLast({
+                    String[] projectsMissingTasks = []
+                    project.subprojects({
+                        Project sub ->
+                            if (sub.file("module.properties").exists() && sub.tasks.findByName("module") == null)
+                                projectsMissingTasks += sub.path
+                    })
+                    if (projectsMissingTasks.length > 0)
+                        project.logger.quiet("Each of the following projects has a 'module.properties' file but no 'module' task. " +
+                                "These modules will not be included in the deployed server. " +
+                                "You should apply either the 'org.labkey.build.fileModule' or 'org.labkey.build.module' plugin in each project's 'build.gradle' file. " +
+                                "See https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules for more information.\n\t" +
+                                "${projectsMissingTasks.join("\n\t")}")
 
+                })
+        }
+        project.tasks.deployApp.dependsOn(project.tasks.named("checkModuleTasks"))
+        project.tasks.checkModuleTasks.mustRunAfter(project.tasks.stageApp) // do this so the message appears at the bottom of the output
     }
 
     private linkBinaries(Project project, String packageMgr, String version, workDirectory) {
