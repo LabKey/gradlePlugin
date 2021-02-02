@@ -472,9 +472,8 @@ class MultiGit implements Plugin<Project>
             }
         }
 
-        // Hmmm. This doesn't really work as intended for a few reasons:
+        // Hmmm. This doesn't really work as intended:
         //  - if the project is not in the settings file, it will be null
-        //  - the ModuleDependencies property in the module.properties file list modules, which does not include the path required to get to that module (e.g., modules/base/some_module)
         List<String> getModuleDependencies()
         {
             if (project == null)
@@ -487,16 +486,6 @@ class MultiGit implements Plugin<Project>
                     Dependency dep ->
                         moduleNames.add(dep.getName())
                 })
-            }
-            else if (project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
-            {
-                Properties props = new Properties()
-                props.load(new FileInputStream(project.file(ModuleExtension.MODULE_PROPERTIES_FILE)))
-                if (props.hasProperty(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY))
-                {
-                    for (String name : ((String) props.get(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY)).split(","))
-                        moduleNames.add(name.strip())
-                }
             }
 
             return moduleNames;
