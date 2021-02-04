@@ -142,7 +142,7 @@ class ModuleDistribution extends DefaultTask
             while (licensingProject == null && currProject != null) {
                 if (currProject.plugins.findPlugin(ApplyLicenses))
                     licensingProject = currProject
-                currProject = project.parent
+                currProject = currProject.parent
             }
 
             if (!BuildUtils.isOpenSource(project) && licensingProject == null)
