@@ -7,7 +7,7 @@ import java.nio.file.Paths
 
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${artifactoryPluginVersion}"
@@ -25,7 +25,7 @@ plugins {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
     maven {
         url "${artifactory_contextUrl}/libs-release"
     }
