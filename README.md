@@ -18,6 +18,10 @@ on how to do that, including how to develop and test locally and the versioning 
 * Add `checkModuleTasks` task that is in the `deployApp` dependencies chain and will warn if a modules i found that has a `module.properties` file but no `module` task.
 * Replace `jcenter`, which is going away, with `mavenCentral`, which is not
 
+### 1.24.3
+*Released*: 3 February 2021
+* Fix infinite loop in `findLicensingProject`
+
 ### 1.24.2
 *Released*: 2 February 2021
 (Earliest compatible LabKey version: 21.1)
