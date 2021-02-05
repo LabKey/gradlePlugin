@@ -76,9 +76,6 @@ class ServerDeploy implements Plugin<Project>
             DeployApp task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Deploy the application locally into ${serverDeploy.dir}"
-                task.doLast {
-
-                }
         }
 
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
