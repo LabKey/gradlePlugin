@@ -48,7 +48,6 @@ class LabKey implements Plugin<Project>
                 subproject.buildDir = "${project.rootProject.buildDir}/installer/${subproject.name}"
             else
                 subproject.buildDir = "${project.rootProject.buildDir}/modules/${subproject.name}"
-
         }
 
         addConfigurations(project)

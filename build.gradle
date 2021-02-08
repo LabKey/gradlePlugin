@@ -7,7 +7,7 @@ import java.nio.file.Paths
 
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${artifactoryPluginVersion}"
@@ -25,7 +25,7 @@ plugins {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
     maven {
         url "${artifactory_contextUrl}/libs-release"
     }
@@ -46,7 +46,7 @@ dependencies {
 }
 
 group 'org.labkey.build'
-project.version = "1.25.0-SNAPSHOT"
+project.version = "1.26.0-SNAPSHOT"
 
 gradlePlugin {
     // TODO after transitioning to using these plugin ids, remove the properties files from resources/META-INF.gradle-plugins
