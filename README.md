@@ -11,8 +11,8 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
-### TBD
-*Released*: TBD
+### 1.25.0
+*Released*: 8 February 2021
 (Earliest compatible LabKey version: 21.3)
 * Remove support for ModuleDependencies in module.properties file
 * Add `checkModuleTasks` task that is in the `deployApp` dependencies chain and will warn if a modules i found that has a `module.properties` file but no `module` task.
@@ -20,6 +20,7 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ### 1.24.3
 *Released*: 3 February 2021
+(Earliest compatible LabKey version: 21.1)
 * Fix infinite loop in `findLicensingProject`
 
 ### 1.24.2
