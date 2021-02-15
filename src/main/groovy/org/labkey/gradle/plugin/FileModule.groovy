@@ -174,6 +174,8 @@ class FileModule implements Plugin<Project>
         else
             project.logger.info("${project.path} - ${ModuleExtension.MODULE_PROPERTIES_FILE} not found so not added as input to 'moduleXml'")
         moduleXmlTask.outputs.file(moduleXmlFile)
+        if (project.file("build.gradle").exists())
+            moduleXmlTask.inputs.file(project.file("build.gradle"))
         moduleXmlTask.outputs.cacheIf {true} // enable build caching
 
         // This is added because Intellij started creating this "out" directory when you build through IntelliJ.

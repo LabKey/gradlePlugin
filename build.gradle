@@ -10,7 +10,6 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${artifactoryPluginVersion}"
         classpath "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
     }
 }
