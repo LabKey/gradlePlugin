@@ -11,8 +11,8 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
-### TBD
-*Released*: TBD
+### 1.25.1
+*Released*: 15 February 2021
 (Earliest compatible LabKey version: 21.3)
 * Add `build.gradle` file as input to `moduleXml` task
 
