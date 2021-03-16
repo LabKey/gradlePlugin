@@ -15,8 +15,10 @@
  */
 package org.labkey.gradle.plugin.extension
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.util.ExternalDependency
 import org.labkey.gradle.util.PropertiesUtils
 
 import java.text.SimpleDateFormat
@@ -31,6 +33,7 @@ class ModuleExtension
     public static final String MODULE_DEPENDENCIES_PROPERTY = "ModuleDependencies"
     private Properties modProperties
     private Project project
+    private Map<String, ExternalDependency> externalDependencies = new HashMap<>()
 
     ModuleExtension(Project project, boolean logDeprecations)
     {
@@ -162,5 +165,22 @@ class ModuleExtension
             modProperties.setProperty("Name", project.name)
         if (modProperties.getProperty("ModuleClass") == null)
             modProperties.setProperty("ModuleClass", "org.labkey.api.module.SimpleModule")
+    }
+
+    void addExternalDependency(ExternalDependency dependency)
+    {
+        if (dependency.coordinates == null)
+            throw new GradleException("${project.path}: All external dependencies must have group-name-version coordinates. ${dependency}")
+        externalDependencies.put(dependency.coordinates, dependency)
+    }
+
+    ExternalDependency getExternalDependency(String coordinates)
+    {
+        return externalDependencies.get(coordinates)
+    }
+
+    Map<String, ExternalDependency> getExternalDependencies()
+    {
+        return externalDependencies;
     }
 }

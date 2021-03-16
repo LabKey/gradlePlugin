@@ -16,13 +16,16 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.util.ExternalDependency
 
 @CacheableTask
 class WriteDependenciesFile extends DefaultTask
@@ -34,6 +37,11 @@ class WriteDependenciesFile extends DefaultTask
 
     @OutputFile
     File dependenciesFile = project.file("resources/credits/dependencies.txt")
+
+    @OutputFile
+    File jarsTxtFile = project.file(new File(project.buildDir, "explodedModule/credits/newJars.txt"))
+
+    private File manualJarsTxtFile = project.file("resources/credits/jars.txt")
 
     WriteDependenciesFile()
     {
@@ -58,9 +66,62 @@ class WriteDependenciesFile extends DefaultTask
         }
     }
 
-    @TaskAction
-    void writeFile()
+    void writeJarsTxt()
     {
+        ModuleExtension extension = project.extensions.findByType(ModuleExtension.class)
+        if (extension.getExternalDependencies().isEmpty())
+            return;
+
+        FileOutputStream outputStream = null
+        try {
+            outputStream = new FileOutputStream(jarsTxtFile)
+            outputStream.write("{table}\n".getBytes())
+            outputStream.write("Filename|Version|Source|License|Purpose\n".getBytes())
+
+            project.configurations.externalsNotTrans.resolvedConfiguration.resolvedArtifacts.forEach {
+                ResolvedArtifact artifact ->
+                    if (extension) {
+                        ExternalDependency dep = extension.getExternalDependency(artifact.moduleVersion.toString())
+                        if (dep) {
+                            List<String> parts = new ArrayList<>()
+                            parts.add(artifact.file.getName())
+                            parts.add(artifact.moduleVersion.toString())
+                            if (dep.getSource() != null) {
+                                if (dep.getSourceURL() != null)
+                                    parts.add("{link:${dep.getSource()}|${dep.getSourceURL()}}")
+                                else
+                                    parts.add(dep.getSource())
+                            } else
+                                parts.add("")
+                            if (dep.getLicenseName() != null) {
+                                if (dep.getLicenseURL() != null)
+                                    parts.add("{link:${dep.getLicenseName()}|${dep.getLicenseURL()}}")
+                                else
+                                    parts.add(dep.getLicenseName())
+                            } else {
+                                this.logger.warn("${project.path}: No license specified for dependency ${artifact.moduleVersion}")
+                            }
+                            parts.add(dep.getPurpose() == null ? "" : dep.getPurpose())
+                            outputStream.write("${parts.join("|")}\n".getBytes());
+                        }
+                    } else {
+                        this.logger.error("${project.path} No ModuleExtension found. That can't be right.")
+                    }
+            }
+            outputStream.write("{table}\n".getBytes())
+        }
+        finally
+        {
+            if (outputStream != null)
+                outputStream.close()
+        }
+    }
+
+    void writeDependenciesFile()
+    {
+        if (!manualJarsTxtFile.exists())
+            return;
+
         FileOutputStream outputStream = null;
         try
         {
@@ -73,11 +134,11 @@ class WriteDependenciesFile extends DefaultTask
                 outputStream.write("# direct external dependencies for project ${project.path}\n".getBytes())
 
             Set<String> dependencySet = new HashSet<>();
-
-            project.configurations.externalsNotTrans.each { File file ->
-                outputStream.write((file.getName() + "\n").getBytes());
-                dependencySet.add(file.getName());
-            }
+            project.configurations.externalsNotTrans
+                    .each { File file ->
+                        outputStream.write((file.getName() + "\n").getBytes());
+                        dependencySet.add(file.getName());
+                    }
             if (isApi) {
                 if (project.configurations.findByName("creditable") != null)
                 {
@@ -93,7 +154,15 @@ class WriteDependenciesFile extends DefaultTask
         }
         finally
         {
-            outputStream.close()
+            if (outputStream != null)
+                outputStream.close()
         }
+    }
+
+    @TaskAction
+    void writeFiles()
+    {
+        this.writeDependenciesFile()
+        this.writeJarsTxt()
     }
 }
