@@ -775,4 +775,11 @@ class BuildUtils
         ModuleExtension extension = project.extensions.findByType(ModuleExtension.class)
         extension.addExternalDependency(dependency)
     }
+
+    static void addExternalDependencies(Project project, List<ExternalDependency> dependencies)
+    {
+        dependencies.forEach({
+            dependency -> addExternalDependency(project, dependency)
+        })
+    }
 }

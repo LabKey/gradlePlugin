@@ -16,6 +16,8 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFile
@@ -27,7 +29,9 @@ import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.ExternalDependency
 
-@CacheableTask
+// This task can no longer be cacheable since we don't currently declare the jars.txt file as an output file.
+// Once there are no manually maintained jars.txt files, this can be a cacheable task
+//@CacheableTask
 class WriteDependenciesFile extends DefaultTask
 {
     // we assume that if a version number has changed, we should generate a new dependencies file
@@ -38,10 +42,8 @@ class WriteDependenciesFile extends DefaultTask
     @OutputFile
     File dependenciesFile = project.file("resources/credits/dependencies.txt")
 
-    @OutputFile
-    File jarsTxtFile = project.file(new File(project.buildDir, "explodedModule/credits/newJars.txt"))
-
-    private File manualJarsTxtFile = project.file("resources/credits/jars.txt")
+//    @OutputFile  Not declared as an output file currently since it may be manually maintained.
+    private File jarsTxtFile = project.file("resources/credits/jars.txt")
 
     WriteDependenciesFile()
     {
@@ -66,6 +68,52 @@ class WriteDependenciesFile extends DefaultTask
         }
     }
 
+    private void writeDependencies(String configurationName, OutputStream outputStream)
+    {
+        Configuration configuration = project.configurations.findByName(configurationName)
+        if (configuration == null)
+            return
+
+        ModuleExtension extension = project.extensions.findByType(ModuleExtension.class)
+        List<String> missing = []
+        List<String> licenseMissing = []
+        configuration.resolvedConfiguration.resolvedArtifacts.forEach {
+            ResolvedArtifact artifact ->
+                ExternalDependency dep = extension.getExternalDependency(artifact.moduleVersion.toString())
+                if (dep) {
+                    List<String> parts = new ArrayList<>()
+                    parts.add(artifact.file.getName())
+                    parts.add(artifact.moduleVersion.toString())
+                    if (dep.getSource() != null) {
+                        if (dep.getSourceURL() != null)
+                            parts.add("{link:${dep.getSource()}|${dep.getSourceURL()}}")
+                        else
+                            parts.add(dep.getSource())
+                    } else
+                        parts.add("")
+                    if (dep.getLicenseName() != null) {
+                        if (dep.getLicenseURL() != null)
+                            parts.add("{link:${dep.getLicenseName()}|${dep.getLicenseURL()}}")
+                        else
+                            parts.add(dep.getLicenseName())
+                    } else {
+                        licenseMissing.add(artifact.moduleVersion.toString())
+                    }
+                    parts.add(dep.getPurpose() == null ? "" : dep.getPurpose())
+                    outputStream.write("${parts.join("|")}\n".getBytes());
+                } else {
+                    missing.add(artifact.moduleVersion.toString())
+                }
+        }
+        List<String> exceptionMsg = []
+        if (!licenseMissing.isEmpty())
+            exceptionMsg.add("The following dependencies are missing license information: ${licenseMissing.join(", ")}.")
+        if (!missing.isEmpty())
+            exceptionMsg.add("The following dependencies were not registered with addExternalDependency: ${missing.join(", ")}. You must register all or none of your external dependencies with this method.")
+        if (!exceptionMsg.isEmpty())
+            throw new GradleException(exceptionMsg.join("\n"))
+    }
+
     void writeJarsTxt()
     {
         ModuleExtension extension = project.extensions.findByType(ModuleExtension.class)
@@ -77,37 +125,8 @@ class WriteDependenciesFile extends DefaultTask
             outputStream = new FileOutputStream(jarsTxtFile)
             outputStream.write("{table}\n".getBytes())
             outputStream.write("Filename|Version|Source|License|Purpose\n".getBytes())
-
-            project.configurations.externalsNotTrans.resolvedConfiguration.resolvedArtifacts.forEach {
-                ResolvedArtifact artifact ->
-                    if (extension) {
-                        ExternalDependency dep = extension.getExternalDependency(artifact.moduleVersion.toString())
-                        if (dep) {
-                            List<String> parts = new ArrayList<>()
-                            parts.add(artifact.file.getName())
-                            parts.add(artifact.moduleVersion.toString())
-                            if (dep.getSource() != null) {
-                                if (dep.getSourceURL() != null)
-                                    parts.add("{link:${dep.getSource()}|${dep.getSourceURL()}}")
-                                else
-                                    parts.add(dep.getSource())
-                            } else
-                                parts.add("")
-                            if (dep.getLicenseName() != null) {
-                                if (dep.getLicenseURL() != null)
-                                    parts.add("{link:${dep.getLicenseName()}|${dep.getLicenseURL()}}")
-                                else
-                                    parts.add(dep.getLicenseName())
-                            } else {
-                                this.logger.warn("${project.path}: No license specified for dependency ${artifact.moduleVersion}")
-                            }
-                            parts.add(dep.getPurpose() == null ? "" : dep.getPurpose())
-                            outputStream.write("${parts.join("|")}\n".getBytes());
-                        }
-                    } else {
-                        this.logger.error("${project.path} No ModuleExtension found. That can't be right.")
-                    }
-            }
+            writeDependencies("externalsNotTrans", outputStream)
+            writeDependencies("creditable", outputStream)
             outputStream.write("{table}\n".getBytes())
         }
         finally
@@ -117,11 +136,9 @@ class WriteDependenciesFile extends DefaultTask
         }
     }
 
+    // TODO this can go away if we change all modules to use the build-generated jars.txt file
     void writeDependenciesFile()
     {
-        if (!manualJarsTxtFile.exists())
-            return;
-
         FileOutputStream outputStream = null;
         try
         {
