@@ -99,10 +99,4 @@ class ExternalDependency
     {
         this.purpose = purpose
     }
-
-//    String toString()
-//    {
-//        StringBuilder builder = new StringBuilder()
-//
-//    }
 }
