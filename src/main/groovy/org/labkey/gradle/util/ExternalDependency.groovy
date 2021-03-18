@@ -2,6 +2,7 @@ package org.labkey.gradle.util
 
 class ExternalDependency
 {
+    private String configuration = "external"
     private String coordinates
     private String licenseName
     private String licenseURL
@@ -13,14 +14,30 @@ class ExternalDependency
 
     }
 
-    ExternalDependency(String coordinates, String licenseName, String licenseURL, String source, String sourceURL, String purpose)
+    ExternalDependency(String coordinates, String source, String sourceURL, String licenseName, String licenseURL, String purpose)
     {
-        this.coordinates = coordinates;
-        this.licenseName = licenseName;
-        this.licenseURL = licenseURL;
-        this.source = source;
+        this("external", coordinates, source, sourceURL, licenseName, licenseURL, purpose)
+    }
+
+    ExternalDependency(String configuration, String coordinates, String source, String sourceURL, String licenseName, String licenseURL, String purpose)
+    {
+        this.configuration = configuration
+        this.coordinates = coordinates
+        this.source = source
         this.sourceURL = sourceURL
+        this.licenseName = licenseName
+        this.licenseURL = licenseURL
         this.purpose = purpose
+    }
+
+    String getConfiguration()
+    {
+        return configuration
+    }
+
+    void setConfiguration(String configuration)
+    {
+        this.configuration = configuration
     }
 
     String getCoordinates()

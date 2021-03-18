@@ -83,7 +83,6 @@ class WriteDependenciesFile extends DefaultTask
                 if (dep) {
                     List<String> parts = new ArrayList<>()
                     parts.add(artifact.file.getName())
-                    parts.add(artifact.moduleVersion.toString())
                     if (dep.getSource() != null) {
                         if (dep.getSourceURL() != null)
                             parts.add("{link:${dep.getSource()}|${dep.getSourceURL()}}")
@@ -124,7 +123,7 @@ class WriteDependenciesFile extends DefaultTask
         try {
             outputStream = new FileOutputStream(jarsTxtFile)
             outputStream.write("{table}\n".getBytes())
-            outputStream.write("Filename|Version|Source|License|Purpose\n".getBytes())
+            outputStream.write("Filename|Source|License|Purpose\n".getBytes())
             writeDependencies("externalsNotTrans", outputStream)
             writeDependencies("creditable", outputStream)
             outputStream.write("{table}\n".getBytes())

@@ -771,7 +771,7 @@ class BuildUtils
 
     static void addExternalDependency(Project project, ExternalDependency dependency, Closure closure=null)
     {
-        project.dependencies.add("external", dependency.coordinates, closure)
+        project.dependencies.add(dependency.configuration, dependency.coordinates, closure)
         ModuleExtension extension = project.extensions.findByType(ModuleExtension.class)
         extension.addExternalDependency(dependency)
     }
