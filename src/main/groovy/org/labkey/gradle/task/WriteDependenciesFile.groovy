@@ -16,15 +16,22 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.util.ExternalDependency
 
-@CacheableTask
+// This task can no longer be cacheable since we don't currently declare the jars.txt file as an output file.
+// Once there are no manually maintained jars.txt files, this can be a cacheable task
+//@CacheableTask
 class WriteDependenciesFile extends DefaultTask
 {
     // we assume that if a version number has changed, we should generate a new dependencies file
@@ -34,6 +41,9 @@ class WriteDependenciesFile extends DefaultTask
 
     @OutputFile
     File dependenciesFile = project.file("resources/credits/dependencies.txt")
+
+//    @OutputFile  Not declared as an output file currently since it may be manually maintained.
+    private File jarsTxtFile = project.file("resources/credits/jars.txt")
 
     WriteDependenciesFile()
     {
@@ -58,8 +68,76 @@ class WriteDependenciesFile extends DefaultTask
         }
     }
 
-    @TaskAction
-    void writeFile()
+    private void writeDependencies(String configurationName, OutputStream outputStream)
+    {
+        Configuration configuration = project.configurations.findByName(configurationName)
+        if (configuration == null)
+            return
+
+        ModuleExtension extension = project.extensions.findByType(ModuleExtension.class)
+        List<String> missing = []
+        List<String> licenseMissing = []
+        configuration.resolvedConfiguration.resolvedArtifacts.forEach {
+            ResolvedArtifact artifact ->
+                ExternalDependency dep = extension.getExternalDependency(artifact.moduleVersion.toString())
+                if (dep) {
+                    List<String> parts = new ArrayList<>()
+                    parts.add(artifact.file.getName())
+                    parts.add(dep.getComponent())
+                    if (dep.getSource() != null) {
+                        if (dep.getSourceURL() != null)
+                            parts.add("{link:${dep.getSource()}|${dep.getSourceURL()}}")
+                        else
+                            parts.add(dep.getSource())
+                    } else
+                        parts.add("")
+                    if (dep.getLicenseName() != null) {
+                        if (dep.getLicenseURL() != null)
+                            parts.add("{link:${dep.getLicenseName()}|${dep.getLicenseURL()}}")
+                        else
+                            parts.add(dep.getLicenseName())
+                    } else {
+                        licenseMissing.add(artifact.moduleVersion.toString())
+                    }
+                    parts.add(dep.getPurpose() == null ? "" : dep.getPurpose())
+                    outputStream.write("${parts.join("|")}\n".getBytes());
+                } else {
+                    missing.add(artifact.moduleVersion.toString())
+                }
+        }
+        List<String> exceptionMsg = []
+        if (!licenseMissing.isEmpty())
+            exceptionMsg.add("The following dependencies are missing license information: ${licenseMissing.join(", ")}.")
+        if (!missing.isEmpty())
+            exceptionMsg.add("The following dependencies were not registered with addExternalDependency: ${missing.join(", ")}. You must register all or none of your external dependencies with this method.")
+        if (!exceptionMsg.isEmpty())
+            throw new GradleException(exceptionMsg.join("\n"))
+    }
+
+    void writeJarsTxt()
+    {
+        ModuleExtension extension = project.extensions.findByType(ModuleExtension.class)
+        if (extension.getExternalDependencies().isEmpty())
+            return;
+
+        FileOutputStream outputStream = null
+        try {
+            outputStream = new FileOutputStream(jarsTxtFile)
+            outputStream.write("{table}\n".getBytes())
+            outputStream.write("Filename|Component|Source|License|Purpose\n".getBytes())
+            writeDependencies("externalsNotTrans", outputStream)
+            writeDependencies("creditable", outputStream)
+            outputStream.write("{table}\n".getBytes())
+        }
+        finally
+        {
+            if (outputStream != null)
+                outputStream.close()
+        }
+    }
+
+    // TODO this can go away if we change all modules to use the build-generated jars.txt file
+    void writeDependenciesFile()
     {
         FileOutputStream outputStream = null;
         try
@@ -73,11 +151,11 @@ class WriteDependenciesFile extends DefaultTask
                 outputStream.write("# direct external dependencies for project ${project.path}\n".getBytes())
 
             Set<String> dependencySet = new HashSet<>();
-
-            project.configurations.externalsNotTrans.each { File file ->
-                outputStream.write((file.getName() + "\n").getBytes());
-                dependencySet.add(file.getName());
-            }
+            project.configurations.externalsNotTrans
+                    .each { File file ->
+                        outputStream.write((file.getName() + "\n").getBytes());
+                        dependencySet.add(file.getName());
+                    }
             if (isApi) {
                 if (project.configurations.findByName("creditable") != null)
                 {
@@ -93,7 +171,15 @@ class WriteDependenciesFile extends DefaultTask
         }
         finally
         {
-            outputStream.close()
+            if (outputStream != null)
+                outputStream.close()
         }
+    }
+
+    @TaskAction
+    void writeFiles()
+    {
+        this.writeDependenciesFile()
+        this.writeJarsTxt()
     }
 }

@@ -768,4 +768,18 @@ class BuildUtils
     {
         return project.hasProperty(USE_EMBEDDED_TOMCAT) && project.findProject(getEmbeddedProjectPath(project.gradle)) != null
     }
+
+    static void addExternalDependency(Project project, ExternalDependency dependency, Closure closure=null)
+    {
+        project.dependencies.add(dependency.configuration, dependency.coordinates, closure)
+        ModuleExtension extension = project.extensions.findByType(ModuleExtension.class)
+        extension.addExternalDependency(dependency)
+    }
+
+    static void addExternalDependencies(Project project, List<ExternalDependency> dependencies)
+    {
+        dependencies.forEach({
+            dependency -> addExternalDependency(project, dependency)
+        })
+    }
 }
