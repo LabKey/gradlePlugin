@@ -14,9 +14,12 @@ on how to do that, including how to develop and test locally and the versioning 
 ### TBD
 *Released*: TBD
 (Earliest compatible LabKey version: 21.3)
+* Update GWT plugin to remove deprecated gwtCompile configuration
+* Update NpmRun plugin to declare a more generic gen directory as output
 * (incubating) Add ability to generate jars.txt from the build 
   * Add `BuildUtils.addExternalDependency` method for declaring dependencies to be included in the `jars.txt` file
   * Modify `WriteDependenciesFile` to also write a new jars.txt file if `addExternalDependency` has been used
+    
 
 ### 1.25.1
 *Released*: 15 February 2021
