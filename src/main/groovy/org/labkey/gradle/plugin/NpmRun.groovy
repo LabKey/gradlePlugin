@@ -250,6 +250,7 @@ class NpmRun implements Plugin<Project>
 
         // common output file pattern for client artifacts
         task.outputs.dir task.project.file("resources/web/${task.project.name}/gen")
+        task.outputs.dir task.project.file("resources/web/gen")
         task.outputs.dir task.project.file("resources/views/gen")
         if (task.project.path.equals(BuildUtils.getPlatformModuleProjectPath(task.project.gradle, "core"))) {
             task.outputs.dir task.project.file("resources/web/clientapi")
