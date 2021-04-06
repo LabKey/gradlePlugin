@@ -35,6 +35,7 @@ class ModuleResources
         }
 
         project.tasks.processModuleResources.dependsOn(project.tasks.writeDependenciesList)
+        project.tasks.processResources.dependsOn(project.tasks.processModuleResources)
         project.tasks.clean.dependsOn(project.tasks.cleanWriteDependenciesList)
     }
 
@@ -56,7 +57,5 @@ class ModuleResources
             zipAction.extraExcludes = ["views/**"];
             project.tasks.processModuleResources.doLast(zipAction);
         }
-
-        project.tasks.processResources.dependsOn('processModuleResources')
     }
 }

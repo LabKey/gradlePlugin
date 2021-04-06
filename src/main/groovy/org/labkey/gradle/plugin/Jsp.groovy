@@ -199,7 +199,6 @@ class Jsp implements Plugin<Project>
                  jar.description = "produce jar file of jsps"
                  jar.from project.sourceSets.jsp.output
                  jar.archiveBaseName.set("${project.name}${BASE_NAME_EXTENSION}")
-                 jar.destinationDirectory = project.file(project.labkey.explodedModuleLibDir)
                  jar.dependsOn(project.tasks.compileJspJava)
                  jar.outputs.cacheIf({true})
          }

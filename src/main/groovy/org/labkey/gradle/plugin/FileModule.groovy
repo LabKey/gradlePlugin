@@ -19,6 +19,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.Copy
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.CopySpec
@@ -193,6 +194,20 @@ class FileModule implements Plugin<Project>
 
         if (!AntBuild.isApplicable(project))
         {
+            def populateLib = project.tasks.register("populateExplodedLib", Copy) {
+                CopySpec copy ->
+                    copy.group = GroupNames.MODULE
+                    copy.description = "Copy the jar files needed for the module into the explodedModule/lib directory from their respective output directories"
+                    copy.into project.labkey.explodedModuleLibDir
+                    if (project.tasks.findByName("jar") != null)
+                        copy.from project.tasks.named("jar")
+                    if (project.tasks.findByName("apiJar") != null)
+                        copy.from project.tasks.named("apiJar")
+                    if (project.tasks.findByName("jspJar") != null)
+                        copy.from project.tasks.named('jspJar')
+                    if (project.tasks.findByName("copyExternalLibs") != null)
+                        copy.from project.tasks.named('copyExternalLibs')
+            }
             project.tasks.register("module", Jar) {
                 Jar jar ->
                     jar.group = GroupNames.MODULE
@@ -208,16 +223,16 @@ class FileModule implements Plugin<Project>
             }
 
             Task moduleFile = project.tasks.module
+            moduleFile.dependsOn(populateLib)
 
-            moduleFile.dependsOn(project.tasks.processModuleResources)
             if (SpringConfig.isApplicable(project))
-                moduleFile.dependsOn(project.tasks.processResources)
+                moduleFile.dependsOn(project.tasks.named('processResources'))
             moduleFile.dependsOn(moduleXmlTask)
             setJarManifestAttributes(project, (Manifest) moduleFile.manifest)
             if (!LabKeyExtension.isDevMode(project))
-                moduleFile.dependsOn(project.tasks.compressClientLibs)
+                moduleFile.dependsOn(project.tasks.named('compressClientLibs'))
             project.tasks.build.dependsOn(moduleFile)
-            project.tasks.clean.dependsOn(project.tasks.cleanModule)
+            project.tasks.clean.dependsOn(project.tasks.named('cleanModule'))
 
             project.artifacts
                     {
