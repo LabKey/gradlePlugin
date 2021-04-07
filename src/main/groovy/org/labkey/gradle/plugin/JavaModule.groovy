@@ -150,15 +150,21 @@ class JavaModule implements Plugin<Project>
 
             project.tasks.register("copyExternalLibs", Copy) {
                 Copy task ->
+                    File destination = new File(project.buildDir, "libsExternal");
                     task.group = GroupNames.MODULE
                     task.description = "copy the dependencies declared in the 'external' configuration into the lib directory of the built module"
                     task.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
                     task.configure
                             { CopySpec copy ->
                                 copy.from externalFiles
-                                copy.into new File(project.buildDir, "libExternal")
+                                copy.into destination
                                 copy.include "*.jar"
                             }
+                    task.doFirst({
+                        // first clean out the directory, if it existed from a previous build
+                        if (destinationDir.exists()) // I think Windows doesn't deal well with delete without this check first
+                            destination.deleteDir();
+                    })
             }
 
             if (project.tasks.findByName("module") != null)
