@@ -197,7 +197,7 @@ class FileModule implements Plugin<Project>
             def populateLib = project.tasks.register("populateExplodedLib", Copy) {
                 CopySpec copy ->
                     copy.group = GroupNames.MODULE
-                    copy.description = "Copy the jar files needed for the module into the explodedModule/lib directory from their respective output directories"
+                    copy.description = "Copy the jar files needed for the module into the ${project.labkey.explodedModuleLibDir} directory from their respective output directories"
                     copy.into project.labkey.explodedModuleLibDir
                     if (project.tasks.findByName("jar") != null)
                         copy.from project.tasks.named("jar")
@@ -208,6 +208,14 @@ class FileModule implements Plugin<Project>
                     if (project.tasks.findByName("copyExternalLibs") != null)
                         copy.from project.tasks.named('copyExternalLibs')
             }
+            populateLib.configure {
+                it.doFirst {
+                    File explodedLibDir = new File(project.labkey.explodedModuleLibDir)
+                    if (explodedLibDir.exists())
+                        explodedLibDir.delete()
+                }
+            }
+
             project.tasks.register("module", Jar) {
                 Jar jar ->
                     jar.group = GroupNames.MODULE

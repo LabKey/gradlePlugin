@@ -186,6 +186,7 @@ class JavaModule implements Plugin<Project>
                     allJars = allJars + project.tasks.jspJar.outputs.files
                 }
             }
+
             project.tasks.register(
                     "checkModuleJarVersions", CheckForVersionConflicts)
                     { CheckForVersionConflicts task ->
