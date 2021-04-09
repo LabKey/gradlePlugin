@@ -11,8 +11,8 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
-### TBD
-*Released*: TBD
+### 1.26.0
+*Released*: 9 April 2021
 (Earliest compatible LabKey version: 21.3)
 * Update GWT plugin to remove deprecated gwtCompile configuration
 * Update NpmRun plugin to declare a more generic gen directory as output
