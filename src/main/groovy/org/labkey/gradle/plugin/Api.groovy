@@ -87,7 +87,6 @@ class Api implements Plugin<Project>
                  jar.description = "produce jar file for api"
                  jar.from project.sourceSets.api.output
                  jar.archiveBaseName.set("${project.name}_api")
-                 jar.destinationDirectory = project.file(project.labkey.explodedModuleLibDir)
                  jar.dependsOn(project.apiClasses)
                  jar.outputs.cacheIf({true})
          }
@@ -103,7 +102,7 @@ class Api implements Plugin<Project>
             // we put all API jar files into a special directory for the RecompilingJspClassLoader's classpath
             project.tasks.apiJar.doLast {
                 project.copy { CopySpec copy ->
-                    copy.from project.file(project.labkey.explodedModuleLibDir)
+                    copy.from project.tasks.apiJar.outputs
                     copy.into "${project.rootProject.buildDir}/${MODULES_API_DIR}"
                     copy.include "${project.name}_api*.jar"
                 }

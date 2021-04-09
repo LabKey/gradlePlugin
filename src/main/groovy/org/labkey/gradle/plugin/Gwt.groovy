@@ -23,6 +23,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.TaskProvider
 import org.labkey.gradle.plugin.extension.GwtExtension
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.task.GzipAction
@@ -36,6 +37,7 @@ class Gwt implements Plugin<Project>
 {
     public static final String SOURCE_DIR = "gwtsrc"
 
+    private Project project;
     private static final String GWT_EXTENSION = ".gwt.xml"
 
     static boolean isApplicable(Project project)
@@ -46,6 +48,7 @@ class Gwt implements Plugin<Project>
     @Override
     void apply(Project project)
     {
+        this.project = project
         project.apply plugin: 'java-base'
         project.extensions.create("gwt", GwtExtension)
         if (LabKeyExtension.isDevMode(project))
@@ -55,47 +58,21 @@ class Gwt implements Plugin<Project>
             project.gwt.allBrowserCompile = false
         }
 
-        addConfigurations(project)
-        addDependencies(project)
-        addSourceSet(project)
-        addTasks(project)
+        addSourceSets()
+        addDependencies()
+        addTasks()
     }
 
-    private void addConfigurations(Project project)
+    private void addDependencies()
     {
-
-        project.configurations
-                {
-                    gwtCompile
-                }
-    }
-
-    private void addDependencies(Project project)
-    {
-        // Be backwards-compatible for builds that still reference GXT and GWT-DND
-        if (project.hasProperty("gxtVersion") && project.hasProperty("gwtDndVersion"))
-        {
-            String gxtGroup = (BuildUtils.compareVersions(project.gxtVersion, "2.2.5") > 0) ? "com.sencha.gxt" : "com.extjs"
-
-            project.dependencies {
-                gwtCompile "com.google.gwt:gwt-user:${project.gwtVersion}",
-                        "com.google.gwt:gwt-dev:${project.gwtVersion}",
-                        "${gxtGroup}:gxt:${project.gxtVersion}",
-                        "com.allen-sauer.gwt.dnd:gwt-dnd:${project.gwtDndVersion}",
-                        "javax.validation:validation-api:${project.validationApiVersion}"
-            }
-        }
-        else
-        {
-            project.dependencies {
-                gwtCompile "com.google.gwt:gwt-user:${project.gwtVersion}",
-                        "com.google.gwt:gwt-dev:${project.gwtVersion}",
-                        "javax.validation:validation-api:${project.validationApiVersion}"
-            }
+        project.dependencies {
+            gwtImplementation "com.google.gwt:gwt-user:${project.gwtVersion}",
+                    "com.google.gwt:gwt-dev:${project.gwtVersion}",
+                    "javax.validation:validation-api:${project.validationApiVersion}"
         }
     }
 
-    private void addSourceSet(Project project)
+    private void addSourceSets()
     {
         project.sourceSets {
             gwt {
@@ -111,10 +88,10 @@ class Gwt implements Plugin<Project>
         }
     }
 
-    private void addTasks(Project project)
+    private void addTasks()
     {
         Map<String, String> gwtModuleClasses = getGwtModuleClasses(project)
-        List<Task> gwtTasks = new ArrayList<>(gwtModuleClasses.size());
+        List<TaskProvider> gwtTasks = new ArrayList<>(gwtModuleClasses.size());
         gwtModuleClasses.entrySet().each {
              gwtModuleClass ->
 

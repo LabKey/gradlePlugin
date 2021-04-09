@@ -107,8 +107,6 @@ class JavaModule implements Plugin<Project>
 
     protected void setJavaBuildProperties(Project project)
     {
-        project.libsDirName = 'explodedModule/lib'
-
         addSourceSets(project)
 
         project.jar { Jar jar ->
@@ -152,59 +150,66 @@ class JavaModule implements Plugin<Project>
 
             project.tasks.register("copyExternalLibs", Copy) {
                 Copy task ->
+                    File destination = new File(project.buildDir, "libsExternal");
                     task.group = GroupNames.MODULE
                     task.description = "copy the dependencies declared in the 'external' configuration into the lib directory of the built module"
                     task.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
                     task.configure
                             { CopySpec copy ->
                                 copy.from externalFiles
-                                copy.into "${project.labkey.explodedModuleDir}/lib"
+                                copy.into destination
                                 copy.include "*.jar"
                             }
+                    task.doFirst({
+                        // first clean out the directory, if it existed from a previous build
+                        if (destinationDir.exists()) // I think Windows doesn't deal well with delete without this check first
+                            destination.deleteDir();
+                    })
             }
 
             if (project.tasks.findByName("module") != null)
             {
                 project.tasks.module.dependsOn(project.tasks.copyExternalLibs)
-                if (project.file("src").exists())
+                if (project.tasks.findByName("jar") != null)
                 {
                     project.tasks.module.dependsOn(project.tasks.jar)
                     allJars = allJars + project.tasks.jar.outputs.files
                 }
-                if (project.hasProperty('apiJar'))
+                if (project.tasks.findByName('apiJar') != null)
                 {
                     project.tasks.module.dependsOn(project.tasks.apiJar)
                     allJars = allJars + project.tasks.apiJar.outputs.files
                 }
-                if (project.hasProperty('jspJar'))
+                if (project.tasks.findByName('jspJar') != null)
                 {
                     project.tasks.module.dependsOn(project.tasks.jspJar)
                     allJars = allJars + project.tasks.jspJar.outputs.files
                 }
-                if (project.hasProperty('schemasJar'))
-                {
-                    project.tasks.module.dependsOn(project.tasks.schemasJar)
-                    allJars = allJars + project.tasks.schemasJar.outputs.files
-                }
             }
+
             project.tasks.register(
                     "checkModuleJarVersions", CheckForVersionConflicts)
                     { CheckForVersionConflicts task ->
 
                         task.group = GroupNames.MODULE
-                        task.description = "Check for conflicts in version numbers of jar files to be included in the module and files already in the build directory ${project.labkey.explodedModuleDir}/lib." +
+                        task.description = "Check for conflicts in version numbers of jar files to be included in the module and files already in the build directory ${project.labkey.explodedModuleLibDir}." +
                                 "Default action on detecting a conflict is to fail.  Use -PversionConflictAction=[delete|fail|warn] to change this behavior.  The value 'delete' will cause the " +
-                                "conflicting version(s) in the ${project.labkey.explodedModuleDir}/lib directory to be removed."
-                        task.directory = new File("${project.labkey.explodedModuleDir}/lib")
+                                "conflicting version(s) in the ${project.labkey.explodedModuleLibDir} directory to be removed."
+                        task.directory = new File("${project.labkey.explodedModuleLibDir}")
                         task.extension = "jar"
                         task.cleanTask = "${project.path}:clean"
                         task.collection = allJars
                     }
 
-            project.tasks.copyExternalLibs.dependsOn(project.tasks.checkModuleJarVersions)
+            project.tasks.copyExternalLibs.dependsOn(project.tasks.named("checkModuleJarVersions"))
             Project serverProject = BuildUtils.getServerProject(project)
             if (serverProject != null)
-                serverProject.tasks.checkVersionConflicts.dependsOn(project.tasks.checkModuleJarVersions)
+                serverProject.tasks.checkVersionConflicts.dependsOn(project.tasks.named("checkModuleJarVersions"))
+            // This is necessary to avoid warnings with gradle 7 because, I believe, of the resource and java source sets
+            // overlapping in certain cases.  By declaring this dependency, we enable some optimizations from Gradle because
+            // it can know in what order to run tasks that put files into a common directory,
+            // but it might be nice to remove overlaps somewhere so this isn't necessary.
+            project.tasks.compileJava.dependsOn(project.tasks.named("processModuleResources"))
         })
     }
 
