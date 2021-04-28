@@ -233,6 +233,9 @@ class Jsp implements Plugin<Project>
                                     .ifPresentOrElse( { d -> copy.from(project.zipTree(d.getSingleFile()) ) } , { throw new GradleException("Unable to locate API artifact")})
                             copy.filesMatching("web/WEB-INF/*") {it.path = it.path.replace("web/", "/") }
                             prefix = "web/"
+                            // exclude intermediate directories to avoid empty directories in destination
+                            copy.exclude "web"
+                            copy.exclude "web/WEB-INF"
                         }
                         copy.into "${project.buildDir}/webapp"
                         copy.include "${prefix}WEB-INF/web.xml"
