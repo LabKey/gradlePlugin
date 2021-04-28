@@ -11,6 +11,12 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 21.3)
+* Enable build, deploy, and distributions without `server` repository
+
+## Release Notes
 ### 1.26.0
 *Released*: 9 April 2021
 (Earliest compatible LabKey version: 21.3)

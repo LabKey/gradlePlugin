@@ -15,12 +15,12 @@
  */
 package org.labkey.gradle.plugin
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.Task
+import org.gradle.api.*
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileTree
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.task.JspCompile2Java
 import org.labkey.gradle.util.BuildUtils
@@ -167,8 +167,7 @@ class Jsp implements Plugin<Project>
                         })
                 }
 
-        if (BuildUtils.getServerProject(project) != null)
-            project.tasks.copyTagLibs.dependsOn(project.rootProject.tasks.copyTagLibsBase)
+        project.tasks.copyTagLibs.dependsOn(getCopyTagLibsBase(project.gradle))
 
         project.tasks.register('jsp2Java', JspCompile2Java) {
            JspCompile2Java task ->
@@ -208,5 +207,39 @@ class Jsp implements Plugin<Project>
         }
         project.tasks.assemble.dependsOn(project.tasks.jspJar)
     }
-}
 
+    private TaskProvider getCopyTagLibsBase(Gradle gradle)
+    {
+        try {
+            return gradle.rootProject.tasks.named("copyTagLibsBase")
+        }
+        catch (UnknownTaskException ignore) {
+            return gradle.rootProject.tasks.register("copyTagLibsBase", Copy) {
+                Copy task ->
+                    task.group = GroupNames.JSP
+                    task.description = "Copy the web.xml, tag library (.tld), and JSP Fragment (.jspf) files to shared 'build/webapp' directory"
+                    task.configure({ CopySpec copy ->
+                        String prefix
+                        if (project.findProject(BuildUtils.getApiProjectPath(gradle)) != null) {
+                            // Copy taglib from source
+                            copy.from "${BuildUtils.getApiProjectPath(gradle).replace(":", "/").substring(1)}"
+                            prefix = 'webapp'
+                        }
+                        else {
+                            // Copy taglib from API module dependency
+                            project.allprojects.stream()
+                                    .flatMap( {p -> p.configurations.modules.incoming.getDependencies().stream()} )
+                                    .filter( { d -> d.group == 'org.labkey.api' && d.name == 'api'} )
+                                    .findFirst()
+                                    .ifPresentOrElse( { d -> copy.from(project.zipTree(d) ) } , { throw new GradleException("Unable to locate API dependency")})
+                            prefix = 'web'
+                        }
+                        copy.into "${project.buildDir}/webapp"
+                        copy.include "${prefix}/WEB-INF/web.xml"
+                        copy.include "${prefix}/WEB-INF/*.tld"
+                        copy.include "${prefix}/WEB-INF/*.jspf"
+                    })
+            }
+        }
+    }
+}
