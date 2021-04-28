@@ -219,25 +219,25 @@ class Jsp implements Plugin<Project>
                     task.group = GroupNames.JSP
                     task.description = "Copy the web.xml, tag library (.tld), and JSP Fragment (.jspf) files to shared 'build/webapp' directory"
                     task.configure({ CopySpec copy ->
-                        String prefix
+                        String prefix = ""
                         if (project.findProject(BuildUtils.getApiProjectPath(gradle)) != null) {
                             // Copy taglib from source
-                            copy.from "${BuildUtils.getApiProjectPath(gradle).replace(":", "/").substring(1)}"
-                            prefix = 'webapp'
+                            copy.from "${BuildUtils.getApiProjectPath(gradle).replace(":", "/").substring(1)}/webapp"
                         }
                         else {
                             // Copy taglib from API module dependency
                             project.allprojects.stream()
-                                    .flatMap( {p -> p.configurations.modules.incoming.getDependencies().stream()} )
-                                    .filter( { d -> d.group == 'org.labkey.api' && d.name == 'api'} )
+                                    .map( {p -> p.configurations.modules.getAsFileTree().matching { include "api-*.module" } } )
+                                    .filter( { ft -> !ft.getFiles().isEmpty() })
                                     .findFirst()
-                                    .ifPresentOrElse( { d -> copy.from(project.zipTree(d) ) } , { throw new GradleException("Unable to locate API dependency")})
-                            prefix = 'web'
+                                    .ifPresentOrElse( { d -> copy.from(project.zipTree(d.getSingleFile()) ) } , { throw new GradleException("Unable to locate API artifact")})
+                            copy.filesMatching("web/WEB-INF/*") {it.path = it.path.replace("web/", "/") }
+                            prefix = "web/"
                         }
                         copy.into "${project.buildDir}/webapp"
-                        copy.include "${prefix}/WEB-INF/web.xml"
-                        copy.include "${prefix}/WEB-INF/*.tld"
-                        copy.include "${prefix}/WEB-INF/*.jspf"
+                        copy.include "${prefix}WEB-INF/web.xml"
+                        copy.include "${prefix}WEB-INF/*.tld"
+                        copy.include "${prefix}WEB-INF/*.jspf"
                     })
             }
         }
