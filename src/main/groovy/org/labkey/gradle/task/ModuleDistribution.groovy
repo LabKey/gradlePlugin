@@ -51,6 +51,8 @@ class ModuleDistribution extends DefaultTask
     String archivePrefix = "LabKey"
     @Optional @Input
     String archiveName
+    @Optional @Input
+    boolean simpleDistribution = false
 
     @OutputDirectory
     File distributionDir
@@ -193,7 +195,7 @@ class ModuleDistribution extends DefaultTask
 
         project.copy
         { CopySpec copy ->
-            copy.from("${project.rootProject.projectDir}/webapps")
+            copy.from(BuildUtils.getWebappConfigPath(project))
             copy.include("labkey.xml")
             copy.into(project.buildDir)
             copy.filter({ String line ->
@@ -303,9 +305,11 @@ class ModuleDistribution extends DefaultTask
                     exclude(name: "bootstrap.jar")
                 }
 
-                tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
+                if (!simpleDistribution) {
+                    tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
 
-                tarfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
+                    tarfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
+                }
 
                 tarfileset(dir: "${project.buildDir}/",
                         prefix: archiveName,
@@ -361,9 +365,11 @@ class ModuleDistribution extends DefaultTask
                     exclude(name: "bootstrap.jar")
                 }
 
-                zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
+                if (!simpleDistribution) {
+                    zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
 
-                zipfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
+                    zipfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
+                }
 
                 zipfileset(dir: "${project.buildDir}/",
                         prefix: "${archiveName}",
