@@ -756,14 +756,14 @@ class BuildUtils
             return jarFiles[0]
     }
 
-    static FileTree getWebappConfigPath(Project project)
+    static FileTree getWebappConfigPath(Project project, Object taskOrPlugin)
     {
         if (project.rootProject.file("webapps").exists())
             return project.rootProject.fileTree("webapps")
         else if (project.rootProject.file("server/configs/webapps").exists())
             return project.rootProject.fileTree("server/configs/webapps")
         else
-            return ModuleDistribution.getDistributionResources(project)
+            return ModuleDistribution.getDistributionResources(project, taskOrPlugin)
     }
 
     static boolean useEmbeddedTomcat(Project project)

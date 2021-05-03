@@ -195,7 +195,7 @@ class ModuleDistribution extends DefaultTask
 
         project.copy
         { CopySpec copy ->
-            copy.from(BuildUtils.getWebappConfigPath(project))
+            copy.from(BuildUtils.getWebappConfigPath(project, this))
             copy.include("labkey.xml")
             copy.into(project.buildDir)
             copy.filter({ String line ->
@@ -494,7 +494,7 @@ class ModuleDistribution extends DefaultTask
     {
         writeDistributionFile()
         writeVersionFile()
-        FileTree zipFile = getDistributionResources(project)
+        FileTree zipFile = getDistributionResources(project, this)
         project.copy({ CopySpec copy ->
             copy.from(zipFile)
             copy.exclude "*.xml"
@@ -506,11 +506,11 @@ class ModuleDistribution extends DefaultTask
         project.ant.fixcrlf (srcdir: project.buildDir, includes: "manual-upgrade.sh", eol: "unix")
     }
 
-    public static FileTree getDistributionResources(Project project) {
+    static FileTree getDistributionResources(Project project, Object taskOrPlugin) {
         // This seems a very convoluted way to get to the zip file in the jar file.  Using the classLoader did not
         // work as expected, however.  Following the example from here:
         // https://discuss.gradle.org/t/gradle-plugin-copy-directory-tree-with-files-from-resources/12767/7
-        FileTree jarTree = project.zipTree(ModuleDistribution.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm())
+        FileTree jarTree = project.zipTree(taskOrPlugin.getClass().getProtectionDomain().getCodeSource().getLocation().toExternalForm())
 
         def tree = project.zipTree(
                 jarTree.matching({

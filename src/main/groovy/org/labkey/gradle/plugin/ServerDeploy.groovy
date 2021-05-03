@@ -58,7 +58,7 @@ class ServerDeploy implements Plugin<Project>
         serverDeploy.modulesDir = "${serverDeploy.dir}/modules"
         serverDeploy.webappDir = "${serverDeploy.dir}/labkeyWebapp"
         serverDeploy.binDir = "${serverDeploy.dir}/bin"
-        serverDeploy.rootWebappsDir = BuildUtils.getWebappConfigPath(project)
+        serverDeploy.rootWebappsDir = BuildUtils.getWebappConfigPath(project, this)
         serverDeploy.pipelineLibDir = "${serverDeploy.dir}/pipelineLib"
 
         project.apply plugin: 'org.labkey.build.base'
