@@ -89,7 +89,7 @@ class DoThenSetup extends DefaultTask
                 configProperties.putAll(getExtraJdbcProperties())
                 configProperties.setProperty("appDocBase", appDocBase)
                 boolean isNextLineComment = false
-                FileTree webappsDir = BuildUtils.getWebappConfigPath(project, this)
+                FileTree webappsDir = BuildUtils.getWebappConfigPath(project)
                 project.copy({ CopySpec copy ->
                     copy.from webappsDir
                     copy.into "${project.rootProject.buildDir}"
