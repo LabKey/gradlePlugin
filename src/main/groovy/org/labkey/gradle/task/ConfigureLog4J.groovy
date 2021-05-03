@@ -37,7 +37,7 @@ class ConfigureLog4J extends DefaultTask
     @InputFile
     File getLog4jXml()
     {
-        return new File((String) project.serverDeploy.rootWebappsDir, fileName)
+        return project.serverDeploy.rootWebappsDir.matching {include fileName}.singleFile
     }
 
     @OutputFile

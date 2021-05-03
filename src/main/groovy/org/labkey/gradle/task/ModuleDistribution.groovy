@@ -70,7 +70,7 @@ class ModuleDistribution extends DefaultTask
             this.dependsOn(findLicensingProject().tasks.named("patchApiModule"))
         }
         if (BuildUtils.useEmbeddedTomcat(project))
-            this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.named("build"))
+            this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath(project.gradle)).tasks.named("build"))
 
         project.apply plugin: 'org.labkey.build.base'
     }
@@ -488,21 +488,29 @@ class ModuleDistribution extends DefaultTask
     {
         writeDistributionFile()
         writeVersionFile()
-        // This seems a very convoluted way to get to the zip file in the jar file.  Using the classLoader did not
-        // work as expected, however.  Following the example from here:
-        // https://discuss.gradle.org/t/gradle-plugin-copy-directory-tree-with-files-from-resources/12767/7
-        FileTree jarTree = project.zipTree(getClass().getProtectionDomain().getCodeSource().getLocation().toExternalForm())
-        File zipFile = jarTree.matching({
-            include "distributionResources.zip"
-        }).singleFile
+        FileTree zipFile = getDistributionResources(project)
         project.copy({ CopySpec copy ->
-            copy.from(project.zipTree(zipFile))
+            copy.from(zipFile)
+            copy.exclude "*.xml"
             copy.into(project.buildDir)
         })
         // This is necessary for reasons that are unclear.  Without it, you get:
         // -bash: ./manual-upgrade.sh: /bin/sh^M: bad interpreter: No such file or directory
         // even though the original file has unix line endings. Dunno.
         project.ant.fixcrlf (srcdir: project.buildDir, includes: "manual-upgrade.sh", eol: "unix")
+    }
+
+    public static FileTree getDistributionResources(Project project) {
+        // This seems a very convoluted way to get to the zip file in the jar file.  Using the classLoader did not
+        // work as expected, however.  Following the example from here:
+        // https://discuss.gradle.org/t/gradle-plugin-copy-directory-tree-with-files-from-resources/12767/7
+        FileTree jarTree = project.zipTree(ModuleDistribution.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm())
+
+        def tree = project.zipTree(
+                jarTree.matching({
+                    include "distributionResources.zip"
+                }).singleFile)
+        return tree
     }
 
     private File getDistributionFile()

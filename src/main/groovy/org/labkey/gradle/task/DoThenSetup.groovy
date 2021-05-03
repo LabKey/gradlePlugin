@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
@@ -88,7 +89,7 @@ class DoThenSetup extends DefaultTask
                 configProperties.putAll(getExtraJdbcProperties())
                 configProperties.setProperty("appDocBase", appDocBase)
                 boolean isNextLineComment = false
-                String webappsDir = BuildUtils.getWebappConfigPath(project)
+                FileTree webappsDir = BuildUtils.getWebappConfigPath(project)
                 project.copy({ CopySpec copy ->
                     copy.from webappsDir
                     copy.into "${project.rootProject.buildDir}"

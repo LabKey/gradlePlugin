@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- https://www.labkey.org/Documentation/wiki-page.view?name=installComponents#4 -->
+<Context docBase="@@appDocBase@@" reloadable="true" crossContext="true">
+    
+    <Resource name="jdbc/labkeyDataSource" auth="Container"
+        type="javax.sql.DataSource"
+        username="@@jdbcUser@@"
+        password="@@jdbcPassword@@"
+        driverClassName="@@jdbcDriverClassName@@"
+        url="@@jdbcURL@@"
+        maxTotal="20"
+        maxIdle="10"
+        maxWaitMillis="120000"
+        accessToUnderlyingConnectionAllowed="true"
+        validationQuery="SELECT 1"
+        />
+
+    <!-- https://www.labkey.org/Documentation/wiki-page.view?name=cpasxml#SMTPsettings -->
+    <Resource name="mail/Session" auth="Container"
+        type="javax.mail.Session"
+        mail.smtp.host="@@smtpHost@@"
+        mail.smtp.user="@@smtpUser@@"
+        mail.smtp.port="@@smtpPort@@"/>
+
+    <Resources cachingAllowed="true" cacheMaxSize="20000" />
+
+    <Loader loaderClass="org.labkey.bootstrap.LabKeyBootstrapClassLoader" />
+
+    <!-- Encryption key for encrypted property store: https://www.labkey.org/Documentation/wiki-page.view?name=cpasxml#encrypt -->
+    <Parameter name="MasterEncryptionKey" value="@@masterEncryptionKey@@" />
+
+    <!-- Additional data source(s): https://www.labkey.org/Documentation/wiki-page.view?name=externalSchemas#config -->
+    <!--@@extraJdbcDataSource@@
+    <Resource name="jdbc/@@extraJdbcDataSource@@" auth="Container"
+              type="javax.sql.DataSource"
+              username="@@extraJdbcUsername@@"
+              password="@@extraJdbcPassword@@"
+              driverClassName="@@extraJdbcDriverClassName@@"
+              url="@@extraJdbcUrl@@"
+              maxTotal="20"
+              maxIdle="10"
+              accessToUnderlyingConnectionAllowed="true"
+              validationQuery="SELECT 1"/>
+    @@extraJdbcDataSource@@-->
+
+    <!-- mzML support via JNI -->
+    <!-- 
+    <Parameter name="org.labkey.api.ms2.mzmlLibrary" value="pwiz_swigbindings"></Parameter>
+    -->
+
+    <!-- Pipeline configuration -->
+    <!--@@pipeline@@    <Parameter name="org.labkey.api.pipeline.config" value="@@pipelineConfigPath@@"/> @@pipeline@@-->
+
+    <!--@@jmsConfig@@ <Resource name="jms/ConnectionFactory" auth="Container"
+        type="org.apache.activemq.ActiveMQConnectionFactory"
+        factory="org.apache.activemq.jndi.JNDIReferenceFactory"
+        description="JMS Connection Factory"
+        brokerURL="vm://localhost?broker.persistent=false&amp;broker.useJmx=false"
+        brokerName="LocalActiveMQBroker"/> @@jmsConfig@@-->
+</Context>

@@ -194,16 +194,18 @@ class ServerDeploy implements Plugin<Project>
                 task.description = "Copy files needed for using remote pipeline jobs into ${staging.pipelineLibDir}"
                 task.doLast(
                         {
-                            project.ant.copy(
-                                    todir: staging.pipelineLibDir,
-                                    preserveLastModified: true
-                            )
-                                    {
-                                        project.configurations.remotePipelineJars { Configuration collection ->
-                                            collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
+                            if (!project.configurations.remotePipelineJars.getFiles().isEmpty()) {
+                                project.ant.copy(
+                                        todir: staging.pipelineLibDir,
+                                        preserveLastModified: true
+                                )
+                                        {
+                                            project.configurations.remotePipelineJars { Configuration collection ->
+                                                collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
 
+                                            }
                                         }
-                                    }
+                            }
                         }
                 )
         }
@@ -255,7 +257,7 @@ class ServerDeploy implements Plugin<Project>
 
         }
 
-        String log4jFile = project.hasProperty('log4j2Version') ? 'log4j2.xml' : 'log4j.xml'
+        String log4jFile = 'log4j2.xml'
         project.tasks.register('configureLog4j', ConfigureLog4J) {
             ConfigureLog4J task ->
                 task.fileName = log4jFile

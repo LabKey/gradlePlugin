@@ -19,12 +19,12 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.tasks.Copy
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.CopySpec
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.LabKeyExtension
@@ -510,7 +510,7 @@ class FileModule implements Plugin<Project>
     private static void addDependencies(Project project)
     {
         Project serverProject = BuildUtils.getServerProject(project)
-        if (serverProject != null)
+        if (serverProject != null && serverProject != project)
         {
             BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: project.path, depProjectConfig: 'published', depExtension: 'module')
             // This is done after the project is evaluated otherwise the dependencies for the modules configuration will not have been added yet.
