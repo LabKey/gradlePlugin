@@ -18,7 +18,6 @@ package org.labkey.gradle.task
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
@@ -30,7 +29,6 @@ import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.PropertiesUtils
-
 
 class DoThenSetup extends DefaultTask
 {
@@ -228,18 +226,21 @@ class DoThenSetup extends DefaultTask
         //       org.apache.tools.ant.BuildException: copy doesn't support the nested "exec" element.
         // Theory is that when the files in the configuration have not been resolved, they get resolved
         // inside the node being added to the ant task below and that is not supported.
-        Set<File> tomcatFiles = serverProject.configurations.tomcatJars.files
+        FileTree tomcatJars = serverProject.configurations.tomcatJars.getAsFileTree()
+
+        if (tomcatJars.size() == 1 && tomcatJars.getAt(0).getName().endsWith(".zip")) {
+            // Crack open zipped published tomcat libs
+            tomcatJars = project.zipTree(tomcatJars.singleFile)
+        }
         this.logger.info("Copying to ${project.staging.tomcatLibDir}")
-        this.logger.info("tomcatFiles are ${tomcatFiles}")
+        this.logger.info("tomcatFiles are ${tomcatJars.files}")
         project.ant.copy(
                 todir: project.staging.tomcatLibDir,
                 preserveLastModified: true,
                 overwrite: true // Issue 33473: overwrite the existing jars to facilitate switching to older versions of labkey with older dependencies
         )
             {
-                serverProject.configurations.tomcatJars { Configuration collection ->
-                    collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-                }
+                tomcatJars.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
 
                 // Put unversioned files into the tomcatLibDir.  These files are meant to be copied into
                 // the tomcat/lib directory when deploying a build or a distribution.  When version numbers change,
