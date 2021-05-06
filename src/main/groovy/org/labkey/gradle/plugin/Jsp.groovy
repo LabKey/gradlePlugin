@@ -210,7 +210,7 @@ class Jsp implements Plugin<Project>
                     String prefix = ""
                     if (project.findProject(BuildUtils.getApiProjectPath(project.gradle)) != null) {
                         // Copy taglib from source
-                        copy.from "${BuildUtils.getApiProjectPath(project.gradle).replace(":", "/").substring(1)}/webapp"
+                        copy.from project.rootProject.file("${BuildUtils.convertPathToRelativeDir(BuildUtils.getApiProjectPath(project.gradle))}/webapp")
                     }
                     else {
                         // Copy taglib from API module dependency
