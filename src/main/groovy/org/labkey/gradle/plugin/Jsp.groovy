@@ -217,9 +217,8 @@ class Jsp implements Plugin<Project>
                         copy.from( { project.zipTree(project.configurations.jspTagLibs.getSingleFile()) } )
                         copy.filesMatching("web/WEB-INF/*") {it.path = it.path.replace("web/", "/") }
                         prefix = "web/"
-                        // exclude intermediate directories to avoid empty directories in destination
-                        copy.exclude "web"
-                        copy.exclude "web/WEB-INF"
+                        // 'path.replace' leaves some empty directories
+                        copy.setIncludeEmptyDirs false
                     }
                     copy.into "${project.buildDir}/${WEBAPP_DIR}"
                     copy.include "${prefix}WEB-INF/web.xml"
