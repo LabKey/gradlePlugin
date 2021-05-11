@@ -195,8 +195,7 @@ class ModuleDistribution extends DefaultTask
 
         project.copy
         { CopySpec copy ->
-            copy.from(BuildUtils.getWebappConfigPath(project))
-            copy.include("labkey.xml")
+            copy.from(BuildUtils.getWebappConfigFile(project, "labkey.xml"))
             copy.into(project.buildDir)
             copy.filter({ String line ->
                 return PropertiesUtils.replaceProps(line, copyProps, true)

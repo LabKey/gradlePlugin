@@ -16,7 +16,6 @@
 package org.labkey.gradle.plugin.extension
 
 import org.gradle.api.Project
-import org.gradle.api.file.FileTree
 
 class ServerDeployExtension
 {
@@ -25,7 +24,6 @@ class ServerDeployExtension
     String modulesDir
     String webappDir
     String binDir
-    FileTree rootWebappsDir
     String pipelineLibDir
 
     static String getServerDeployDirectory(Project project)

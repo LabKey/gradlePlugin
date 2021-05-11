@@ -87,11 +87,10 @@ class DoThenSetup extends DefaultTask
                 configProperties.putAll(getExtraJdbcProperties())
                 configProperties.setProperty("appDocBase", appDocBase)
                 boolean isNextLineComment = false
-                FileTree webappsDir = BuildUtils.getWebappConfigPath(project)
+                File labkeyXml = BuildUtils.getWebappConfigFile(project, "labkey.xml")
                 project.copy({ CopySpec copy ->
-                    copy.from webappsDir
+                    copy.from labkeyXml
                     copy.into "${project.rootProject.buildDir}"
-                    copy.include "labkey.xml"
                     copy.filter({ String line ->
                         if (project.ext.has('enableJms') && project.ext.enableJms) {
                             line = line.replace("<!--@@jmsConfig@@", "")

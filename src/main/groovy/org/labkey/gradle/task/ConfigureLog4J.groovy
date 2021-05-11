@@ -21,6 +21,7 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.LabKeyExtension
+import org.labkey.gradle.util.BuildUtils
 
 /**
  * Used to copy over the log4j.xml template file and replace the consoleAppender value
@@ -37,7 +38,7 @@ class ConfigureLog4J extends DefaultTask
     @InputFile
     File getLog4jXml()
     {
-        return project.serverDeploy.rootWebappsDir.matching {include fileName}.singleFile
+        return BuildUtils.getWebappConfigFile(project, fileName)
     }
 
     @OutputFile
