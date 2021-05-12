@@ -762,7 +762,7 @@ class BuildUtils
         else if (project.rootProject.file("server/configs/webapps/" + fileName).exists())
             return project.rootProject.fileTree("server/configs/webapps/" + fileName).singleFile
         else
-            return ModuleDistribution.getDistributionResources(project).matching {fileName}.singleFile
+            return ModuleDistribution.getDistributionResources(project).matching {include fileName}.singleFile
     }
 
     static boolean useEmbeddedTomcat(Project project)
