@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.tasks.Delete
@@ -313,7 +314,7 @@ class ServerDeploy implements Plugin<Project>
             Delete task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Removes the deploy directory ${serverDeploy.dir}"
-                task.dependsOn (project.tasks.stopTomcat, project.tasks.cleanStaging)
+                task.dependsOn (project.tasks.cleanStaging)
                 task.configure({ DeleteSpec spec ->
                     spec.delete serverDeploy.dir
                 })
@@ -341,12 +342,37 @@ class ServerDeploy implements Plugin<Project>
             Delete task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Remove the build directory ${project.rootProject.buildDir}"
-                task.dependsOn (project.tasks.stopTomcat)
                 task.configure({ DeleteSpec spec ->
                     spec.delete project.rootProject.buildDir
                 })
         }
         project.tasks.deployApp.mustRunAfter(project.tasks.cleanBuild)
+
+        Project serverProject = BuildUtils.getServerProject(project)
+        if (serverProject != null) {
+            project.tasks.register('stageTomcatJars', DefaultTask) {
+                DefaultTask task ->
+                    task.group = GroupNames.DEPLOY
+                    task.description = "Copy runtime Tomcat dependencies to ${staging.tomcatLibDir}"
+                    task.dependsOn(serverProject.configurations.tomcatJars)
+                    task.doLast({
+                        stageTomcatJars(task)
+                    })
+            }
+
+            project.tasks.register('deployTomcatJars', DefaultTask) {
+                DefaultTask task ->
+                    task.group = GroupNames.DEPLOY
+                    task.description = "Copying files from ${staging.tomcatLibDir} to \$CATALINA_HOME/lib"
+                    task.dependsOn(serverProject.tasks.stageTomcatJars)
+                    task.doLast({
+                        deployTomcatJars(task)
+                    })
+            }
+
+            project.tasks.stageApp.dependsOn(project.tasks.stageTomcatJars)
+            project.tasks.deployApp.dependsOn(project.tasks.deployTomcatJars)
+        }
 
         project.tasks.register(
                 'checkModuleTasks', DefaultTask) {
@@ -371,6 +397,96 @@ class ServerDeploy implements Plugin<Project>
         }
         project.tasks.deployApp.dependsOn(project.tasks.named("checkModuleTasks"))
         project.tasks.checkModuleTasks.mustRunAfter(project.tasks.stageApp) // do this so the message appears at the bottom of the output
+        project.pluginManager.withPlugin("tomcat") {
+            if (project.tomcat.hasCatalinaHome()) {
+                project.tasks.named("cleanBuild").configure {
+                    it.dependsOn(project.tasks.stopTomcat)
+                }
+                project.tasks.named("cleanDeploy").configure {
+                    it.dependsOn(project.tasks.stopTomcat)
+                }
+            }
+        }
+    }
+
+    private void stageTomcatJars(Task task) {
+        Project project = task.project
+        Project serverProject = BuildUtils.getServerProject(project)
+        // Remove the staging tomcatLib directory before copying into it to avoid duplicates.
+        project.delete project.staging.tomcatLibDir
+        // set debug logging for ant to see what's going wrong with the pickMssql task on Windows
+        task.ant.project.buildListeners[0].messageOutputLevel = 4
+        // for consistency with a distribution deployment and the treatment of all other deployment artifacts,
+        // first copy the tomcat jars into the staging directory
+
+        // We resolve the tomcatJars files outside of the ant copy because this seems to avoid
+        // an error we saw on TeamCity when running the pickMssql task on Windows when updating to Gradle 6.7
+        // The error in the gradle log was:
+        //       org.apache.tools.ant.BuildException: copy doesn't support the nested "exec" element.
+        // Theory is that when the files in the configuration have not been resolved, they get resolved
+        // inside the node being added to the ant task below and that is not supported.
+        FileTree tomcatJars = serverProject.configurations.tomcatJars.getAsFileTree()
+
+        if (tomcatJars.size() == 1 && tomcatJars.getAt(0).getName().endsWith(".zip")) {
+            // Crack open zipped published tomcat libs
+            tomcatJars = project.zipTree(tomcatJars.singleFile)
+        }
+        task.logger.info("Copying to ${project.staging.tomcatLibDir}")
+        task.logger.info("tomcatFiles are ${tomcatJars.files}")
+        project.ant.copy(
+                todir: project.staging.tomcatLibDir,
+                preserveLastModified: true,
+                overwrite: true // Issue 33473: overwrite the existing jars to facilitate switching to older versions of labkey with older dependencies
+        )
+                {
+                    tomcatJars.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
+
+                    // Put unversioned files into the tomcatLibDir.  These files are meant to be copied into
+                    // the tomcat/lib directory when deploying a build or a distribution.  When version numbers change,
+                    // you will end up with multiple versions of these jar files on the classpath, which will often
+                    // result in problems of compatibility.  Additionally, we want to maintain the (incorrect) names
+                    // of the files that have been used with the Ant build process.
+                    //
+                    // We may employ CATALINA_BASE in order to separate our libraries from the ones that come with
+                    // the tomcat distribution. This will require updating our instructions for installation by clients
+                    // but would allow us to use artifacts with more self-documenting names.
+                    chainedmapper()
+                            {
+                                flattenmapper()
+                                // get rid of the version numbers on the jar files
+                                // matches on: name-X.Y.Z-SNAPSHOT.jar, name-X.Y.Z_branch-SNAPSHOT.jar, name-X.Y.Z.jar
+                                //
+                                // N.B.  Attempts to use BuildUtils.VERSIONED_ARTIFACT_NAME_PATTERN here fail for the javax.mail-X.Y.Z.jar file.
+                                // The Ant regexpmapper chooses only javax as \\1, which is not what is wanted
+                                regexpmapper(from: "^(.*?)(-\\d+(\\.\\d+)*(_.+)?(-SNAPSHOT)?)?\\.jar", to: "\\1.jar")
+                                filtermapper()
+                                        {
+                                            replacestring(from: "mysql-connector-java", to: "mysql")
+                                            // the Ant build used mysql.jar
+                                            replacestring(from: "javax.mail", to: "mail") // the Ant build used mail.jar
+                                            replacestring(from: "jakarta.mail", to: "mail")
+                                            // the Ant build used mail.jar
+                                            replacestring(from: "jakarta.activation", to: "javax.activation")
+                                            // the Ant build used javax.activation.jar
+                                        }
+                            }
+                }
+    }
+
+    private void deployTomcatJars(Task task) {
+        Project project = task.project
+        JDBC_JARS.each{String name -> new File("${project.tomcat.catalinaHome}/lib/${name}").delete()}
+
+        // Then copy them into the tomcat/lib directory
+        task.logger.info("Copying files from ${project.staging.tomcatLibDir} to ${project.tomcat.catalinaHome}/lib")
+        project.ant.copy(
+                todir: "${project.tomcat.catalinaHome}/lib",
+                preserveLastModified: true,
+                overwrite: true
+        )
+                {
+                    fileset(dir: project.staging.tomcatLibDir)
+                }
     }
 
     private linkBinaries(Project project, String packageMgr, String version, workDirectory) {

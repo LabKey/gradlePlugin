@@ -66,7 +66,6 @@ class ModuleDistribution extends DefaultTask
         distExtension = project.extensions.findByType(DistributionExtension.class)
 
         Project serverProject = BuildUtils.getServerProject(project)
-        this.dependsOn(serverProject.tasks.named("setup"))
         this.dependsOn(serverProject.tasks.named("stageApp"))
         if (!BuildUtils.isOpenSource(project)) {
             this.dependsOn(findLicensingProject().tasks.named("patchApiModule"))
