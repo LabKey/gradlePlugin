@@ -52,7 +52,7 @@ class ModuleDistribution extends DefaultTask
     @Optional @Input
     String archiveName
     @Optional @Input
-    boolean simpleDistribution = false
+    boolean simpleDistribution = false // Set to true to exclude pipeline tools and remote pipeline libraries
 
     @OutputDirectory
     File distributionDir

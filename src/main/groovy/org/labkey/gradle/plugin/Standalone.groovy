@@ -11,7 +11,7 @@ class Standalone implements Plugin<Project> {
     void apply(Project project) {
         project.apply plugin: 'org.labkey.build.module'
 
-        if (project.standaloneBuild) {
+        if (project.hasProperty("standaloneBuild")) {
             project.apply plugin: 'org.labkey.build.tomcat'
             project.apply plugin: 'org.labkey.build.serverDeploy'
 
