@@ -18,22 +18,6 @@ class Standalone implements Plugin<Project> {
             project.apply plugin: 'org.labkey.build.tomcat'
             project.apply plugin: 'org.labkey.build.serverDeploy'
 
-            project.allprojects {
-                repositories {
-                    mavenLocal()
-                    maven {
-                        url "${project.artifactory_contextUrl}/ext-tools-local"
-                    }
-                    maven {
-                        url "${project.artifactory_contextUrl}/libs-release"
-                    }
-                    maven {
-                        url "${project.artifactory_contextUrl}/libs-snapshot"
-                    }
-                    jcenter()
-                }
-            }
-
             project.dependencies
                     {
                         tomcatJars  "org.labkey.build:tomcat-libs:${project.labkeyVersion}"
