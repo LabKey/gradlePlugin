@@ -51,7 +51,7 @@ class ModuleDistribution extends DefaultTask
     String archivePrefix = "LabKey"
     @Optional @Input
     String archiveName
-    @Optional @Input
+    @Input
     boolean simpleDistribution = false // Set to true to exclude pipeline tools and remote pipeline libraries
 
     @OutputDirectory
