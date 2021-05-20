@@ -108,12 +108,6 @@ class Jsp implements Plugin<Project>
                     jsp ("org.apache.tomcat:tomcat-jasper:${project.apacheTomcatVersion}") { transitive = false }
                     jsp ("org.apache.tomcat:tomcat-juli:${project.apacheTomcatVersion}") { transitive = false }
                 }
-        // We need this declaration for IntelliJ to be able to find the .tld files, but if we include
-        // it for the command line, there will be lots of warnings about .tld files on the classpath where
-        // they don't belong ("CLASSPATH element .../labkey.tld is not a JAR.").  These warnings may appear if
-        // building within IntelliJ but perhaps we can live with that (for now).
-//        if (BuildUtils.isIntellij())
-//            project.dependencies.add("implementation", getCopyTagLibsBase(project.gradle).get().inputs.files)
     }
 
     private void addJspTasks(Project project)
@@ -158,6 +152,10 @@ class Jsp implements Plugin<Project>
 
         def copyTagLibs = getCopyTagLibs(project)
         if (BuildUtils.isIntellij()) {
+            // We need this declaration for IntelliJ to be able to find the .tld files, but if we include
+            // it for the command line, there will be lots of warnings about .tld files on the classpath where
+            // they don't belong ("CLASSPATH element .../labkey.tld is not a JAR.").  These warnings may appear if
+            // building within IntelliJ but perhaps we can live with that (for now).
             project.dependencies.add("implementation", copyTagLibs.get().inputs.files)
         }
 
