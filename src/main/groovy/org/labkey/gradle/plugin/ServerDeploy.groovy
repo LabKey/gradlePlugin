@@ -409,15 +409,16 @@ class ServerDeploy implements Plugin<Project>
         }
     }
 
+    /**
+     * For consistency with a distribution deployment and the treatment of all other deployment artifacts,
+     * first copy the tomcat jars into the staging directory
+     * @param task
+     */
     private void stageTomcatJars(Task task) {
         Project project = task.project
         Project serverProject = BuildUtils.getServerProject(project)
         // Remove the staging tomcatLib directory before copying into it to avoid duplicates.
         project.delete project.staging.tomcatLibDir
-        // set debug logging for ant to see what's going wrong with the pickMssql task on Windows
-        task.ant.project.buildListeners[0].messageOutputLevel = 4
-        // for consistency with a distribution deployment and the treatment of all other deployment artifacts,
-        // first copy the tomcat jars into the staging directory
 
         // We resolve the tomcatJars files outside of the ant copy because this seems to avoid
         // an error we saw on TeamCity when running the pickMssql task on Windows when updating to Gradle 6.7
