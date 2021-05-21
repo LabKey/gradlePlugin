@@ -14,7 +14,9 @@ on how to do that, including how to develop and test locally and the versioning 
 ### TBD
 *Released*: TBD
 (Earliest compatible LabKey version: 21.3)
-* Enable build, deploy, and distributions without `server` repository
+* Allow modules that utilize LabKey JSP tags to build without platform repository present (_Requires LabKey version 21.3.5+ or 21.6+_)
+* Enable building distributions without `server` repository
+  * Requires module to be configured for a [standalone build](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules)
 
 ## Release Notes
 ### 1.26.0
@@ -27,7 +29,6 @@ on how to do that, including how to develop and test locally and the versioning 
 * (incubating) Add ability to generate jars.txt from the build 
   * Add `BuildUtils.addExternalDependency` method for declaring dependencies to be included in the `jars.txt` file
   * Modify `WriteDependenciesFile` to also write a new jars.txt file if `addExternalDependency` has been used
-    
 
 ### 1.25.1
 *Released*: 15 February 2021
