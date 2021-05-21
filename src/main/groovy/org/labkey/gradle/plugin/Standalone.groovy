@@ -15,7 +15,6 @@ class Standalone implements Plugin<Project> {
         project.apply plugin: 'org.labkey.build.module'
 
         if (BuildUtils.isStandaloneBuild(project)) {
-            project.apply plugin: 'org.labkey.build.tomcat'
             project.apply plugin: 'org.labkey.build.serverDeploy'
 
             project.dependencies
