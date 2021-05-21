@@ -22,24 +22,5 @@ class Standalone implements Plugin<Project> {
                         tomcatJars  "org.labkey.build:tomcat-libs:${project.labkeyVersion}"
                     }
         }
-
-        project.dependencies {
-
-            modules("org.labkey.module:api:${project.labkeyVersion}@module") {
-                transitive = true
-            }
-            modules("org.labkey.module:internal:${project.labkeyVersion}@module") {
-                transitive = true
-            }
-            modules("org.labkey.module:audit:${project.labkeyVersion}@module") {
-                transitive = true
-            }
-            modules("org.labkey.module:core:${project.labkeyVersion}@module") {
-                transitive = true
-            }
-
-            // include core API
-            implementation "org.labkey.api:core:${project.labkeyVersion}"
-        }
     }
 }
