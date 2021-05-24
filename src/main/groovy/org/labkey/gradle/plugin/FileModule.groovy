@@ -512,9 +512,10 @@ class FileModule implements Plugin<Project>
         Project serverProject = BuildUtils.getServerProject(project)
         if (serverProject != null && serverProject != project)
         {
-            BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: project.path, depProjectConfig: 'published', depExtension: 'module')
+            project.evaluationDependsOn(BuildUtils.getServerProjectPath(project.gradle))
             // This is done after the project is evaluated otherwise the dependencies for the modules configuration will not have been added yet.
             project.afterEvaluate({
+                BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: project.path, depProjectConfig: 'published', depExtension: 'module')
                 if (project.configurations.findByName("modules") != null)
                     project.configurations.modules.dependencies.each {
                         Dependency dep ->

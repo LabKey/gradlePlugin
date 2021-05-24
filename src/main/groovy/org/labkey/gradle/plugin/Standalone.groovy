@@ -5,22 +5,19 @@ import org.gradle.api.Project
 import org.labkey.gradle.util.BuildUtils
 
 /**
- * Use to build modules without platform repository and to build distributions without the server repository
- * Module will build normally unless the 'standaloneBuild' property is set, in which case, additional plugins will be
- * applied to allow the module to build distributions outside of a server repository.
+ * Use to build distributions without the server repository.
+ * Apply to the 'distributions' project of a standalone module.
+ * Plugin will no-op if target project doesn't match 'gradle.ext.serverProjectPath'
  */
 class Standalone implements Plugin<Project> {
 
     void apply(Project project) {
-        project.apply plugin: 'org.labkey.build.module'
-
-        if (BuildUtils.isStandaloneBuild(project)) {
+        if (BuildUtils.getServerProjectPath(project.gradle).equals(project.getPath())) {
             project.apply plugin: 'org.labkey.build.serverDeploy'
 
-            project.dependencies
-                    {
-                        tomcatJars  "org.labkey.build:tomcat-libs:${project.labkeyVersion}"
-                    }
+            project.dependencies {
+                tomcatJars  "org.labkey.build:tomcat-libs:${project.labkeyVersion}"
+            }
         }
     }
 }
