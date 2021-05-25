@@ -211,10 +211,6 @@ class FileModule implements Plugin<Project>
             Task moduleFile = project.tasks.module
 
             moduleFile.dependsOn(project.tasks.named('processResources'))
-
-
-            if (SpringConfig.isApplicable(project))
-                moduleFile.dependsOn(project.tasks.named('processResources'))
             moduleFile.dependsOn(moduleXmlTask)
             setJarManifestAttributes(project, (Manifest) moduleFile.manifest)
             if (!LabKeyExtension.isDevMode(project))
