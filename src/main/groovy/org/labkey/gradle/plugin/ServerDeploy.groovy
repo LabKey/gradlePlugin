@@ -285,6 +285,7 @@ class ServerDeploy implements Plugin<Project>
                     task.group = GroupNames.DISTRIBUTION
                     task.description = "Deploy a LabKey distribution file from directory dist or directory specified with distDir property.  Use property distType to specify zip or tar.gz (default)."
                     task.dependsOn(project.tasks.stageDistribution, project.tasks.configureLog4j, project.tasks.setup)
+                    task.doFirst {deployTomcatJars(task)}
             }
 
 
