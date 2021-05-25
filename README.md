@@ -18,7 +18,7 @@ on how to do that, including how to develop and test locally and the versioning 
 * Allow modules that utilize LabKey JSP tags to build without platform repository present
 * Add `standalone` plugin to enable building distributions without `server` repository
   * Requires module to be configured for a [standalone build](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules)
-  * Requires `org.labkey.build:tomcat-libs` artifact; available for LabKey version 21.3.5+ and 21.5+
+  * Requires `org.labkey.build:tomcat-libs` artifact; available for LabKey version 21.3.5+ and 21.6+ (it is not available for 21.4 or 21.5)
 
 ### 1.26.0
 *Released*: 9 April 2021
