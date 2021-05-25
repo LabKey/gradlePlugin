@@ -11,6 +11,11 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 21.3)
+* [Issue 43207](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=43207): When building a file module, we don't want to create a jar file because that prevents the module from being used in the module loader
+
 ### 1.26.0
 *Released*: 9 April 2021
 (Earliest compatible LabKey version: 21.3)

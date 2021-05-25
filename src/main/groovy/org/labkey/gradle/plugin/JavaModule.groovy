@@ -141,8 +141,30 @@ class JavaModule implements Plugin<Project>
         return supported == null || supported.contains(database)
     }
 
-    protected void addTasks(Project project)
+    protected static void addTasks(Project project)
     {
+        def populateLib = project.tasks.register("populateExplodedLib", Copy) {
+            CopySpec copy ->
+                copy.group = GroupNames.MODULE
+                copy.description = "Copy the jar files needed for the module into the ${project.labkey.explodedModuleLibDir} directory from their respective output directories"
+                copy.into project.labkey.explodedModuleLibDir
+                if (project.tasks.findByName("jar") != null)
+                    copy.from project.tasks.named("jar")
+                if (project.tasks.findByName("apiJar") != null)
+                    copy.from project.tasks.named("apiJar")
+                if (project.tasks.findByName("jspJar") != null)
+                    copy.from project.tasks.named('jspJar')
+                if (project.tasks.findByName("copyExternalLibs") != null)
+                    copy.from project.tasks.named('copyExternalLibs')
+        }
+        populateLib.configure {
+            it.doFirst {
+                File explodedLibDir = new File(project.labkey.explodedModuleLibDir)
+                if (explodedLibDir.exists())
+                    explodedLibDir.delete()
+            }
+        }
+        project.tasks.findByName('module').dependsOn(populateLib)
         // We do this afterEvaluate to allow all dependencies to be declared before checking
         project.afterEvaluate({
             FileCollection externalFiles = getTrimmedExternalFiles(project)
