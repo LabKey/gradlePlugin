@@ -18,12 +18,11 @@ package org.labkey.gradle.task
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.DistributionExtension
-import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.util.BuildUtils
 
 class StageDistribution extends DefaultTask
 {
@@ -48,12 +47,13 @@ class StageDistribution extends DefaultTask
         distributionFile = DistributionExtension.getDistributionFile(project)
         String extension = distributionFile.getName().endsWith(DistributionExtension.ZIP_ARCHIVE_EXTENSION) ? DistributionExtension.ZIP_ARCHIVE_EXTENSION : DistributionExtension.TAR_ARCHIVE_EXTENSION
         Boolean isTar = extension.equals(DistributionExtension.TAR_ARCHIVE_EXTENSION)
+        FileTree distArchiveTree = isTar ? project.tarTree(distributionFile) : project.zipTree(distributionFile)
 
         // first clean out the staging directory so we don't pick up modules not in this distribution
         project.delete modulesStagingDir
 
         project.copy({ CopySpec spec ->
-            spec.from isTar ? project.tarTree(distributionFile).files : project.zipTree(distributionFile).files
+            spec.from distArchiveTree.files
             spec.into modulesStagingDir
             spec.include "**/*.module"
         })
@@ -61,7 +61,7 @@ class StageDistribution extends DefaultTask
         String baseName = distributionFile.getName().substring(0, distributionFile.getName().length() - (extension.length() + 1))
 
         project.copy({ CopySpec spec ->
-            spec.from isTar ? project.tarTree(distributionFile) : project.zipTree(distributionFile)
+            spec.from distArchiveTree
             spec.into stagingDir
             spec.eachFile {
                 FileCopyDetails fcp ->
@@ -82,7 +82,7 @@ class StageDistribution extends DefaultTask
         })
 
         project.copy({ CopySpec spec ->
-            spec.from isTar ? project.tarTree(distributionFile) : project.zipTree(distributionFile)
+            spec.from distArchiveTree
             spec.into pipelineJarStagingDir
             spec.eachFile {
                 FileCopyDetails fcp ->
@@ -99,19 +99,8 @@ class StageDistribution extends DefaultTask
         })
 
         project.copy({ CopySpec spec ->
-            spec.from isTar ? project.tarTree(distributionFile).files : project.zipTree(distributionFile).files
+            spec.from distArchiveTree.matching {include '*/tomcat-lib/*.jar'}.files
             spec.into tomcatJarStagingDir
-            BuildUtils.getServerProject(project).configurations.tomcatJars.files.each {
-                File file ->
-                    spec.include file.getName()
-            }
-            // include these artifacts in case we are deploying from an ant-built distribution
-            spec.include 'ant.jar'
-            spec.include 'jtds.jar'
-            spec.include 'mail.jar'
-            spec.include 'mysql.jar'
-            spec.include 'postgresql.jar'
-            spec.include 'labkeyBootstrap.jar'
         })
     }
 }

@@ -1,1 +1,2 @@
-// Empty settings file to allow wrapper to be used within this pseudo sub-project
+// Ensure root project name is consistent, regardless of clone directory
+rootProject.name='gradlePlugin'

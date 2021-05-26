@@ -146,6 +146,10 @@ gradlePlugin {
             id = 'org.labkey.build.xsddoc'
             implementationClass = 'org.labkey.gradle.plugin.XsdDoc'
         }
+        standalone {
+            id = 'org.labkey.build.standalone'
+            implementationClass = 'org.labkey.gradle.plugin.Standalone'
+        }
     }
 }
 

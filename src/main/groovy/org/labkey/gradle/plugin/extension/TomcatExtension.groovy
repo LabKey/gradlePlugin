@@ -74,6 +74,11 @@ class TomcatExtension
         }
     }
 
+    boolean hasCatalinaHome()
+    {
+        return catalinaHome != null && !catalinaHome.isEmpty()
+    }
+
     private void setCatalinaDirs(Project project)
     {
         if (System.getenv("CATALINA_HOME") != null)

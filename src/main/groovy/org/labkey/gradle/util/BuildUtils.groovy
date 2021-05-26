@@ -24,6 +24,7 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
+import org.labkey.gradle.task.ModuleDistribution
 
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -754,14 +755,14 @@ class BuildUtils
             return jarFiles[0]
     }
 
-    static String getWebappConfigPath(Project project)
+    static File getWebappConfigFile(Project project, String fileName)
     {
-        if (project.rootProject.file("webapps").exists())
-            return "${project.rootProject.projectDir}/webapps/"
-        else if (project.rootProject.file("server/configs/webapps").exists())
-            return "${project.rootProject.projectDir}/server/configs/webapps/"
+        if (project.rootProject.file("webapps/" + fileName).exists())
+            return project.rootProject.fileTree("webapps/" + fileName).singleFile
+        else if (project.rootProject.file("server/configs/webapps/" + fileName).exists())
+            return project.rootProject.fileTree("server/configs/webapps/" + fileName).singleFile
         else
-            throw new GradleException("Unable to find webapps config directory")
+            return ModuleDistribution.getDistributionResources(project).matching {include fileName}.singleFile
     }
 
     static boolean useEmbeddedTomcat(Project project)

@@ -32,7 +32,8 @@ class ClientLibraries
                 includes: ["**/*${ClientLibsCompress.LIB_XML_EXTENSION}"],
                 // Issue 31367: exclude files that end up in the "out" directory created by IntelliJ
                 // exclude node_modules for efficiency
-                excludes: ["node_modules", "**/out/*"]
+                // exclude 'build' to prevent warnings building standalone modules
+                excludes: ["node_modules", "**/out/*", "build"]
         )
     }
 

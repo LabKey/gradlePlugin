@@ -51,6 +51,8 @@ class ModuleDistribution extends DefaultTask
     String archivePrefix = "LabKey"
     @Optional @Input
     String archiveName
+    @Input
+    boolean simpleDistribution = false // Set to true to exclude pipeline tools and remote pipeline libraries
 
     @OutputDirectory
     File distributionDir
@@ -64,13 +66,12 @@ class ModuleDistribution extends DefaultTask
         distExtension = project.extensions.findByType(DistributionExtension.class)
 
         Project serverProject = BuildUtils.getServerProject(project)
-        this.dependsOn(serverProject.tasks.named("setup"))
         this.dependsOn(serverProject.tasks.named("stageApp"))
         if (!BuildUtils.isOpenSource(project)) {
             this.dependsOn(findLicensingProject().tasks.named("patchApiModule"))
         }
         if (BuildUtils.useEmbeddedTomcat(project))
-            this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.named("build"))
+            this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath(project.gradle)).tasks.named("build"))
 
         project.apply plugin: 'org.labkey.build.base'
     }
@@ -193,8 +194,7 @@ class ModuleDistribution extends DefaultTask
 
         project.copy
         { CopySpec copy ->
-            copy.from("${project.rootProject.projectDir}/webapps")
-            copy.include("labkey.xml")
+            copy.from(BuildUtils.getWebappConfigFile(project, "labkey.xml"))
             copy.into(project.buildDir)
             copy.filter({ String line ->
                 return PropertiesUtils.replaceProps(line, copyProps, true)
@@ -303,9 +303,11 @@ class ModuleDistribution extends DefaultTask
                     exclude(name: "bootstrap.jar")
                 }
 
-                tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
+                if (!simpleDistribution) {
+                    tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
 
-                tarfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
+                    tarfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
+                }
 
                 tarfileset(dir: "${project.buildDir}/",
                         prefix: archiveName,
@@ -361,9 +363,11 @@ class ModuleDistribution extends DefaultTask
                     exclude(name: "bootstrap.jar")
                 }
 
-                zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
+                if (!simpleDistribution) {
+                    zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
 
-                zipfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
+                    zipfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
+                }
 
                 zipfileset(dir: "${project.buildDir}/",
                         prefix: "${archiveName}",
@@ -488,21 +492,29 @@ class ModuleDistribution extends DefaultTask
     {
         writeDistributionFile()
         writeVersionFile()
-        // This seems a very convoluted way to get to the zip file in the jar file.  Using the classLoader did not
-        // work as expected, however.  Following the example from here:
-        // https://discuss.gradle.org/t/gradle-plugin-copy-directory-tree-with-files-from-resources/12767/7
-        FileTree jarTree = project.zipTree(getClass().getProtectionDomain().getCodeSource().getLocation().toExternalForm())
-        File zipFile = jarTree.matching({
-            include "distributionResources.zip"
-        }).singleFile
+        FileTree zipFile = getDistributionResources(project)
         project.copy({ CopySpec copy ->
-            copy.from(project.zipTree(zipFile))
+            copy.from(zipFile)
+            copy.exclude "*.xml"
             copy.into(project.buildDir)
         })
         // This is necessary for reasons that are unclear.  Without it, you get:
         // -bash: ./manual-upgrade.sh: /bin/sh^M: bad interpreter: No such file or directory
         // even though the original file has unix line endings. Dunno.
         project.ant.fixcrlf (srcdir: project.buildDir, includes: "manual-upgrade.sh", eol: "unix")
+    }
+
+    public static FileTree getDistributionResources(Project project) {
+        // This seems a very convoluted way to get to the zip file in the jar file.  Using the classLoader did not
+        // work as expected, however.  Following the example from here:
+        // https://discuss.gradle.org/t/gradle-plugin-copy-directory-tree-with-files-from-resources/12767/7
+        FileTree jarTree = project.zipTree(ModuleDistribution.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm())
+
+        def tree = project.zipTree(
+                jarTree.matching({
+                    include "distributionResources.zip"
+                }).singleFile)
+        return tree
     }
 
     private File getDistributionFile()

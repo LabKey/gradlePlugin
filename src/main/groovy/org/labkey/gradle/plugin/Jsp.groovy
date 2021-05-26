@@ -15,12 +15,14 @@
  */
 package org.labkey.gradle.plugin
 
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.task.JspCompile2Java
 import org.labkey.gradle.util.BuildUtils
@@ -82,6 +84,7 @@ class Jsp implements Plugin<Project>
                 {
                     jspImplementation
                     jsp
+                    jspTagLibs
                 }
         project.configurations.getByName('jspImplementation') {
             resolutionStrategy {
@@ -96,6 +99,7 @@ class Jsp implements Plugin<Project>
                 {
                     BuildUtils.addLabKeyDependency(project: project, config: "jspImplementation", depProjectPath: BuildUtils.getApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
                     BuildUtils.addLabKeyDependency(project: project, config: "jspImplementation", depProjectPath: BuildUtils.getInternalProjectPath(project.gradle), depVersion: project.labkeyVersion)
+                    BuildUtils.addLabKeyDependency(project: project, config: "jspTagLibs", depProjectPath: BuildUtils.getApiProjectPath(project.gradle), depVersion: project.labkeyVersion, depExtension: 'module', transitive: false)
                     jspImplementation project.files(project.tasks.jar)
                     if (project.hasProperty('apiJar'))
                         jspImplementation project.files(project.tasks.apiJar)
@@ -104,12 +108,6 @@ class Jsp implements Plugin<Project>
                     jsp ("org.apache.tomcat:tomcat-jasper:${project.apacheTomcatVersion}") { transitive = false }
                     jsp ("org.apache.tomcat:tomcat-juli:${project.apacheTomcatVersion}") { transitive = false }
                 }
-        // We need this declaration for IntelliJ to be able to find the .tld files, but if we include
-        // it for the command line, there will be lots of warnings about .tld files on the classpath where
-        // they don't belong ("CLASSPATH element .../labkey.tld is not a JAR.").  These warnings may appear if
-        // building within IntelliJ but perhaps we can live with that (for now).
-        if (BuildUtils.isIntellij())
-            project.dependencies.add("implementation", project.rootProject.tasks.copyTagLibsBase.inputs.files)
     }
 
     private void addJspTasks(Project project)
@@ -152,23 +150,14 @@ class Jsp implements Plugin<Project>
                         })
                 }
 
-
-        project.tasks.register('copyTagLibs', Copy)
-                {
-                    Copy task ->
-                        task.group =  GroupNames.JSP
-                        task.description = "Copy the web.xml, tag library (.tld), and JSP Fragment (.jspf) files to jsp compile directory"
-                        task.configure({ CopySpec copy ->
-                            copy.from "${project.rootProject.buildDir}/webapp"
-                            copy.into "${project.buildDir}/${WEBAPP_DIR}"
-                            copy.include 'WEB-INF/web.xml'
-                            copy.include 'WEB-INF/*.tld'
-                            copy.include 'WEB-INF/*.jspf'
-                        })
-                }
-
-        if (BuildUtils.getServerProject(project) != null)
-            project.tasks.copyTagLibs.dependsOn(project.rootProject.tasks.copyTagLibsBase)
+        def copyTagLibs = getCopyTagLibs(project)
+        if (BuildUtils.isIntellij()) {
+            // We need this declaration for IntelliJ to be able to find the .tld files, but if we include
+            // it for the command line, there will be lots of warnings about .tld files on the classpath where
+            // they don't belong ("CLASSPATH element .../labkey.tld is not a JAR.").  These warnings may appear if
+            // building within IntelliJ but perhaps we can live with that (for now).
+            project.dependencies.add("implementation", copyTagLibs.get().inputs.files)
+        }
 
         project.tasks.register('jsp2Java', JspCompile2Java) {
            JspCompile2Java task ->
@@ -208,5 +197,32 @@ class Jsp implements Plugin<Project>
         }
         project.tasks.assemble.dependsOn(project.tasks.jspJar)
     }
-}
 
+    private TaskProvider getCopyTagLibs(Project project)
+    {
+        return project.tasks.register("copyTagLibs", Copy) {
+            Copy task ->
+                task.group = GroupNames.JSP
+                task.description = "Copy the web.xml, tag library (.tld), and JSP Fragment (.jspf) files to jsp compile directory"
+                task.configure({ CopySpec copy ->
+                    String prefix = ""
+                    if (project.findProject(BuildUtils.getApiProjectPath(project.gradle)) != null) {
+                        // Copy taglib from source
+                        copy.from project.rootProject.file("${BuildUtils.convertPathToRelativeDir(BuildUtils.getApiProjectPath(project.gradle))}/webapp")
+                    }
+                    else {
+                        // Copy taglib from API module dependency
+                        copy.from( { project.zipTree(project.configurations.jspTagLibs.getSingleFile()) } )
+                        copy.filesMatching("web/WEB-INF/*") {it.path = it.path.replace("web/", "/") }
+                        prefix = "web/"
+                        // 'path.replace' leaves some empty directories
+                        copy.setIncludeEmptyDirs false
+                    }
+                    copy.into "${project.buildDir}/${WEBAPP_DIR}"
+                    copy.include "${prefix}WEB-INF/web.xml"
+                    copy.include "${prefix}WEB-INF/*.tld"
+                    copy.include "${prefix}WEB-INF/*.jspf"
+                })
+        }
+    }
+}

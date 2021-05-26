@@ -24,7 +24,6 @@ class ServerDeployExtension
     String modulesDir
     String webappDir
     String binDir
-    String rootWebappsDir
     String pipelineLibDir
 
     static String getServerDeployDirectory(Project project)

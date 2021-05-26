@@ -48,11 +48,15 @@ class Distribution implements Plugin<Project>
         if (TeamCityExtension.isOnTeamCity(project) && teamCityExt == null)
             project.extensions.create("teamCity", TeamCityExtension, project)
 
-        // we depend on tasks from the server project, so it needs to have been evaluated first
-        project.evaluationDependsOn(BuildUtils.getServerProjectPath(project.gradle))
+        if (BuildUtils.getServerProject(project) != null) {
+            // we depend on tasks from the server project, so it needs to have been evaluated first
+            project.evaluationDependsOn(BuildUtils.getServerProjectPath(project.gradle))
+        }
         // we also depend on the jar task from the embedded project, if available
-        if (BuildUtils.useEmbeddedTomcat(project))
+        if (BuildUtils.useEmbeddedTomcat(project)) {
             project.evaluationDependsOn(BuildUtils.getEmbeddedProjectPath(project.gradle))
+        }
+
         addConfigurations(project)
         addDependencies(project)
         addTasks(project)

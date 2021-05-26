@@ -15,6 +15,10 @@ on how to do that, including how to develop and test locally and the versioning 
 *Released*: TBD
 (Earliest compatible LabKey version: 21.3)
 * [Issue 43207](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=43207): When building a file module, we don't want to create a jar file because that prevents the module from being used in the module loader
+* Allow modules that utilize LabKey JSP tags to build without platform repository present
+* Add `standalone` plugin to enable building distributions without `server` repository
+  * Requires module to be configured for a [standalone build](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules)
+  * Requires `org.labkey.build:tomcat-libs` artifact; available for LabKey version 21.3.5+ and 21.6+ (it is not available for 21.4 or 21.5)
 
 ### 1.26.0
 *Released*: 9 April 2021
@@ -26,7 +30,6 @@ on how to do that, including how to develop and test locally and the versioning 
 * (incubating) Add ability to generate jars.txt from the build 
   * Add `BuildUtils.addExternalDependency` method for declaring dependencies to be included in the `jars.txt` file
   * Modify `WriteDependenciesFile` to also write a new jars.txt file if `addExternalDependency` has been used
-    
 
 ### 1.25.1
 *Released*: 15 February 2021
