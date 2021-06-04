@@ -11,6 +11,11 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 21.3)
+* Add some constants helpful for declaring external dependencies
+
 ### 1.27.0
 *Released*: 26 May 2021
 (Earliest compatible LabKey version: 21.3)
