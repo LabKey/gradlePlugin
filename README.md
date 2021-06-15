@@ -15,6 +15,7 @@ on how to do that, including how to develop and test locally and the versioning 
 *Released*: TBD
 (Earliest compatible LabKey version: 21.3)
 * Add some constants helpful for declaring external dependencies
+* Fix check for tomcat plugin so `cleanBuild` and `cleanDeploy` will stop tomcat if available
 
 ### 1.27.0
 *Released*: 26 May 2021
