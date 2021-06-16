@@ -8,6 +8,8 @@ class ExternalDependency
     public static final String MIT_LICENSE_URL = "http://www.opensource.org/licenses/mit-license.php"
     public static final String GNU_LESSER_GPL_21_NAME = "GNU Lesser GPL V2.1"
     public static final String GNU_LESSER_GPL_21_URL = "http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"
+    public static final String LGPL_LICENSE_NAME = "LGPL"
+    public static final String LGPL_LICENSE_URL = "http://www.gnu.org/copyleft/lesser.html"
     public static final String BSD_2_LICENSE_NAME = "BSD 2"
     public static final String BSD_2_LICENSE_URL = "https://opensource.org/licenses/BSD-2-Clause"
     public static final String BSD_LICENSE_NAME = "BSD"
