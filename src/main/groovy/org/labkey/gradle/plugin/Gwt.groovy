@@ -123,7 +123,7 @@ class Gwt implements Plugin<Project>
                             java.doLast new GzipAction()
                         }
 
-                        java.main = 'com.google.gwt.dev.Compiler'
+                        java.setMainClass('com.google.gwt.dev.Compiler')
 
                         def paths = []
 

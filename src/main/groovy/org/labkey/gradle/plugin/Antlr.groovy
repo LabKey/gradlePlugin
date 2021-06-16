@@ -72,7 +72,7 @@ class Antlr implements Plugin<Project>
                              // Workaround for incremental build (GRADLE-1483)
                              outputs.upToDateSpec = new AndSpec()
 
-                             main = 'org.antlr.Tool'
+                             setMainClass('org.antlr.Tool')
 
                              classpath = project.configurations.antlr
 

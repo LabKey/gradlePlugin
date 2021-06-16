@@ -90,7 +90,7 @@ class TestRunner extends UiTest
                 task.dependsOn(project.tasks.jar)
                 task.doFirst({
                     project.javaexec({
-                        main = "org.labkey.test.util.PasswordUtil"
+                        mainClass = "org.labkey.test.util.PasswordUtil"
                         classpath {
                             [project.configurations.uiTestRuntimeClasspath, project.tasks.jar]
                         }
@@ -109,7 +109,7 @@ class TestRunner extends UiTest
                 task.dependsOn(project.tasks.jar)
                 task.doFirst({
                     project.javaexec({
-                        main = "org.labkey.test.util.PasswordUtil"
+                        mainClass = "org.labkey.test.util.PasswordUtil"
                         classpath {
                             [project.configurations.uiTestRuntimeClasspath, project.tasks.jar]
                         }
