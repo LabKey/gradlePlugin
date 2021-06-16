@@ -11,8 +11,8 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
-### TBD
-*Released*: TBD
+### 1.28.0
+*Released*: 16 June 2021
 (Earliest compatible LabKey version: 21.3)
 * Add some constants helpful for declaring external dependencies
 * Fix check for tomcat plugin so `cleanBuild` and `cleanDeploy` will stop tomcat if available
