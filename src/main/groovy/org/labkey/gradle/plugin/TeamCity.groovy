@@ -86,7 +86,7 @@ class TeamCity extends Tomcat
                 task.dependsOn(project.tasks.jar)
                 task.doLast {
                     project.javaexec({ JavaExecSpec spec ->
-                        spec.main = "org.labkey.test.util.PasswordUtil"
+                        spec.mainClass = "org.labkey.test.util.PasswordUtil"
                         spec.classpath {
                             [project.configurations.uiTestRuntimeClasspath, project.tasks.jar]
                         }

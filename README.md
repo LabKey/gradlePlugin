@@ -11,6 +11,14 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+### 1.28.0
+*Released*: 16 June 2021
+(Earliest compatible LabKey version: 21.3)
+* Add some constants helpful for declaring external dependencies
+* Fix check for tomcat plugin so `cleanBuild` and `cleanDeploy` will stop tomcat if available
+* Update to gradle 7.1
+* Change from deprecated javaExec.main to javaExec.mainClass
+
 ### 1.27.0
 *Released*: 26 May 2021
 (Earliest compatible LabKey version: 21.3)

@@ -43,7 +43,7 @@ class CreateJsDocs extends DefaultTask
     {
         List<File> inputPaths = getInputFiles()
         project.javaexec { exec ->
-            exec.main = "-jar"
+            exec.mainClass = "-jar"
             exec.args = ["${project.jsDoc.root}/jsrun.jar",
                          "${project.jsDoc.root}/app/run.js",
                          "--template=${project.tasks.jsdocTemplate.destinationDir}",
