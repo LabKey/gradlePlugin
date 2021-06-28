@@ -765,9 +765,14 @@ class BuildUtils
             return ModuleDistribution.getDistributionResources(project).matching {include fileName}.singleFile
     }
 
+    static boolean useLocalEmbeddedTomcat(Project project)
+    {
+        return useEmbeddedTomcat(project) && project.findProject(getEmbeddedProjectPath(project.gradle)) != null
+    }
+
     static boolean useEmbeddedTomcat(Project project)
     {
-        return project.hasProperty(USE_EMBEDDED_TOMCAT) && project.findProject(getEmbeddedProjectPath(project.gradle)) != null
+        project.hasProperty(USE_EMBEDDED_TOMCAT)
     }
 
     static void addExternalDependency(Project project, ExternalDependency dependency, Closure closure=null)

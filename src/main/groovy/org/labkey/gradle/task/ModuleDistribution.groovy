@@ -70,7 +70,7 @@ class ModuleDistribution extends DefaultTask
         if (!BuildUtils.isOpenSource(project)) {
             this.dependsOn(findLicensingProject().tasks.named("patchApiModule"))
         }
-        if (BuildUtils.useEmbeddedTomcat(project))
+        if (BuildUtils.useLocalEmbeddedTomcat(project))
             this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath(project.gradle)).tasks.named("build"))
 
         project.apply plugin: 'org.labkey.build.base'
@@ -400,7 +400,7 @@ class ModuleDistribution extends DefaultTask
     {
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
 
-        File embeddedJarFile = project.project(BuildUtils.getEmbeddedProjectPath(project.gradle)).tasks.jar.outputs.files.singleFile
+        File embeddedJarFile = project.configurations.embedded.singleFile
         File modulesZipFile = new File(project.buildDir, "labkey/distribution.zip")
         File serverJarFile = new File(getEmbeddedTomcatJarPath())
         ant.zip(destFile: modulesZipFile.getAbsolutePath()) {
@@ -447,12 +447,8 @@ class ModuleDistribution extends DefaultTask
                 compression: "gzip") {
             tarfileset(dir: project.buildDir, prefix: archiveName) { include(name: serverJarFile.getName()) }
 
-            tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
-
-            tarfileset(dir: "${project.buildDir}/",
-                    prefix: archiveName,
-                    mode: 744) {
-                include(name: "manual-upgrade.sh")
+            if (!simpleDistribution) {
+                tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
             }
 
             tarfileset(dir: project.buildDir, prefix: archiveName) {
@@ -474,9 +470,9 @@ class ModuleDistribution extends DefaultTask
 
         ant.zip(destfile: getEmbeddedZipArchivePath()) {
             zipfileset(dir: project.buildDir, prefix: archiveName) { include(name: serverJarFile.getName()) }
-            zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
-            zipfileset(dir: project.buildDir, prefix: archiveName, filemode: 744){
-                include(name: "manual-upgrade.sh")
+
+            if (!simpleDistribution) {
+                zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
             }
 
             zipfileset(dir: "${project.buildDir}/",

@@ -11,6 +11,13 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+### 1.27.1
+*Released*: TBD
+(Earliest compatible LabKey version: 21.3)
+- Enable building embedded distributions from standalone modules
+- Exclude standard upgrade script and README from embedded distributions
+- Add embedded-specific README
+
 ### 1.27.0
 *Released*: 26 May 2021
 (Earliest compatible LabKey version: 21.3)

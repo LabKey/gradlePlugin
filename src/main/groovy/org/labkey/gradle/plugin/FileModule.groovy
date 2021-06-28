@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.CopySpec
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.LabKeyExtension
@@ -50,7 +49,12 @@ class FileModule implements Plugin<Project>
     {
         def moduleKey = project.getName().toLowerCase()
         def otherPath = _foundModules.get(moduleKey)
-        def shouldBuild = shouldDoBuild(project, true);
+        def shouldBuild = shouldDoBuild(project, true)
+        if (moduleKey.equals("embedded"))
+        {
+            if (shouldBuild)
+                throw new IllegalStateException("Found module at ${project.getPath()}. \"embedded\" is a reserved name. Rename it or excluded it from your build.")
+        }
         if (otherPath != null && !otherPath.equals(project.getPath()) && project.findProject(otherPath) != null)
         {
             if (shouldBuild)

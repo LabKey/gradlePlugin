@@ -63,7 +63,7 @@ class ServerDeploy implements Plugin<Project>
 
         project.apply plugin: 'org.labkey.build.base'
         // we depend on the jar task from the embedded project, if available
-        if (BuildUtils.useEmbeddedTomcat(project))
+        if (BuildUtils.useLocalEmbeddedTomcat(project))
             project.evaluationDependsOn(BuildUtils.getEmbeddedProjectPath(project.gradle))
 
         addTasks(project)
@@ -233,7 +233,7 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.deployApp.dependsOn(project.tasks.setup)
         project.tasks.deployApp.dependsOn(project.tasks.stageApp)
 
-        if (BuildUtils.useEmbeddedTomcat(project)) {
+        if (BuildUtils.useLocalEmbeddedTomcat(project)) {
             def embeddedProject = project.project(BuildUtils.getEmbeddedProjectPath())
 
             project.tasks.register("cleanEmbeddedDeploy", DefaultTask) {
@@ -272,7 +272,7 @@ class ServerDeploy implements Plugin<Project>
                 task.description = "Populate the staging directory using a LabKey distribution file from directory dist or directory specified with distDir property. Use property distType to specify zip or tar.gz (default)."
         }
 
-        if (BuildUtils.useEmbeddedTomcat(project))
+        if (BuildUtils.useLocalEmbeddedTomcat(project))
             project.tasks.register("deployDistribution", DeployEmbeddedDistribution) {
                 DeployEmbeddedDistribution task ->
                     task.group = GroupNames.DISTRIBUTION
