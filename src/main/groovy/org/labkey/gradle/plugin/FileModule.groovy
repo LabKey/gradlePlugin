@@ -50,11 +50,6 @@ class FileModule implements Plugin<Project>
         def moduleKey = project.getName().toLowerCase()
         def otherPath = _foundModules.get(moduleKey)
         def shouldBuild = shouldDoBuild(project, true)
-        if (moduleKey.equals("embedded"))
-        {
-            if (shouldBuild)
-                throw new IllegalStateException("Found module at ${project.getPath()}. \"embedded\" is a reserved name. Rename it or excluded it from your build.")
-        }
         if (otherPath != null && !otherPath.equals(project.getPath()) && project.findProject(otherPath) != null)
         {
             if (shouldBuild)
