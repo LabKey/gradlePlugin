@@ -15,8 +15,8 @@ on how to do that, including how to develop and test locally and the versioning 
 *Released*: TBD
 (Earliest compatible LabKey version: 21.3)
 - Enable building embedded distributions from standalone modules
-- Exclude standard upgrade script and README from embedded distributions
-- Add embedded-specific README
+- Include appropriate files in embedded distributions
+- Issue 43356: manual-upgrade.sh script fails to upgrade standalone installer
 
 ### 1.27.0
 *Released*: 26 May 2021
