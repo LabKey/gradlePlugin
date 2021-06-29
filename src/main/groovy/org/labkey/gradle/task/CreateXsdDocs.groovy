@@ -40,7 +40,7 @@ class CreateXsdDocs extends DefaultTask
     {
         List<File> xsdFiles = getXsdFiles()
         project.javaexec {exec ->
-            exec.main = "com.docflex.xml.Generator"
+            exec.mainClass = "com.docflex.xml.Generator"
 
             exec.classpath project.configurations.xsdDoc
 

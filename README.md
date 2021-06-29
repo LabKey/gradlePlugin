@@ -11,12 +11,25 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
-### 1.27.1
+### TBD
 *Released*: TBD
 (Earliest compatible LabKey version: 21.3)
 - Enable building embedded distributions from standalone modules
 - Include appropriate files in embedded distributions
 - Issue 43356: manual-upgrade.sh script fails to upgrade standalone installer
+
+### 1.28.1
+*Released*: 24 June 2021
+(Earliest compatible LabKey version: 21.3)
+- Remove unneeded output directory declaration for undeployModule to get rid of lots of warnings
+
+### 1.28.0
+*Released*: 16 June 2021
+(Earliest compatible LabKey version: 21.3)
+* Add some constants helpful for declaring external dependencies
+* Fix check for tomcat plugin so `cleanBuild` and `cleanDeploy` will stop tomcat if available
+* Update to gradle 7.1
+* Change from deprecated javaExec.main to javaExec.mainClass
 
 ### 1.27.0
 *Released*: 26 May 2021

@@ -398,7 +398,7 @@ class ServerDeploy implements Plugin<Project>
         }
         project.tasks.deployApp.dependsOn(project.tasks.named("checkModuleTasks"))
         project.tasks.checkModuleTasks.mustRunAfter(project.tasks.stageApp) // do this so the message appears at the bottom of the output
-        project.pluginManager.withPlugin("tomcat") {
+        if (project.plugins.hasPlugin(Tomcat)) {
             if (project.tomcat.hasCatalinaHome()) {
                 project.tasks.named("cleanBuild").configure {
                     it.dependsOn(project.tasks.stopTomcat)

@@ -40,7 +40,7 @@ class StopTomcat extends DefaultTask
         project.tomcat.validateCatalinaHome()
         project.javaexec( {
             JavaExecSpec java ->
-                java.main = "org.apache.catalina.startup.Bootstrap"
+                java.mainClass = "org.apache.catalina.startup.Bootstrap"
                 java.classpath  { ["${project.tomcat.catalinaHome}/bin/bootstrap.jar", "${project.tomcat.catalinaHome}/bin/tomcat-juli.jar"] }
                 java.systemProperties["user.dir"] = project.tomcat.catalinaHome
                 java.args = ["stop"]

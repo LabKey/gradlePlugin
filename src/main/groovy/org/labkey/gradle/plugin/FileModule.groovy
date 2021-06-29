@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.plugin
 
+
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -256,7 +257,6 @@ class FileModule implements Plugin<Project>
                                 else
                                     delete.inputs.file file
                         })
-                        delete.outputs.dir "${ServerDeployExtension.getServerDeployDirectory(project)}/modules"
                     })
                     task.doFirst {
                         undeployModule(project)
