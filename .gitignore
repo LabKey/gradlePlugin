@@ -2,6 +2,8 @@
 build/
 out/
 
+.idea/dataSources.local.xml
+
 # Ignore zip files created by build
 src/main/resources/moduleTemplate.zip
 src/main/resources/distributionResources.zip
