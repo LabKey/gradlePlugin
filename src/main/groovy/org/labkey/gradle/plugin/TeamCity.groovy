@@ -421,7 +421,7 @@ class TeamCity extends Tomcat
     private void ensureShutdown(Project project)
     {
         String debugPort = extension.getTeamCityProperty("tomcat.debug")
-        if (!debugPort.isEmpty() && !BuildUtils.useLocalEmbeddedTomcat(project))
+        if (!debugPort.isEmpty() && !BuildUtils.useEmbeddedTomcat(project))
         {
             project.logger.debug("Ensuring shutdown using port ${debugPort}")
             try

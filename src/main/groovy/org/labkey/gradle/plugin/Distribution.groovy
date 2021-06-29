@@ -79,7 +79,7 @@ class Distribution implements Plugin<Project>
                 {
                     embedded
                 }
-        project.configurations.distribution.setDescription("Artifacts for creating an embedded LabKey distribution (aka installer)")
+        project.configurations.embedded.setDescription("Artifacts for creating a LabKey distribution (aka installer) with Tomcat embedded in it")
 
         if (project.configurations.findByName("utilities") == null)
         {

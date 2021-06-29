@@ -272,7 +272,7 @@ class ServerDeploy implements Plugin<Project>
                 task.description = "Populate the staging directory using a LabKey distribution file from directory dist or directory specified with distDir property. Use property distType to specify zip or tar.gz (default)."
         }
 
-        if (BuildUtils.useLocalEmbeddedTomcat(project))
+        if (BuildUtils.useEmbeddedTomcat(project))
             project.tasks.register("deployDistribution", DeployEmbeddedDistribution) {
                 DeployEmbeddedDistribution task ->
                     task.group = GroupNames.DISTRIBUTION

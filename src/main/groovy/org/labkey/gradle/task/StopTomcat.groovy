@@ -29,7 +29,7 @@ class StopTomcat extends DefaultTask
     @TaskAction
     void action()
     {
-        if (BuildUtils.useLocalEmbeddedTomcat(project))
+        if (BuildUtils.useEmbeddedTomcat(project))
             stopEmbeddedTomcat()
         else
             stopLocalTomcat()

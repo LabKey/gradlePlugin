@@ -56,7 +56,7 @@ class DoThenSetup extends DefaultTask
     @TaskAction
     void setup() {
         doDatabaseTask()
-        boolean useEmbeddedTomcat = BuildUtils.useLocalEmbeddedTomcat(project)
+        boolean useEmbeddedTomcat = BuildUtils.useEmbeddedTomcat(project)
         if (!useEmbeddedTomcat)
         {
             project.tomcat.validateCatalinaHome()
