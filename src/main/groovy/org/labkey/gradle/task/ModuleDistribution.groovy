@@ -70,7 +70,7 @@ class ModuleDistribution extends DefaultTask
         if (!BuildUtils.isOpenSource(project)) {
             this.dependsOn(findLicensingProject().tasks.named("patchApiModule"))
         }
-        if (BuildUtils.useLocalEmbeddedTomcat(project))
+        if (BuildUtils.embeddedProjectExists(project))
             this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath(project.gradle)).tasks.named("build"))
 
         project.apply plugin: 'org.labkey.build.base'

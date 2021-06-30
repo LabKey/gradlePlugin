@@ -765,9 +765,9 @@ class BuildUtils
             return ModuleDistribution.getDistributionResources(project).matching {include fileName}.singleFile
     }
 
-    static boolean useLocalEmbeddedTomcat(Project project)
+    static boolean embeddedProjectExists(Project project)
     {
-        return useEmbeddedTomcat(project) && project.findProject(getEmbeddedProjectPath(project.gradle)) != null
+        return project.findProject(getEmbeddedProjectPath(project.gradle)) != null
     }
 
     static boolean useEmbeddedTomcat(Project project)

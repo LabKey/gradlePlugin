@@ -53,7 +53,7 @@ class Distribution implements Plugin<Project>
             project.evaluationDependsOn(BuildUtils.getServerProjectPath(project.gradle))
         }
         // we also depend on the jar task from the embedded project, if available
-        if (BuildUtils.useLocalEmbeddedTomcat(project)) {
+        if (BuildUtils.embeddedProjectExists(project)) {
             project.evaluationDependsOn(BuildUtils.getEmbeddedProjectPath(project.gradle))
         }
 
@@ -103,7 +103,7 @@ class Distribution implements Plugin<Project>
         if (BuildUtils.useEmbeddedTomcat(project))
         {
             project.dependencies {
-                if (BuildUtils.useLocalEmbeddedTomcat(project)) {
+                if (BuildUtils.embeddedProjectExists(project)) {
                     embedded project.project(BuildUtils.getEmbeddedProjectPath(project.gradle))
                 } else {
                     embedded "org.labkey.build:embedded:${project.labkeyVersion}"
