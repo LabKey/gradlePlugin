@@ -654,6 +654,11 @@ class BuildUtils
             group = LabKeyExtension.LABKEY_API_GROUP
             moduleName = 'labkey-api-selenium'
         }
+        else if (projectPath.equals(getEmbeddedProjectPath(parentProject.gradle)))
+        {
+            group = LabKeyExtension.LABKEY_BUILD_GROUP
+            moduleName = 'embedded'
+        }
         else
         {
 
