@@ -452,9 +452,12 @@ class ModuleDistribution extends DefaultTask
             }
 
             tarfileset(dir: project.buildDir, prefix: archiveName) {
-                include(name: "README.txt")
                 include(name: "VERSION")
-                include(name: "nlp/**")
+            }
+
+            tarfileset(dir: new File(project.buildDir, "embedded"), prefix: archiveName) {
+                // include(name: "manual-upgrade.sh")
+                include(name: "README.txt")
             }
         }
     }
@@ -477,9 +480,13 @@ class ModuleDistribution extends DefaultTask
 
             zipfileset(dir: "${project.buildDir}/",
                     prefix: "${archiveName}") {
-                include(name: "README.txt")
                 include(name: "VERSION")
-                include(name: "nlp/**")
+            }
+
+            zipfileset(dir: "${project.buildDir}/embedded/",
+                    prefix: "${archiveName}") {
+                // include(name: "manual-upgrade.sh")
+                include(name: "README.txt")
             }
         }
     }
@@ -494,6 +501,18 @@ class ModuleDistribution extends DefaultTask
             copy.exclude "*.xml"
             copy.into(project.buildDir)
         })
+        // Allow distributions to include custom README
+        File resources = project.file("resources")
+        if (resources.isDirectory()) {
+            project.copy({ CopySpec copy ->
+                copy.from(resources)
+                copy.into(project.buildDir)
+            })
+            project.copy({ CopySpec copy ->
+                copy.from(resources)
+                copy.into(new File(project.buildDir, "embedded"))
+            })
+        }
         // This is necessary for reasons that are unclear.  Without it, you get:
         // -bash: ./manual-upgrade.sh: /bin/sh^M: bad interpreter: No such file or directory
         // even though the original file has unix line endings. Dunno.
