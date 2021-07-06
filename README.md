@@ -18,6 +18,7 @@ _Note: 1.28.0 and later require Gradle 7_
 *Released*: TBD
 (Earliest compatible LabKey version: 21.3)
 * Enable building embedded distributions from standalone modules
+  * Requires `org.labkey.build:embedded` Available for 21.3.8+ and 21.7+ (not available for 21.4, 21.5, or 21.6)
 * Remove irrelevant files from embedded distributions
 * Issue 43356: manual-upgrade.sh script fails to upgrade standalone installer
 
