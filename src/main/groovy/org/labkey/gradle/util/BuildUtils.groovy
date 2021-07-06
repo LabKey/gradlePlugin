@@ -654,6 +654,11 @@ class BuildUtils
             group = LabKeyExtension.LABKEY_API_GROUP
             moduleName = 'labkey-api-selenium'
         }
+        else if (projectPath.equals(getEmbeddedProjectPath(parentProject.gradle)))
+        {
+            group = LabKeyExtension.LABKEY_BUILD_GROUP
+            moduleName = 'embedded'
+        }
         else
         {
 
@@ -765,9 +770,14 @@ class BuildUtils
             return ModuleDistribution.getDistributionResources(project).matching {include fileName}.singleFile
     }
 
+    static boolean embeddedProjectExists(Project project)
+    {
+        return project.findProject(getEmbeddedProjectPath(project.gradle)) != null
+    }
+
     static boolean useEmbeddedTomcat(Project project)
     {
-        return project.hasProperty(USE_EMBEDDED_TOMCAT) && project.findProject(getEmbeddedProjectPath(project.gradle)) != null
+        project.hasProperty(USE_EMBEDDED_TOMCAT)
     }
 
     static void addExternalDependency(Project project, ExternalDependency dependency, Closure closure=null)

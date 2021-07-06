@@ -63,7 +63,7 @@ class ServerDeploy implements Plugin<Project>
 
         project.apply plugin: 'org.labkey.build.base'
         // we depend on the jar task from the embedded project, if available
-        if (BuildUtils.useEmbeddedTomcat(project))
+        if (BuildUtils.embeddedProjectExists(project))
             project.evaluationDependsOn(BuildUtils.getEmbeddedProjectPath(project.gradle))
 
         addTasks(project)
@@ -233,7 +233,7 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.deployApp.dependsOn(project.tasks.setup)
         project.tasks.deployApp.dependsOn(project.tasks.stageApp)
 
-        if (BuildUtils.useEmbeddedTomcat(project)) {
+        if (BuildUtils.embeddedProjectExists(project)) {
             def embeddedProject = project.project(BuildUtils.getEmbeddedProjectPath())
 
             project.tasks.register("cleanEmbeddedDeploy", DefaultTask) {

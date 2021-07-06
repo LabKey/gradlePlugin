@@ -323,8 +323,10 @@ rm -rf $labkey_home/modules
 if [ $? != 0 ]; then print_error; fi # exit if the last command failed
 rm -rf $labkey_home/labkeywebapp
 if [ $? != 0 ]; then print_error; fi # exit if the last command failed
-rm -rf $labkey_home/pipeline-lib
-if [ $? != 0 ]; then print_error; fi # exit if the last command failed
+if [ -x $labkey_home/pipeline-lib ]; then
+  rm -rf $labkey_home/pipeline-lib
+  if [ $? != 0 ]; then print_error; fi # exit if the last command failed
+fi
 
 #
 # Install the new version of LabKey in LABKEY_HOME
@@ -343,8 +345,10 @@ cp -R modules $labkey_home
 if [ $? != 0 ]; then print_error; fi # exit if the last command failed
 cp -R labkeywebapp $labkey_home
 if [ $? != 0 ]; then print_error; fi # exit if the last command failed
-cp -R pipeline-lib $labkey_home
-if [ $? != 0 ]; then print_error; fi # exit if the last command failed
+if [ -x pipeline-lib ]; then
+  cp -R pipeline-lib $labkey_home
+  if [ $? != 0 ]; then print_error; fi # exit if the last command failed
+fi
 
 #
 # Remove all existing LabKey JAR files from TOMCAT_HOME/lib directory, if found

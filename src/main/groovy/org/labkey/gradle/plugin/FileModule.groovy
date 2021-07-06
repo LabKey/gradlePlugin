@@ -50,7 +50,7 @@ class FileModule implements Plugin<Project>
     {
         def moduleKey = project.getName().toLowerCase()
         def otherPath = _foundModules.get(moduleKey)
-        def shouldBuild = shouldDoBuild(project, true);
+        def shouldBuild = shouldDoBuild(project, true)
         if (otherPath != null && !otherPath.equals(project.getPath()) && project.findProject(otherPath) != null)
         {
             if (shouldBuild)

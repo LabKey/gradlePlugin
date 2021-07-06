@@ -53,7 +53,7 @@ class Distribution implements Plugin<Project>
             project.evaluationDependsOn(BuildUtils.getServerProjectPath(project.gradle))
         }
         // we also depend on the jar task from the embedded project, if available
-        if (BuildUtils.useEmbeddedTomcat(project)) {
+        if (BuildUtils.embeddedProjectExists(project)) {
             project.evaluationDependsOn(BuildUtils.getEmbeddedProjectPath(project.gradle))
         }
 
@@ -75,6 +75,12 @@ class Distribution implements Plugin<Project>
                 }
         project.configurations.distribution.setDescription("Artifacts of creating a LabKey distribution (aka installer)")
 
+        project.configurations
+                {
+                    embedded
+                }
+        project.configurations.embedded.setDescription("Artifacts for creating a LabKey distribution (aka installer) with Tomcat embedded in it")
+
         if (project.configurations.findByName("utilities") == null)
         {
             project.configurations
@@ -93,6 +99,11 @@ class Distribution implements Plugin<Project>
             project.dependencies {
                 utilities "org.labkey.tools.windows:utils:${project.windowsUtilsVersion}@zip"
             }
+
+        if (BuildUtils.useEmbeddedTomcat(project))
+        {
+            BuildUtils.addLabKeyDependency(project: project, config: "embedded", depProjectPath: BuildUtils.getEmbeddedProjectPath(project.gradle), depVersion: project.labkeyVersion, transitive: false)
+        }
     }
 
     private static void addTasks(Project project)

@@ -11,10 +11,21 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+
+_Note: 1.28.0 and later require Gradle 7_
+
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 21.3)
+* Enable building embedded distributions from standalone modules
+  * Requires `org.labkey.build:embedded` Available for 21.3.8+ and 21.7+ (not available for 21.4, 21.5, or 21.6)
+* Remove irrelevant files from embedded distributions
+* Issue 43356: manual-upgrade.sh script fails to upgrade standalone installer
+
 ### 1.28.1
 *Released*: 24 June 2021
 (Earliest compatible LabKey version: 21.3)
-- Remove unneeded output directory declaration for undeployModule to get rid of lots of warnings
+* Remove unneeded output directory declaration for undeployModule to get rid of lots of warnings
 
 ### 1.28.0
 *Released*: 16 June 2021

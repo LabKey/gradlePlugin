@@ -70,7 +70,7 @@ class ModuleDistribution extends DefaultTask
         if (!BuildUtils.isOpenSource(project)) {
             this.dependsOn(findLicensingProject().tasks.named("patchApiModule"))
         }
-        if (BuildUtils.useEmbeddedTomcat(project))
+        if (BuildUtils.embeddedProjectExists(project))
             this.dependsOn(project.project(BuildUtils.getEmbeddedProjectPath(project.gradle)).tasks.named("build"))
 
         project.apply plugin: 'org.labkey.build.base'
@@ -400,7 +400,7 @@ class ModuleDistribution extends DefaultTask
     {
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
 
-        File embeddedJarFile = project.project(BuildUtils.getEmbeddedProjectPath(project.gradle)).tasks.jar.outputs.files.singleFile
+        File embeddedJarFile = project.configurations.embedded.singleFile
         File modulesZipFile = new File(project.buildDir, "labkey/distribution.zip")
         File serverJarFile = new File(getEmbeddedTomcatJarPath())
         ant.zip(destFile: modulesZipFile.getAbsolutePath()) {
@@ -447,18 +447,17 @@ class ModuleDistribution extends DefaultTask
                 compression: "gzip") {
             tarfileset(dir: project.buildDir, prefix: archiveName) { include(name: serverJarFile.getName()) }
 
-            tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
-
-            tarfileset(dir: "${project.buildDir}/",
-                    prefix: archiveName,
-                    mode: 744) {
-                include(name: "manual-upgrade.sh")
+            if (!simpleDistribution) {
+                tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
             }
 
             tarfileset(dir: project.buildDir, prefix: archiveName) {
-                include(name: "README.txt")
                 include(name: "VERSION")
-                include(name: "nlp/**")
+            }
+
+            tarfileset(dir: new File(project.buildDir, "embedded"), prefix: archiveName) {
+                // include(name: "manual-upgrade.sh")
+                include(name: "README.txt")
             }
         }
     }
@@ -474,16 +473,20 @@ class ModuleDistribution extends DefaultTask
 
         ant.zip(destfile: getEmbeddedZipArchivePath()) {
             zipfileset(dir: project.buildDir, prefix: archiveName) { include(name: serverJarFile.getName()) }
-            zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
-            zipfileset(dir: project.buildDir, prefix: archiveName, filemode: 744){
-                include(name: "manual-upgrade.sh")
+
+            if (!simpleDistribution) {
+                zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
             }
 
             zipfileset(dir: "${project.buildDir}/",
                     prefix: "${archiveName}") {
-                include(name: "README.txt")
                 include(name: "VERSION")
-                include(name: "nlp/**")
+            }
+
+            zipfileset(dir: "${project.buildDir}/embedded/",
+                    prefix: "${archiveName}") {
+                // include(name: "manual-upgrade.sh")
+                include(name: "README.txt")
             }
         }
     }
@@ -498,6 +501,18 @@ class ModuleDistribution extends DefaultTask
             copy.exclude "*.xml"
             copy.into(project.buildDir)
         })
+        // Allow distributions to include custom README
+        File resources = project.file("resources")
+        if (resources.isDirectory()) {
+            project.copy({ CopySpec copy ->
+                copy.from(resources)
+                copy.into(project.buildDir)
+            })
+            project.copy({ CopySpec copy ->
+                copy.from(resources)
+                copy.into(new File(project.buildDir, "embedded"))
+            })
+        }
         // This is necessary for reasons that are unclear.  Without it, you get:
         // -bash: ./manual-upgrade.sh: /bin/sh^M: bad interpreter: No such file or directory
         // even though the original file has unix line endings. Dunno.
