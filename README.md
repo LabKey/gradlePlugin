@@ -14,8 +14,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 1.29.0
+*Released*: 7 July 2021
 (Earliest compatible LabKey version: 21.3)
 * Enable building embedded distributions from standalone modules
   * Requires `org.labkey.build:embedded` Available for 21.3.8+ and 21.7+ (not available for 21.4, 21.5, or 21.6)
