@@ -87,15 +87,16 @@ class PurgeNpmAlphaVersions extends DefaultTask
      *     repoKey: libs-client-local
      *     path: "@labkey/components/-/@labkey/components-2.14.2-fb-update-react-select.1.tgz"
      * The REST API seems a better approach, though.
-     * @param packageName
-     * @param version
+     * @param packageName the package whose version is to be deleted, including the scope (e.g., @labkey/components)
+     * @param version the version of the pacakge to delete (e.g., 2.14.2-fb-update-react-select.1)
      * @return true if deletion was successful, false otherwise
-     * @throws IOException
+     * @throws GradleException if the delete request throws an exception
      */
-    boolean makeDeleteRequest(String packageName, String version) throws IOException
+    boolean makeDeleteRequest(String packageName, String version)
     {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         String endpoint = project.property('artifactory_contextUrl')
+        boolean success = true
         if (!endpoint.endsWith("/"))
             endpoint += "/"
 
@@ -111,10 +112,10 @@ class PurgeNpmAlphaVersions extends DefaultTask
             int statusCode = response.getStatusLine().getStatusCode()
             if (statusCode != HttpStatus.SC_OK && statusCode != HttpStatus.SC_NO_CONTENT) {
                 project.logger.error("Unable to delete using ${endpoint}: ${response.getStatusLine()}")
-                return false
+                success = false
             }
             response.close()
-            return true
+            return success
         }
         catch (Exception e)
         {
