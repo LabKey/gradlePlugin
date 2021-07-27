@@ -14,8 +14,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 1.30.0
+*Released*: 27 July 2021
 (Earliest compatible LabKey version: 21.3)
 * Add new PurgeNpmAlphaVersion task to make it easier to remove obsolete alpha package versions
 
