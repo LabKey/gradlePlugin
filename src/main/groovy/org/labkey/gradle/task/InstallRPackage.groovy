@@ -153,7 +153,7 @@ class InstallRPackage extends DefaultTask
                 logError: true
         )
                 {
-                    arg(line: "--vanilla")
+                    arg(line: "--vanilla --no-multiarch")
                     env(key: "R_LIBS_USER", value: getRLibsUserPath(project)) // TODO is this actually necessary?
                 }
     }
@@ -170,7 +170,7 @@ class InstallRPackage extends DefaultTask
                 logError: true
         )
                 {
-                    arg(line: "CMD INSTALL -l ${rLibsUserDir} ${rLibsUserDir}/${archiveFileName}")
+                    arg(line: "CMD INSTALL --no-multiarch -l ${rLibsUserDir} ${rLibsUserDir}/${archiveFileName}")
                 }
     }
 }
