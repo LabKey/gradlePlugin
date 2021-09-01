@@ -1,6 +1,7 @@
 package org.labkey.gradle.task
 
 import groovy.json.JsonSlurper
+import org.apache.commons.lang3.SystemUtils
 import org.apache.http.HttpStatus
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpDelete
@@ -61,7 +62,8 @@ class PurgeNpmAlphaVersions extends DefaultTask
 
     private static List<String> getNpmAlphaVersions(String packageName, String alphaPrefix)
     {
-        String output = "npm view ${packageName} versions --json".execute().text
+        String npmCmd = SystemUtils.IS_OS_WINDOWS ? "npm.cmd" : "npm"
+        String output = (npmCmd + " view ${packageName} versions --json").execute().text
         def parsedJson = new JsonSlurper().parseText(output)
         if (parsedJson instanceof ArrayList) {
             return parsedJson.stream().filter(version -> {

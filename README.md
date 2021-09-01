@@ -18,6 +18,7 @@ _Note: 1.28.0 and later require Gradle 7_
 *Released*: TBD
 (Earliest compatible LabKey version: 21.3)
 * Add `--no-multiarch` flag to `InstallRPackage` commands
+* Update `PurgeNpmAlphaVersions` task to use `npm.cmd` on Windows
 
 ### 1.30.0
 *Released*: 27 July 2021
