@@ -225,7 +225,7 @@ class ServerDeploy implements Plugin<Project>
                 "setup",  DoThenSetup) {
             DoThenSetup task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Installs labkey.xml and various jar files into the tomcat directory.  Sets default database properties."
+                task.description = "Installs labkey.xml and application.properties (for embedded tomcat) into the tomcat configuraiton directory.  Sets default database properties."
                 // stage the application first to try to avoid multiple Tomcat restarts
                 task.mustRunAfter(project.tasks.stageApp)
         }

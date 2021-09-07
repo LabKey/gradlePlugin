@@ -394,6 +394,7 @@ class MultiGit implements Plugin<Project>
                         return branch.name == remoteBranch
                 })
             }
+            return false
         }
 
         void enlist(String branchName)

@@ -154,7 +154,7 @@ class Distribution implements Plugin<Project>
      * to easily build upon one another.
      * @param project the project that is to inherit dependencies
      * @param inheritedProjectPath the project whose dependencies are inherited
-     * @param list of paths for modules that are to be included from the set of inherited modules (e.g., [":server:modules:search"])
+     * @param list of paths for modules that are to be excluded from the set of inherited modules (e.g., [":server:modules:search"])
      */
     static void inheritDependencies(Project project, String inheritedProjectPath, List<String> excludedModules=[])
     {
