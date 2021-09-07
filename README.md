@@ -14,8 +14,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 1.30.1
+*Released*: 7 September 2021
 (Earliest compatible LabKey version: 21.3)
 * Add `--no-multiarch` flag to `InstallRPackage` commands
 * Update `PurgeNpmAlphaVersions` task to use `npm.cmd` on Windows
