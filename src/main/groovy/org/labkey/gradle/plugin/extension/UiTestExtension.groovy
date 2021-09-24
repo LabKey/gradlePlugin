@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.plugin.extension
 
+import org.apache.commons.io.FileUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.labkey.gradle.util.BuildUtils
@@ -23,7 +24,8 @@ import org.labkey.gradle.util.PropertiesUtils
 
 class UiTestExtension
 {
-    String propertiesFile = "test.properties"
+    final String propertiesFileName = "test.properties"
+    final String propertiesDistFileName = "test.properties.dist"
 
     private Properties config = null
     private Project project
@@ -80,8 +82,17 @@ class UiTestExtension
         }
 
         if (project.findProject(BuildUtils.getTestProjectPath(project.gradle)) != null)
-        // read test.properties file
-            PropertiesUtils.readProperties(project.project(BuildUtils.getTestProjectPath(project.gradle)).file(propertiesFile), this.config)
+        {
+            def propertiesFile = project.project(BuildUtils.getTestProjectPath(project.gradle)).file(propertiesFileName)
+            if (!propertiesFile.exists())
+            {
+                // Create test.properties file if necessary
+                def propertiesDistFile = project.project(BuildUtils.getTestProjectPath(project.gradle)).file(propertiesDistFileName)
+                FileUtils.copyFile(propertiesDistFile, propertiesFile)
+            }
+            // read test.properties file
+            PropertiesUtils.readProperties(propertiesFile, this.config)
+        }
         // if the test.properties file is not available, all properties will need to be provided via project properties
         for (String name : config.propertyNames())
         {

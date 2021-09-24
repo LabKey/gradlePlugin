@@ -477,6 +477,11 @@ class ServerDeploy implements Plugin<Project>
 
     private void deployTomcatJars(Task task) {
         Project project = task.project
+        if (BuildUtils.useEmbeddedTomcat(project)) {
+            task.logger.info("Not deploying tomcat jars for embedded deployment")
+            return
+        }
+
         JDBC_JARS.each{String name -> new File("${project.tomcat.catalinaHome}/lib/${name}").delete()}
 
         // Then copy them into the tomcat/lib directory
