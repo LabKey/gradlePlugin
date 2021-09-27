@@ -88,10 +88,20 @@ class UiTestExtension
             {
                 // Create test.properties file if necessary
                 def propertiesDistFile = project.project(BuildUtils.getTestProjectPath(project.gradle)).file(propertiesDistFileName)
-                FileUtils.copyFile(propertiesDistFile, propertiesFile)
+                if (propertiesDistFile.exists())
+                {
+                    FileUtils.copyFile(propertiesDistFile, propertiesFile)
+                }
             }
-            // read test.properties file
-            PropertiesUtils.readProperties(propertiesFile, this.config)
+            if (propertiesFile.exists())
+            {
+                // read test.properties file
+                PropertiesUtils.readProperties(propertiesFile, this.config)
+            }
+            else
+            {
+                project.logger.info("Unable to locate test properties files. Running with defaults.")
+            }
         }
         // if the test.properties file is not available, all properties will need to be provided via project properties
         for (String name : config.propertyNames())

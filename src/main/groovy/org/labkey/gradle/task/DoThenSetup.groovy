@@ -157,6 +157,10 @@ class DoThenSetup extends DefaultTask
         }
     }
 
+    /**
+     * Get 'extraJdbc*' properties from TeamCity.
+     * Used as string replacements when deploying 'labkey.xml' and 'application.properties'
+     */
     private Properties getExtraJdbcProperties()
     {
         def extraJdbcProperties = new Properties();
