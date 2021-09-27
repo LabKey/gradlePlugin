@@ -25,7 +25,7 @@ import org.labkey.gradle.util.PropertiesUtils
 class UiTestExtension
 {
     final String propertiesFileName = "test.properties"
-    final String propertiesDistFileName = "test.properties.dist"
+    final String propertiesTemplateName = "test.properties.template"
 
     private Properties config = null
     private Project project
@@ -87,10 +87,10 @@ class UiTestExtension
             if (!propertiesFile.exists())
             {
                 // Create test.properties file if necessary
-                def propertiesDistFile = project.project(BuildUtils.getTestProjectPath(project.gradle)).file(propertiesDistFileName)
-                if (propertiesDistFile.exists())
+                def propertiesTemplate = project.project(BuildUtils.getTestProjectPath(project.gradle)).file(propertiesTemplateName)
+                if (propertiesTemplate.exists())
                 {
-                    FileUtils.copyFile(propertiesDistFile, propertiesFile)
+                    FileUtils.copyFile(propertiesTemplate, propertiesFile)
                 }
             }
             if (propertiesFile.exists())
