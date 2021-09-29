@@ -94,7 +94,7 @@ class DoThenSetup extends DefaultTask
                             line = line.replace("@@ldapSyncConfig@@-->", "")
                             return line
                         }
-                        if (project.hasProperty("extraJdbcDataSource"))
+                        if (configProperties.hasProperty("extraJdbcDataSource"))
                         {
                             line = line.replace("<!--@@extraJdbcDataSource@@", "")
                             line = line.replace("@@extraJdbcDataSource@@-->", "")
@@ -143,7 +143,7 @@ class DoThenSetup extends DefaultTask
                             line = line.replace("#context.webAppLocation=", "context.webAppLocation=")
                             line = line.replace("#spring.devtools.restart.additional-paths=", "spring.devtools.restart.additional-paths=")
                         }
-                        if (databaseProperties.hasProperty("extraJdbcDataSource"))
+                        if (configProperties.hasProperty("extraJdbcDataSource"))
                         {
                             line = line.replaceAll("^#(context\\..+\\[1].*)", "\$1")
                         }
@@ -157,6 +157,10 @@ class DoThenSetup extends DefaultTask
         }
     }
 
+    /**
+     * Get 'extraJdbc*' properties from TeamCity.
+     * Used as string replacements when deploying 'labkey.xml' and 'application.properties'
+     */
     private Properties getExtraJdbcProperties()
     {
         def extraJdbcProperties = new Properties();

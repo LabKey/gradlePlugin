@@ -18,12 +18,10 @@ package org.labkey.gradle.plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.RunTestSuite
 import org.labkey.gradle.util.BuildUtils
-import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
 
 class TestRunner extends UiTest
@@ -204,7 +202,7 @@ class TestRunner extends UiTest
         project.tasks.register("uiTests", RunTestSuite) {
             RunTestSuite task ->
                 task.group = GroupNames.VERIFICATION
-                task.description = "Run a LabKey test suite as defined by ${project.file(testRunnerExt.propertiesFile)} and overridden on the command line by -P<prop>=<value> "
+                task.description = "Run a LabKey test suite as defined by ${project.file(testRunnerExt.propertiesFileName)} and overridden on the command line by -P<prop>=<value> "
         }
     }
 

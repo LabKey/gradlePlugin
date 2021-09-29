@@ -14,6 +14,13 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 21.3)
+* Support `test.properties.template` file in `testAutomation` repository
+* Allow DoThenSetup task to pull extra data source configuration from `config.properties`
+* Stop deploying tomcat jars to `CATALINA_HOME` when it isn't necessary
+
 ### 1.30.1
 *Released*: 7 September 2021
 (Earliest compatible LabKey version: 21.3)
