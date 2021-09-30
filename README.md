@@ -14,8 +14,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 1.30.2
+*Released*: 29 September 2021
 (Earliest compatible LabKey version: 21.3)
 * Support `test.properties.template` file in `testAutomation` repository
 * Allow DoThenSetup task to pull extra data source configuration from `config.properties`
