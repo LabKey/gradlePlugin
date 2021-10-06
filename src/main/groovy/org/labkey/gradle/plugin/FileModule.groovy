@@ -177,7 +177,7 @@ class FileModule implements Plugin<Project>
         moduleXmlTask.outputs.file(moduleXmlFile)
         if (project.file("build.gradle").exists())
             moduleXmlTask.inputs.file(project.file("build.gradle"))
-        moduleXmlTask.outputs.cacheIf {true} // enable build caching
+        moduleXmlTask.outputs.cacheIf {false} // disable build caching. Has too many undeclared inputs.
 
         // This is added because Intellij started creating this "out" directory when you build through IntelliJ.
         // It copies files there that are actually input files to the build, which causes some problems when later
