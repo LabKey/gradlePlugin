@@ -15,7 +15,7 @@
  */
 package org.labkey.gradle.plugin.extension
 
-import org.apache.commons.io.FileUtils
+
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.labkey.gradle.util.BuildUtils
@@ -84,16 +84,17 @@ class UiTestExtension
         if (project.findProject(BuildUtils.getTestProjectPath(project.gradle)) != null)
         {
             def propertiesFile = project.project(BuildUtils.getTestProjectPath(project.gradle)).file(propertiesFileName)
-            if (!propertiesFile.exists())
+            if (TeamCityExtension.isOnTeamCity(project))
             {
-                // Create test.properties file if necessary
+                // Load properties from template when running on TeamCity.
+                // These properties control which TeamCity properties are loaded by `RunTestSuite.setTeamCityProperties`
                 def propertiesTemplate = project.project(BuildUtils.getTestProjectPath(project.gradle)).file(propertiesTemplateName)
                 if (propertiesTemplate.exists())
                 {
-                    FileUtils.copyFile(propertiesTemplate, propertiesFile)
+                    PropertiesUtils.readProperties(propertiesTemplate, this.config)
                 }
             }
-            if (propertiesFile.exists())
+            else if (propertiesFile.exists())
             {
                 // read test.properties file
                 PropertiesUtils.readProperties(propertiesFile, this.config)

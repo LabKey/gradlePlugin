@@ -18,6 +18,7 @@ _Note: 1.28.0 and later require Gradle 7_
 *Released*: TBD
 (Earliest compatible LabKey version: 21.3)
 * Don't cache the `fileModule` plugin's `moduleXml` task
+* Adjust `test.properties.template` usage when running on TeamCity
 
 ### 1.30.2
 *Released*: 29 September 2021
