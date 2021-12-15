@@ -14,9 +14,9 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
-(Earliest compatible LabKey version: 21.3)
+### 1.31.0
+*Released*: 15 December 2021
+(Earliest compatible LabKey version: 22.1)
 * Pick up the bootJar as a dependency for the embedded distribution, not the default jar
 
 ### 1.30.3
