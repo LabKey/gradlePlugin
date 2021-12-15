@@ -102,7 +102,7 @@ class Distribution implements Plugin<Project>
 
         if (BuildUtils.useEmbeddedTomcat(project))
         {
-            BuildUtils.addLabKeyDependency(project: project, config: "embedded", depProjectPath: BuildUtils.getEmbeddedProjectPath(project.gradle), depVersion: project.labkeyVersion, transitive: false)
+            BuildUtils.addLabKeyDependency(project: project, config: "embedded", depProjectPath: BuildUtils.getEmbeddedProjectPath(project.gradle), depVersion: project.labkeyVersion, depProjectConfig: "embedded", transitive: false)
         }
     }
 
