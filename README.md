@@ -14,6 +14,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 22.2)
+* Add `--legacy-peer-deps` flag to `npmInstall` command.
+
 ### 1.31.0
 *Released*: 15 December 2021
 (Earliest compatible LabKey version: 22.1)

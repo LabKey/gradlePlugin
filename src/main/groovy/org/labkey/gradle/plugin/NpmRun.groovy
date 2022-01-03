@@ -175,6 +175,8 @@ class NpmRun implements Plugin<Project>
                     task.inputs.file project.file(NPM_PROJECT_FILE)
                     if (project.file(NPM_PROJECT_LOCK_FILE).exists())
                         task.inputs.file project.file(NPM_PROJECT_LOCK_FILE)
+                    // Specify legacy peer dependency mode for npm v7+
+                    task.args = ["--legacy-peer-deps"]
                 }
         project.tasks.npmInstall.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
 
