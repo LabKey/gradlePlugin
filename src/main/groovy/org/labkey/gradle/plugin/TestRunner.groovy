@@ -64,7 +64,7 @@ class TestRunner extends UiTest
                     }
                 }
                 resources {
-                    srcDirs = []
+                    srcDirs = [project.file("resources")]
                     project.rootProject.allprojects { Project otherProj ->
                         if (otherProj.file(TEST_RESOURCES_DIR).exists())
                         {

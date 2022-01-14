@@ -14,6 +14,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 1.32.1
+*Released*: TBD
+(Earliest compatible LabKey version: 22.2)
+* Include `testAuotmation` resources in TestRunner sourceSets 
+
 ### 1.32.0
 *Released*: 5 January 2022
 (Earliest compatible LabKey version: 22.2)
