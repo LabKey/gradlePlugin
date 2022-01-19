@@ -17,7 +17,7 @@ _Note: 1.28.0 and later require Gradle 7_
 ### TBD
 *Released*: TBD
 (Earliest compatible LabKey version: 22.2)
-* Include `testAuotmation` resources in TestRunner sourceSets 
+* Include `testAuotmation` resources in TestRunner sourceSets
 
 ### 1.32.0
 *Released*: 5 January 2022
