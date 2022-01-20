@@ -18,6 +18,7 @@ _Note: 1.28.0 and later require Gradle 7_
 *Released*: TBD
 (Earliest compatible LabKey version: 22.2)
 * Include `testAuotmation` resources in TestRunner sourceSets
+* Set defaults for properties needed by `RunUiTest`
 
 ### 1.32.0
 *Released*: 5 January 2022
