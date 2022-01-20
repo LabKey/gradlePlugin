@@ -42,7 +42,9 @@ class UiTestExtension
     private void setConfig()
     {
         this.config = new Properties()
+        // Set defaults for properties needed by `RunUiTest`
         this.config.setProperty("debugSuspendSelenium", "n")
+        this.config.setProperty("selenium.debug.port", "5005")
 
         // Issue 32153: When running tests and the pickDb tasks within the same command if the config.properties file
         // does not exist (or exists and is a different database than intended), the set of tests run will not be
