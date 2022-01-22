@@ -27,7 +27,7 @@
     <Loader loaderClass="org.labkey.bootstrap.LabKeyBootstrapClassLoader" />
 
     <!-- Encryption key for encrypted property store: https://www.labkey.org/Documentation/wiki-page.view?name=cpasxml#encrypt -->
-    <Parameter name="MasterEncryptionKey" value="@@masterEncryptionKey@@" />
+    <Parameter name="EncryptionKey" value="@@encryptionKey@@" />
 
     <!-- Additional data source(s): https://www.labkey.org/Documentation/wiki-page.view?name=externalSchemas#config -->
     <!--@@extraJdbcDataSource@@

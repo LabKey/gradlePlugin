@@ -19,6 +19,7 @@ _Note: 1.28.0 and later require Gradle 7_
 (Earliest compatible LabKey version: 22.2)
 * Include `testAuotmation` resources in TestRunner sourceSets
 * Set defaults for properties needed by `RunUiTest`
+* [Issue 44600](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=44600) Support new 'EncryptionKey' property name
 
 ### 1.32.0
 *Released*: 5 January 2022

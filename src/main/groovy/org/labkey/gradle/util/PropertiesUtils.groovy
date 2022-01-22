@@ -15,7 +15,7 @@
  */
 package org.labkey.gradle.util
 
-import org.apache.commons.lang3.StringEscapeUtils
+import org.apache.commons.text.StringEscapeUtils
 import org.gradle.api.Project
 
 import java.util.regex.Matcher
@@ -25,6 +25,8 @@ class PropertiesUtils
 {
     public static final Pattern PROPERTY_PATTERN = Pattern.compile("@@([^@]+)@@")
     private static final Pattern VALUE_PATTERN = Pattern.compile("(\\\$\\{\\w*\\})")
+    private static final String ENCRYPTION_KEY_PROP_NAME = 'encryptionKey'
+    private static final String DEPRECATED_ENCRYPTION_KEY_PROP_NAME = 'masterEncryptionKey'
 
     static Properties readFileProperties(Project project, String fileName)
     {
@@ -56,6 +58,18 @@ class PropertiesUtils
         return prop
     }
 
+    static String replacePropInLine(String line, String propName, Object val, Boolean xmlEncode)
+    {
+        if (val != null)
+        {
+            String stringVal = val.toString();
+            if (xmlEncode)
+                stringVal = StringEscapeUtils.escapeXml10(stringVal)
+            return line.replace("@@" + propName + "@@", stringVal)
+        }
+        return line;
+    }
+
     static String replaceProps(String line, Properties props, Boolean xmlEncode = false)
     {
         Matcher matcher = PROPERTY_PATTERN.matcher(line)
@@ -63,15 +77,14 @@ class PropertiesUtils
         {
             String propName = matcher.group(1)
             if (props.containsKey(propName))
-            {
-                String val = props.get(propName).toString()
-                if (val != null)
-                {
-                    if (xmlEncode)
-                        val = StringEscapeUtils.escapeXml10(val)
-                    line = line.replace("@@" + propName + "@@", val)
-                }
-            }
+                line = replacePropInLine(line, propName, props.get(propName), xmlEncode)
+            // backward compatibility for labkey.xml having new prop name and config.properties having old one
+            // TODO remove these cases once we move to a version that doesn't need to support backward compatibility
+            else if (propName.equals(ENCRYPTION_KEY_PROP_NAME) && props.containsKey(DEPRECATED_ENCRYPTION_KEY_PROP_NAME))
+                line = replacePropInLine(line, propName, props.get('materEncryptionKey'), xmlEncode)
+            // backward compatibility for labkey.xml having old prop name and config.properties having new one
+            else if (propName.equals(DEPRECATED_ENCRYPTION_KEY_PROP_NAME) && props.containsKey(ENCRYPTION_KEY_PROP_NAME))
+                line = replacePropInLine(line, propName, props.get('encryptionKey'), xmlEncode)
         }
         return line
     }
