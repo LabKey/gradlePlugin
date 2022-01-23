@@ -79,12 +79,12 @@ class PropertiesUtils
             if (props.containsKey(propName))
                 line = replacePropInLine(line, propName, props.get(propName), xmlEncode)
             // backward compatibility for labkey.xml having new prop name and config.properties having old one
-            // TODO remove these cases once we move to a version that doesn't need to support backward compatibility
+            // TODO remove these cases once we move to a plugin version that doesn't need to support backward compatibility
             else if (propName.equals(ENCRYPTION_KEY_PROP_NAME) && props.containsKey(DEPRECATED_ENCRYPTION_KEY_PROP_NAME))
-                line = replacePropInLine(line, propName, props.get('materEncryptionKey'), xmlEncode)
+                line = replacePropInLine(line, propName, props.get(DEPRECATED_ENCRYPTION_KEY_PROP_NAME), xmlEncode)
             // backward compatibility for labkey.xml having old prop name and config.properties having new one
             else if (propName.equals(DEPRECATED_ENCRYPTION_KEY_PROP_NAME) && props.containsKey(ENCRYPTION_KEY_PROP_NAME))
-                line = replacePropInLine(line, propName, props.get('encryptionKey'), xmlEncode)
+                line = replacePropInLine(line, propName, props.get(ENCRYPTION_KEY_PROP_NAME), xmlEncode)
         }
         return line
     }
