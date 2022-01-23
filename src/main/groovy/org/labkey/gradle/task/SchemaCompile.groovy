@@ -60,12 +60,25 @@ class SchemaCompile extends DefaultTask {
             classname: 'org.apache.xmlbeans.impl.tool.XMLBean',
             classpath: project.configurations.xmlbeans.asPath
     )
-    ant.xmlbean(
-            schema: getSchemasDir(),
-            srcgendir: getSrcGenDir(),
-            classgendir: getClassesDir(),
-            classpath: project.configurations.xmlbeans.asPath,
-            failonerror: true
-    )
+    // TODO get rid of this once we have updated to the later xmlbeans version
+    if (project.property('xmlbeansVersion') == '3.0.1') {
+      ant.xmlbean(
+              javasource: "1.8",
+              schema: getSchemasDir(),
+              srcgendir: getSrcGenDir(),
+              classgendir: getClassesDir(),
+              classpath: project.configurations.xmlbeans.asPath,
+              failonerror: true
+      )
+    }
+    else {
+      ant.xmlbean(
+              schema: getSchemasDir(),
+              srcgendir: getSrcGenDir(),
+              classgendir: getClassesDir(),
+              classpath: project.configurations.xmlbeans.asPath,
+              failonerror: true
+      )
+    }
   }
 }
