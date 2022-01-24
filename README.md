@@ -1,3 +1,4 @@
+
 ## gradlePlugin
 
 The gradlePlugin jar is a jar file containing plugins, tasks, extensions and utilities used for building the [LabKey](https://www.labkey.org)
@@ -14,11 +15,13 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 1.32.1
+*Released*: 24 January 2022
 (Earliest compatible LabKey version: 22.2)
-* Include `testAuotmation` resources in TestRunner sourceSets
+* Include `testAutomation` resources in TestRunner sourceSets
 * Set defaults for properties needed by `RunUiTest`
+* [Issue 44600](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=44600) Support new 'EncryptionKey' property name
+* Stop specifying `javasource` parameter when invoking XMLBeans build for version 5.0.0 or later; recent XMLBeans versions fail if this parameter is provided.
 
 ### 1.32.0
 *Released*: 5 January 2022

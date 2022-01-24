@@ -23,6 +23,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.XmlBeans
+import org.labkey.gradle.util.BuildUtils
 
 /**
  * Task to compile XSD schema files into Java class files using the ant XMLBean
@@ -60,14 +61,25 @@ class SchemaCompile extends DefaultTask {
             classname: 'org.apache.xmlbeans.impl.tool.XMLBean',
             classpath: project.configurations.xmlbeans.asPath
     )
-    ant.xmlbean(
-            schema: getSchemasDir(),
-            // N.B. Later versions of Java not currently supported and introduce warnings like: warning: [dep-ann] deprecated item is not annotated with @Deprecated
-            javasource: "1.8",
-            srcgendir: getSrcGenDir(),
-            classgendir: getClassesDir(),
-            classpath: project.configurations.xmlbeans.asPath,
-            failonerror: true
-    )
+    // TODO get rid of this once we have updated to the later xmlbeans version please
+    if (BuildUtils.compareVersions(project.property('xmlbeansVersion'), '5.0.0') == -1) {
+      ant.xmlbean(
+              javasource: "1.8",
+              schema: getSchemasDir(),
+              srcgendir: getSrcGenDir(),
+              classgendir: getClassesDir(),
+              classpath: project.configurations.xmlbeans.asPath,
+              failonerror: true
+      )
+    }
+    else {
+      ant.xmlbean(
+              schema: getSchemasDir(),
+              srcgendir: getSrcGenDir(),
+              classgendir: getClassesDir(),
+              classpath: project.configurations.xmlbeans.asPath,
+              failonerror: true
+      )
+    }
   }
 }
