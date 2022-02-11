@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 22.2)
+* Update input annotations of `SchemaCompile` task so it will defeat the cache when the xmlBeans version changes
+
 ### 1.32.1
 *Released*: 24 January 2022
 (Earliest compatible LabKey version: 22.2)
