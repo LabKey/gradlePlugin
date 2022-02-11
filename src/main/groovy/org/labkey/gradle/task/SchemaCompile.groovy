@@ -17,6 +17,7 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
@@ -31,6 +32,14 @@ import org.labkey.gradle.util.BuildUtils
 @CacheableTask
 class SchemaCompile extends DefaultTask {
 
+  // This input declaration is used to defeat the gradle build cache when the xmlbeansVersion changes and should
+  // remain even if there are no usages of this method. I don't know why the cache key doesn't change as a result of the
+  // new jar file version, but it doesn't (perhaps an artifact of having to use the ant builder).
+  @Input
+  String getXmlBeansVersion()
+  {
+    return project.property('xmlbeansVersion');
+  }
 
   @InputDirectory
   @PathSensitive(PathSensitivity.RELATIVE)
@@ -62,7 +71,7 @@ class SchemaCompile extends DefaultTask {
             classpath: project.configurations.xmlbeans.asPath
     )
     // TODO get rid of this once we have updated to the later xmlbeans version please
-    if (BuildUtils.compareVersions(project.property('xmlbeansVersion'), '5.0.0') == -1) {
+    if (BuildUtils.compareVersions(getXmlBeansVersion(), '5.0.0') == -1) {
       ant.xmlbean(
               javasource: "1.8",
               schema: getSchemasDir(),
