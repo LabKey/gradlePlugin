@@ -19,6 +19,8 @@ _Note: 1.28.0 and later require Gradle 7_
 *Released*: TBD
 (Earliest compatible LabKey version: 22.2)
 * Update input annotations of `SchemaCompile` task so it will defeat the cache when the xmlBeans version changes
+* Update RunUiTest reports to non-deprecated properties
+* Change `copyJspResources` to user `project.copy` instead of a `Copy` task to avoid warnings about cache optimizations that are not possible
 
 ### 1.32.1
 *Released*: 24 January 2022

@@ -15,7 +15,7 @@
  */
 package org.labkey.gradle.plugin
 
-
+import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -138,16 +138,25 @@ class Jsp implements Plugin<Project>
                 }
 
 
-        project.tasks.register('copyResourceJsp', Copy)
+        // N.B. We don't use a Copy task here because as of Gradle 7.4, we get warning messages about Gradle not
+        // being able to cache the results of the task because it
+        // " ... uses this output of task ':server:modules:platform:core:npmRunBuild' without declaring an explicit or implicit dependency .."
+        // npmRunBuild outputs into the resources/views/gen and resources/web/gen directories. The 'include' configuration for what to copy doesn't
+        // seem to change Gradle's view on this overlap of directories (makes some sense since I believe it uses the directory as part of the cache key).
+        // Since caching the output here doesn't make a lot of sense, it seems low risk to leave as is, but I can't find a way to turn off the warning
+        // when this task is a Copy task. Using project.copy doesn't emit the warning.
+        project.tasks.register('copyResourceJsp', DefaultTask)
                 {
-                    Copy task ->
+                    DefaultTask task ->
                         task.group = GroupNames.JSP
                         task.description = "Copy resource jsp files to jsp compile directory"
-                        task.configure({ CopySpec copy ->
-                            copy.from 'resources'
-                            copy.into "${project.buildDir}/${WEBAPP_DIR}/org/labkey/${project.name}"
-                            copy.include '**/*.jsp'
-                        })
+                        task.doLast {
+                            project.copySpec({ CopySpec copy ->
+                                copy.from 'resources'
+                                copy.into "${project.buildDir}/${WEBAPP_DIR}/org/labkey/${project.name}"
+                                copy.include '**/*.jsp'
+                            })
+                        }
                 }
 
         def copyTagLibs = getCopyTagLibs(project)
