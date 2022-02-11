@@ -37,10 +37,10 @@ class RunUiTest extends Test
         setJvmArgs()
 
         reports { TestTaskReports -> reports
-            reports.junitXml.enabled = false
-            reports.junitXml.setDestination( new File("${project.buildDir}/${LOG_DIR}/reports/xml"))
-            reports.html.enabled = true
-            reports.html.setDestination(new File( "${project.buildDir}/${LOG_DIR}/reports/html"))
+            reports.junitXml.required = false
+            reports.junitXml.outputLocation =  new File("${project.buildDir}/${LOG_DIR}/reports/xml")
+            reports.html.required = true
+            reports.html.outputLocation = new File( "${project.buildDir}/${LOG_DIR}/reports/html")
         }
         setClasspath (project.sourceSets.uiTest.runtimeClasspath)
         setTestClassesDirs (project.sourceSets.uiTest.output.classesDirs)
