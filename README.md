@@ -15,6 +15,12 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 22.TBD)
+
+* Stop specifying `javascource` parameter when invoking XMLBeans build; server XMLBeans dependency has been upgraded to 5.0.3, which fails if this parameter is provided.
+
 ### 1.32.2
 *Released*: 11 February 2022
 (Earliest compatible LabKey version: 22.2)
