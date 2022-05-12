@@ -20,6 +20,8 @@ _Note: 1.28.0 and later require Gradle 7_
 (Earliest compatible LabKey version: 22.TBD)
 
 * Stop specifying `javascource` parameter when invoking XMLBeans build; server XMLBeans dependency has been upgraded to 5.0.3, which fails if this parameter is provided.
+* Add `@labkey/eln` to the packages PurgeNpmAlphaVersions knows about
+* Fix NPE-type error when output from `npm view` command is empty
 
 ### 1.32.2
 *Released*: 11 February 2022
