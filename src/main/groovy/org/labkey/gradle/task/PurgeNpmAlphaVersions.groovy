@@ -1,6 +1,7 @@
 package org.labkey.gradle.task
 
 import groovy.json.JsonSlurper
+import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.SystemUtils
 import org.apache.http.HttpStatus
 import org.apache.http.client.methods.CloseableHttpResponse
@@ -22,6 +23,7 @@ class PurgeNpmAlphaVersions extends DefaultTask
             '@labkey/assayreport',
             '@labkey/build',
             '@labkey/components',
+            '@labkey/eln',
             '@labkey/freezermanager',
             '@labkey/test',
             '@labkey/themes',
@@ -64,14 +66,15 @@ class PurgeNpmAlphaVersions extends DefaultTask
     {
         String npmCmd = SystemUtils.IS_OS_WINDOWS ? "npm.cmd" : "npm"
         String output = (npmCmd + " view ${packageName} versions --json").execute().text
-        def parsedJson = new JsonSlurper().parseText(output)
-        if (parsedJson instanceof ArrayList) {
-            return parsedJson.stream().filter(version -> {
-                version.matches(".+-" + alphaPrefix + "\\.\\d+")
-            }).collect(Collectors.toList())
+        if (!StringUtils.isEmpty(output)) {
+            def parsedJson = new JsonSlurper().parseText(output)
+            if (parsedJson instanceof ArrayList) {
+                return parsedJson.stream().filter(version -> {
+                    version.matches(".+-" + alphaPrefix + "\\.\\d+")
+                }).collect(Collectors.toList())
+            } else
+                throw new GradleException("Error retrieving versions for package ${packageName}: ${parsedJson.error}")
         }
-        else
-            throw new GradleException("Error retrieving versions for package ${packageName}: ${parsedJson.error}")
     }
 
     /**
