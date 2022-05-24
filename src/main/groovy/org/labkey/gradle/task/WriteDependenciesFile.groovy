@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.task
 
+import org.apache.commons.lang3.StringUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.Configuration
@@ -79,7 +80,10 @@ class WriteDependenciesFile extends DefaultTask
         List<String> licenseMissing = []
         configuration.resolvedConfiguration.resolvedArtifacts.forEach {
             ResolvedArtifact artifact ->
-                ExternalDependency dep = extension.getExternalDependency(artifact.moduleVersion.toString())
+                String versionString = artifact.moduleVersion.toString();
+                if (!StringUtils.isEmpty(artifact.getClassifier()))
+                    versionString += ":" + artifact.getClassifier()
+                ExternalDependency dep = extension.getExternalDependency(versionString)
                 if (dep) {
                     List<String> parts = new ArrayList<>()
                     parts.add(artifact.file.getName())
