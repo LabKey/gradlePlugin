@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.task
 
+import java.nio.charset.StandardCharsets
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -69,7 +70,7 @@ class WriteDependenciesFile extends DefaultTask
         }
     }
 
-    private void writeDependencies(String configurationName, OutputStream outputStream)
+    private void writeDependencies(String configurationName, OutputStreamWriter writer)
     {
         Configuration configuration = project.configurations.findByName(configurationName)
         if (configuration == null)
@@ -104,7 +105,7 @@ class WriteDependenciesFile extends DefaultTask
                         licenseMissing.add(artifact.moduleVersion.toString())
                     }
                     parts.add(dep.getPurpose() == null ? "" : dep.getPurpose())
-                    outputStream.write("${parts.join("|")}\n".getBytes());
+                    writer.write("${parts.join("|")}\n");
                 } else {
                     missing.add(artifact.moduleVersion.toString())
                 }
@@ -124,19 +125,19 @@ class WriteDependenciesFile extends DefaultTask
         if (extension.getExternalDependencies().isEmpty())
             return;
 
-        FileOutputStream outputStream = null
+        OutputStreamWriter writer = null
         try {
-            outputStream = new FileOutputStream(jarsTxtFile)
-            outputStream.write("{table}\n".getBytes())
-            outputStream.write("Filename|Component|Source|License|Purpose\n".getBytes())
-            writeDependencies("externalsNotTrans", outputStream)
-            writeDependencies("creditable", outputStream)
-            outputStream.write("{table}\n".getBytes())
+            writer = new OutputStreamWriter(new FileOutputStream(jarsTxtFile), StandardCharsets.UTF_8)
+            writer.write("{table}\n")
+            writer.write("Filename|Component|Source|License|Purpose\n")
+            writeDependencies("externalsNotTrans", writer)
+            writeDependencies("creditable", writer)
+            writer.write("{table}\n")
         }
         finally
         {
-            if (outputStream != null)
-                outputStream.close()
+            if (writer != null)
+                writer.close()
         }
     }
 
