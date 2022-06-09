@@ -15,10 +15,10 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 1.33.1
+*Released*: 9 June 2022
 (Earliest compatible LabKey version: 22.3)
-* Fix `Distribution.inheritDependencies` so the excluded modules parameter works (again0)
+* Fix `Distribution.inheritDependencies` so the excluded modules parameter works (again)
 * [Issue 45622](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=45622): Generated `jars.txt` files are encoded as 1252 (ANSI - Latin I) on Windows builds but read using UTF-8
 
 ### 1.33.0
