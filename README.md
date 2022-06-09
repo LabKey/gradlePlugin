@@ -15,9 +15,15 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 1.33.1
+*Released*: 9 June 2022
+(Earliest compatible LabKey version: 22.3)
+* Fix `Distribution.inheritDependencies` so the excluded modules parameter works (again)
+* [Issue 45622](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=45622): Generated `jars.txt` files are encoded as 1252 (ANSI - Latin I) on Windows builds but read using UTF-8
+
 ### 1.33.0
 *Released*: 24 May 2022
-(Earliest compatible LabKey version: 22.TBD)
+(Earliest compatible LabKey version: 22.3)
 
 * Stop specifying `javasource` parameter when invoking XMLBeans build; server XMLBeans dependency has been upgraded to 5.0.3, which fails if this parameter is provided.
 * Add `@labkey/eln` to the packages PurgeNpmAlphaVersions knows about

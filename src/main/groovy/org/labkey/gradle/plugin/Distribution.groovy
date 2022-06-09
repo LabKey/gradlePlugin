@@ -164,10 +164,13 @@ class Distribution implements Plugin<Project>
         project.evaluationDependsOn(inheritedProjectPath)
         project.project(inheritedProjectPath).configurations.distribution.dependencies.each {
             Dependency dep ->
-                if (dep instanceof ModuleDependency)
+                if (dep instanceof ProjectDependency) {
+                    if (!excludedModules.contains(dep.dependencyProject.path))
+                        project.dependencies.add("distribution", dep)
+                }
+                else if (dep instanceof ModuleDependency)
                     project.dependencies.add("distribution", dep)
-                else if (dep instanceof ProjectDependency && !excludedModules.contains(dep.dependencyProject.path))
-                    project.dependencies.add("distribution", dep)
+
 
         }
     }
