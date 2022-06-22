@@ -31,6 +31,7 @@ class Database implements Plugin<Project>
     {
         addPickPgTask(project)
         addPickMSSQLTask(project)
+        addPickJtdsTask(project)
         addBootstrapTask(project)
     }
 
