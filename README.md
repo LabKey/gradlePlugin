@@ -19,6 +19,7 @@ _Note: 1.28.0 and later require Gradle 7_
 *Released*: TBD
 (Earliest compatible LabKey version: 22.3)
 * Add `pickJtds` task for configuring LabKey to use the jTDS SQL Server driver
+* Update dependencies (since grgit has gone missing on mavenCentral)
 
 ### 1.33.1
 *Released*: 9 June 2022
