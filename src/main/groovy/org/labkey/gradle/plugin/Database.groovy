@@ -54,6 +54,16 @@ class Database implements Plugin<Project>
         }
     }
 
+    private static void addPickJtdsTask(Project project)
+    {
+        project.tasks.register("pickJtds", PickDb) {
+            PickDb task ->
+                task.group = GroupNames.DATABASE
+                task.description = "Switch to SQL Server configuration using jTDS driver"
+                task.dbType = "jtds"
+        }
+    }
+
     private static void addBootstrapTask(Project project)
     {
         project.tasks.register("bootstrap", Bootstrap) {
