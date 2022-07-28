@@ -56,7 +56,10 @@ class RunUiTest extends Test
                                     "-Xrunjdwp:transport=dt_socket,server=y," +
                                             "suspend=${testExt.getTestConfig("debugSuspendSelenium")}," +
                                             "address=${testExt.getTestConfig("selenium.debug.port")}",
-                                    "-Dfile.encoding=UTF-8"]
+                                    "-Dfile.encoding=UTF-8",
+                                    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                                    "--add-opens=java.base/java.util=ALL-UNNAMED"
+        ]
 
         if (project.hasProperty("uiTestJvmOpts"))
             jvmArgsList.add(project.property("uiTestJvmOpts"))

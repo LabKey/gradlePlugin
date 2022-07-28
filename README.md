@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 1.34.2
+*Released*: 28 July 2022
+(Earliest compatible LabKey version: 22.3)
+* Add `--add-opens` JVM args to test runners (removed in [Gradle 7.5](https://docs.gradle.org/7.5/userguide/upgrading_version_7.html#removes_implicit_add_opens_for_test_workers))
+
 ### 1.34.1
 *Released*: 22 June 2022
 (Earliest compatible LabKey version: 22.3)
