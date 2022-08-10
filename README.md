@@ -16,9 +16,9 @@ on how to do that, including how to develop and test locally and the versioning 
 _Note: 1.28.0 and later require Gradle 7_
 
 ### 1.34.3
-*Released*: TBD
+*Released*: 10 Aug 2022
 (Earliest compatible LabKey version: 22.3)
-* Make `TeamCity.ensureShutdown(..)` more reliable
+* Ignore harmless exceptions from `TeamCity.ensureShutdown(..)`
 
 ### 1.34.2
 *Released*: 28 July 2022
