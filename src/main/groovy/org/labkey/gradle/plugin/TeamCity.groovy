@@ -327,30 +327,30 @@ class TeamCity extends Tomcat
         }
 
         println("Waiting for graceful Tomcat shutdown.")
-        while (System.currentTimeMillis() - startTime < TOMCAT_SHUTDOWN_TIMEOUT.toMillis())
+
+        try
         {
-            try
+            while (System.currentTimeMillis() - startTime < TOMCAT_SHUTDOWN_TIMEOUT.toMillis())
             {
-                vm.mirrorOf("") // Poke VM to see if alive
+                vm.mirrorOf("") // Poke VM to see if alive. Will throw 'VMDisconnectedException' if not
                 sleep(500)
             }
-            catch (VMDisconnectedException ignore)
-            {
-                println("VM at localhost:" + port + " exited normally")
-                return
-            }
-        }
 
-        println("Tomcat did not shutdown. Forcing exit via debug port: " + port)
-        vm.suspend()
-        for (ThreadReference threadReference : vm.allThreads())
-        {
-            dumpThread(threadReference)
-            println()
+            println("Tomcat did not shutdown. Forcing exit via debug port: " + port)
+            vm.suspend()
+            for (ThreadReference threadReference : vm.allThreads()) {
+                dumpThread(threadReference)
+                println()
+            }
+            vm.resume()
+            vm.exit(1)
+            println("Killed remote VM")
         }
-        vm.resume()
-        vm.exit(1)
-        println("Killed remote VM")
+        catch (VMDisconnectedException ignore)
+        {
+            println("VM at localhost:" + port + " exited normally")
+            return
+        }
     }
 
     private static void dumpThread(ThreadReference threadReference) throws IncompatibleThreadStateException
