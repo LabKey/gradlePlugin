@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 1.34.4
+*Released*: TBD
+(Earliest compatible LabKey version: 22.3)
+* Fix formatting for some generated `jars.txt` files
+
 ### 1.34.3
 *Released*: 10 Aug 2022
 (Earliest compatible LabKey version: 22.3)
