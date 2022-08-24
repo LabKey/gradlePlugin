@@ -19,6 +19,7 @@ _Note: 1.28.0 and later require Gradle 7_
 *Released*: 24 Aug 2022
 (Earliest compatible LabKey version: 22.3)
 * Fix `Distribution.inheritDependencies` so excluded modules work when not building from source
+* Fix formatting for some generated `jars.txt` files
 
 ### 1.34.3
 *Released*: 10 Aug 2022

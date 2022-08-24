@@ -15,21 +15,17 @@
  */
 package org.labkey.gradle.task
 
-import java.nio.charset.StandardCharsets
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
-import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.ExternalDependency
+
+import java.nio.charset.StandardCharsets
 
 // This task can no longer be cacheable since we don't currently declare the jars.txt file as an output file.
 // Once there are no manually maintained jars.txt files, this can be a cacheable task
@@ -89,15 +85,15 @@ class WriteDependenciesFile extends DefaultTask
                     List<String> parts = new ArrayList<>()
                     parts.add(artifact.file.getName())
                     parts.add(dep.getComponent())
-                    if (dep.getSource() != null) {
-                        if (dep.getSourceURL() != null)
+                    if (!StringUtils.isBlank(dep.getSource())) {
+                        if (!StringUtils.isBlank(dep.getSourceURL()))
                             parts.add("{link:${dep.getSource()}|${dep.getSourceURL()}}")
                         else
                             parts.add(dep.getSource())
                     } else
                         parts.add("")
-                    if (dep.getLicenseName() != null) {
-                        if (dep.getLicenseURL() != null)
+                    if (!StringUtils.isBlank(dep.getLicenseName())) {
+                        if (!StringUtils.isBlank(dep.getLicenseURL()))
                             parts.add("{link:${dep.getLicenseName()}|${dep.getLicenseURL()}}")
                         else
                             parts.add(dep.getLicenseName())
