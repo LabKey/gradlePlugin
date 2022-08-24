@@ -678,8 +678,7 @@ class BuildUtils
 
     static String getModuleProjectPath(ModuleDependency dependency)
     {
-        String name = dependency.getName()
-        return ":server:modules:" + name;
+        return ":server:modules:" + dependency.getName()
     }
 
     static String getRepositoryKey(Project project)
