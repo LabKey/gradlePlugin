@@ -18,6 +18,7 @@ package org.labkey.gradle.util
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.labkey.gradle.plugin.extension.LabKeyExtension
@@ -673,6 +674,11 @@ class BuildUtils
         String extensionString = extension == null ? "" : "@$extension"
 
         return "${group}:${moduleName}${versionString}${extensionString}"
+    }
+
+    static String getModuleProjectPath(ModuleDependency dependency)
+    {
+        return ":server:modules:" + dependency.getName()
     }
 
     static String getRepositoryKey(Project project)

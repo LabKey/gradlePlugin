@@ -168,10 +168,8 @@ class Distribution implements Plugin<Project>
                     if (!excludedModules.contains(dep.dependencyProject.path))
                         project.dependencies.add("distribution", dep)
                 }
-                else if (dep instanceof ModuleDependency)
+                else if (dep instanceof ModuleDependency && !excludedModules.contains(BuildUtils.getModuleProjectPath(dep)))
                     project.dependencies.add("distribution", dep)
-
-
         }
     }
 
