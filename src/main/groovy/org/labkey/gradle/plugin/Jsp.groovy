@@ -88,7 +88,7 @@ class Jsp implements Plugin<Project>
                 }
         project.configurations.getByName('jspImplementation') {
             resolutionStrategy {
-                force "javax.servlet:servlet-api:${project.servletApiVersion}"
+                force "javax.servlet:javax.servlet-api:${project.servletApiVersion}"
             }
         }
     }
