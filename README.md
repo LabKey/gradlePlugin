@@ -15,8 +15,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### 1.35.0-SNAPSHOT
-*Released*: TBD
+### 1.35.0
+*Released*: 1 Sep 2022
 (Earliest compatible LabKey version: 22.9)
 * Update `javax.servlet-api` coordinates to match server
 
