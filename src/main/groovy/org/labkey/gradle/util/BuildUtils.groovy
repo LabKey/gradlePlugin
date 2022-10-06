@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.labkey.gradle.plugin.extension.LabKeyExtension
@@ -548,6 +549,26 @@ class BuildUtils
             }
         distributionProject.logger.info("${distributionProject.path}: adding ${depProjectPath} as dependency for config ${config}")
         addLabKeyDependency(project: distributionProject, config: config, depProjectPath: depProjectPath, depProjectConfig: "published", depExtension: "module", depVersion: distributionProject.labkeyVersion)
+        addModuleDependencies(distributionProject, distributionProject.findProject(depProjectPath), config)
+    }
+
+    private static void addModuleDependencies(Project distributionProject, Project depProject, String config)
+    {
+        if (depProject == null)
+            return
+
+        distributionProject.evaluationDependsOn(depProject.getPath())
+        if (depProject.configurations.findByName("modules") != null) {
+            depProject.configurations.modules.dependencies.each { dep ->
+                distributionProject.logger.info("${distributionProject.path}: Adding ${config} dependency on ${dep}")
+                distributionProject.dependencies.add(config, dep)
+                if (dep instanceof ProjectDependency)
+                {
+                    distributionProject.logger.info("${distributionProject.path}: Adding recursive ${config} dependenices from ${dep.dependencyProject}")
+                    addModuleDependencies(distributionProject, dep.dependencyProject, config)
+                }
+            }
+        }
     }
 
     static void addModuleDistributionDependency(Project distributionProject, String depProjectPath)
