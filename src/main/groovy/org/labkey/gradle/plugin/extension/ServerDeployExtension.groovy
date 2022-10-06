@@ -25,6 +25,7 @@ class ServerDeployExtension
     String webappDir
     String binDir
     String pipelineLibDir
+    Map<String, String> foundModules = new HashMap<>();
 
     static String getServerDeployDirectory(Project project)
     {
@@ -39,5 +40,20 @@ class ServerDeployExtension
     static String getModulesDeployDirectory(Project project)
     {
         return "${getServerDeployDirectory(project)}/modules"
+    }
+
+    String getFoundModule(String key)
+    {
+        return foundModules.get(key)
+    }
+
+    void addFoundModule(String key, String path)
+    {
+        foundModules.put(key, path)
+    }
+
+    void removeFoundModule(String key)
+    {
+        foundModules.remove(key)
     }
 }

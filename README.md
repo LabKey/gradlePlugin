@@ -15,6 +15,12 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 22.9)
+* Don't use static variable when checking for modules with name overlaps
+* 
+
 ### 1.35.0
 *Released*: 1 Sep 2022
 (Earliest compatible LabKey version: 22.9)

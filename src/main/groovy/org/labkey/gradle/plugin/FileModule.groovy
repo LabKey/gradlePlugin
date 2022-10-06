@@ -43,13 +43,13 @@ import java.util.regex.Matcher
  */
 class FileModule implements Plugin<Project>
 {
-    private static final Map<String, String> _foundModules = new HashMap<>();
-
     @Override
     void apply(Project project)
     {
         def moduleKey = project.getName().toLowerCase()
-        def otherPath = _foundModules.get(moduleKey)
+        ServerDeployExtension deployExt = BuildUtils.getServerProject(project).extensions.getByType(ServerDeployExtension.class)
+
+        def otherPath = deployExt.getFoundModule(moduleKey)
         def shouldBuild = shouldDoBuild(project, true)
         if (otherPath != null && !otherPath.equals(project.getPath()) && project.findProject(otherPath) != null)
         {
@@ -59,9 +59,9 @@ class FileModule implements Plugin<Project>
         else
         {
             if (shouldBuild)
-                _foundModules.put(moduleKey, project.getPath())
+                deployExt.addFoundModule(moduleKey, project.getPath())
             else
-                _foundModules.remove(moduleKey)
+                deployExt.removeFoundModule(moduleKey)
         }
 
         if (shouldBuild) {
