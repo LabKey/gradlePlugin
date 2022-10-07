@@ -549,10 +549,11 @@ class BuildUtils
             }
         distributionProject.logger.info("${distributionProject.path}: adding ${depProjectPath} as dependency for config ${config}")
         addLabKeyDependency(project: distributionProject, config: config, depProjectPath: depProjectPath, depProjectConfig: "published", depExtension: "module", depVersion: distributionProject.labkeyVersion)
-        addModuleDependencies(distributionProject, distributionProject.findProject(depProjectPath), config)
+        Set<String> pathsAdded = new HashSet<>();
+        addTransitiveModuleDependencies(distributionProject, distributionProject.findProject(depProjectPath), config, pathsAdded)
     }
 
-    private static void addModuleDependencies(Project distributionProject, Project depProject, String config)
+    private static void addTransitiveModuleDependencies(Project distributionProject, Project depProject, String config, Set<String> pathsAdded)
     {
         if (depProject == null)
             return
@@ -560,13 +561,22 @@ class BuildUtils
         distributionProject.evaluationDependsOn(depProject.getPath())
         if (depProject.configurations.findByName("modules") != null) {
             depProject.configurations.modules.dependencies.each { dep ->
-                distributionProject.logger.info("${distributionProject.path}: Adding ${config} dependency on ${dep}")
-                distributionProject.dependencies.add(config, dep)
                 if (dep instanceof ProjectDependency)
                 {
-                    distributionProject.logger.info("${distributionProject.path}: Adding recursive ${config} dependenices from ${dep.dependencyProject}")
-                    addModuleDependencies(distributionProject, dep.dependencyProject, config)
+                    if (!pathsAdded.contains(dep.getDependencyProject().getPath())) {
+                        distributionProject.logger.info("${distributionProject.path}: Adding '${config}' dependency on project ${dep}")
+                        distributionProject.dependencies.add(config, dep)
+                        pathsAdded.add(dep.getDependencyProject().getPath())
+                        distributionProject.logger.debug("${distributionProject.path}: Adding recursive '${config}' dependenices from ${dep.dependencyProject}")
+                        addTransitiveModuleDependencies(distributionProject, dep.dependencyProject, config, pathsAdded)
+                    }
                 }
+                else
+                {
+                    distributionProject.logger.info("${distributionProject.path}: Adding ${config} dependency on artifact ${dep}")
+                    distributionProject.dependencies.add(config, dep)
+                }
+
             }
         }
     }
