@@ -27,9 +27,6 @@ import org.labkey.gradle.util.ExternalDependency
 
 import java.nio.charset.StandardCharsets
 
-// This task can no longer be cacheable since we don't currently declare the jars.txt file as an output file.
-// Once there are no manually maintained jars.txt files, this can be a cacheable task
-//@CacheableTask
 class WriteDependenciesFile extends DefaultTask
 {
     // we assume that if a version number has changed, we should generate a new dependencies file
@@ -37,10 +34,6 @@ class WriteDependenciesFile extends DefaultTask
     @InputFile
     File globalProperties = project.rootProject.file("gradle.properties")
 
-    @OutputFile
-    File dependenciesFile = project.file("resources/credits/dependencies.txt")
-
-//    @OutputFile  Not declared as an output file currently since it may be manually maintained.
     private File jarsTxtFile = project.file("resources/credits/jars.txt")
 
     WriteDependenciesFile()
@@ -137,50 +130,9 @@ class WriteDependenciesFile extends DefaultTask
         }
     }
 
-    // TODO this can go away if we change all modules to use the build-generated jars.txt file
-    void writeDependenciesFile()
-    {
-        FileOutputStream outputStream = null;
-        try
-        {
-            boolean isApi = project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
-
-            outputStream = new FileOutputStream(dependenciesFile)
-            if (isApi)
-                outputStream.write("# direct external dependencies of ${project.path} and dependencies of labkey-client-api\n".getBytes())
-            else
-                outputStream.write("# direct external dependencies for project ${project.path}\n".getBytes())
-
-            Set<String> dependencySet = new HashSet<>();
-            project.configurations.externalsNotTrans
-                    .each { File file ->
-                        outputStream.write((file.getName() + "\n").getBytes());
-                        dependencySet.add(file.getName());
-                    }
-            if (isApi) {
-                if (project.configurations.findByName("creditable") != null)
-                {
-                    project.configurations.creditable.each {
-                        if (!dependencySet.contains(it.getName()))
-                        {
-                            outputStream.write((it.getName() + "\n").getBytes())
-                            dependencySet.add(it.getName())
-                        }
-                    }
-                }
-            }
-        }
-        finally
-        {
-            if (outputStream != null)
-                outputStream.close()
-        }
-    }
-
     @TaskAction
     void writeFiles()
     {
-        this.writeDependenciesFile()
         this.writeJarsTxt()
     }
 }
