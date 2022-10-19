@@ -566,6 +566,7 @@ class BuildUtils
                     if (!pathsAdded.contains(dep.getDependencyProject().getPath())) {
                         distributionProject.logger.info("${distributionProject.path}: Adding '${config}' dependency on project ${dep}")
                         distributionProject.dependencies.add(config, dep)
+                        distributionProject.evaluationDependsOn(dep.getDependencyProject().getPath())
                         pathsAdded.add(dep.getDependencyProject().getPath())
                         distributionProject.logger.debug("${distributionProject.path}: Adding recursive '${config}' dependenices from ${dep.dependencyProject}")
                         addTransitiveModuleDependencies(distributionProject, dep.dependencyProject, config, pathsAdded)
