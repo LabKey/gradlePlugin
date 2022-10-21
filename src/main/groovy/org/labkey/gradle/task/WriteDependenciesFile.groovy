@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.tasks.*
 import org.labkey.gradle.plugin.extension.ModuleExtension
-import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.ExternalDependency
 
 import java.nio.charset.StandardCharsets
@@ -34,7 +33,11 @@ class WriteDependenciesFile extends DefaultTask
     @InputFile
     File globalProperties = project.rootProject.file("gradle.properties")
 
-    private File jarsTxtFile = project.file("resources/credits/jars.txt")
+    @OutputFile
+    File getJarsTxtFile()
+    {
+        return project.file("resources/credits/jars.txt")
+    }
 
     WriteDependenciesFile()
     {
