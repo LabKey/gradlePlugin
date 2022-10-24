@@ -541,7 +541,7 @@ class BuildUtils
         }
     }
 
-    static void addModuleDistributionDependency(Project distributionProject, String depProjectPath, String config)
+    static void addModuleDistributionDependency(Project distributionProject, String depProjectPath, String config, boolean addTransitive)
     {
         if (distributionProject.configurations.findByName(config) == null)
             distributionProject.configurations {
@@ -549,8 +549,16 @@ class BuildUtils
             }
         distributionProject.logger.info("${distributionProject.path}: adding ${depProjectPath} as dependency for config ${config}")
         addLabKeyDependency(project: distributionProject, config: config, depProjectPath: depProjectPath, depProjectConfig: "published", depExtension: "module", depVersion: distributionProject.labkeyVersion)
-        Set<String> pathsAdded = new HashSet<>();
-        addTransitiveModuleDependencies(distributionProject, distributionProject.findProject(depProjectPath), config, pathsAdded)
+        if (addTransitive) {
+            Set<String> pathsAdded = new HashSet<>();
+            addTransitiveModuleDependencies(distributionProject, distributionProject.findProject(depProjectPath), config, pathsAdded)
+        }
+
+    }
+
+    static void addModuleDistributionDependency(Project distributionProject, String depProjectPath, String config)
+    {
+        addModuleDistributionDependency(distributionProject, depProjectPath, config, true)
     }
 
     private static void addTransitiveModuleDependencies(Project distributionProject, Project depProject, String config, Set<String> pathsAdded)
