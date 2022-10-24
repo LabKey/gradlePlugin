@@ -47,21 +47,21 @@ class FileModule implements Plugin<Project>
     void apply(Project project)
     {
         def moduleKey = project.getName().toLowerCase()
-        ServerDeployExtension deployExt = BuildUtils.getServerProject(project).extensions.getByType(ServerDeployExtension.class)
-
-        def otherPath = deployExt.getFoundModule(moduleKey)
         def shouldBuild = shouldDoBuild(project, true)
-        if (otherPath != null && !otherPath.equals(project.getPath()) && project.findProject(otherPath) != null)
-        {
-            if (shouldBuild)
-                throw new IllegalStateException("Found duplicate module '${project.getName()}' in ${project.getPath()} and ${otherPath}. Modules should have unique names; Rename one or exclude it from your build.")
-        }
-        else
-        {
-            if (shouldBuild)
-                deployExt.addFoundModule(moduleKey, project.getPath())
-            else
-                deployExt.removeFoundModule(moduleKey)
+        if (project.findProject(BuildUtils.getServerProjectPath(project.gradle)) != null) {
+            ServerDeployExtension deployExt = BuildUtils.getServerProject(project).extensions.getByType(ServerDeployExtension.class)
+
+            def otherPath = deployExt.getFoundModule(moduleKey)
+
+            if (otherPath != null && !otherPath.equals(project.getPath()) && project.findProject(otherPath) != null) {
+                if (shouldBuild)
+                    throw new IllegalStateException("Found duplicate module '${project.getName()}' in ${project.getPath()} and ${otherPath}. Modules should have unique names; Rename one or exclude it from your build.")
+            } else {
+                if (shouldBuild)
+                    deployExt.addFoundModule(moduleKey, project.getPath())
+                else
+                    deployExt.removeFoundModule(moduleKey)
+            }
         }
 
         if (shouldBuild) {
