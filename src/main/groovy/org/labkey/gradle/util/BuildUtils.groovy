@@ -556,11 +556,6 @@ class BuildUtils
 
     }
 
-    static void addModuleDistributionDependency(Project distributionProject, String depProjectPath, String config)
-    {
-        addModuleDistributionDependency(distributionProject, depProjectPath, config, true)
-    }
-
     private static void addTransitiveModuleDependencies(Project distributionProject, Project depProject, String config, Set<String> pathsAdded)
     {
         if (depProject == null)
@@ -590,20 +585,21 @@ class BuildUtils
         }
     }
 
-    static void addModuleDistributionDependency(Project distributionProject, String depProjectPath)
+    static void addModuleDistributionDependencies(Project distributionProject, List<String> depProjectPaths, boolean addTransitive)
     {
-        addLabKeyDependency(project: distributionProject, config: "distribution", depProjectPath: depProjectPath, depProjectConfig: "published", depExtension: "module", depVersion: distributionProject.labkeyVersion)
+        addModuleDistributionDependencies(distributionProject, depProjectPaths, "distribution", addTransitive)
     }
+
 
     static void addModuleDistributionDependencies(Project distributionProject, List<String> depProjectPaths)
     {
-        addModuleDistributionDependencies(distributionProject, depProjectPaths, "distribution")
+        addModuleDistributionDependencies(distributionProject, depProjectPaths, "distribution", true)
     }
 
-    static void addModuleDistributionDependencies(Project distributionProject, List<String> depProjectPaths, String config)
+    static void addModuleDistributionDependencies(Project distributionProject, List<String> depProjectPaths, String config, boolean addTransitive)
     {
         depProjectPaths.each{
-            String path -> addModuleDistributionDependency(distributionProject, path, config)
+            String path -> addModuleDistributionDependency(distributionProject, path, config, addTransitive)
         }
     }
 
