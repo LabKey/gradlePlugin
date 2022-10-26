@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.labkey.gradle.plugin.extension.LabKeyExtension
@@ -540,7 +541,7 @@ class BuildUtils
         }
     }
 
-    static void addModuleDistributionDependency(Project distributionProject, String depProjectPath, String config)
+    static void addModuleDistributionDependency(Project distributionProject, String depProjectPath, String config, boolean addTransitive)
     {
         if (distributionProject.configurations.findByName(config) == null)
             distributionProject.configurations {
@@ -548,22 +549,57 @@ class BuildUtils
             }
         distributionProject.logger.info("${distributionProject.path}: adding ${depProjectPath} as dependency for config ${config}")
         addLabKeyDependency(project: distributionProject, config: config, depProjectPath: depProjectPath, depProjectConfig: "published", depExtension: "module", depVersion: distributionProject.labkeyVersion)
+        if (addTransitive) {
+            Set<String> pathsAdded = new HashSet<>();
+            addTransitiveModuleDependencies(distributionProject, distributionProject.findProject(depProjectPath), config, pathsAdded)
+        }
+
     }
 
-    static void addModuleDistributionDependency(Project distributionProject, String depProjectPath)
+    private static void addTransitiveModuleDependencies(Project distributionProject, Project depProject, String config, Set<String> pathsAdded)
     {
-        addLabKeyDependency(project: distributionProject, config: "distribution", depProjectPath: depProjectPath, depProjectConfig: "published", depExtension: "module", depVersion: distributionProject.labkeyVersion)
+        if (depProject == null)
+            return
+
+        distributionProject.evaluationDependsOn(depProject.getPath())
+        if (depProject.configurations.findByName("modules") != null) {
+            depProject.configurations.modules.dependencies.each { dep ->
+                if (dep instanceof ProjectDependency)
+                {
+                    if (!pathsAdded.contains(dep.getDependencyProject().getPath())) {
+                        distributionProject.logger.info("${distributionProject.path}: Adding '${config}' dependency on project ${dep}")
+                        distributionProject.dependencies.add(config, dep)
+                        distributionProject.evaluationDependsOn(dep.getDependencyProject().getPath())
+                        pathsAdded.add(dep.getDependencyProject().getPath())
+                        distributionProject.logger.debug("${distributionProject.path}: Adding recursive '${config}' dependenices from ${dep.dependencyProject}")
+                        addTransitiveModuleDependencies(distributionProject, dep.dependencyProject, config, pathsAdded)
+                    }
+                }
+                else
+                {
+                    distributionProject.logger.info("${distributionProject.path}: Adding ${config} dependency on artifact ${dep}")
+                    distributionProject.dependencies.add(config, dep)
+                }
+
+            }
+        }
     }
+
+    static void addModuleDistributionDependencies(Project distributionProject, List<String> depProjectPaths, boolean addTransitive)
+    {
+        addModuleDistributionDependencies(distributionProject, depProjectPaths, "distribution", addTransitive)
+    }
+
 
     static void addModuleDistributionDependencies(Project distributionProject, List<String> depProjectPaths)
     {
-        addModuleDistributionDependencies(distributionProject, depProjectPaths, "distribution")
+        addModuleDistributionDependencies(distributionProject, depProjectPaths, "distribution", true)
     }
 
-    static void addModuleDistributionDependencies(Project distributionProject, List<String> depProjectPaths, String config)
+    static void addModuleDistributionDependencies(Project distributionProject, List<String> depProjectPaths, String config, boolean addTransitive)
     {
         depProjectPaths.each{
-            String path -> addModuleDistributionDependency(distributionProject, path, config)
+            String path -> addModuleDistributionDependency(distributionProject, path, config, addTransitive)
         }
     }
 
