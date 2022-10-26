@@ -15,8 +15,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 1.36.0
+*Released*: 26 October 2022
 (Earliest compatible LabKey version: 22.9)
 * Don't use static variable when checking for modules with name overlaps
 * When adding distribution dependencies, include all dependencies from the modules configuration for each project
