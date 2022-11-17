@@ -76,7 +76,9 @@ class ApplyLicenses implements Plugin<Project>
                             "Implementation-Title": "Internal API classes",
                             "Implementation-Vendor": "LabKey"
                     )
-                    jar.dependsOn(project.project(BuildUtils.getApiProjectPath(project.gradle)).tasks.findByName("module"))
+                    if (project.findProject(BuildUtils.getApiProjectPath(project.gradle))) {
+                        jar.dependsOn(project.project(BuildUtils.getApiProjectPath(project.gradle)).tasks.findByName("module"))
+                    }
             }
         }
     }
