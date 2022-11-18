@@ -96,11 +96,10 @@ class ApplyLicenses implements Plugin<Project>
             project.tasks.register('verifyLicensePatch') {
                 dependsOn(patchApiTask)
                 doLast {
-                    [project.configurations.extJs3Commercial, project.configurations.extJs3Commercial].forEach {
+                    [project.configurations.extJs3Commercial, project.configurations.extJs4Commercial].forEach {
                         def commercialLicense = project.zipTree(it.singleFile).matching {
                             include '*/license.txt'
                         }.singleFile
-                        project.logger.warn 'parent name ' + commercialLicense.parentFile.name
                         def patchedLicense = project.zipTree(patchApiTask.get().outputs.files.singleFile).matching {
                             include 'web/' + commercialLicense.parentFile.name + '/license.txt'
                         }.singleFile
