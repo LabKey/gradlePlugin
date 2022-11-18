@@ -19,6 +19,7 @@ _Note: 1.28.0 and later require Gradle 7_
 *Released*: TBD
 (Earliest compatible LabKey version: 22.9)
 * Check for the presence of the API project before adding task dependency to `patchApiModule`. Allows building distributions with a minimal enlistment.
+* Make `patchApiModule` task more reliable
 
 ### 1.36.0
 *Released*: 26 October 2022
