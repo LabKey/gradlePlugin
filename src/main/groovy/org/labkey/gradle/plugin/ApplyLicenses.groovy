@@ -1,11 +1,12 @@
-package org.labkey.gradle.plugin;
+package org.labkey.gradle.plugin
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
-import org.gradle.api.file.DuplicatesStrategy
 
 class ApplyLicenses implements Plugin<Project>
 {
@@ -52,7 +53,7 @@ class ApplyLicenses implements Plugin<Project>
     private static void addTasks(Project project)
     {
         if (!BuildUtils.isOpenSource(project)) {
-            project.tasks.register('patchApiModule', Jar) {
+            var patchApiTask = project.tasks.register('patchApiModule', Jar) {
                 Jar jar ->
                     jar.group = GroupNames.DISTRIBUTION
                     jar.description = "Patches the api module to replace ExtJS libraries with commercial versions"
@@ -90,6 +91,24 @@ class ApplyLicenses implements Plugin<Project>
                     if (project.findProject(BuildUtils.getApiProjectPath(project.gradle))) {
                         jar.dependsOn(project.project(BuildUtils.getApiProjectPath(project.gradle)).tasks.findByName("module"))
                     }
+            }
+
+            project.tasks.register('verifyLicensePatch') {
+                dependsOn(patchApiTask)
+                doLast {
+                    [project.configurations.extJs3Commercial, project.configurations.extJs3Commercial].forEach {
+                        def commercialLicense = project.zipTree(it.singleFile).matching {
+                            include '*/license.txt'
+                        }.singleFile
+                        project.logger.warn 'parent name ' + commercialLicense.parentFile.name
+                        def patchedLicense = project.zipTree(patchApiTask.get().outputs.files.singleFile).matching {
+                            include 'web/' + commercialLicense.parentFile.name + '/license.txt'
+                        }.singleFile
+                        if (commercialLicense.length() != patchedLicense.length()) {
+                            throw new GradleException("License files didn't match for " + commercialLicense.parentFile.name)
+                        }
+                    }
+                }
             }
         }
     }
