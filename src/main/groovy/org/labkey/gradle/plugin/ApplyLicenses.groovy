@@ -1,11 +1,12 @@
-package org.labkey.gradle.plugin;
+package org.labkey.gradle.plugin
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
-import org.gradle.api.file.DuplicatesStrategy
 
 class ApplyLicenses implements Plugin<Project>
 {
@@ -23,13 +24,15 @@ class ApplyLicenses implements Plugin<Project>
     {
         project.configurations
         {
-            extJsCommercial
+            extJs3Commercial
+            extJs4Commercial
             licensePatch {
                 canBeConsumed = true
                 canBeResolved = true
             }
         }
-        project.configurations.extJsCommercial.setDescription("extJs commercial license libraries")
+        project.configurations.extJs3Commercial.setDescription("extJs 3 commercial license libraries")
+        project.configurations.extJs4Commercial.setDescription("extJs 4 commercial license libraries")
         project.configurations.licensePatch.setDescription("Modules that require patching with commercial-license libraries")
     }
 
@@ -38,8 +41,9 @@ class ApplyLicenses implements Plugin<Project>
     {
         if (!BuildUtils.isOpenSource(project)) {
             project.dependencies {
-                extJsCommercial "com.sencha.extjs:extjs:4.2.1:commercial@zip"
-                extJsCommercial "com.sencha.extjs:extjs:3.4.1:commercial@zip"
+                // Can't have two versions of the same dependency in one configuration
+                extJs4Commercial "com.sencha.extjs:extjs:4.2.1:commercial@zip"
+                extJs3Commercial "com.sencha.extjs:extjs:3.4.1:commercial@zip"
             }
 
             BuildUtils.addLabKeyDependency(project, "licensePatch", BuildUtils.getApiProjectPath(project.gradle), "published", project.getVersion().toString(), "module")
@@ -49,7 +53,7 @@ class ApplyLicenses implements Plugin<Project>
     private static void addTasks(Project project)
     {
         if (!BuildUtils.isOpenSource(project)) {
-            project.tasks.register('patchApiModule', Jar) {
+            var patchApiTask = project.tasks.register('patchApiModule', Jar) {
                 Jar jar ->
                     jar.group = GroupNames.DISTRIBUTION
                     jar.description = "Patches the api module to replace ExtJS libraries with commercial versions"
@@ -61,13 +65,21 @@ class ApplyLicenses implements Plugin<Project>
                     jar.outputs.cacheIf({ true })
                     // first include the ext-3.4.1 and ext-4.2.1 directories from the extjs configuration artifacts
                     jar.into('web') {
-                        from project.configurations.extJsCommercial.collect {
+                        from project.configurations.extJs3Commercial.collect {
+                            project.zipTree(it)
+                        }
+                    }
+                    jar.into('web') {
+                        from project.configurations.extJs4Commercial.collect {
                             project.zipTree(it)
                         }
                     }
                     // include the original module file ...
                     jar.from project.configurations.licensePatch.collect {
-                        project.zipTree(it)
+                        project.zipTree(it).matching {
+                            // DuplicatesStrategy.EXCLUDE doesn't seem to work in some environments
+                            exclude('web/ext-*/**')
+                        }
                     }
                     // ... but don't use the ext directories that come from that file
                     jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
@@ -76,7 +88,26 @@ class ApplyLicenses implements Plugin<Project>
                             "Implementation-Title": "Internal API classes",
                             "Implementation-Vendor": "LabKey"
                     )
-                    jar.dependsOn(project.project(BuildUtils.getApiProjectPath(project.gradle)).tasks.findByName("module"))
+                    if (project.findProject(BuildUtils.getApiProjectPath(project.gradle))) {
+                        jar.dependsOn(project.project(BuildUtils.getApiProjectPath(project.gradle)).tasks.findByName("module"))
+                    }
+            }
+
+            project.tasks.register('verifyLicensePatch') {
+                dependsOn(patchApiTask)
+                doLast {
+                    [project.configurations.extJs3Commercial, project.configurations.extJs4Commercial].forEach {
+                        def commercialLicense = project.zipTree(it.singleFile).matching {
+                            include '*/license.txt'
+                        }.singleFile
+                        def patchedLicense = project.zipTree(patchApiTask.get().outputs.files.singleFile).matching {
+                            include 'web/' + commercialLicense.parentFile.name + '/license.txt'
+                        }.singleFile
+                        if (commercialLicense.length() != patchedLicense.length()) {
+                            throw new GradleException("License files didn't match for " + commercialLicense.parentFile.name)
+                        }
+                    }
+                }
             }
         }
     }
