@@ -235,7 +235,9 @@ class TeamCity extends Tomcat
                 }
             }
             TaskProvider undeployTaskProvider = project.tasks.named(undeployTaskName)
-            project.tasks.startTomcat.mustRunAfter(undeployTaskProvider)
+            project.tasks.named("startTomcat").configure {
+                mustRunAfter(undeployTaskProvider)
+            }
 
             project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startTomcat.mustRunAfter(setUpDbTask)
             String ciTestTaskName = "ciTests" + properties.dbTypeAndVersion.capitalize()
