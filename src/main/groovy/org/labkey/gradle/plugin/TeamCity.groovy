@@ -261,7 +261,7 @@ class TeamCity extends Tomcat
             String inheritedDistPath = extension.getTeamCityProperty('labkey.startup.includeDistModules')
             project.logger.info("inheriting from distribution ${inheritedDistPath}")
             project.evaluationDependsOn(inheritedDistPath)
-            def distListModulesTask = project.tasks.register("distListModules", Task) {
+            def includeDistModulesTask = project.tasks.register("includeDistModules", Task) {
                 Task task ->
                     task.group = GroupNames.TEST_SERVER
                     task.description = "Generate server properties file to run with modules from a specified distribution"
@@ -279,7 +279,7 @@ class TeamCity extends Tomcat
             }
 
             project.tasks.named("startTomcat").configure {
-                dependsOn(distListModulesTask)
+                dependsOn(includeDistModulesTask)
             }
         }
 
