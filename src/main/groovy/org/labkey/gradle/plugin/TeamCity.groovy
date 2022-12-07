@@ -142,6 +142,10 @@ class TeamCity extends Tomcat
             }
         }
 
+        project.tasks.named("startTomcat").configure {
+            dependsOn(project.tasks.createStartupPropertyFile)
+        }
+
         project.tasks.register("createNlpConfig", Copy) {
             Copy task ->
                 task.group = GroupNames.TEST_SERVER
