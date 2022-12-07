@@ -253,7 +253,7 @@ class TeamCity extends Tomcat
         if (!extension.getTeamCityProperty('labkey.startup.includeDistModules').isBlank())
         {
             String inheritedDistPath = extension.getTeamCityProperty('labkey.startup.includeDistModules')
-            project.logger.info("inheriting from distribution ${includeModulesFromDist}")
+            project.logger.info("inheriting from distribution ${inheritedDistPath}")
             project.evaluationDependsOn(inheritedDistPath)
             def distListModulesTask = project.tasks.register("distListModules", Task) {
                 Task task ->
