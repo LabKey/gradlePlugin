@@ -136,7 +136,7 @@ class TeamCity extends Tomcat
 
         project.tasks.register("createStartupPropertyFile") {
             doLast {
-                String properties = extension.getTeamCityProperty('', '')
+                String properties = extension.getTeamCityProperty('labkey.startup.properties')
 
                 extension.writeStartupProperties('99_teamcity_startup.properties', properties)
             }
@@ -250,9 +250,9 @@ class TeamCity extends Tomcat
 
         }
 
-        if (project.hasProperty('includeModulesFromDist') && !project.property('includeModulesFromDist').isBlank())
+        if (!extension.getTeamCityProperty('labkey.startup.includeDistModules').isBlank())
         {
-            String inheritedDistPath = project.property('includeModulesFromDist')
+            String inheritedDistPath = extension.getTeamCityProperty('labkey.startup.includeDistModules')
             project.logger.info("inheriting from distribution ${includeModulesFromDist}")
             project.evaluationDependsOn(inheritedDistPath)
             def distListModulesTask = project.tasks.register("distListModules", Task) {
