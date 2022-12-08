@@ -15,8 +15,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### 1.36.2
-*Released*: TBD
+### 1.37.0
+*Released*: 8 December 2022
 (Earliest compatible LabKey version: 22.9)
 * Add `createStartupPropertyFile` task to define arbitrary LabKey startup properties
   * Controlled by `labkey.startup.properties` TeamCity property
