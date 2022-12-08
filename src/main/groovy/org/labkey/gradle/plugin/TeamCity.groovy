@@ -268,10 +268,7 @@ class TeamCity extends Tomcat
                     task.doLast {
                         List<String> includeModules = new ArrayList<>();
                         project.project(inheritedDistPath).configurations.distribution.dependencies.each {
-                            Dependency dep ->
-                                if (dep instanceof ProjectDependency || dep instanceof ModuleDependency) {
-                                    includeModules.add(dep.getName())
-                                }
+                            includeModules.add(it.getName())
                         }
                         extension.writeStartupProperties('00_modulesInclude.properties',
                                 'ModuleLoader.include;startup=' + String.join(',', includeModules))
