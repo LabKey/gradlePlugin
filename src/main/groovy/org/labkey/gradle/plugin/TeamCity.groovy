@@ -23,9 +23,6 @@ import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.JavaExecSpec
@@ -259,17 +256,20 @@ class TeamCity extends Tomcat
         if (!extension.getTeamCityProperty('labkey.startup.includeDistModules').isBlank())
         {
             String inheritedDistPath = extension.getTeamCityProperty('labkey.startup.includeDistModules')
-            project.logger.info("inheriting from distribution ${inheritedDistPath}")
             project.evaluationDependsOn(inheritedDistPath)
             def includeDistModulesTask = project.tasks.register("includeDistModules", Task) {
                 Task task ->
                     task.group = GroupNames.TEST_SERVER
                     task.description = "Generate server properties file to run with modules from a specified distribution"
                     task.doLast {
-                        List<String> includeModules = new ArrayList<>();
+                        project.logger.info("inheriting from distribution ${inheritedDistPath}")
+                        Set<String> includeModules = new HashSet<>();
                         project.project(inheritedDistPath).configurations.distribution.dependencies.each {
                             includeModules.add(it.getName())
                         }
+
+                        includeModules.addAll(extension.getTeamCityProperty('labkey.startup.includeDistModules.additional').split(','))
+
                         extension.writeStartupProperties('00_modulesInclude.properties',
                                 'ModuleLoader.include;startup=' + String.join(',', includeModules))
                     }
