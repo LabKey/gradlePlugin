@@ -107,11 +107,11 @@ class TeamCity extends Tomcat
         }
 
 
-        project.tasks.stopTomcat.doLast (
-                {
-                    ensureShutdown(project)
-                }
-        )
+        project.tasks.named("stopTomcat").configure {
+            doLast {
+                ensureShutdown(project)
+            }
+        }
 
         project.tasks.register("killChrome") {
             Task task ->
@@ -129,6 +129,18 @@ class TeamCity extends Tomcat
                 task.doLast {
                     killFirefox(project)
                 }
+        }
+
+        project.tasks.register("createStartupPropertyFile") {
+            doLast {
+                String properties = extension.getTeamCityProperty('labkey.startup.properties')
+
+                extension.writeStartupProperties('99_teamcity_startup.properties', properties)
+            }
+        }
+
+        project.tasks.named("startTomcat").configure {
+            dependsOn(project.tasks.createStartupPropertyFile)
         }
 
         project.tasks.register("createNlpConfig", Copy) {
@@ -152,7 +164,9 @@ class TeamCity extends Tomcat
 
         }
 
-        project.tasks.startTomcat.dependsOn(project.tasks.createNlpConfig)
+        project.tasks.named("startTomcat").configure {
+            dependsOn(project.tasks.createNlpConfig)
+        }
 
         project.tasks.register("validateConfiguration") {
             Task task ->
@@ -218,7 +232,9 @@ class TeamCity extends Tomcat
                 }
             }
             TaskProvider undeployTaskProvider = project.tasks.named(undeployTaskName)
-            project.tasks.startTomcat.mustRunAfter(undeployTaskProvider)
+            project.tasks.named("startTomcat").configure {
+                mustRunAfter(undeployTaskProvider)
+            }
 
             project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startTomcat.mustRunAfter(setUpDbTask)
             String ciTestTaskName = "ciTests" + properties.dbTypeAndVersion.capitalize()
@@ -237,6 +253,33 @@ class TeamCity extends Tomcat
 
         }
 
+        if (!extension.getTeamCityProperty('labkey.startup.includeDistModules').isBlank())
+        {
+            String inheritedDistPath = extension.getTeamCityProperty('labkey.startup.includeDistModules')
+            project.evaluationDependsOn(inheritedDistPath)
+            def includeDistModulesTask = project.tasks.register("includeDistModules", Task) {
+                Task task ->
+                    task.group = GroupNames.TEST_SERVER
+                    task.description = "Generate server properties file to run with modules from a specified distribution"
+                    task.doLast {
+                        project.logger.info("inheriting from distribution ${inheritedDistPath}")
+                        Set<String> includeModules = new HashSet<>();
+                        project.project(inheritedDistPath).configurations.distribution.dependencies.each {
+                            includeModules.add(it.getName())
+                        }
+
+                        includeModules.addAll(extension.getTeamCityProperty('labkey.startup.includeDistModules.additional').split(','))
+
+                        extension.writeStartupProperties('00_modulesInclude.properties',
+                                'ModuleLoader.include;startup=' + String.join(',', includeModules))
+                    }
+            }
+
+            project.tasks.named("startTomcat").configure {
+                dependsOn(includeDistModulesTask)
+            }
+        }
+
         project.tasks.register("ciTests") {
             Task task ->
                 task.group = GroupNames.TEST_SERVER
@@ -249,7 +292,9 @@ class TeamCity extends Tomcat
                     }
                 )
         }
-        project.tasks.startTomcat.mustRunAfter(project.tasks.cleanTestLogs)
+        project.tasks.named("startTomcat").configure {
+            mustRunAfter(project.tasks.cleanTestLogs)
+        }
     }
 
     private static void killChrome(Project project)
