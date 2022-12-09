@@ -15,8 +15,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 1.37.1
+*Released*: 9 December 2022
 (Earliest compatible LabKey version: 22.9)
 * Update pacakge names for PurgeNpmAlphaVersions task to include @labkey/premium
 
