@@ -25,6 +25,7 @@ class PurgeNpmAlphaVersions extends DefaultTask
             '@labkey/components',
             '@labkey/eln',
             '@labkey/freezermanager',
+            '@labkey/premium',
             '@labkey/test',
             '@labkey/themes',
             '@labkey/workflow'
