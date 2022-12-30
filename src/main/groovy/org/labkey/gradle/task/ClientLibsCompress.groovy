@@ -18,10 +18,13 @@ package org.labkey.gradle.task
 import com.yahoo.platform.yui.compressor.CssCompressor
 import com.yahoo.platform.yui.compressor.JavaScriptCompressor
 import org.apache.commons.io.IOUtils
+import org.apache.commons.lang3.tuple.Pair
 import org.apache.tools.ant.util.FileUtils
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
@@ -51,7 +54,6 @@ class ClientLibsCompress extends DefaultTask
     FileTree xmlFiles
     private List<File> inputFiles = null
     private List<File> outputFiles = null
-    @OutputDirectories
     private List<File> outputDirs = null
 
     /**
@@ -67,6 +69,12 @@ class ClientLibsCompress extends DefaultTask
                 importerMap.put(file, parseXmlFile(getSourceDir(file), file))
         }
         return importerMap;
+    }
+
+    static File getMinificationDir(Project project)
+    {
+        return project.project(BuildUtils.getMinificationProjectPath(project.gradle))
+                .file("modules/${project.name}")
     }
 
     static File getSourceDir(File libXmlFile)
@@ -106,9 +114,9 @@ class ClientLibsCompress extends DefaultTask
                 {
                     inputFiles.addAll(entry.value.getCssFiles())
                 }
-                if (entry.value.getJavaScriptFiles().size() > 0)
+                if (entry.value.getJavascriptFiles().size() > 0)
                 {
-                    inputFiles.addAll(entry.value.getJavaScriptFiles())
+                    inputFiles.addAll(entry.value.getJavascriptFiles())
                 }
             }
         }
@@ -117,8 +125,7 @@ class ClientLibsCompress extends DefaultTask
 
     File getMinificationWorkingDir(File libXmlFile)
     {
-        return project.project(BuildUtils.getMinificationProjectPath(project.gradle))
-                .file("${project.name}/${libXmlFile.name.substring(0, libXmlFile.name.length() - LIB_XML_EXTENSION.length())}")
+        return new File(getMinificationDir(project), "${libXmlFile.name.substring(0, libXmlFile.name.length() - LIB_XML_EXTENSION.length())}")
     }
 
     @OutputFiles
@@ -138,7 +145,7 @@ class ClientLibsCompress extends DefaultTask
                     outputFiles.add(getOutputFile(workingFile, "min", "css"))
                     outputFiles.add(getOutputFile(workingFile, "combined", "css"))
                 }
-                if (entry.value.getJavaScriptFiles().size() > 0)
+                if (entry.value.getJavascriptFiles().size() > 0)
                 {
                     outputFiles.add(getOutputFile(workingFile, "min", "js"))
                     outputFiles.add(getOutputFile(workingFile, "combined", "js"))
@@ -148,6 +155,7 @@ class ClientLibsCompress extends DefaultTask
         return outputFiles
     }
 
+    @OutputDirectories
     List<File> getOutputDirs()
     {
         if (outputDirs == null) {
@@ -155,7 +163,8 @@ class ClientLibsCompress extends DefaultTask
 
             getImporterMap().entrySet().each { Map.Entry<File, XmlImporter> entry ->
                 {
-                    outputDirs.add(getMinificationWorkingDir(entry.key))
+                    if (entry.value.doCompile && entry.value.hasFilesToCompress())
+                        outputDirs.add(getMinificationWorkingDir(entry.key))
                 }
             }
         }
@@ -188,10 +197,10 @@ class ClientLibsCompress extends DefaultTask
                 }
                 else
                 {
-                    if (importer.getJavaScriptFiles().size() > 0)
-                        compileScripts(xmlFile, importer.getJavaScriptFiles(), "js")
+                    if (importer.getJavascriptFiles().size() > 0)
+                        compileScriptsViaYui(xmlFile, importer.getJavascriptFiles(), "js")
                     if (importer.getCssFiles().size() > 0)
-                        compileScripts(xmlFile, importer.getCssFiles(), "css")
+                        compileScriptsViaYui(xmlFile, importer.getCssFiles(), "css")
                 }
             }
             catch (Exception e)
@@ -225,39 +234,53 @@ class ClientLibsCompress extends DefaultTask
         }
     }
 
+    @Internal
+    String getNpmCommand()
+    {
+        Project minProject = project.project(BuildUtils.getMinificationProjectPath(project.gradle))
+        return "${minProject.projectDir}/.gradle/npm/npm-v${minProject.npmVersion}/bin/${NpmRun.getNpmCommand()}"
+    }
+
     void minifyViaNpm(File xmlFile, XmlImporter importer)
     {
-        File cssFile = concatenateCssFiles(xmlFile, importer.cssFiles)
-        createPackageJson(xmlFile, importer.javaScriptFiles, cssFile)
-
-        getMinificationWorkingDir(xmlFile).mkdirs()
-        project.ant.exec(
-            executable: NpmRun.getNpmCommand(),
-            dir: getMinificationWorkingDir(xmlFile)
-        )
-        {
-            arg(line:"run minify-js" )
-        }
-        if (cssFile != null) {
-            project.ant.exec(
-                executable: NpmRun.getNpmCommand(),
-                dir: getMinificationWorkingDir(xmlFile)
-            )
-            {
-                arg(line: "run minify-css")
+        if (importer.hasFilesToCompress()) {
+            File cssFile = concatenateCssFiles(xmlFile, importer.cssFiles)
+            Pair<File, File> minFiles = createPackageJson(xmlFile, importer.javascriptFiles, cssFile)
+            if (!importer.hasJavascriptFiles()) {
+                project.ant.exec(
+                    executable: getNpmCommand(),
+                    dir: getMinificationWorkingDir(xmlFile)
+                )
+                    {
+                        arg(line: "run minify-js")
+                    }
+                compressFile(minFiles.left)
+            }
+            if (importer.hasCssFiles()) {
+                project.ant.exec(
+                    executable: getNpmCommand(),
+                    dir: getMinificationWorkingDir(xmlFile)
+                )
+                    {
+                        arg(line: "run minify-css")
+                    }
+                compressFile(minFiles.right)
             }
         }
     }
 
-    void createPackageJson(File xmlFile, Set<File> jsFiles, File allCssFile)
+    Pair<File, File> createPackageJson(File xmlFile, Set<File> jsFiles, File allCssFile)
     {
         project.logger.quiet("Creating package.json file for ${xmlFile.getAbsolutePath()}")
+        File jsMinFile = null
+        File cssMinFile = null
+
         File sourceDir = getSourceDir(xmlFile)
         File workingFile = new File(xmlFile.getAbsolutePath().replace(sourceDir.getAbsolutePath(), workingDir.getAbsolutePath()))
-        File jsMinFile = getOutputFile(workingFile, "min", "js")
+
         String jsFileNames = jsFiles.stream().map(jsFile -> jsFile.getAbsolutePath()).collect(Collectors.joining(" "))
         File packageJson = new File(getMinificationWorkingDir(xmlFile), "package.json")
-        String sanitizedName = xmlFile.name.substring(0, xmlFile.name.length()-".lib.xml".length()).toLowerCase()
+        String sanitizedName = xmlFile.name.substring(0, xmlFile.name.length()-LIB_XML_EXTENSION.length())
         packageJson.createNewFile()
         StringBuffer buffer = new StringBuffer("")
         buffer.append("")
@@ -268,12 +291,14 @@ class ClientLibsCompress extends DefaultTask
                 "  \"scripts\": {\n")
         String comma = "\n"
         if (!jsFiles.isEmpty()) {
+            jsMinFile = getOutputFile(workingFile, "min", "js")
             buffer.append(
                     "    \"minify-js\": \"terser ${jsFileNames} -o ${jsMinFile.getAbsolutePath()}\""
             )
             comma = ",\n"
         }
         if (allCssFile != null) {
+            cssMinFile = getOutputFile(workingFile, "min", "css")
             buffer.append(comma)
             buffer.append(
                     "    \"minify-css\": \"postcss ${allCssFile.getAbsolutePath()} --ext min.css --dir ${workingDir.getAbsolutePath()}\""
@@ -292,6 +317,7 @@ class ClientLibsCompress extends DefaultTask
         {
             IOUtils.closeQuietly(writer)
         }
+        return Pair.of(jsMinFile, cssMinFile)
     }
 
 
@@ -307,8 +333,19 @@ class ClientLibsCompress extends DefaultTask
         return concatFile
     }
 
+    void compressFile(File file)
+    {
+        if (!LabKeyExtension.isDevMode(project))
+        {
+            this.logger.info("Compressing " + file);
+            project.ant.gzip(
+                    src: file,
+                    destfile: "${file}.gz"
+            )
+        }
+    }
 
-    void compileScripts(File xmlFile, Set<File> srcFiles, String extension) throws IOException, InterruptedException
+    void compileScriptsViaYui(File xmlFile, Set<File> srcFiles, String extension) throws IOException, InterruptedException
     {
         File sourceDir = getSourceDir(xmlFile)
         File workingFile = new File(xmlFile.getAbsolutePath().replace(sourceDir.getAbsolutePath(), workingDir.getAbsolutePath()))
@@ -324,15 +361,7 @@ class ClientLibsCompress extends DefaultTask
         minifyFile(concatFile, minFile);
 
         concatFile.delete();
-
-        if (!LabKeyExtension.isDevMode(project))
-        {
-            this.logger.info("Compressing " + extension + " files");
-            project.ant.gzip(
-                    src: minFile,
-                    destfile: "${minFile.toString()}.gz"
-            )
-        }
+        compressFile(minFile)
     }
 
     static String getNewExtensionFileName(File xmlFile, String token, String ex)
@@ -420,7 +449,7 @@ class ClientLibsCompress extends DefaultTask
         private boolean withinScriptsTag = false
         private File xmlFile
         private File sourceDir
-        private LinkedHashSet<File> javaScriptFiles = new LinkedHashSet<>()
+        private LinkedHashSet<File> javascriptFiles = new LinkedHashSet<>()
         private LinkedHashSet<File> cssFiles = new LinkedHashSet<>()
         private boolean doCompile = true
 
@@ -430,9 +459,24 @@ class ClientLibsCompress extends DefaultTask
             this.sourceDir = sourceDir
         }
 
-        LinkedHashSet<File> getJavaScriptFiles()
+        boolean hasFilesToCompress()
         {
-            return javaScriptFiles
+            return hasJavascriptFiles() || hasCssFiles()
+        }
+
+        boolean hasJavascriptFiles()
+        {
+            return !javascriptFiles.isEmpty()
+        }
+
+        LinkedHashSet<File> getJavascriptFiles()
+        {
+            return javascriptFiles
+        }
+
+        boolean hasCssFiles()
+        {
+            return !cssFiles.isEmpty()
         }
 
         LinkedHashSet<File> getCssFiles()
@@ -487,7 +531,7 @@ class ClientLibsCompress extends DefaultTask
                     }
 
                     if (scriptFile.getName().endsWith(".js"))
-                        javaScriptFiles.add(scriptFile);
+                        javascriptFiles.add(scriptFile);
                     else if (scriptFile.getName().endsWith(".css"))
                         cssFiles.add(scriptFile);
                     else
