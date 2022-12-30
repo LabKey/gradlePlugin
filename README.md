@@ -20,7 +20,7 @@ _Note: 1.28.0 and later require Gradle 7_
 (Earliest compatible LabKey version: 22.9)
 * Update `ClientLibsCompress` task to use npm packages instead of the ancient YuiCompressor
   * Use [terser](https://github.com/terser/terser) for javascript minification 
-  * Use [cssnano[(https://cssnano.co/)] via [postcss](https://github.com/postcss/postcss) for css minification
+  * Use [cssnano](https://cssnano.co/) via [postcss](https://github.com/postcss/postcss) for css minification
 
 ### 1.37.1
 *Released*: 9 December 2022
