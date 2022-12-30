@@ -234,8 +234,8 @@ class ClientLibsCompress extends DefaultTask
         }
     }
 
-    @Internal
-    String getNpmCommand()
+
+    private String getNpmCommand()
     {
         Project minProject = project.project(BuildUtils.getMinificationProjectPath(project.gradle))
         return "${minProject.projectDir}/.gradle/npm/npm-v${minProject.npmVersion}/bin/${NpmRun.getNpmCommand()}"

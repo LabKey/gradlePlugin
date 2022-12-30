@@ -103,7 +103,7 @@ class BuildUtils
                 getPlatformModuleProjectPath(gradle, "filecontent"),
                 getPlatformModuleProjectPath(gradle, "pipeline"),
                 getPlatformModuleProjectPath(gradle, "query"),
-                getMinificationProjectPath(gradle) // required for building
+                getMinificationProjectPath(gradle) // required for building using npm for lib.xml files compression
         ]
     }
 

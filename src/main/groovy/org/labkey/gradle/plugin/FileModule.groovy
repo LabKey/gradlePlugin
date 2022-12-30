@@ -214,7 +214,8 @@ class FileModule implements Plugin<Project>
                 moduleFile.dependsOn(project.tasks.named('compressClientLibs'))
             project.tasks.build.dependsOn(moduleFile)
             project.tasks.clean.dependsOn(project.tasks.named('cleanModule'))
-            project.tasks.clean.dependsOn(project.tasks.named('cleanClientLibs'))
+            if (ClientLibraries.useNpmMinifier(project))
+                project.tasks.clean.dependsOn(project.tasks.named('cleanClientLibs'))
 
             project.artifacts
                     {

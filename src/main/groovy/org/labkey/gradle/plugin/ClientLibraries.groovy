@@ -40,6 +40,11 @@ class ClientLibraries
         )
     }
 
+    static boolean useNpmMinifier(Project project)
+    {
+        return project.hasProperty("useNpmMinifier")
+    }
+
     static void addTasks(Project project)
     {
         String minProjectPath = BuildUtils.getMinificationProjectPath(project.gradle)
@@ -48,20 +53,24 @@ class ClientLibraries
                 task.group = GroupNames.CLIENT_LIBRARIES
                 task.description = 'create minified, compressed javascript file using .lib.xml sources'
                 task.dependsOn ( project.tasks.processResources )
-                task.dependsOn(project.project(minProjectPath).tasks.findByName("npmInstall"))
+                if (useNpmMinifier(project))
+                    task.dependsOn(project.project(minProjectPath).tasks.findByName("npmInstall"))
                 task.xmlFiles = getLibXmlFiles(project)
         }
-        project.evaluationDependsOn(minProjectPath)
+        if (useNpmMinifier(project))
+            project.evaluationDependsOn(minProjectPath)
         project.tasks.assemble.dependsOn(project.tasks.compressClientLibs)
 
-        project.tasks.register("cleanClientLibs", Delete) {
-            Delete task ->
-                task.group = GroupNames.CLIENT_LIBRARIES
-                task.description = "Removes ${ClientLibsCompress.getMinificationDir(project)}"
-                task.configure({ DeleteSpec delete ->
-                    if (ClientLibsCompress.getMinificationDir(project).exists())
-                        delete.delete(ClientLibsCompress.getMinificationDir(project))
-                })
+        if (useNpmMinifier(project)) {
+            project.tasks.register("cleanClientLibs", Delete) {
+                Delete task ->
+                    task.group = GroupNames.CLIENT_LIBRARIES
+                    task.description = "Removes ${ClientLibsCompress.getMinificationDir(project)}"
+                    task.configure({ DeleteSpec delete ->
+                        if (ClientLibsCompress.getMinificationDir(project).exists())
+                            delete.delete(ClientLibsCompress.getMinificationDir(project))
+                    })
+            }
         }
     }
 }
