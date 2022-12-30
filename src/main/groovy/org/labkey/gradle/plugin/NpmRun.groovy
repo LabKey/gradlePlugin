@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.plugin
 
+import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -45,6 +46,11 @@ class NpmRun implements Plugin<Project>
     static boolean isApplicable(Project project)
     {
         return project.file(NPM_PROJECT_FILE).exists()
+    }
+
+    static String getNpmCommand()
+    {
+        return SystemUtils.IS_OS_WINDOWS ? "npm.cmd" : "npm"
     }
 
     @Override

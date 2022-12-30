@@ -301,6 +301,11 @@ class BuildUtils
         return getProjectPath(gradle, "embeddedProjectPath", ":server:embedded")
     }
 
+    static String getMinificationProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "minificationProjectPath", ":server:minification")
+    }
+
     static String getApiProjectPath(Gradle gradle)
     {
         return getProjectPath(gradle, "apiProjectPath", ":server:modules:platform:api")

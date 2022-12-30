@@ -19,6 +19,7 @@ package org.labkey.gradle.plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.labkey.gradle.task.ClientLibsCompress
+import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
 /**
@@ -39,14 +40,16 @@ class ClientLibraries
 
     static void addTasks(Project project)
     {
+        String minProjectPath = BuildUtils.getMinificationProjectPath(project.gradle)
         project.tasks.register("compressClientLibs", ClientLibsCompress) {
             ClientLibsCompress task ->
                 task.group = GroupNames.CLIENT_LIBRARIES
                 task.description = 'create minified, compressed javascript file using .lib.xml sources'
                 task.dependsOn ( project.tasks.processResources )
+                task.dependsOn(project.project(minProjectPath).tasks.findByName("npmInstall"))
                 task.xmlFiles = getLibXmlFiles(project)
         }
-
+        project.evaluationDependsOn(minProjectPath)
         project.tasks.assemble.dependsOn(project.tasks.compressClientLibs)
     }
 }
