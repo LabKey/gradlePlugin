@@ -279,14 +279,8 @@ class ClientLibsCompress extends DefaultTask
                     "    \"minify-css\": \"postcss ${allCssFile.getAbsolutePath()} --ext min.css --dir ${workingDir.getAbsolutePath()}\""
             )
         }
-        buffer.append("\n")
         buffer.append(
-                "  },\n" +
-                "  \"devDependencies\": {\n" +
-                "    \"cssnano\": \"^${project.cssnanoVersion}\",\n" +
-                "    \"postcss\": \"^${project.postcssVersion}\",\n" +
-                "    \"postcss-cli\": \"^${project.postcssCliVersion}\",\n" +
-                "    \"terser\": \"^${project.terserVersion}\"\n" +
+                "\n" +
                 "  }\n" +
                 "}")
         PrintWriter writer = null
