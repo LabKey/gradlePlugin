@@ -24,10 +24,10 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.plugin.ClientLibraries
 import org.labkey.gradle.plugin.NpmRun
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.util.BuildUtils
@@ -161,10 +161,12 @@ class ClientLibsCompress extends DefaultTask
         if (outputDirs == null) {
             outputDirs = new ArrayList<>()
 
-            getImporterMap().entrySet().each { Map.Entry<File, XmlImporter> entry ->
-                {
-                    if (entry.value.doCompile && entry.value.hasFilesToCompress())
-                        outputDirs.add(getMinificationWorkingDir(entry.key))
+            if (ClientLibraries.useNpmMinifier(project)) {
+                getImporterMap().entrySet().each { Map.Entry<File, XmlImporter> entry ->
+                    {
+                        if (entry.value.doCompile && entry.value.hasFilesToCompress())
+                            outputDirs.add(getMinificationWorkingDir(entry.key))
+                    }
                 }
             }
         }
@@ -191,7 +193,7 @@ class ClientLibsCompress extends DefaultTask
         {
             try
             {
-                if (project.hasProperty("useNpmMinifier"))
+                if (ClientLibraries.useNpmMinifier(project))
                 {
                     minifyViaNpm(xmlFile, importer)
                 }
