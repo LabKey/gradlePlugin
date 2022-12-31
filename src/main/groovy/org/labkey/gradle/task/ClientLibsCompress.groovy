@@ -248,7 +248,7 @@ class ClientLibsCompress extends DefaultTask
         if (importer.hasFilesToCompress()) {
             File cssFile = concatenateCssFiles(xmlFile, importer.cssFiles)
             Pair<File, File> minFiles = createPackageJson(xmlFile, importer.javascriptFiles, cssFile)
-            if (!importer.hasJavascriptFiles()) {
+            if (importer.hasJavascriptFiles()) {
                 project.ant.exec(
                     executable: getNpmCommand(),
                     dir: getMinificationWorkingDir(xmlFile)
