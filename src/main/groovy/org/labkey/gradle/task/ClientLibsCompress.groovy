@@ -18,6 +18,7 @@ package org.labkey.gradle.task
 import com.yahoo.platform.yui.compressor.CssCompressor
 import com.yahoo.platform.yui.compressor.JavaScriptCompressor
 import org.apache.commons.io.IOUtils
+import org.apache.commons.lang3.SystemUtils
 import org.apache.commons.lang3.tuple.Pair
 import org.apache.tools.ant.util.FileUtils
 import org.gradle.api.DefaultTask
@@ -240,7 +241,7 @@ class ClientLibsCompress extends DefaultTask
     private String getNpmCommand()
     {
         Project minProject = project.project(BuildUtils.getMinificationProjectPath(project.gradle))
-        return "${minProject.projectDir}/.gradle/npm/npm-v${minProject.npmVersion}/bin/${NpmRun.getNpmCommand()}"
+        return "${minProject.projectDir}/.gradle/npm/npm-v${minProject.npmVersion}${SystemUtils.IS_OS_WINDOWS ? '' : '/bin'}/${NpmRun.getNpmCommand()}"
     }
 
     void minifyViaNpm(File xmlFile, XmlImporter importer)
