@@ -213,7 +213,7 @@ class ClientLibsCompress extends DefaultTask
         }
         else
         {
-            this.logger.info("No compile necessary");
+            this.logger.info("No compile necessary for ${xmlFile}");
         }
     }
 
@@ -250,6 +250,7 @@ class ClientLibsCompress extends DefaultTask
             File cssFile = concatenateCssFiles(xmlFile, importer.cssFiles)
             Pair<File, File> minFiles = createPackageJson(xmlFile, importer.javascriptFiles, cssFile)
             if (importer.hasJavascriptFiles()) {
+                project.logger.info("Compressing Javascript files for ${xmlFile}")
                 project.ant.exec(
                     executable: getNpmCommand(),
                     dir: getMinificationWorkingDir(xmlFile)
@@ -260,6 +261,7 @@ class ClientLibsCompress extends DefaultTask
                 compressFile(minFiles.left)
             }
             if (importer.hasCssFiles()) {
+                project.logger.info("Compressing css files for ${xmlFile}")
                 project.ant.exec(
                     executable: getNpmCommand(),
                     dir: getMinificationWorkingDir(xmlFile)
@@ -274,7 +276,6 @@ class ClientLibsCompress extends DefaultTask
 
     Pair<File, File> createPackageJson(File xmlFile, Set<File> jsFiles, File allCssFile)
     {
-        project.logger.quiet("Creating package.json file for ${xmlFile.getAbsolutePath()}")
         File jsMinFile = null
         File cssMinFile = null
 
@@ -283,6 +284,7 @@ class ClientLibsCompress extends DefaultTask
 
         String jsFileNames = jsFiles.stream().map(jsFile -> jsFile.getAbsolutePath()).collect(Collectors.joining(" "))
         File packageJson = new File(getMinificationWorkingDir(xmlFile), "package.json")
+        project.logger.info("Creating ${packageJson} for ${xmlFile.getAbsolutePath()}")
         String sanitizedName = xmlFile.name.substring(0, xmlFile.name.length()-LIB_XML_EXTENSION.length())
         packageJson.createNewFile()
         StringBuffer buffer = new StringBuffer("")
