@@ -22,9 +22,11 @@ import org.apache.commons.lang3.SystemUtils
 import org.apache.commons.lang3.tuple.Pair
 import org.apache.tools.ant.util.FileUtils
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
@@ -241,11 +243,17 @@ class ClientLibsCompress extends DefaultTask
         }
     }
 
-
-    private String getNpmCommand()
+    @Internal
+    String getNodeExecutableDir()
     {
         Project minProject = project.project(BuildUtils.getMinificationProjectPath(project.gradle))
-        return "${minProject.projectDir}/.gradle/npm/npm-v${minProject.npmVersion}${SystemUtils.IS_OS_WINDOWS ? '' : '/bin'}/${NpmRun.getNpmCommand()}"
+        String nodeFilePrefix = "node-v${project.nodeVersion}-"
+        File nodeDir = new File("${minProject.projectDir}/.gradle/nodejs")
+        File[] nodeFiles = nodeDir.listFiles({ File file -> file.name.startsWith(nodeFilePrefix) } as FileFilter)
+        if (nodeFiles != null && nodeFiles.length > 0)
+            return "${nodeFiles[0].getAbsolutePath()}${SystemUtils.IS_OS_WINDOWS ? '' : '/bin'}"
+        else
+            return null
     }
 
     void minifyViaNpm(File xmlFile, XmlImporter importer)
@@ -254,13 +262,20 @@ class ClientLibsCompress extends DefaultTask
             File cssFile = concatenateCssFiles(xmlFile, importer.cssFiles)
             Pair<File, File> minFiles = createPackageJson(xmlFile, importer.javascriptFiles, cssFile)
             if (importer.hasJavascriptFiles()) {
-                project.logger.quiet("Compressing Javascript files for ${xmlFile}")
+                String executableDir = getNodeExecutableDir()
+                if (executableDir == null)
+                    throw new GradleException("Could not find expected files in ${BuildUtils.getMinificationProjectPath(project.gradle)} project")
+                project.logger.quiet("Compressing Javascript files for ${xmlFile} with ${executableDir} in ${getMinificationWorkingDir(xmlFile)}")
                 project.ant.exec(
-                    executable: getNpmCommand(),
+                    executable: "${executableDir}/${NpmRun.getNpmCommand()}",
                     dir: getMinificationWorkingDir(xmlFile)
                 )
                     {
                         arg(line: "run minify-js")
+                        env(
+                                key: "PATH",
+                                value: "${executableDir}${File.pathSeparator}${System.getenv("PATH")}"
+                        )
                     }
                 project.logger.quiet("DONE Compressing Javascript files as ${minFiles.left}")
                 compressFile(minFiles.left)
@@ -268,11 +283,15 @@ class ClientLibsCompress extends DefaultTask
             if (importer.hasCssFiles()) {
                 project.logger.quiet("Compressing css files for ${xmlFile}")
                 project.ant.exec(
-                    executable: getNpmCommand(),
+                    executable: "${executableDir}/${NpmRun.getNpmCommand()}",
                     dir: getMinificationWorkingDir(xmlFile)
                 )
                     {
                         arg(line: "run minify-css")
+                        env(
+                                key: "PATH",
+                                value: "${executableDir}${File.pathSeparator}${System.getenv("PATH")}"
+                        )
                     }
                 project.logger.quiet("DONE Compressing css files as ${minFiles.right}")
                 compressFile(minFiles.right)
