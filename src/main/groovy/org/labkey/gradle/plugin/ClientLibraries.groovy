@@ -69,6 +69,7 @@ class ClientLibraries
                     task.configure({ DeleteSpec delete ->
                         if (ClientLibsCompress.getMinificationDir(project).exists())
                             delete.delete(ClientLibsCompress.getMinificationDir(project))
+                        delete.delete(project.tasks.findByName("compressClientLibs").outputs.files)
                     })
             }
         }
