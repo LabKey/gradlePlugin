@@ -140,15 +140,19 @@ class ClientLibsCompress extends DefaultTask
                 // The output file will be in the working directory not in the source directory used when parsing the file.
                 String fileName = entry.key.getAbsolutePath()
                 fileName = fileName.replace(entry.value.sourceDir.getAbsolutePath(), workingDir.getAbsolutePath())
-                File workingFile = new File(fileName)
+                File workingFile = project.file(fileName)
                 if (entry.value.getCssFiles().size() > 0)
                 {
                     outputFiles.add(getOutputFile(workingFile, "min", "css"))
+                    if (LabKeyExtension.isDevMode(project))
+                        outputFiles.add(getOutputFile(workingFile, "min", "css.gz"))
                     outputFiles.add(getOutputFile(workingFile, "combined", "css"))
                 }
                 if (entry.value.getJavascriptFiles().size() > 0)
                 {
                     outputFiles.add(getOutputFile(workingFile, "min", "js"))
+                    if (LabKeyExtension.isDevMode(project))
+                        outputFiles.add(getOutputFile(workingFile, "min", "js.gz"))
                     outputFiles.add(getOutputFile(workingFile, "combined", "js"))
                 }
             }
@@ -250,7 +254,7 @@ class ClientLibsCompress extends DefaultTask
             File cssFile = concatenateCssFiles(xmlFile, importer.cssFiles)
             Pair<File, File> minFiles = createPackageJson(xmlFile, importer.javascriptFiles, cssFile)
             if (importer.hasJavascriptFiles()) {
-                project.logger.info("Compressing Javascript files for ${xmlFile}")
+                project.logger.quiet("Compressing Javascript files for ${xmlFile}")
                 project.ant.exec(
                     executable: getNpmCommand(),
                     dir: getMinificationWorkingDir(xmlFile)
@@ -258,10 +262,11 @@ class ClientLibsCompress extends DefaultTask
                     {
                         arg(line: "run minify-js")
                     }
+                project.logger.quiet("DONE Compressing Javascript files as ${minFiles.left}")
                 compressFile(minFiles.left)
             }
             if (importer.hasCssFiles()) {
-                project.logger.info("Compressing css files for ${xmlFile}")
+                project.logger.quiet("Compressing css files for ${xmlFile}")
                 project.ant.exec(
                     executable: getNpmCommand(),
                     dir: getMinificationWorkingDir(xmlFile)
@@ -269,6 +274,7 @@ class ClientLibsCompress extends DefaultTask
                     {
                         arg(line: "run minify-css")
                     }
+                project.logger.quiet("DONE Compressing css files as ${minFiles.right}")
                 compressFile(minFiles.right)
             }
         }
