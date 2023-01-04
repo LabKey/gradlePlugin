@@ -259,10 +259,10 @@ class ClientLibsCompress extends DefaultTask
     void minifyViaNpm(File xmlFile, XmlImporter importer)
     {
         if (importer.hasFilesToCompress()) {
+            String executableDir = getNodeExecutableDir()
             File cssFile = concatenateCssFiles(xmlFile, importer.cssFiles)
             Pair<File, File> minFiles = createPackageJson(xmlFile, importer.javascriptFiles, cssFile)
             if (importer.hasJavascriptFiles()) {
-                String executableDir = getNodeExecutableDir()
                 if (executableDir == null)
                     throw new GradleException("Could not find expected files in ${BuildUtils.getMinificationProjectPath(project.gradle)} project")
                 project.logger.quiet("Compressing Javascript files for ${xmlFile} with ${executableDir} in ${getMinificationWorkingDir(xmlFile)}")
