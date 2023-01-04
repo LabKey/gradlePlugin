@@ -203,7 +203,6 @@ class FileModule implements Plugin<Project>
                     jar.archiveExtension.set('module')
                     jar.destinationDirectory = project.buildDir
                     jar.outputs.cacheIf({true})
-                    jar.doFirst({project.logger.quiet("STARTING module jar construction")})
             }
 
             Task moduleFile = project.tasks.module
