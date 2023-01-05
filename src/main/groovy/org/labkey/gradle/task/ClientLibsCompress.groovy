@@ -198,23 +198,16 @@ class ClientLibsCompress extends DefaultTask
         }
         else if (importer.doCompile)
         {
-            try
+            if (ClientLibraries.useNpmMinifier(project))
             {
-                if (ClientLibraries.useNpmMinifier(project))
-                {
-                    minifyViaNpm(xmlFile, importer)
-                }
-                else
-                {
-                    if (importer.getJavascriptFiles().size() > 0)
-                        compileScriptsViaYui(xmlFile, importer.getJavascriptFiles(), "js")
-                    if (importer.getCssFiles().size() > 0)
-                        compileScriptsViaYui(xmlFile, importer.getCssFiles(), "css")
-                }
+                minifyViaNpm(xmlFile, importer)
             }
-            catch (Exception e)
+            else
             {
-                throw new SAXException(e);
+                if (importer.getJavascriptFiles().size() > 0)
+                    compileScriptsViaYui(xmlFile, importer.getJavascriptFiles(), "js")
+                if (importer.getCssFiles().size() > 0)
+                    compileScriptsViaYui(xmlFile, importer.getCssFiles(), "css")
             }
         }
         else
@@ -259,6 +252,7 @@ class ClientLibsCompress extends DefaultTask
     void minifyViaNpm(File xmlFile, XmlImporter importer)
     {
         if (importer.hasFilesToCompress()) {
+            String propPrefix = "minifiy${xmlFile.name.substring(0, xmlFile.name.length()-LIB_XML_EXTENSION.length())}"
             String executableDir = getNodeExecutableDir()
             File cssFile = concatenateCssFiles(xmlFile, importer.cssFiles)
             Pair<File, File> minFiles = createPackageJson(xmlFile, importer.javascriptFiles, cssFile)
@@ -267,9 +261,9 @@ class ClientLibsCompress extends DefaultTask
                     throw new GradleException("Could not find expected files in ${BuildUtils.getMinificationProjectPath(project.gradle)} project")
                 project.logger.quiet("Compressing Javascript files for ${xmlFile} with ${executableDir} in ${getMinificationWorkingDir(xmlFile)}")
                 project.ant.exec(
-                    outputproperty:"minifyJsText",
-                    errorproperty: "minifyJsError",
-                    resultproperty: "minifyJsExitValue",
+                    outputproperty:"${propPrefix}JsText",
+                    errorproperty: "${propPrefix}JsError",
+                    resultproperty: "${propPrefix}JsExitValue",
                     executable: "${executableDir}/${NpmRun.getNpmCommand()}",
                     dir: getMinificationWorkingDir(xmlFile)
                 )
@@ -280,11 +274,11 @@ class ClientLibsCompress extends DefaultTask
                                 value: "${executableDir}${File.pathSeparator}${System.getenv("PATH")}"
                         )
                     }
-                project.logger.quiet("${project.path} ${xmlFile} ant text ${project.ant.project.properties.minifyJsText}")
-                project.logger.quiet("${project.path} ${xmlFile} ant error ${project.ant.project.properties.minifyJsError}")
-                project.logger.quiet("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.minifyJsExitValue}")
-//                if (project.ant.project.properties.minifyJsExitValue != '0')
-//                    throw new GradleException("Error compressing Javascript files for ${xmlFile}.\n Output: ${project.ant.project.properties.minifyJsText}.\n Error: ${project.ant.project.properties.minifyJsError} ")
+                project.logger.quiet("${project.path} ${xmlFile} ant text ${project.ant.project.properties.get(propPrefix + 'JsText')}")
+                project.logger.quiet("${project.path} ${xmlFile} ant error ${project.ant.project.properties.get(propPrefix + 'JsError')}")
+                project.logger.quiet("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.get(propPrefix + 'JsExitValue')}")
+                if (project.ant.project.properties.get(propPrefix + 'JsExitValue') != '0')
+                    throw new GradleException("Error compressing Javascript files for ${xmlFile}. Exit code ${project.ant.project.properties.get(propPrefix + 'JsExitValue')}.\n Output: ${project.ant.project.properties.get(propPrefix + 'JsText')}.\n Error: ${project.ant.project.properties.get(propPrefix + 'JsError')} ")
 
                 project.logger.quiet("DONE Compressing Javascript files as ${minFiles.left}")
                 compressFile(minFiles.left)
@@ -292,9 +286,9 @@ class ClientLibsCompress extends DefaultTask
             if (importer.hasCssFiles()) {
                 project.logger.quiet("Compressing css files for ${xmlFile}")
                 project.ant.exec(
-                    outputproperty:"minifyCssText",
-                    errorproperty: "minifyCssError",
-                    resultproperty: "minifyCssExitValue",
+                    outputproperty:"${propPrefix}CssText",
+                    errorproperty: "${propPrefix}CssError",
+                    resultproperty: "${propPrefix}CssExitValue",
                     executable: "${executableDir}/${NpmRun.getNpmCommand()}",
                     dir: getMinificationWorkingDir(xmlFile)
                 )
@@ -305,12 +299,11 @@ class ClientLibsCompress extends DefaultTask
                                 value: "${executableDir}${File.pathSeparator}${System.getenv("PATH")}"
                         )
                     }
-
-                project.logger.quiet("${project.path} ${xmlFile} ant text ${project.ant.project.properties.minifyCssText}")
-                project.logger.quiet("${project.path} ${xmlFile} ant error ${project.ant.project.properties.minifyCssError}")
-                project.logger.quiet("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.minifyCssExitValue}")
-//                if (project.ant.project.properties.exitValue != '0')
-//                    throw new GradleException("Error compressing css files for ${xmlFile}.\n Output: ${project.ant.project.properties.minifyCssText}.\n Error: ${project.ant.project.properties.minifyCssError} ")
+                project.logger.quiet("${project.path} ${xmlFile} ant text ${project.ant.project.properties.get(propPrefix + 'CssText')}")
+                project.logger.quiet("${project.path} ${xmlFile} ant error ${project.ant.project.properties.get(propPrefix + 'CssError')}")
+                project.logger.quiet("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.get(propPrefix + 'CssExitValue')}")
+                if (project.ant.project.properties.get(propPrefix + 'CssExitValue') != '0')
+                    throw new GradleException("Error compressing css files for ${xmlFile}. Exit code ${project.ant.project.properties.get(propPrefix + 'CssExitValue')}.\n Output: ${project.ant.project.properties.get(propPrefix + 'CssText')}.\n Error: ${project.ant.project.properties.get(propPrefix + 'CssError')} ")
                 project.logger.quiet("DONE Compressing css files as ${minFiles.right}")
                 compressFile(minFiles.right)
             }
@@ -349,7 +342,7 @@ class ClientLibsCompress extends DefaultTask
             cssMinFile = getOutputFile(workingFile, "min", "css")
             buffer.append(comma)
             buffer.append(
-                    "    \"minify-css\": \"postcss ${allCssFile.getAbsolutePath()} --ext min.css --dir ${workingDir.getAbsolutePath()}\""
+                    "    \"minify-css\": \"postcss ${allCssFile.getAbsolutePath()} --ext min.css --dir ${cssMinFile.parentFile.getAbsolutePath()}\""
             )
         }
         buffer.append(
