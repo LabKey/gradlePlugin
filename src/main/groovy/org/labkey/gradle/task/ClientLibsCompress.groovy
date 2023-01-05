@@ -267,6 +267,9 @@ class ClientLibsCompress extends DefaultTask
                     throw new GradleException("Could not find expected files in ${BuildUtils.getMinificationProjectPath(project.gradle)} project")
                 project.logger.quiet("Compressing Javascript files for ${xmlFile} with ${executableDir} in ${getMinificationWorkingDir(xmlFile)}")
                 project.ant.exec(
+                    outputproperty:"text",
+                    errorproperty: "error",
+                    resultproperty: "exitValue",
                     executable: "${executableDir}/${NpmRun.getNpmCommand()}",
                     dir: getMinificationWorkingDir(xmlFile)
                 )
@@ -277,6 +280,12 @@ class ClientLibsCompress extends DefaultTask
                                 value: "${executableDir}${File.pathSeparator}${System.getenv("PATH")}"
                         )
                     }
+                project.logger.quiet("${project.path} ${xmlFile} ant text ${project.ant.project.properties.text}")
+                project.logger.quiet("${project.path} ${xmlFile} ant error ${project.ant.project.properties.error}")
+                project.logger.quiet("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.exitValue}")
+                if (project.ant.project.properties.exitValue != '0')
+                    throw new GradleException("Error compressing Javascript files for ${xmlFile}.\n Output: ${project.ant.project.properties.text}.\n Error: ${project.ant.project.properties.text} ")
+
                 project.logger.quiet("DONE Compressing Javascript files as ${minFiles.left}")
                 compressFile(minFiles.left)
             }
@@ -296,9 +305,12 @@ class ClientLibsCompress extends DefaultTask
                                 value: "${executableDir}${File.pathSeparator}${System.getenv("PATH")}"
                         )
                     }
+
                 project.logger.quiet("${project.path} ${xmlFile} ant text ${project.ant.project.properties.text}")
                 project.logger.quiet("${project.path} ${xmlFile} ant error ${project.ant.project.properties.error}")
                 project.logger.quiet("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.exitValue}")
+                if (project.ant.project.properties.exitValue != '0')
+                    throw new GradleException("Error compressing css files for ${xmlFile}.\n Output: ${project.ant.project.properties.text}.\n Error: ${project.ant.project.properties.text} ")
                 project.logger.quiet("DONE Compressing css files as ${minFiles.right}")
                 compressFile(minFiles.right)
             }
