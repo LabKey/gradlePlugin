@@ -283,6 +283,9 @@ class ClientLibsCompress extends DefaultTask
             if (importer.hasCssFiles()) {
                 project.logger.quiet("Compressing css files for ${xmlFile}")
                 project.ant.exec(
+                    outputproperty:"text",
+                    errorproperty: "error",
+                    resultproperty: "exitValue",
                     executable: "${executableDir}/${NpmRun.getNpmCommand()}",
                     dir: getMinificationWorkingDir(xmlFile)
                 )
@@ -293,6 +296,9 @@ class ClientLibsCompress extends DefaultTask
                                 value: "${executableDir}${File.pathSeparator}${System.getenv("PATH")}"
                         )
                     }
+                project.logger.quiet("${project.path} ${xmlFile} ant text ${project.ant.project.properties.text}")
+                project.logger.quiet("${project.path} ${xmlFile} ant error ${project.ant.project.properties.error}")
+                project.logger.quiet("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.exitValue}")
                 project.logger.quiet("DONE Compressing css files as ${minFiles.right}")
                 compressFile(minFiles.right)
             }
