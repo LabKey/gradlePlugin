@@ -310,6 +310,11 @@ class ClientLibsCompress extends DefaultTask
         }
     }
 
+    static String escapeBackslashPaths(String path)
+    {
+        return path.replaceAll("\\\\", "\\\\\\\\")
+    }
+
     Pair<File, File> createPackageJson(File xmlFile, Set<File> jsFiles, File allCssFile)
     {
         File jsMinFile = null
@@ -318,7 +323,9 @@ class ClientLibsCompress extends DefaultTask
         File sourceDir = getSourceDir(xmlFile)
         File workingFile = new File(xmlFile.getAbsolutePath().replace(sourceDir.getAbsolutePath(), workingDir.getAbsolutePath()))
 
-        String jsFileNames = jsFiles.stream().map(jsFile -> jsFile.getAbsolutePath()).collect(Collectors.joining(" "))
+        String jsFileNames = jsFiles.stream().map(jsFile ->
+                escapeBackslashPaths(jsFile.getAbsolutePath()))
+                .collect(Collectors.joining(" "))
         File packageJson = new File(getMinificationWorkingDir(xmlFile), "package.json")
         project.logger.info("Creating ${packageJson} for ${xmlFile.getAbsolutePath()}")
         String sanitizedName = xmlFile.name.substring(0, xmlFile.name.length()-LIB_XML_EXTENSION.length())
@@ -334,7 +341,7 @@ class ClientLibsCompress extends DefaultTask
         if (!jsFiles.isEmpty()) {
             jsMinFile = getOutputFile(workingFile, "min", "js")
             buffer.append(
-                    "    \"minify-js\": \"terser ${jsFileNames} -o ${jsMinFile.getAbsolutePath()}\""
+                    "    \"minify-js\": \"terser ${jsFileNames} -o ${escapeBackslashPaths(jsMinFile.getAbsolutePath())}\""
             )
             comma = ",\n"
         }
@@ -342,7 +349,7 @@ class ClientLibsCompress extends DefaultTask
             cssMinFile = getOutputFile(workingFile, "min", "css")
             buffer.append(comma)
             buffer.append(
-                    "    \"minify-css\": \"postcss ${allCssFile.getAbsolutePath()} --ext min.css --dir ${cssMinFile.parentFile.getAbsolutePath()}\""
+                    "    \"minify-css\": \"postcss ${escapeBackslashPaths(allCssFile.getAbsolutePath())} --ext min.css --dir ${escapeBackslashPaths(cssMinFile.parentFile.getAbsolutePath())}\""
             )
         }
         buffer.append(
