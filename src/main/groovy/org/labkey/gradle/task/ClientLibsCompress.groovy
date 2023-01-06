@@ -254,8 +254,9 @@ class ClientLibsCompress extends DefaultTask
         if (importer.hasFilesToCompress()) {
             String propPrefix = "minifiy${xmlFile.name.substring(0, xmlFile.name.length()-LIB_XML_EXTENSION.length())}"
             String executableDir = getNodeExecutableDir()
-            File cssFile = concatenateCssFiles(xmlFile, importer.cssFiles)
-            Pair<File, File> minFiles = createPackageJson(xmlFile, importer.javascriptFiles, cssFile)
+            File cssFile = concatenateFilesForNpm(xmlFile, importer.cssFiles, "css")
+            File jsFile = concatenateFilesForNpm(xmlFile, importer.javascriptFiles, "js")
+            Pair<File, File> minFiles = createPackageJson(xmlFile, jsFile, cssFile)
             if (importer.hasJavascriptFiles()) {
                 if (executableDir == null)
                     throw new GradleException("Could not find expected files in ${BuildUtils.getMinificationProjectPath(project.gradle)} project")
@@ -315,7 +316,7 @@ class ClientLibsCompress extends DefaultTask
         return path.replaceAll("\\\\", "\\\\\\\\")
     }
 
-    Pair<File, File> createPackageJson(File xmlFile, Set<File> jsFiles, File allCssFile)
+    Pair<File, File> createPackageJson(File xmlFile, File allJsFile, File allCssFile)
     {
         File jsMinFile = null
         File cssMinFile = null
@@ -323,9 +324,6 @@ class ClientLibsCompress extends DefaultTask
         File sourceDir = getSourceDir(xmlFile)
         File workingFile = new File(xmlFile.getAbsolutePath().replace(sourceDir.getAbsolutePath(), workingDir.getAbsolutePath()))
 
-        String jsFileNames = jsFiles.stream().map(jsFile ->
-                escapeBackslashPaths(jsFile.getAbsolutePath()))
-                .collect(Collectors.joining(" "))
         File packageJson = new File(getMinificationWorkingDir(xmlFile), "package.json")
         project.logger.info("Creating ${packageJson} for ${xmlFile.getAbsolutePath()}")
         String sanitizedName = xmlFile.name.substring(0, xmlFile.name.length()-LIB_XML_EXTENSION.length())
@@ -338,10 +336,10 @@ class ClientLibsCompress extends DefaultTask
                 "  \"private\": true,\n" +
                 "  \"scripts\": {\n")
         String comma = "\n"
-        if (!jsFiles.isEmpty()) {
+        if (allJsFile != null) {
             jsMinFile = getOutputFile(workingFile, "min", "js")
             buffer.append(
-                    "    \"minify-js\": \"terser ${jsFileNames} -o ${escapeBackslashPaths(jsMinFile.getAbsolutePath())}\""
+                    "    \"minify-js\": \"terser ${escapeBackslashPaths(allJsFile.getAbsolutePath())} -o ${escapeBackslashPaths(jsMinFile.getAbsolutePath())}\""
             )
             comma = ",\n"
         }
@@ -368,15 +366,14 @@ class ClientLibsCompress extends DefaultTask
         return Pair.of(jsMinFile, cssMinFile)
     }
 
-
-    File concatenateCssFiles(File xmlFile, Set<File> srcFiles)
+    File concatenateFilesForNpm(File xmlFile, Set<File> srcFiles, String extension)
     {
         if (srcFiles.isEmpty())
             return null;
 
 
-        File concatFile = new File(getMinificationWorkingDir(xmlFile), getNewExtensionFileName(xmlFile, null, "css"))
-        this.logger.info("Concatenating css files into single file ${concatFile}")
+        File concatFile = new File(getMinificationWorkingDir(xmlFile), getNewExtensionFileName(xmlFile, null, extension))
+        this.logger.info("Concatenating ${extension} files into single file ${concatFile}")
         concatenateFiles(srcFiles, concatFile)
         return concatFile
     }
