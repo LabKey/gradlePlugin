@@ -259,7 +259,7 @@ class ClientLibsCompress extends DefaultTask
             if (importer.hasJavascriptFiles()) {
                 if (executableDir == null)
                     throw new GradleException("Could not find expected files in ${BuildUtils.getMinificationProjectPath(project.gradle)} project")
-                project.logger.quiet("Compressing Javascript files for ${xmlFile} with ${executableDir} in ${getMinificationWorkingDir(xmlFile)}")
+                project.logger.info("Compressing Javascript files for ${xmlFile} with ${executableDir} in ${getMinificationWorkingDir(xmlFile)}")
                 project.ant.exec(
                     outputproperty:"${propPrefix}JsText",
                     errorproperty: "${propPrefix}JsError",
@@ -274,17 +274,17 @@ class ClientLibsCompress extends DefaultTask
                                 value: "${executableDir}${File.pathSeparator}${System.getenv("PATH")}"
                         )
                     }
-                project.logger.quiet("${project.path} ${xmlFile} ant text ${project.ant.project.properties.get(propPrefix + 'JsText')}")
-                project.logger.quiet("${project.path} ${xmlFile} ant error ${project.ant.project.properties.get(propPrefix + 'JsError')}")
-                project.logger.quiet("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.get(propPrefix + 'JsExitValue')}")
+                project.logger.debug("${project.path} ${xmlFile} ant text ${project.ant.project.properties.get(propPrefix + 'JsText')}")
+                project.logger.debug("${project.path} ${xmlFile} ant error ${project.ant.project.properties.get(propPrefix + 'JsError')}")
+                project.logger.debug("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.get(propPrefix + 'JsExitValue')}")
                 if (project.ant.project.properties.get(propPrefix + 'JsExitValue') != '0')
                     throw new GradleException("Error compressing Javascript files for ${xmlFile}. Exit code ${project.ant.project.properties.get(propPrefix + 'JsExitValue')}.\n Output: ${project.ant.project.properties.get(propPrefix + 'JsText')}.\n Error: ${project.ant.project.properties.get(propPrefix + 'JsError')} ")
 
-                project.logger.quiet("DONE Compressing Javascript files as ${minFiles.left}")
+                project.logger.debug("DONE Compressing Javascript files as ${minFiles.left}")
                 compressFile(minFiles.left)
             }
             if (importer.hasCssFiles()) {
-                project.logger.quiet("Compressing css files for ${xmlFile}")
+                project.logger.info("Compressing css files for ${xmlFile}")
                 project.ant.exec(
                     outputproperty:"${propPrefix}CssText",
                     errorproperty: "${propPrefix}CssError",
@@ -299,12 +299,12 @@ class ClientLibsCompress extends DefaultTask
                                 value: "${executableDir}${File.pathSeparator}${System.getenv("PATH")}"
                         )
                     }
-                project.logger.quiet("${project.path} ${xmlFile} ant text ${project.ant.project.properties.get(propPrefix + 'CssText')}")
-                project.logger.quiet("${project.path} ${xmlFile} ant error ${project.ant.project.properties.get(propPrefix + 'CssError')}")
-                project.logger.quiet("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.get(propPrefix + 'CssExitValue')}")
+                project.logger.debug("${project.path} ${xmlFile} ant text ${project.ant.project.properties.get(propPrefix + 'CssText')}")
+                project.logger.debug("${project.path} ${xmlFile} ant error ${project.ant.project.properties.get(propPrefix + 'CssError')}")
+                project.logger.debug("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.get(propPrefix + 'CssExitValue')}")
                 if (project.ant.project.properties.get(propPrefix + 'CssExitValue') != '0')
                     throw new GradleException("Error compressing css files for ${xmlFile}. Exit code ${project.ant.project.properties.get(propPrefix + 'CssExitValue')}.\n Output: ${project.ant.project.properties.get(propPrefix + 'CssText')}.\n Error: ${project.ant.project.properties.get(propPrefix + 'CssError')} ")
-                project.logger.quiet("DONE Compressing css files as ${minFiles.right}")
+                project.logger.debug("DONE Compressing css files as ${minFiles.right}")
                 compressFile(minFiles.right)
             }
         }
