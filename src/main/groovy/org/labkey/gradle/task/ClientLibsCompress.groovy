@@ -254,9 +254,8 @@ class ClientLibsCompress extends DefaultTask
         if (importer.hasFilesToCompress()) {
             String propPrefix = "minifiy${xmlFile.name.substring(0, xmlFile.name.length()-LIB_XML_EXTENSION.length())}"
             String executableDir = getNodeExecutableDir()
-            File cssFile = concatenateFilesForNpm(xmlFile, importer.cssFiles, "css")
-            File jsFile = concatenateFilesForNpm(xmlFile, importer.javascriptFiles, "js")
-            Pair<File, File> minFiles = createPackageJson(xmlFile, jsFile, cssFile)
+
+            Pair<File, File> minFiles = createPackageJson(xmlFile, importer)
             if (importer.hasJavascriptFiles()) {
                 if (executableDir == null)
                     throw new GradleException("Could not find expected files in ${BuildUtils.getMinificationProjectPath(project.gradle)} project")
@@ -316,7 +315,7 @@ class ClientLibsCompress extends DefaultTask
         return path.replaceAll("\\\\", "\\\\\\\\")
     }
 
-    Pair<File, File> createPackageJson(File xmlFile, File allJsFile, File allCssFile)
+    Pair<File, File> createPackageJson(File xmlFile, XmlImporter importer)
     {
         File jsMinFile = null
         File cssMinFile = null
@@ -336,14 +335,28 @@ class ClientLibsCompress extends DefaultTask
                 "  \"private\": true,\n" +
                 "  \"scripts\": {\n")
         String comma = "\n"
-        if (allJsFile != null) {
+        if (importer.hasJavascriptFiles()) {
             jsMinFile = getOutputFile(workingFile, "min", "js")
-            buffer.append(
-                    "    \"minify-js\": \"terser ${escapeBackslashPaths(allJsFile.getAbsolutePath())} -o ${escapeBackslashPaths(jsMinFile.getAbsolutePath())}\""
-            )
+            String jsFileNames = importer.hasJavascriptFiles() ? importer.javascriptFiles.stream().map(jsFile ->
+                    escapeBackslashPaths(jsFile.getAbsolutePath()))
+                    .collect(Collectors.joining(" ")) : null
+            // max command line length for Windows is ~8200 characters, but no need to push the edge here.
+            // We avoid concatenating the files to make things faster when we can.
+            if (jsFileNames.length() > 7000) {
+                File allJsFile = concatenateFilesForNpm(xmlFile, importer.javascriptFiles, "js")
+                buffer.append(
+                        "    \"minify-js\": \"terser ${escapeBackslashPaths(allJsFile.getAbsolutePath())} -o ${escapeBackslashPaths(jsMinFile.getAbsolutePath())}\""
+                )
+            } else {
+                buffer.append(
+                        "    \"minify-js\": \"terser ${jsFileNames} -o ${escapeBackslashPaths(jsMinFile.getAbsolutePath())}\""
+                )
+            }
+
             comma = ",\n"
         }
-        if (allCssFile != null) {
+        if (importer.hasCssFiles()) {
+            File allCssFile = concatenateFilesForNpm(xmlFile, importer.cssFiles, "css")
             cssMinFile = getOutputFile(workingFile, "min", "css")
             buffer.append(comma)
             buffer.append(
