@@ -11,6 +11,7 @@ import org.apache.http.impl.client.HttpClients
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.plugin.NpmRun
 
 import java.util.stream.Collectors
 
@@ -65,8 +66,7 @@ class PurgeNpmAlphaVersions extends DefaultTask
 
     private static List<String> getNpmAlphaVersions(String packageName, String alphaPrefix)
     {
-        String npmCmd = SystemUtils.IS_OS_WINDOWS ? "npm.cmd" : "npm"
-        String output = (npmCmd + " view ${packageName} versions --json").execute().text
+        String output = (NpmRun.getNpmCommand() + " view ${packageName} versions --json").execute().text
         if (!StringUtils.isEmpty(output)) {
             def parsedJson = new JsonSlurper().parseText(output)
             if (parsedJson instanceof ArrayList) {

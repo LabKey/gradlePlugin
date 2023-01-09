@@ -18,14 +18,22 @@ package org.labkey.gradle.task
 import com.yahoo.platform.yui.compressor.CssCompressor
 import com.yahoo.platform.yui.compressor.JavaScriptCompressor
 import org.apache.commons.io.IOUtils
+import org.apache.commons.lang3.SystemUtils
+import org.apache.commons.lang3.tuple.Pair
 import org.apache.tools.ant.util.FileUtils
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.api.file.FileTree
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.plugin.ClientLibraries
+import org.labkey.gradle.plugin.NpmRun
 import org.labkey.gradle.plugin.extension.LabKeyExtension
+import org.labkey.gradle.util.BuildUtils
 import org.xml.sax.Attributes
 import org.xml.sax.SAXException
 import org.xml.sax.helpers.DefaultHandler
@@ -33,6 +41,8 @@ import org.xml.sax.helpers.DefaultHandler
 import javax.xml.parsers.SAXParser
 import javax.xml.parsers.SAXParserFactory
 import java.nio.charset.StandardCharsets
+import java.util.stream.Collectors
+
 /**
  * Class for compressing javascript and css files using the yuicompressor classes.
  */
@@ -42,11 +52,12 @@ class ClientLibsCompress extends DefaultTask
 
     protected File workingDir = new File((String) project.labkey.explodedModuleWebDir)
 
-    // This returns the libXml files from the project directory (the actual input files)
+   // This returns the libXml files from the project directory (the actual input files)
     @InputFiles
     FileTree xmlFiles
     private List<File> inputFiles = null
     private List<File> outputFiles = null
+    private List<File> outputDirs = null
 
     /**
      * Creates a map between the individual .lib.xml files and the importers used to parse these files and
@@ -61,6 +72,12 @@ class ClientLibsCompress extends DefaultTask
                 importerMap.put(file, parseXmlFile(getSourceDir(file), file))
         }
         return importerMap;
+    }
+
+    static File getMinificationDir(Project project)
+    {
+        return project.project(BuildUtils.getMinificationProjectPath(project.gradle))
+                .file("modules/${project.name}")
     }
 
     static File getSourceDir(File libXmlFile)
@@ -100,13 +117,18 @@ class ClientLibsCompress extends DefaultTask
                 {
                     inputFiles.addAll(entry.value.getCssFiles())
                 }
-                if (entry.value.getJavaScriptFiles().size() > 0)
+                if (entry.value.getJavascriptFiles().size() > 0)
                 {
-                    inputFiles.addAll(entry.value.getJavaScriptFiles())
+                    inputFiles.addAll(entry.value.getJavascriptFiles())
                 }
             }
         }
         return inputFiles
+    }
+
+    File getMinificationWorkingDir(File libXmlFile)
+    {
+        return new File(getMinificationDir(project), "${libXmlFile.name.substring(0, libXmlFile.name.length() - LIB_XML_EXTENSION.length())}")
     }
 
     @OutputFiles
@@ -120,20 +142,42 @@ class ClientLibsCompress extends DefaultTask
                 // The output file will be in the working directory not in the source directory used when parsing the file.
                 String fileName = entry.key.getAbsolutePath()
                 fileName = fileName.replace(entry.value.sourceDir.getAbsolutePath(), workingDir.getAbsolutePath())
-                File workingFile = new File(fileName)
+                File workingFile = project.file(fileName)
                 if (entry.value.getCssFiles().size() > 0)
                 {
                     outputFiles.add(getOutputFile(workingFile, "min", "css"))
+                    if (LabKeyExtension.isDevMode(project))
+                        outputFiles.add(getOutputFile(workingFile, "min", "css.gz"))
                     outputFiles.add(getOutputFile(workingFile, "combined", "css"))
                 }
-                if (entry.value.getJavaScriptFiles().size() > 0)
+                if (entry.value.getJavascriptFiles().size() > 0)
                 {
                     outputFiles.add(getOutputFile(workingFile, "min", "js"))
+                    if (LabKeyExtension.isDevMode(project))
+                        outputFiles.add(getOutputFile(workingFile, "min", "js.gz"))
                     outputFiles.add(getOutputFile(workingFile, "combined", "js"))
                 }
             }
         }
         return outputFiles
+    }
+
+    @OutputDirectories
+    List<File> getOutputDirs()
+    {
+        if (outputDirs == null) {
+            outputDirs = new ArrayList<>()
+
+            if (ClientLibraries.useNpmMinifier(project)) {
+                getImporterMap().entrySet().each { Map.Entry<File, XmlImporter> entry ->
+                    {
+                        if (entry.value.doCompile && entry.value.hasFilesToCompress())
+                            outputDirs.add(getMinificationWorkingDir(entry.key))
+                    }
+                }
+            }
+        }
+        return outputDirs
     }
 
     @TaskAction
@@ -154,21 +198,21 @@ class ClientLibsCompress extends DefaultTask
         }
         else if (importer.doCompile)
         {
-            try
+            if (ClientLibraries.useNpmMinifier(project))
             {
-                if (importer.getJavaScriptFiles().size() > 0)
-                    compileScripts(xmlFile, importer.getJavaScriptFiles(), "js");
-                if (importer.getCssFiles().size() > 0)
-                    compileScripts(xmlFile, importer.getCssFiles(), "css");
+                minifyViaNpm(xmlFile, importer)
             }
-            catch (Exception e)
+            else
             {
-                throw new SAXException(e);
+                if (importer.getJavascriptFiles().size() > 0)
+                    compileScriptsViaYui(xmlFile, importer.getJavascriptFiles(), "js")
+                if (importer.getCssFiles().size() > 0)
+                    compileScriptsViaYui(xmlFile, importer.getCssFiles(), "css")
             }
         }
         else
         {
-            this.logger.info("No compile necessary");
+            this.logger.info("No compile necessary for ${xmlFile}");
         }
     }
 
@@ -192,8 +236,174 @@ class ClientLibsCompress extends DefaultTask
         }
     }
 
+    @Internal
+    String getNodeExecutableDir()
+    {
+        Project minProject = project.project(BuildUtils.getMinificationProjectPath(project.gradle))
+        String nodeFilePrefix = "node-v${project.nodeVersion}-"
+        File nodeDir = new File("${minProject.projectDir}/.gradle/nodejs")
+        File[] nodeFiles = nodeDir.listFiles({ File file -> file.name.startsWith(nodeFilePrefix) } as FileFilter)
+        if (nodeFiles != null && nodeFiles.length > 0)
+            return "${nodeFiles[0].getAbsolutePath()}${SystemUtils.IS_OS_WINDOWS ? '' : '/bin'}"
+        else
+            return null
+    }
 
-    void compileScripts(File xmlFile, Set<File> srcFiles, String extension) throws IOException, InterruptedException
+    void minifyViaNpm(File xmlFile, XmlImporter importer)
+    {
+        if (importer.hasFilesToCompress()) {
+            String propPrefix = "minifiy${xmlFile.name.substring(0, xmlFile.name.length()-LIB_XML_EXTENSION.length())}"
+            String executableDir = getNodeExecutableDir()
+
+            Pair<File, File> minFiles = createPackageJson(xmlFile, importer)
+            if (importer.hasJavascriptFiles()) {
+                if (executableDir == null)
+                    throw new GradleException("Could not find expected files in ${BuildUtils.getMinificationProjectPath(project.gradle)} project")
+                project.logger.info("Compressing Javascript files for ${xmlFile} with ${executableDir} in ${getMinificationWorkingDir(xmlFile)}")
+                project.ant.exec(
+                    outputproperty:"${propPrefix}JsText",
+                    errorproperty: "${propPrefix}JsError",
+                    resultproperty: "${propPrefix}JsExitValue",
+                    executable: "${executableDir}/${NpmRun.getNpmCommand()}",
+                    dir: getMinificationWorkingDir(xmlFile)
+                )
+                    {
+                        arg(line: "run minify-js")
+                        env(
+                                key: "PATH",
+                                value: "${executableDir}${File.pathSeparator}${System.getenv("PATH")}"
+                        )
+                    }
+                project.logger.debug("${project.path} ${xmlFile} ant text ${project.ant.project.properties.get(propPrefix + 'JsText')}")
+                project.logger.debug("${project.path} ${xmlFile} ant error ${project.ant.project.properties.get(propPrefix + 'JsError')}")
+                project.logger.debug("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.get(propPrefix + 'JsExitValue')}")
+                if (project.ant.project.properties.get(propPrefix + 'JsExitValue') != '0')
+                    throw new GradleException("Error compressing Javascript files for ${xmlFile}. Exit code ${project.ant.project.properties.get(propPrefix + 'JsExitValue')}.\n Output: ${project.ant.project.properties.get(propPrefix + 'JsText')}.\n Error: ${project.ant.project.properties.get(propPrefix + 'JsError')} ")
+
+                project.logger.debug("DONE Compressing Javascript files as ${minFiles.left}")
+                compressFile(minFiles.left)
+            }
+            if (importer.hasCssFiles()) {
+                project.logger.info("Compressing css files for ${xmlFile}")
+                project.ant.exec(
+                    outputproperty:"${propPrefix}CssText",
+                    errorproperty: "${propPrefix}CssError",
+                    resultproperty: "${propPrefix}CssExitValue",
+                    executable: "${executableDir}/${NpmRun.getNpmCommand()}",
+                    dir: getMinificationWorkingDir(xmlFile)
+                )
+                    {
+                        arg(line: "run minify-css")
+                        env(
+                                key: "PATH",
+                                value: "${executableDir}${File.pathSeparator}${System.getenv("PATH")}"
+                        )
+                    }
+                project.logger.debug("${project.path} ${xmlFile} ant text ${project.ant.project.properties.get(propPrefix + 'CssText')}")
+                project.logger.debug("${project.path} ${xmlFile} ant error ${project.ant.project.properties.get(propPrefix + 'CssError')}")
+                project.logger.debug("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.get(propPrefix + 'CssExitValue')}")
+                if (project.ant.project.properties.get(propPrefix + 'CssExitValue') != '0')
+                    throw new GradleException("Error compressing css files for ${xmlFile}. Exit code ${project.ant.project.properties.get(propPrefix + 'CssExitValue')}.\n Output: ${project.ant.project.properties.get(propPrefix + 'CssText')}.\n Error: ${project.ant.project.properties.get(propPrefix + 'CssError')} ")
+                project.logger.debug("DONE Compressing css files as ${minFiles.right}")
+                compressFile(minFiles.right)
+            }
+        }
+    }
+
+    static String escapeBackslashPaths(String path)
+    {
+        return path.replaceAll("\\\\", "\\\\\\\\")
+    }
+
+    Pair<File, File> createPackageJson(File xmlFile, XmlImporter importer)
+    {
+        File jsMinFile = null
+        File cssMinFile = null
+
+        File sourceDir = getSourceDir(xmlFile)
+        File workingFile = new File(xmlFile.getAbsolutePath().replace(sourceDir.getAbsolutePath(), workingDir.getAbsolutePath()))
+
+        File packageJson = new File(getMinificationWorkingDir(xmlFile), "package.json")
+        project.logger.info("Creating ${packageJson} for ${xmlFile.getAbsolutePath()}")
+        String sanitizedName = xmlFile.name.substring(0, xmlFile.name.length()-LIB_XML_EXTENSION.length())
+        packageJson.createNewFile()
+        StringBuffer buffer = new StringBuffer("")
+        buffer.append("")
+        buffer.append("{\n" +
+                "  \"name\": \"minify-${sanitizedName}\",\n" +
+                "  \"version\": \"0.1.0\",\n" +
+                "  \"private\": true,\n" +
+                "  \"scripts\": {\n")
+        String comma = "\n"
+        if (importer.hasJavascriptFiles()) {
+            jsMinFile = getOutputFile(workingFile, "min", "js")
+            String jsFileNames = importer.hasJavascriptFiles() ? importer.javascriptFiles.stream().map(jsFile ->
+                    escapeBackslashPaths(jsFile.getAbsolutePath()))
+                    .collect(Collectors.joining(" ")) : null
+            // max command line length for Windows is ~8200 characters, but no need to push the edge here.
+            // We avoid concatenating the files to make things faster when we can.
+            if (jsFileNames.length() > 7000) {
+                File allJsFile = concatenateFilesForNpm(xmlFile, importer.javascriptFiles, "js")
+                buffer.append(
+                        "    \"minify-js\": \"terser ${escapeBackslashPaths(allJsFile.getAbsolutePath())} -o ${escapeBackslashPaths(jsMinFile.getAbsolutePath())}\""
+                )
+            } else {
+                buffer.append(
+                        "    \"minify-js\": \"terser ${jsFileNames} -o ${escapeBackslashPaths(jsMinFile.getAbsolutePath())}\""
+                )
+            }
+
+            comma = ",\n"
+        }
+        if (importer.hasCssFiles()) {
+            File allCssFile = concatenateFilesForNpm(xmlFile, importer.cssFiles, "css")
+            cssMinFile = getOutputFile(workingFile, "min", "css")
+            buffer.append(comma)
+            buffer.append(
+                    "    \"minify-css\": \"postcss ${escapeBackslashPaths(allCssFile.getAbsolutePath())} --ext min.css --dir ${escapeBackslashPaths(cssMinFile.parentFile.getAbsolutePath())}\""
+            )
+        }
+        buffer.append(
+                "\n" +
+                "  }\n" +
+                "}")
+        PrintWriter writer = null
+        try {
+            writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(packageJson), StandardCharsets.UTF_8)))
+            writer.println(buffer.toString())
+        }
+        finally
+        {
+            IOUtils.closeQuietly(writer)
+        }
+        return Pair.of(jsMinFile, cssMinFile)
+    }
+
+    File concatenateFilesForNpm(File xmlFile, Set<File> srcFiles, String extension)
+    {
+        if (srcFiles.isEmpty())
+            return null;
+
+
+        File concatFile = new File(getMinificationWorkingDir(xmlFile), getNewExtensionFileName(xmlFile, null, extension))
+        this.logger.info("Concatenating ${extension} files into single file ${concatFile}")
+        concatenateFiles(srcFiles, concatFile)
+        return concatFile
+    }
+
+    void compressFile(File file)
+    {
+        if (!LabKeyExtension.isDevMode(project))
+        {
+            this.logger.info("Compressing " + file);
+            project.ant.gzip(
+                    src: file,
+                    destfile: "${file}.gz"
+            )
+        }
+    }
+
+    void compileScriptsViaYui(File xmlFile, Set<File> srcFiles, String extension) throws IOException, InterruptedException
     {
         File sourceDir = getSourceDir(xmlFile)
         File workingFile = new File(xmlFile.getAbsolutePath().replace(sourceDir.getAbsolutePath(), workingDir.getAbsolutePath()))
@@ -209,20 +419,20 @@ class ClientLibsCompress extends DefaultTask
         minifyFile(concatFile, minFile);
 
         concatFile.delete();
+        compressFile(minFile)
+    }
 
-        if (!LabKeyExtension.isDevMode(project))
-        {
-            this.logger.info("Compressing " + extension + " files");
-            project.ant.gzip(
-                    src: minFile,
-                    destfile: "${minFile.toString()}.gz"
-            )
-        }
+    static String getNewExtensionFileName(File xmlFile, String token, String ex)
+    {
+        String replacement =  "." + ex
+        if (token != null)
+            replacement = "." + token + replacement
+        return xmlFile.getName().replaceAll(LIB_XML_EXTENSION, replacement)
     }
 
     static File getOutputFile(File xmlFile, String token, String ex)
     {
-        return new File(xmlFile.getParentFile(), xmlFile.getName().replaceAll(LIB_XML_EXTENSION, "." + token + "." + ex));
+        return new File(xmlFile.getParentFile(), getNewExtensionFileName(xmlFile, token, ex));
     }
 
     private static void concatenateFiles(Set<File> files, File output)
@@ -297,7 +507,7 @@ class ClientLibsCompress extends DefaultTask
         private boolean withinScriptsTag = false
         private File xmlFile
         private File sourceDir
-        private LinkedHashSet<File> javaScriptFiles = new LinkedHashSet<>()
+        private LinkedHashSet<File> javascriptFiles = new LinkedHashSet<>()
         private LinkedHashSet<File> cssFiles = new LinkedHashSet<>()
         private boolean doCompile = true
 
@@ -307,9 +517,24 @@ class ClientLibsCompress extends DefaultTask
             this.sourceDir = sourceDir
         }
 
-        LinkedHashSet<File> getJavaScriptFiles()
+        boolean hasFilesToCompress()
         {
-            return javaScriptFiles
+            return hasJavascriptFiles() || hasCssFiles()
+        }
+
+        boolean hasJavascriptFiles()
+        {
+            return !javascriptFiles.isEmpty()
+        }
+
+        LinkedHashSet<File> getJavascriptFiles()
+        {
+            return javascriptFiles
+        }
+
+        boolean hasCssFiles()
+        {
+            return !cssFiles.isEmpty()
         }
 
         LinkedHashSet<File> getCssFiles()
@@ -364,7 +589,7 @@ class ClientLibsCompress extends DefaultTask
                     }
 
                     if (scriptFile.getName().endsWith(".js"))
-                        javaScriptFiles.add(scriptFile);
+                        javascriptFiles.add(scriptFile);
                     else if (scriptFile.getName().endsWith(".css"))
                         cssFiles.add(scriptFile);
                     else

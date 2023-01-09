@@ -102,7 +102,8 @@ class BuildUtils
                 getPlatformModuleProjectPath(gradle, "experiment"),
                 getPlatformModuleProjectPath(gradle, "filecontent"),
                 getPlatformModuleProjectPath(gradle, "pipeline"),
-                getPlatformModuleProjectPath(gradle, "query")
+                getPlatformModuleProjectPath(gradle, "query"),
+                getMinificationProjectPath(gradle) // required for building using npm for lib.xml files compression
         ]
     }
 
@@ -299,6 +300,11 @@ class BuildUtils
     static String getEmbeddedProjectPath(Gradle gradle)
     {
         return getProjectPath(gradle, "embeddedProjectPath", ":server:embedded")
+    }
+
+    static String getMinificationProjectPath(Gradle gradle)
+    {
+        return getProjectPath(gradle, "minificationProjectPath", ":server:minification")
     }
 
     static String getApiProjectPath(Gradle gradle)

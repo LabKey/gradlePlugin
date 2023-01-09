@@ -17,8 +17,11 @@ package org.labkey.gradle.plugin
 
 
 import org.gradle.api.Project
+import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
+import org.gradle.api.tasks.Delete
 import org.labkey.gradle.task.ClientLibsCompress
+import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
 /**
@@ -37,17 +40,39 @@ class ClientLibraries
         )
     }
 
+    static boolean useNpmMinifier(Project project)
+    {
+        return !project.hasProperty("useYuiCompressor") && project.project(BuildUtils.getMinificationProjectPath(project.gradle)).projectDir.exists()
+    }
+
     static void addTasks(Project project)
     {
+        String minProjectPath = BuildUtils.getMinificationProjectPath(project.gradle)
         project.tasks.register("compressClientLibs", ClientLibsCompress) {
             ClientLibsCompress task ->
                 task.group = GroupNames.CLIENT_LIBRARIES
                 task.description = 'create minified, compressed javascript file using .lib.xml sources'
                 task.dependsOn ( project.tasks.processResources )
+                if (useNpmMinifier(project))
+                    task.dependsOn(project.project(minProjectPath).tasks.findByName("npmInstall"))
                 task.xmlFiles = getLibXmlFiles(project)
         }
-
+        if (useNpmMinifier(project))
+            project.evaluationDependsOn(minProjectPath)
         project.tasks.assemble.dependsOn(project.tasks.compressClientLibs)
+
+        if (useNpmMinifier(project)) {
+            project.tasks.register("cleanClientLibs", Delete) {
+                Delete task ->
+                    task.group = GroupNames.CLIENT_LIBRARIES
+                    task.description = "Removes ${ClientLibsCompress.getMinificationDir(project)}"
+                    task.configure({ DeleteSpec delete ->
+                        if (ClientLibsCompress.getMinificationDir(project).exists())
+                            delete.delete(ClientLibsCompress.getMinificationDir(project))
+                        delete.delete(project.tasks.findByName("compressClientLibs").outputs.files)
+                    })
+            }
+        }
     }
 }
 
