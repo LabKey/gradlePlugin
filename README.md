@@ -15,8 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### 1.39.0-refactor-SNAPSHOT
+### 1.40.0-SNAPSHOT
 *Released*: TBD
+
+### 1.39.0
+*Released*: 10 January 2023
 (Earliest compatible LabKey version: 22.9)
 * Update getRemoteApiProjectPath() to match `labkey-api-java` layout refactor
 * Upgrade a few dependencies
