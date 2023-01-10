@@ -15,6 +15,12 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 1.39.0-refactor-SNAPSHOT
+*Released*: TBD
+(Earliest compatible LabKey version: 22.9)
+* Update getRemoteApiProjectPath() to match `labeky-api-java` layout refactor
+* Upgrade a few dependencies
+
 ### 1.38.0
 *Released*: 9 January 2023
 (Earliest compatible LabKey version: 22.9)
@@ -26,7 +32,7 @@ _Note: 1.28.0 and later require Gradle 7_
 ### 1.37.1
 *Released*: 9 December 2022
 (Earliest compatible LabKey version: 22.9)
-* Update pacakge names for PurgeNpmAlphaVersions task to include @labkey/premium
+* Update package names for PurgeNpmAlphaVersions task to include @labkey/premium
 
 ### 1.37.0
 *Released*: 8 December 2022

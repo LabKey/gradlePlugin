@@ -329,7 +329,7 @@ class BuildUtils
 
     static String getRemoteApiProjectPath(Gradle gradle)
     {
-        return getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:labkey-api-java:labkey-client-api")
+        return getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:labkey-api-java")
     }
 
     static String getSasApiProjectPath(Gradle gradle)
