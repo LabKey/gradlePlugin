@@ -18,7 +18,7 @@ _Note: 1.28.0 and later require Gradle 7_
 ### 1.39.0-refactor-SNAPSHOT
 *Released*: TBD
 (Earliest compatible LabKey version: 22.9)
-* Update getRemoteApiProjectPath() to match `labeky-api-java` layout refactor
+* Update getRemoteApiProjectPath() to match `labkey-api-java` layout refactor
 * Upgrade a few dependencies
 
 ### 1.38.0
