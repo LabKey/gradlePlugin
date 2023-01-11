@@ -15,8 +15,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### 1.40.0-SNAPSHOT
-*Released*: TBD
+### 1.39.1
+*Released*: 11 January 2023
 (Earliest compatible LabKey version: 22.9)
 * Correctly disable `npm` minifier if minification project is missing
 
