@@ -42,7 +42,8 @@ class ClientLibraries
 
     static boolean useNpmMinifier(Project project)
     {
-        return !project.hasProperty("useYuiCompressor") && project.project(BuildUtils.getMinificationProjectPath(project.gradle)).projectDir.exists()
+        def minificationProject = project.findProject(BuildUtils.getMinificationProjectPath(project.gradle))
+        return !project.hasProperty("useYuiCompressor") && minificationProject != null && minificationProject.projectDir.exists()
     }
 
     static void addTasks(Project project)
