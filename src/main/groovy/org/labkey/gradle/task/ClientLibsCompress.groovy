@@ -15,8 +15,6 @@
  */
 package org.labkey.gradle.task
 
-import com.yahoo.platform.yui.compressor.CssCompressor
-import com.yahoo.platform.yui.compressor.JavaScriptCompressor
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.SystemUtils
 import org.apache.commons.lang3.tuple.Pair
@@ -30,7 +28,6 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
-import org.labkey.gradle.plugin.ClientLibraries
 import org.labkey.gradle.plugin.NpmRun
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.util.BuildUtils
@@ -167,13 +164,10 @@ class ClientLibsCompress extends DefaultTask
     {
         if (outputDirs == null) {
             outputDirs = new ArrayList<>()
-
-            if (ClientLibraries.useNpmMinifier(project)) {
-                getImporterMap().entrySet().each { Map.Entry<File, XmlImporter> entry ->
-                    {
-                        if (entry.value.doCompile && entry.value.hasFilesToCompress())
-                            outputDirs.add(getMinificationWorkingDir(entry.key))
-                    }
+            getImporterMap().entrySet().each { Map.Entry<File, XmlImporter> entry ->
+                {
+                    if (entry.value.doCompile && entry.value.hasFilesToCompress())
+                        outputDirs.add(getMinificationWorkingDir(entry.key))
                 }
             }
         }
@@ -198,17 +192,7 @@ class ClientLibsCompress extends DefaultTask
         }
         else if (importer.doCompile)
         {
-            if (ClientLibraries.useNpmMinifier(project))
-            {
-                minifyViaNpm(xmlFile, importer)
-            }
-            else
-            {
-                if (importer.getJavascriptFiles().size() > 0)
-                    compileScriptsViaYui(xmlFile, importer.getJavascriptFiles(), "js")
-                if (importer.getCssFiles().size() > 0)
-                    compileScriptsViaYui(xmlFile, importer.getCssFiles(), "css")
-            }
+            minifyViaNpm(xmlFile, importer)
         }
         else
         {
@@ -403,25 +387,6 @@ class ClientLibsCompress extends DefaultTask
         }
     }
 
-    void compileScriptsViaYui(File xmlFile, Set<File> srcFiles, String extension) throws IOException, InterruptedException
-    {
-        File sourceDir = getSourceDir(xmlFile)
-        File workingFile = new File(xmlFile.getAbsolutePath().replace(sourceDir.getAbsolutePath(), workingDir.getAbsolutePath()))
-        File minFile = getOutputFile(workingFile, "min", extension);
-
-        this.logger.info("Concatenating " + extension + " files into single file");
-        File concatFile = getOutputFile(workingFile, "combined", extension);
-        concatenateFiles(srcFiles, concatFile);
-
-        this.logger.info("Minifying " + extension + " files with YUICompressor");
-        minFile.delete();
-
-        minifyFile(concatFile, minFile);
-
-        concatFile.delete();
-        compressFile(minFile)
-    }
-
     static String getNewExtensionFileName(File xmlFile, String token, String ex)
     {
         String replacement =  "." + ex
@@ -476,29 +441,6 @@ class ClientLibsCompress extends DefaultTask
         finally
         {
             IOUtils.closeQuietly(saveAs)
-        }
-    }
-
-    private static void minifyFile(File srcFile, File destFile) throws IOException
-    {
-        if (srcFile.getName().endsWith("js"))
-        {
-            srcFile.withReader { reader ->
-                JavaScriptCompressor compressor = new JavaScriptCompressor(reader, null)
-
-                destFile.withWriter { writer ->
-                    compressor.compress(writer, null, -1, true, false, false, false)
-                }
-            }
-        }
-        else
-        {
-            srcFile.withReader { reader ->
-                CssCompressor compressor = new CssCompressor(reader)
-                destFile.withWriter { writer ->
-                    compressor.compress(writer, -1)
-                }
-            }
         }
     }
 

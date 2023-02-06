@@ -40,12 +40,6 @@ class ClientLibraries
         )
     }
 
-    static boolean useNpmMinifier(Project project)
-    {
-        def minificationProject = project.findProject(BuildUtils.getMinificationProjectPath(project.gradle))
-        return !project.hasProperty("useYuiCompressor") && minificationProject != null && minificationProject.projectDir.exists()
-    }
-
     static void addTasks(Project project)
     {
         String minProjectPath = BuildUtils.getMinificationProjectPath(project.gradle)
@@ -54,26 +48,24 @@ class ClientLibraries
                 task.group = GroupNames.CLIENT_LIBRARIES
                 task.description = 'create minified, compressed javascript file using .lib.xml sources'
                 task.dependsOn ( project.tasks.processResources )
-                if (useNpmMinifier(project))
-                    task.dependsOn(project.project(minProjectPath).tasks.findByName("npmInstall"))
+                task.dependsOn(project.project(minProjectPath).tasks.findByName("npmInstall"))
                 task.xmlFiles = getLibXmlFiles(project)
         }
-        if (useNpmMinifier(project))
-            project.evaluationDependsOn(minProjectPath)
+
+        project.evaluationDependsOn(minProjectPath)
         project.tasks.assemble.dependsOn(project.tasks.compressClientLibs)
 
-        if (useNpmMinifier(project)) {
-            project.tasks.register("cleanClientLibs", Delete) {
-                Delete task ->
-                    task.group = GroupNames.CLIENT_LIBRARIES
-                    task.description = "Removes ${ClientLibsCompress.getMinificationDir(project)}"
-                    task.configure({ DeleteSpec delete ->
-                        if (ClientLibsCompress.getMinificationDir(project).exists())
-                            delete.delete(ClientLibsCompress.getMinificationDir(project))
-                        delete.delete(project.tasks.findByName("compressClientLibs").outputs.files)
-                    })
-            }
+        project.tasks.register("cleanClientLibs", Delete) {
+            Delete task ->
+                task.group = GroupNames.CLIENT_LIBRARIES
+                task.description = "Removes ${ClientLibsCompress.getMinificationDir(project)}"
+                task.configure({ DeleteSpec delete ->
+                    if (ClientLibsCompress.getMinificationDir(project).exists())
+                        delete.delete(ClientLibsCompress.getMinificationDir(project))
+                    delete.delete(project.tasks.findByName("compressClientLibs").outputs.files)
+                })
         }
+
     }
 }
 

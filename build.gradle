@@ -36,7 +36,6 @@ dependencies {
     api "org.apache.commons:commons-lang3:${commonsLang3Version}"
     api "org.apache.commons:commons-text:${commonsTextVersion}"
     api "commons-io:commons-io:${commonsIoVersion}"
-    api "com.yahoo.platform.yui:yuicompressor:${yuiCompressorVersion}"
     api "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
     implementation "org.apache.httpcomponents:httpcore:${httpcoreVersion}"
     api "org.apache.httpcomponents:httpclient:${httpclientVersion}"
