@@ -326,11 +326,6 @@ class BuildUtils
         return getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:labkey-api-java")
     }
 
-    static String getSasApiProjectPath(Gradle gradle)
-    {
-        return getProjectPath(gradle, "sasApiProjectPath", ":remoteapi:labkey-api-java:labkey-api-sas")
-    }
-
     static String getJdbcApiProjectPath(Gradle gradle)
     {
         return getProjectPath(gradle, "jdbcApiProjectPath", ":remoteapi:labkey-api-jdbc");

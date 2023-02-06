@@ -20,6 +20,7 @@ _Note: 1.28.0 and later require Gradle 7_
 (Earliest compatible LabKey version: 23.3)
 * Remove packages that are no longer published from `PurgeNpmAlphaVeresions` consideration
 * Remove references to internal module and adjust dependency declarations accordingly
+* Remove obsolete reference to labkey-api-sas project
 * Remove option for using yui compressor
 
 ### 1.39.1
