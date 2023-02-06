@@ -96,7 +96,6 @@ class BuildUtils
         return [
                 getApiProjectPath(gradle),
                 getBootstrapProjectPath(gradle),
-                getInternalProjectPath(gradle),
                 getPlatformModuleProjectPath(gradle, "audit"),
                 getPlatformModuleProjectPath(gradle, "core"),
                 getPlatformModuleProjectPath(gradle, "experiment"),
@@ -315,11 +314,6 @@ class BuildUtils
     static String getBootstrapProjectPath(Gradle gradle)
     {
         return getProjectPath(gradle, "bootstrapProjectPath", ":server:bootstrap")
-    }
-
-    static String getInternalProjectPath(Gradle gradle)
-    {
-        return getProjectPath(gradle, "internalProjectPath", ":server:modules:platform:internal")
     }
 
     static String getNodeBinProjectPath(Gradle gradle)

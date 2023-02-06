@@ -427,8 +427,7 @@ class FileModule implements Plugin<Project>
 
                             }
                         }
-                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
-                                || project.path.equals(BuildUtils.getInternalProjectPath(project.gradle)))
+                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
                         {
                             Properties pomProperties = LabKeyExtension.getApiPomProperties(project)
 
@@ -468,8 +467,7 @@ class FileModule implements Plugin<Project>
                             {
                                 dependsOn project.tasks.apiJar
                             }
-                            else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
-                                    || project.path.equals(BuildUtils.getInternalProjectPath(project.gradle)))
+                            else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
                             {
                                 dependsOn project.tasks.jar
                             }

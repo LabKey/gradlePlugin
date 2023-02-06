@@ -15,6 +15,13 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 23.3)
+* Remove packages that are no longer published from `PurgeNpmAlphaVeresions` consideration
+* Remove references to internal module and adjust dependency declarations accordingly
+* Remove option for using yui compressor
+
 ### 1.39.1
 *Released*: 11 January 2023
 (Earliest compatible LabKey version: 22.9)

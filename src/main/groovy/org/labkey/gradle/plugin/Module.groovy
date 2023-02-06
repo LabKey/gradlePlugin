@@ -44,7 +44,7 @@ class Module implements Plugin<Project> {
                 {
                     BuildUtils.addTomcatBuildDependencies(project, 'implementation')
 
-                    BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getInternalProjectPath(project.gradle), depVersion: project.labkeyVersion)
+                    BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
                     BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: BuildUtils.getLabKeyClientApiVersion(project))
                     if (BuildUtils.isBaseModule(project) && !BuildUtils.isApi(project) && project.findProject(BuildUtils.getApiProjectPath(project.gradle)))
                     {
