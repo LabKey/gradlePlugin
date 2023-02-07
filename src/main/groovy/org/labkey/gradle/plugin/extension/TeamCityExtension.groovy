@@ -61,7 +61,12 @@ class TeamCityExtension
 
     private void setDatabaseProperties()
     {
-        if ((Boolean) getTeamCityProperty("build.is.personal", false))
+        if (!getTeamCityProperty('database.name').isEmpty())
+        {
+            this.databaseName = getTeamCityProperty('database.name')
+            this.dropDatabase = getTeamCityProperty('drop.database', true)
+        }
+        else if ((Boolean) getTeamCityProperty("build.is.personal", false))
         {
             this.databaseName = "LabKey_PersonalBuild"
             this.dropDatabase = true
