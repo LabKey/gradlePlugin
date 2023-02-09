@@ -36,7 +36,6 @@ dependencies {
     api "org.apache.commons:commons-lang3:${commonsLang3Version}"
     api "org.apache.commons:commons-text:${commonsTextVersion}"
     api "commons-io:commons-io:${commonsIoVersion}"
-    api "com.yahoo.platform.yui:yuicompressor:${yuiCompressorVersion}"
     api "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
     implementation "org.apache.httpcomponents:httpcore:${httpcoreVersion}"
     api "org.apache.httpcomponents:httpclient:${httpclientVersion}"
@@ -46,7 +45,7 @@ dependencies {
 }
 
 group 'org.labkey.build'
-project.version = "1.40.0-SNAPSHOT"
+project.version = "1.41.0-SNAPSHOT"
 
 gradlePlugin {
     // TODO after transitioning to using these plugin ids, remove the properties files from resources/META-INF.gradle-plugins

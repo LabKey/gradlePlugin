@@ -214,8 +214,7 @@ class FileModule implements Plugin<Project>
                 moduleFile.dependsOn(project.tasks.named('compressClientLibs'))
             project.tasks.build.dependsOn(moduleFile)
             project.tasks.clean.dependsOn(project.tasks.named('cleanModule'))
-            if (ClientLibraries.useNpmMinifier(project))
-                project.tasks.clean.dependsOn(project.tasks.named('cleanClientLibs'))
+            project.tasks.clean.dependsOn(project.tasks.named('cleanClientLibs'))
 
             project.artifacts
                     {
@@ -427,8 +426,7 @@ class FileModule implements Plugin<Project>
 
                             }
                         }
-                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
-                                || project.path.equals(BuildUtils.getInternalProjectPath(project.gradle)))
+                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
                         {
                             Properties pomProperties = LabKeyExtension.getApiPomProperties(project)
 
@@ -468,8 +466,7 @@ class FileModule implements Plugin<Project>
                             {
                                 dependsOn project.tasks.apiJar
                             }
-                            else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle))
-                                    || project.path.equals(BuildUtils.getInternalProjectPath(project.gradle)))
+                            else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
                             {
                                 dependsOn project.tasks.jar
                             }

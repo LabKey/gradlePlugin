@@ -96,7 +96,6 @@ class BuildUtils
         return [
                 getApiProjectPath(gradle),
                 getBootstrapProjectPath(gradle),
-                getInternalProjectPath(gradle),
                 getPlatformModuleProjectPath(gradle, "audit"),
                 getPlatformModuleProjectPath(gradle, "core"),
                 getPlatformModuleProjectPath(gradle, "experiment"),
@@ -317,11 +316,6 @@ class BuildUtils
         return getProjectPath(gradle, "bootstrapProjectPath", ":server:bootstrap")
     }
 
-    static String getInternalProjectPath(Gradle gradle)
-    {
-        return getProjectPath(gradle, "internalProjectPath", ":server:modules:platform:internal")
-    }
-
     static String getNodeBinProjectPath(Gradle gradle)
     {
         return getProjectPath(gradle, "nodeBinProjectPath", getPlatformModuleProjectPath(gradle, "core"))
@@ -330,11 +324,6 @@ class BuildUtils
     static String getRemoteApiProjectPath(Gradle gradle)
     {
         return getProjectPath(gradle, "remoteApiProjectPath", ":remoteapi:labkey-api-java")
-    }
-
-    static String getSasApiProjectPath(Gradle gradle)
-    {
-        return getProjectPath(gradle, "sasApiProjectPath", ":remoteapi:labkey-api-java:labkey-api-sas")
     }
 
     static String getJdbcApiProjectPath(Gradle gradle)

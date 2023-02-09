@@ -16,8 +16,12 @@ on how to do that, including how to develop and test locally and the versioning 
 _Note: 1.28.0 and later require Gradle 7_
 
 ### 1.40.0
-*Released*: TBD
-(Earliest compatible LabKey version: 22.9)
+*Released*: 8 February 2023
+(Earliest compatible LabKey version: 23.3)
+* Remove packages that are no longer published from `PurgeNpmAlphaVeresions` consideration
+* Remove references to internal module and adjust dependency declarations accordingly
+* Remove obsolete reference to labkey-api-sas project
+* Remove option for using yui compressor
 * Allow customizing database name on TeamCity
 
 ### 1.39.1
