@@ -15,6 +15,12 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 1.40.1
+*Released*: 27 February 2023
+(Earliest compatible LabKey version: 23.3)
+* Include feature branch name in `patchApiModule` output
+  * [Issue 47370: Patched API module doesn't get named correctly on feature branches](https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=47370)
+
 ### 1.40.0
 *Released*: 8 February 2023
 (Earliest compatible LabKey version: 23.3)
