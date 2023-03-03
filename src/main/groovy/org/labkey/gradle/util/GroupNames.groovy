@@ -27,6 +27,7 @@ class GroupNames
     public static final String DISTRIBUTION = "Distribution"
     public static final String DOCUMENTATION = "Documentation"
     public static final String GWT = "gwt"
+    public static final String HELP = "Help"
     public static final String JSP = "jsp"
     public static final String MODULE = "Module"
     public static final String NPM_RUN = "NPM"
