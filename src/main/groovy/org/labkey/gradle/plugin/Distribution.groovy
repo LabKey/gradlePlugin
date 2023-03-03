@@ -104,8 +104,9 @@ class Distribution implements Plugin<Project>
         {
             BuildUtils.addLabKeyDependency(project: project, config: "embedded", depProjectPath: BuildUtils.getEmbeddedProjectPath(project.gradle), depVersion: project.labkeyVersion, depProjectConfig: "embedded", transitive: false)
         }
-        if (project.tasks.named('artifactoryDeploy') != null)
+        if (project.tasks.findByName('artifactoryDeploy') != null) {
             project.tasks.artifactoryDeploy.dependsOn(project.tasks.distribution)
+        }
     }
 
     private static void addTasks(Project project)
