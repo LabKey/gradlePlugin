@@ -32,6 +32,7 @@ import org.labkey.gradle.task.ModuleDistribution
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PomFileHelper
+import org.labkey.gradle.util.TaskUtils
 
 class Distribution implements Plugin<Project>
 {
@@ -104,9 +105,8 @@ class Distribution implements Plugin<Project>
         {
             BuildUtils.addLabKeyDependency(project: project, config: "embedded", depProjectPath: BuildUtils.getEmbeddedProjectPath(project.gradle), depVersion: project.labkeyVersion, depProjectConfig: "embedded", transitive: false)
         }
-        if (project.tasks.findByName('artifactoryDeploy') != null) {
-            project.tasks.artifactoryDeploy.dependsOn(project.tasks.distribution)
-        }
+        TaskUtils.configureTaskIfPresent(project, 'artifactoryDeploy', { dependsOn(project.tasks.distribution) })
+
     }
 
     private static void addTasks(Project project)
