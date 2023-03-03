@@ -81,7 +81,7 @@ class Distribution implements Plugin<Project>
                 }
         project.configurations.embedded.setDescription("Artifacts for creating a LabKey distribution (aka installer) with Tomcat embedded in it")
 
-        if (project.configurations.named("utilities") == null)
+        if (project.configurations.findByName("utilities") == null)
         {
             project.configurations
                     {
@@ -143,7 +143,7 @@ class Distribution implements Plugin<Project>
                     if (it instanceof DefaultProjectDependency)
                     {
                         DefaultProjectDependency dep = (DefaultProjectDependency) it
-                        if (dep.dependencyProject.tasks.named("module") != null)
+                        if (dep.dependencyProject.tasks.findByName("module") != null)
                             distTask.dependsOn(dep.dependencyProject.tasks.module)
                     }
                 }
@@ -235,7 +235,7 @@ class Distribution implements Plugin<Project>
     {
         if (project.dist.artifactId != null)
             return project.dist.artifactId
-        else if (project.tasks.named("distribution") != null)
+        else if (project.tasks.findByName("distribution") != null)
         {
             if (project.tasks.distribution instanceof ModuleDistribution)
                 return ((ModuleDistribution) project.tasks.distribution).getArtifactId()
