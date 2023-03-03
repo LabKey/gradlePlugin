@@ -90,7 +90,7 @@ class ApplyLicenses implements Plugin<Project>
                     )
                     if (project.findProject(BuildUtils.getApiProjectPath(project.gradle))) {
                         var apiProj = project.project(BuildUtils.getApiProjectPath(project.gradle))
-                        jar.dependsOn(apiProj.tasks.findByName("module"))
+                        jar.dependsOn(apiProj.tasks.named("module"))
                         jar.archiveVersion.set(apiProj.getVersion().toString())
                     }
             }
