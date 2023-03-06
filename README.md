@@ -15,10 +15,10 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 1.40.2
+*Released*: 6 March 2023
 (Earliest compatible LabKey version: 23.3)
-* Update dependency declaraions for Gradle 8.0.1
+* Update dependency declarations for Gradle 8.0.1
 
 ### 1.40.1
 *Released*: 27 February 2023
