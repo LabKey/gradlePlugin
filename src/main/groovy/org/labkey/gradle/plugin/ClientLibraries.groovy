@@ -48,7 +48,7 @@ class ClientLibraries
                 task.group = GroupNames.CLIENT_LIBRARIES
                 task.description = 'create minified, compressed javascript file using .lib.xml sources'
                 task.dependsOn ( project.tasks.processResources )
-                task.dependsOn(project.project(minProjectPath).tasks.findByName("npmInstall"))
+                task.dependsOn(project.project(minProjectPath).tasks.named("npmInstall"))
                 task.xmlFiles = getLibXmlFiles(project)
         }
 
