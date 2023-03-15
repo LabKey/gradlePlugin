@@ -45,7 +45,7 @@ dependencies {
 }
 
 group 'org.labkey.build'
-project.version = "1.41.0-SNAPSHOT"
+project.version = "1.40.3"
 
 gradlePlugin {
     // TODO after transitioning to using these plugin ids, remove the properties files from resources/META-INF.gradle-plugins
