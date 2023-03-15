@@ -16,7 +16,7 @@ on how to do that, including how to develop and test locally and the versioning 
 _Note: 1.28.0 and later require Gradle 7_
 
 ### 1.40.3
-*Released*: TBD
+*Released*: 15 March 2023
 (Earliest compatible LabKey version: 23.3)
 * [Issue 47465](https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=47465): Check for the presence of the minification project before adding tasks related to it
 
