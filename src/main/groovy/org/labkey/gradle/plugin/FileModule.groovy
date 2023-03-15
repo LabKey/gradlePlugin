@@ -207,14 +207,16 @@ class FileModule implements Plugin<Project>
 
             Task moduleFile = project.tasks.module
 
+            boolean haveMinifyProject = project.findProject(BuildUtils.getMinificationProjectPath(project.gradle)) != null
+
             moduleFile.dependsOn(project.tasks.named('processResources'))
             moduleFile.dependsOn(moduleXmlTask)
             setJarManifestAttributes(project, (Manifest) moduleFile.manifest)
-            if (!LabKeyExtension.isDevMode(project))
+            if (!LabKeyExtension.isDevMode(project) && haveMinifyProject)
                 moduleFile.dependsOn(project.tasks.named('compressClientLibs'))
             project.tasks.build.dependsOn(moduleFile)
             project.tasks.clean.dependsOn(project.tasks.named('cleanModule'))
-            if (project.findProject(BuildUtils.getMinificationProjectPath(project.gradle)) != null)
+            if (haveMinifyProject)
                 project.tasks.clean.dependsOn(project.tasks.named('cleanClientLibs'))
 
             project.artifacts
