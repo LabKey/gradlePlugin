@@ -42,8 +42,8 @@ class ClientLibraries
 
     static void addTasks(Project project)
     {
-        String minProjectPath = BuildUtils.getMinificationProjectPath(project.gradle)
-        if (project.findProject(minProjectPath) != null) {
+        if (BuildUtils.haveMinificationProject(project.gradle)) {
+            String minProjectPath = BuildUtils.getMinificationProjectPath(project.gradle)
             project.tasks.register("compressClientLibs", ClientLibsCompress) {
                 ClientLibsCompress task ->
                     task.group = GroupNames.CLIENT_LIBRARIES

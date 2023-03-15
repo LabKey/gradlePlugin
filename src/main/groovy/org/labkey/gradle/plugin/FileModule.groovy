@@ -207,7 +207,7 @@ class FileModule implements Plugin<Project>
 
             Task moduleFile = project.tasks.module
 
-            boolean haveMinifyProject = project.findProject(BuildUtils.getMinificationProjectPath(project.gradle)) != null
+            boolean haveMinifyProject = BuildUtils.haveMinificationProject(project.gradle)
 
             moduleFile.dependsOn(project.tasks.named('processResources'))
             moduleFile.dependsOn(moduleXmlTask)
