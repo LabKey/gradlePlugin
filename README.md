@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 1.40.4
+*Released*: TBD
+(Earliest compatible LabKey version: 23.3)
+* Fix check for minification project
+
 ### 1.40.3
 *Released*: 15 March 2023
 (Earliest compatible LabKey version: 23.3)
