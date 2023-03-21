@@ -221,7 +221,7 @@ class FileModule implements Plugin<Project>
 
             project.artifacts
                     {
-                        // TODO: Figure out how to
+                        // TODO: Figure out how to add this artifact without resolving 'module' task
                         published moduleTask.get()
                     }
 
