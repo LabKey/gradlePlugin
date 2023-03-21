@@ -166,13 +166,13 @@ class FileModule implements Plugin<Project>
                 }
 
                 if (project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
-                    tadk.inputs.file(project.file(ModuleExtension.MODULE_PROPERTIES_FILE))
+                    task.inputs.file(project.file(ModuleExtension.MODULE_PROPERTIES_FILE))
                 else
                     project.logger.info("${project.path} - ${ModuleExtension.MODULE_PROPERTIES_FILE} not found so not added as input to 'moduleXml'")
-                tadk.outputs.file(moduleXmlFile)
+                task.outputs.file(moduleXmlFile)
                 if (project.file("build.gradle").exists())
-                    tadk.inputs.file(project.file("build.gradle"))
-                tadk.outputs.cacheIf { false } // disable build caching. Has too many undeclared inputs.
+                    task.inputs.file(project.file("build.gradle"))
+                task.outputs.cacheIf { false } // disable build caching. Has too many undeclared inputs.
         }
 
         // This is added because Intellij started creating this "out" directory when you build through IntelliJ.
