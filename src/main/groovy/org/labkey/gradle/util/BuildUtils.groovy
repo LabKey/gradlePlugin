@@ -302,7 +302,7 @@ class BuildUtils
 
     static boolean haveMinificationProject(Gradle gradle)
     {
-        return gradle.rootProject.project(getMinificationProjectPath(gradle)) != null
+        return gradle.rootProject.findProject(getMinificationProjectPath(gradle)) != null
     }
 
     static String getMinificationProjectPath(Gradle gradle)
