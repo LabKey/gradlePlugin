@@ -185,7 +185,7 @@ class Jsp implements Plugin<Project>
                task.dependsOn('jar')
         }
 
-        project.tasks.compileJspJava {
+        project.tasks.named('compileJspJava').configure {
             Task task ->
                 task.dependsOn project.tasks.jsp2Java
                 task.outputs.cacheIf({true} )

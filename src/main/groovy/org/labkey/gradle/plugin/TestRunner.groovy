@@ -208,7 +208,7 @@ class TestRunner extends UiTest
 
     private void addAspectJ(Project project)
     {
-        project.tasks.compileUiTestJava.doLast {
+        project.tasks.named('compileUiTestJava').configure {doLast {
             ant.taskdef(
                 resource: "org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties",
                 classpath: project.configurations.aspectj.asPath
@@ -224,6 +224,6 @@ class TestRunner extends UiTest
                     }
                 }
             )
-        }
+        }}
     }
 }

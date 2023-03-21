@@ -136,9 +136,7 @@ class Distribution implements Plugin<Project>
     {
         // This block sets up the task dependencies for each configuration dependency.
         project.afterEvaluate {
-            if (project.hasProperty("distribution"))
-            {
-                Task distTask = project.tasks.distribution
+            TaskUtils.configureTaskIfPresent(project, 'distribution') { Task distTask ->
                 project.configurations.distribution.dependencies.each {
                     if (it instanceof DefaultProjectDependency)
                     {

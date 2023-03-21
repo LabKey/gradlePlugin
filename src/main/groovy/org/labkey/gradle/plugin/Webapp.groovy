@@ -72,7 +72,7 @@ class Webapp implements Plugin<Project>
                     }
                 }
         if (!LabKeyExtension.isDevMode(project))
-            project.tasks.processWebappResources.doLast(new GzipAction())
-        project.tasks.processResources.dependsOn('processWebappResources')
+            project.tasks.named('processWebappResources').configure {doLast(new GzipAction())}
+        project.tasks.named('processResources').configure {dependsOn('processWebappResources')}
     }
 }

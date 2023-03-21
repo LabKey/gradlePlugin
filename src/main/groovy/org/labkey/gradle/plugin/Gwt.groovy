@@ -167,7 +167,7 @@ class Gwt implements Plugin<Project>
                 copy.group = GroupNames.GWT
         }
 
-        project.tasks.classes.dependsOn(project.tasks.compileGwt)
+        project.tasks.named("classes").configure {dependsOn(project.tasks.compileGwt)}
     }
 
     private static Map<String, String> getGwtModuleClasses(Project project)

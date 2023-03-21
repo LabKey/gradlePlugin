@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.TaskProvider
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.NpmRunExtension
 import org.labkey.gradle.util.BuildUtils
@@ -104,8 +105,7 @@ class NpmRun implements Plugin<Project>
                     task.description = "Runs 'yarn run ${project.npmRun.clean}'"
                     task.dependsOn "yarn_run_${project.npmRun.clean}"
                 }
-        if (project.tasks.findByName("clean") != null)
-            project.tasks.clean.dependsOn(project.tasks.yarnRunClean)
+        TaskUtils.configureTaskIfPresent(project, 'clean', { dependsOn(project.tasks.yarnRunClean) })
 
         def yarnRunBuildProd = project.tasks.register("yarnRunBuildProd")
                 {Task task ->
@@ -115,8 +115,8 @@ class NpmRun implements Plugin<Project>
                     task.dependsOn "yarn_run_${project.npmRun.buildProd}"
                     task.mustRunAfter "yarn_install"
                 }
-        addTaskInputOutput(project.tasks.yarnRunBuildProd)
-        addTaskInputOutput(project.tasks.getByName("yarn_run_${project.npmRun.buildProd}"))
+        addTaskInputOutput(project.tasks.named('yarnRunBuildProd'))
+        addTaskInputOutput(project.tasks.named("yarn_run_${project.npmRun.buildProd}"))
 
         def yarnRunBuild = project.tasks.register("yarnRunBuild")
                 {Task task ->
@@ -126,8 +126,8 @@ class NpmRun implements Plugin<Project>
                     task.dependsOn "yarn_run_${project.npmRun.buildDev}"
                     task.mustRunAfter "yarn_install"
                 }
-        addTaskInputOutput(project.tasks.yarnRunBuild)
-        addTaskInputOutput(project.tasks.getByName("yarn_run_${project.npmRun.buildDev}"))
+        addTaskInputOutput(project.tasks.named('yarnRunBuild'))
+        addTaskInputOutput(project.tasks.named("yarn_run_${project.npmRun.buildDev}"))
 
         def runCommand = LabKeyExtension.isDevMode(project) ? yarnRunBuild : yarnRunBuildProd
         TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
@@ -135,12 +135,12 @@ class NpmRun implements Plugin<Project>
         TaskUtils.configureTaskIfPresent(project, "processModuleResources", { dependsOn(runCommand) })
         TaskUtils.configureTaskIfPresent(project, "processWebappResources", { dependsOn(runCommand) })
 
-        project.tasks.yarn_install {Task task ->
+        project.tasks.named("yarn_install").configure {Task task ->
             task.inputs.file project.file(NPM_PROJECT_FILE)
             if (project.file(NPM_PROJECT_LOCK_FILE).exists())
                 task.inputs.file project.file(NPM_PROJECT_LOCK_FILE)
         }
-        project.tasks.yarn_install.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
+        project.tasks.named("yarn_install").configure {outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() } }
     }
 
     private static void addNpmTasks(Project project)
@@ -151,8 +151,7 @@ class NpmRun implements Plugin<Project>
                     task.description = "Runs 'npm run ${project.npmRun.clean}'"
                     task.dependsOn "npm_run_${project.npmRun.clean}"
                 }
-        if (project.tasks.findByName("clean") != null)
-            project.tasks.clean.dependsOn(project.tasks.npmRunClean)
+        TaskUtils.configureTaskIfPresent(project, 'clean', { dependsOn(project.tasks.npmRunClean) } )
 
         def npmRunBuildProd = project.tasks.register("npmRunBuildProd")
                 {Task task ->
@@ -162,8 +161,8 @@ class NpmRun implements Plugin<Project>
                     task.mustRunAfter "npmInstall"
 
                 }
-        addTaskInputOutput(project.tasks.npmRunBuildProd)
-        addTaskInputOutput(project.tasks.getByName("npm_run_${project.npmRun.buildProd}"))
+        addTaskInputOutput(project.tasks.named('npmRunBuildProd'))
+        addTaskInputOutput(project.tasks.named("npm_run_${project.npmRun.buildProd}"))
 
         def npmRunBuild = project.tasks.register("npmRunBuild")
                 {Task task ->
@@ -173,18 +172,18 @@ class NpmRun implements Plugin<Project>
                     task.mustRunAfter "npmInstall"
                 }
 
-        addTaskInputOutput(project.tasks.npmRunBuild)
-        addTaskInputOutput(project.tasks.getByName("npm_run_${project.npmRun.buildDev}"))
+        addTaskInputOutput(project.tasks.named('npmRunBuild'))
+        addTaskInputOutput(project.tasks.named("npm_run_${project.npmRun.buildDev}"))
 
-        project.tasks.npmInstall
+        project.tasks.named('npmInstall').configure
                 {Task task ->
                     task.inputs.file project.file(NPM_PROJECT_FILE)
                     if (project.file(NPM_PROJECT_LOCK_FILE).exists())
                         task.inputs.file project.file(NPM_PROJECT_LOCK_FILE)
                     // Specify legacy peer dependency mode for npm v7+
                     task.args = ["--legacy-peer-deps"]
+                    task.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
                 }
-        project.tasks.npmInstall.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
 
         def runCommand = LabKeyExtension.isDevMode(project) && !project.hasProperty('useNpmProd') ? npmRunBuild : npmRunBuildProd
         TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
@@ -242,30 +241,32 @@ class NpmRun implements Plugin<Project>
 
     }
 
-    private static void addTaskInputOutput(Task task)
+    private static void addTaskInputOutput(TaskProvider tp)
     {
-        if (task.project.file(NPM_PROJECT_FILE).exists())
-            task.inputs.file task.project.file(NPM_PROJECT_FILE)
-        if (task.project.file(TYPESCRIPT_CONFIG_FILE).exists())
-            task.inputs.file task.project.file(TYPESCRIPT_CONFIG_FILE)
-        if (task.project.file(WEBPACK_DIR).exists())
-            task.inputs.dir task.project.file(WEBPACK_DIR)
-        if (task.project.file(ENTRY_POINTS_FILE).exists())
-            task.inputs.files task.project.file(ENTRY_POINTS_FILE)
+        tp.configure { Task task ->
+            if (task.project.file(NPM_PROJECT_FILE).exists())
+                task.inputs.file task.project.file(NPM_PROJECT_FILE)
+            if (task.project.file(TYPESCRIPT_CONFIG_FILE).exists())
+                task.inputs.file task.project.file(TYPESCRIPT_CONFIG_FILE)
+            if (task.project.file(WEBPACK_DIR).exists())
+                task.inputs.dir task.project.file(WEBPACK_DIR)
+            if (task.project.file(ENTRY_POINTS_FILE).exists())
+                task.inputs.files task.project.file(ENTRY_POINTS_FILE)
 
-        // common input file pattern for client source
-        task.inputs.files task.project.fileTree(dir: "src", includes: ["client/**/*", "theme/**/*"])
+            // common input file pattern for client source
+            task.inputs.files task.project.fileTree(dir: "src", includes: ["client/**/*", "theme/**/*"])
 
-        // common output file pattern for client artifacts
-        task.outputs.dir task.project.file("resources/web/${task.project.name}/gen")
-        task.outputs.dir task.project.file("resources/web/gen")
-        task.outputs.dir task.project.file("resources/views/gen")
-        if (task.project.path.equals(BuildUtils.getPlatformModuleProjectPath(task.project.gradle, "core"))) {
-            task.outputs.dir task.project.file("resources/web/clientapi")
-            task.outputs.dir task.project.file("resources/web/${task.project.name}/css")
+            // common output file pattern for client artifacts
+            task.outputs.dir task.project.file("resources/web/${task.project.name}/gen")
+            task.outputs.dir task.project.file("resources/web/gen")
+            task.outputs.dir task.project.file("resources/views/gen")
+            if (task.project.path.equals(BuildUtils.getPlatformModuleProjectPath(task.project.gradle, "core"))) {
+                task.outputs.dir task.project.file("resources/web/clientapi")
+                task.outputs.dir task.project.file("resources/web/${task.project.name}/css")
+            }
+
+            task.outputs.cacheIf({ true })
         }
-
-        task.outputs.cacheIf({true})
     }
 }
 

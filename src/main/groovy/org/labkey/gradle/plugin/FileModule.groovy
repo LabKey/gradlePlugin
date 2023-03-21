@@ -133,7 +133,7 @@ class FileModule implements Plugin<Project>
         ModuleResources.addTasks(project)
 
         File moduleXmlFile = new File("${project.labkey.explodedModuleConfigDir}/module.xml")
-        project.tasks.register('moduleXml') {
+        var moduleXmlTask = project.tasks.register('moduleXml') {
             Task task ->
                 task.doLast {
                     InputStream is = getClass().getClassLoader().getResourceAsStream("module.template.xml")
@@ -164,17 +164,16 @@ class FileModule implements Plugin<Project>
                     writer.close()
                     is.close()
                 }
-        }
 
-        Task moduleXmlTask = project.tasks.moduleXml
-        if (project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
-            moduleXmlTask.inputs.file(project.file(ModuleExtension.MODULE_PROPERTIES_FILE))
-        else
-            project.logger.info("${project.path} - ${ModuleExtension.MODULE_PROPERTIES_FILE} not found so not added as input to 'moduleXml'")
-        moduleXmlTask.outputs.file(moduleXmlFile)
-        if (project.file("build.gradle").exists())
-            moduleXmlTask.inputs.file(project.file("build.gradle"))
-        moduleXmlTask.outputs.cacheIf {false} // disable build caching. Has too many undeclared inputs.
+                if (project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
+                    tadk.inputs.file(project.file(ModuleExtension.MODULE_PROPERTIES_FILE))
+                else
+                    project.logger.info("${project.path} - ${ModuleExtension.MODULE_PROPERTIES_FILE} not found so not added as input to 'moduleXml'")
+                tadk.outputs.file(moduleXmlFile)
+                if (project.file("build.gradle").exists())
+                    tadk.inputs.file(project.file("build.gradle"))
+                tadk.outputs.cacheIf { false } // disable build caching. Has too many undeclared inputs.
+        }
 
         // This is added because Intellij started creating this "out" directory when you build through IntelliJ.
         // It copies files there that are actually input files to the build, which causes some problems when later
@@ -191,7 +190,7 @@ class FileModule implements Plugin<Project>
 
         if (!AntBuild.isApplicable(project))
         {
-            project.tasks.register("module", Jar) {
+            var moduleTask = project.tasks.register("module", Jar) {
                 Jar jar ->
                     jar.group = GroupNames.MODULE
                     jar.description = "create the module file for this project"
@@ -205,40 +204,42 @@ class FileModule implements Plugin<Project>
                     jar.outputs.cacheIf({true})
             }
 
-            Task moduleFile = project.tasks.module
+            moduleTask.configure {
+                it.dependsOn(project.tasks.named('processResources'))
+                it.dependsOn(moduleXmlTask)
+                setJarManifestAttributes(project, (Manifest) it.manifest)
+                if (!LabKeyExtension.isDevMode(project) && BuildUtils.haveMinificationProject(project.gradle))
+                    it.dependsOn(project.tasks.named('compressClientLibs'))
+            }
 
-            boolean haveMinifyProject = BuildUtils.haveMinificationProject(project.gradle)
-
-            moduleFile.dependsOn(project.tasks.named('processResources'))
-            moduleFile.dependsOn(moduleXmlTask)
-            setJarManifestAttributes(project, (Manifest) moduleFile.manifest)
-            if (!LabKeyExtension.isDevMode(project) && haveMinifyProject)
-                moduleFile.dependsOn(project.tasks.named('compressClientLibs'))
-            project.tasks.build.dependsOn(moduleFile)
-            project.tasks.clean.dependsOn(project.tasks.named('cleanModule'))
-            if (haveMinifyProject)
-                project.tasks.clean.dependsOn(project.tasks.named('cleanClientLibs'))
+            project.tasks.named("build").configure {dependsOn(moduleTask)}
+            project.tasks.clean {
+                dependsOn(project.tasks.named('cleanModule'))
+                if (BuildUtils.haveMinificationProject(project.gradle))
+                    dependsOn(project.tasks.named('cleanClientLibs'))
+            }
 
             project.artifacts
                     {
-                        published moduleFile
+                        // TODO: Figure out how to
+                        published moduleTask.get()
                     }
 
             project.tasks.register('deployModule')
                 { Task task ->
                     task.group = GroupNames.MODULE
                     task.description = "copy a project's .module file to the local deploy directory"
-                    task.inputs.files moduleFile
-                    task.outputs.file "${ServerDeployExtension.getModulesDeployDirectory(project)}/${moduleFile.outputs.getFiles()[0].getName()}"
+                    task.inputs.files moduleTask
+                    task.outputs.file "${ServerDeployExtension.getModulesDeployDirectory(project)}/${moduleTask.get().outputs.getFiles()[0].getName()}"
 
                     task.doLast {
                         project.copy { CopySpec copy ->
-                            copy.from moduleFile
+                            copy.from moduleTask
                             copy.from project.configurations.modules
                             copy.into project.staging.modulesDir
                         }
                         project.copy { CopySpec copy ->
-                            copy.from moduleFile
+                            copy.from moduleTask
                             copy.from project.configurations.modules
                             copy.into ServerDeployExtension.getModulesDeployDirectory(project)
                         }
@@ -462,16 +463,16 @@ class FileModule implements Plugin<Project>
                         project.artifactoryPublish {
                             if (project.hasProperty('module'))
                             {
-                                dependsOn project.tasks.module
+                                dependsOn project.tasks.named("module")
                             }
 
                             if (project.hasProperty('apiJar'))
                             {
-                                dependsOn project.tasks.apiJar
+                                dependsOn project.tasks.named("apiJar")
                             }
                             else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
                             {
-                                dependsOn project.tasks.jar
+                                dependsOn project.tasks.named("jar")
                             }
                             publications('modules', 'apiLib')
                         }

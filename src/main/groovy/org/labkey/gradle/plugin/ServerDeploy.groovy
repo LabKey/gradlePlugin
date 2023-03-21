@@ -130,7 +130,7 @@ class ServerDeploy implements Plugin<Project>
 
                 })
         }
-        project.tasks.stageModules.dependsOn project.configurations.modules
+        project.tasks.named('stageModules').configure {dependsOn project.configurations.modules}
 
 
         project.tasks.register("checkModuleVersions", CheckForVersionConflicts) {
@@ -149,7 +149,7 @@ class ServerDeploy implements Plugin<Project>
             }
 
 
-        project.tasks.stageModules.dependsOn(project.tasks.checkModuleVersions)
+        project.tasks.named('stageModules').configure {dependsOn(project.tasks.checkModuleVersions)}
 
 
         project.tasks.register("checkVersionConflicts") {
@@ -183,7 +183,7 @@ class ServerDeploy implements Plugin<Project>
                             linkBinaries(project, "yarn", project.yarnVersion, project.yarnWorkDirectory)
                     })
             }
-            project.tasks.deployApp.dependsOn(project.tasks.symlinkNode)
+            project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
         }
 
 
@@ -210,7 +210,7 @@ class ServerDeploy implements Plugin<Project>
                 )
         }
 
-        project.tasks.stageRemotePipelineJars.dependsOn project.configurations.remotePipelineJars
+        project.tasks.named('stageRemotePipelineJars').configure {dependsOn project.configurations.remotePipelineJars}
 
         project.tasks.register(
                 "stageApp") {
@@ -230,8 +230,10 @@ class ServerDeploy implements Plugin<Project>
                 task.mustRunAfter(project.tasks.stageApp)
         }
 
-        project.tasks.deployApp.dependsOn(project.tasks.setup)
-        project.tasks.deployApp.dependsOn(project.tasks.stageApp)
+        project.tasks.named('deployApp').configure {
+            dependsOn(project.tasks.setup)
+            dependsOn(project.tasks.stageApp)
+        }
 
         if (BuildUtils.embeddedProjectExists(project)) {
             def embeddedProject = project.project(BuildUtils.getEmbeddedProjectPath())
@@ -244,16 +246,18 @@ class ServerDeploy implements Plugin<Project>
                         project.delete project.serverDeploy.embeddedDir
                     }
             }
-            project.tasks.deployApp.mustRunAfter(project.tasks.cleanEmbeddedDeploy)
-            project.tasks.stageApp.dependsOn(embeddedProject.tasks.build)
-            project.tasks.setup.mustRunAfter(project.tasks.cleanEmbeddedDeploy)
-            project.tasks.deployApp.doLast({
-                project.copy {
-                    CopySpec copy ->
-                        copy.from new File(embeddedProject.buildDir, "libs")
-                        copy.into project.serverDeploy.embeddedDir
+            project.tasks.named('deployApp').configure {
+                mustRunAfter(project.tasks.cleanEmbeddedDeploy)
+                doLast {
+                    project.copy {
+                        CopySpec copy ->
+                            copy.from new File(embeddedProject.buildDir, "libs")
+                            copy.into project.serverDeploy.embeddedDir
+                    }
                 }
-            })
+            }
+            project.tasks.named('stageApp').configure {dependsOn(embeddedProject.tasks.build)}
+            project.tasks.named('setup').configure {mustRunAfter(project.tasks.cleanEmbeddedDeploy)}
 
         }
 
@@ -264,7 +268,7 @@ class ServerDeploy implements Plugin<Project>
                 task.group = GroupNames.DEPLOY
                 task.description = "Edit and copy ${log4jFile} file"
         }
-        project.tasks.stageApp.dependsOn(project.tasks.configureLog4j)
+        project.tasks.named('stageApp').configure {dependsOn(project.tasks.configureLog4j)}
 
         project.tasks.register("stageDistribution", StageDistribution) {
             StageDistribution task ->
@@ -290,8 +294,8 @@ class ServerDeploy implements Plugin<Project>
 
 
         // This may prevent multiple Tomcat restarts
-        project.tasks.setup.mustRunAfter(project.tasks.stageDistribution)
-        project.tasks.configureLog4j.mustRunAfter(project.tasks.stageDistribution)
+        project.tasks.named('setup').configure {mustRunAfter(project.tasks.stageDistribution)}
+        project.tasks.named('configureLog4j').configure {mustRunAfter(project.tasks.stageDistribution)}
 
         project.tasks.register('undeployModules',UndeployModules) {
             UndeployModules task ->
@@ -320,7 +324,7 @@ class ServerDeploy implements Plugin<Project>
                     spec.delete serverDeploy.dir
                 })
         }
-        project.tasks.deployApp.mustRunAfter(project.tasks.cleanDeploy)
+        project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanDeploy)}
 
         project.tasks.register("cleanTomcatLib") {
             Task task ->
@@ -347,7 +351,7 @@ class ServerDeploy implements Plugin<Project>
                     spec.delete project.rootProject.buildDir
                 })
         }
-        project.tasks.deployApp.mustRunAfter(project.tasks.cleanBuild)
+        project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanBuild)}
 
         Project serverProject = BuildUtils.getServerProject(project)
         if (serverProject != null) {
@@ -371,8 +375,8 @@ class ServerDeploy implements Plugin<Project>
                     })
             }
 
-            project.tasks.stageApp.dependsOn(project.tasks.stageTomcatJars)
-            project.tasks.deployApp.dependsOn(project.tasks.deployTomcatJars)
+            project.tasks.named('stageApp').configure {dependsOn(project.tasks.stageTomcatJars)}
+            project.tasks.named('deployApp').configure {dependsOn(project.tasks.deployTomcatJars)}
         }
 
         project.tasks.register(
@@ -396,8 +400,8 @@ class ServerDeploy implements Plugin<Project>
 
                 })
         }
-        project.tasks.deployApp.dependsOn(project.tasks.named("checkModuleTasks"))
-        project.tasks.checkModuleTasks.mustRunAfter(project.tasks.stageApp) // do this so the message appears at the bottom of the output
+        project.tasks.named('deployApp').configure {dependsOn(project.tasks.named("checkModuleTasks"))}
+        project.tasks.named('checkModuleTasks').configure {mustRunAfter(project.tasks.stageApp)} // do this so the message appears at the bottom of the output
         if (project.plugins.hasPlugin(Tomcat)) {
             if (project.tomcat.hasCatalinaHome()) {
                 project.tasks.named("cleanBuild").configure {

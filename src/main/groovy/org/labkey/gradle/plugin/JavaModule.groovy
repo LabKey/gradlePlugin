@@ -26,6 +26,7 @@ import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.task.CheckForVersionConflicts
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
+import org.labkey.gradle.util.TaskUtils
 
 /**
  * This class is used for building a LabKey Java module (one that typically resides in the server/modules
@@ -164,11 +165,10 @@ class JavaModule implements Plugin<Project>
                     explodedLibDir.delete()
             }
         }
-        project.tasks.findByName('module').dependsOn(populateLib)
+        project.tasks.named('module').configure {dependsOn(populateLib)}
         // We do this afterEvaluate to allow all dependencies to be declared before checking
         project.afterEvaluate({
             FileCollection externalFiles = getTrimmedExternalFiles(project)
-            FileCollection allJars = externalFiles
 
             project.tasks.register("copyExternalLibs", Copy) {
                 Copy task ->
@@ -189,29 +189,39 @@ class JavaModule implements Plugin<Project>
                     })
             }
 
-            if (project.tasks.findByName("module") != null)
-            {
-                project.tasks.module.dependsOn(project.tasks.copyExternalLibs)
+            TaskUtils.configureTaskIfPresent(project, 'module', {
+                dependsOn(project.tasks.copyExternalLibs)
                 if (project.tasks.findByName("jar") != null)
                 {
-                    project.tasks.module.dependsOn(project.tasks.jar)
-                    allJars = allJars + project.tasks.jar.outputs.files
+                    dependsOn(project.tasks.jar)
                 }
                 if (project.tasks.findByName('apiJar') != null)
                 {
-                    project.tasks.module.dependsOn(project.tasks.apiJar)
-                    allJars = allJars + project.tasks.apiJar.outputs.files
+                    dependsOn(project.tasks.apiJar)
                 }
                 if (project.tasks.findByName('jspJar') != null)
                 {
-                    project.tasks.module.dependsOn(project.tasks.jspJar)
-                    allJars = allJars + project.tasks.jspJar.outputs.files
+                    dependsOn(project.tasks.jspJar)
                 }
-            }
+            } )
 
             project.tasks.register(
                     "checkModuleJarVersions", CheckForVersionConflicts)
                     { CheckForVersionConflicts task ->
+
+                        FileCollection allJars = externalFiles
+                        if (project.tasks.findByName("jar") != null)
+                        {
+                            allJars = allJars + project.tasks.jar.outputs.files
+                        }
+                        if (project.tasks.findByName('apiJar') != null)
+                        {
+                            allJars = allJars + project.tasks.apiJar.outputs.files
+                        }
+                        if (project.tasks.findByName('jspJar') != null)
+                        {
+                            allJars = allJars + project.tasks.jspJar.outputs.files
+                        }
 
                         task.group = GroupNames.MODULE
                         task.description = "Check for conflicts in version numbers of jar files to be included in the module and files already in the build directory ${project.labkey.explodedModuleLibDir}." +
@@ -223,15 +233,15 @@ class JavaModule implements Plugin<Project>
                         task.collection = allJars
                     }
 
-            project.tasks.copyExternalLibs.dependsOn(project.tasks.named("checkModuleJarVersions"))
+            project.tasks.named("copyExternalLibs").configure {dependsOn(project.tasks.named("checkModuleJarVersions"))}
             Project serverProject = BuildUtils.getServerProject(project)
             if (serverProject != null)
-                serverProject.tasks.checkVersionConflicts.dependsOn(project.tasks.named("checkModuleJarVersions"))
+                serverProject.tasks.named("checkVersionConflicts").configure {dependsOn(project.tasks.named("checkModuleJarVersions"))}
             // This is necessary to avoid warnings with gradle 7 because, I believe, of the resource and java source sets
             // overlapping in certain cases.  By declaring this dependency, we enable some optimizations from Gradle because
             // it can know in what order to run tasks that put files into a common directory,
             // but it might be nice to remove overlaps somewhere so this isn't necessary.
-            project.tasks.compileJava.dependsOn(project.tasks.named("processModuleResources"))
+            project.tasks.named("compileJava").configure {dependsOn(project.tasks.named("processModuleResources"))}
         })
     }
 
