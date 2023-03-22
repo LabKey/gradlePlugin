@@ -86,7 +86,7 @@ class Jsp implements Plugin<Project>
                     jsp
                     jspTagLibs
                 }
-        project.configurations.getByName('jspImplementation') {
+        project.configurations.named('jspImplementation') {
             resolutionStrategy {
                 force "javax.servlet:javax.servlet-api:${project.servletApiVersion}"
             }
