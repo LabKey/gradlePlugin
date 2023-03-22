@@ -125,7 +125,7 @@ class BuildUtils
      */
     static void addBaseModuleDependencies(Project project)
     {
-        for (String path : BuildUtils.getBaseModules(project.gradle))
+        for (String path : getBaseModules(project.gradle))
         {
             if (path != getBootstrapProjectPath(project.gradle) && path != getRemoteApiProjectPath(project.gradle))
             {

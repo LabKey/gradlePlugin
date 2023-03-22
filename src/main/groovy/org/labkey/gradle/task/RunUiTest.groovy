@@ -62,7 +62,7 @@ class RunUiTest extends Test
         ]
 
         if (project.hasProperty("uiTestJvmOpts"))
-            jvmArgsList.add(project.property("uiTestJvmOpts"))
+            jvmArgsList.add((String) project.property("uiTestJvmOpts"))
 
         TomcatExtension tomcat = project.extensions.findByType(TomcatExtension.class)
 
