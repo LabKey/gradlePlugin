@@ -66,7 +66,7 @@ class FileModule implements Plugin<Project>
             project.apply plugin: 'org.labkey.build.base'
 
             project.extensions.create("lkModule", ModuleExtension, project)
-            addSourceSet()
+            addSourceSet(project)
             applyPlugins(project)
             addConfigurations(project)
             addTasks(project)
@@ -91,7 +91,7 @@ class FileModule implements Plugin<Project>
     }
 
 
-    private void addSourceSet()
+    private void addSourceSet(Project project)
     {
         ModuleResources.addSourceSet(project)
     }
