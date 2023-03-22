@@ -66,7 +66,7 @@ class FileModule implements Plugin<Project>
             project.apply plugin: 'org.labkey.build.base'
 
             project.extensions.create("lkModule", ModuleExtension, project)
-            addSourceSet(project)
+            addSourceSet()
             applyPlugins(project)
             addConfigurations(project)
             addTasks(project)
@@ -91,7 +91,7 @@ class FileModule implements Plugin<Project>
     }
 
 
-    private void addSourceSet(Project project)
+    private void addSourceSet()
     {
         ModuleResources.addSourceSet(project)
     }
@@ -178,7 +178,7 @@ class FileModule implements Plugin<Project>
         // This is added because Intellij started creating this "out" directory when you build through IntelliJ.
         // It copies files there that are actually input files to the build, which causes some problems when later
         // builds attempt to find their input files.
-        project.tasks.create("cleanOut", Delete) {
+        project.tasks.register("cleanOut", Delete) {
             Delete task ->
                 task.group = GroupNames.BUILD
                 task.description = "removes the ${project.file('out')} directory created by Intellij builds"
