@@ -16,7 +16,7 @@ on how to do that, including how to develop and test locally and the versioning 
 _Note: 1.28.0 and later require Gradle 7_
 
 ### 1.40.5
-*Released*: TBD
+*Released*: 23 March 2023
 (Earliest compatible LabKey version: 23.3)
 * Improve performance of Gradle task configuration
 
