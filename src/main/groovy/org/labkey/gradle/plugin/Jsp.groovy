@@ -86,7 +86,7 @@ class Jsp implements Plugin<Project>
                     jsp
                     jspTagLibs
                 }
-        project.configurations.getByName('jspImplementation') {
+        project.configurations.named('jspImplementation') {
             resolutionStrategy {
                 force "javax.servlet:javax.servlet-api:${project.servletApiVersion}"
             }
@@ -185,7 +185,7 @@ class Jsp implements Plugin<Project>
                task.dependsOn('jar')
         }
 
-        project.tasks.compileJspJava {
+        project.tasks.named('compileJspJava').configure {
             Task task ->
                 task.dependsOn project.tasks.jsp2Java
                 task.outputs.cacheIf({true} )

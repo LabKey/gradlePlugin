@@ -54,7 +54,7 @@ class ClientLibraries
             }
 
             project.evaluationDependsOn(minProjectPath)
-            project.tasks.assemble.dependsOn(project.tasks.compressClientLibs)
+            project.tasks.named("assemble").configure {dependsOn(project.tasks.compressClientLibs)}
 
             project.tasks.register("cleanClientLibs", Delete) {
                 Delete task ->

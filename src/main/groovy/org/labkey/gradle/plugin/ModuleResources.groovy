@@ -34,9 +34,9 @@ class ModuleResources
                 task.description = "write a list of direct external dependencies that should be checked on the credits page"
         }
 
-        project.tasks.processModuleResources.dependsOn(project.tasks.writeDependenciesList)
-        project.tasks.processResources.dependsOn(project.tasks.processModuleResources)
-        project.tasks.clean.dependsOn(project.tasks.cleanWriteDependenciesList)
+        project.tasks.named("processModuleResources").configure {dependsOn(project.tasks.named('writeDependenciesList'))}
+        project.tasks.named("processResources").configure {dependsOn(project.tasks.named('processModuleResources'))}
+        project.tasks.clean {dependsOn(project.tasks.named('cleanWriteDependenciesList'))}
     }
 
     static void addSourceSet(Project project)
@@ -53,9 +53,9 @@ class ModuleResources
                 }
         if (!LabKeyExtension.isDevMode(project))
         {
-            GzipAction zipAction = new GzipAction();
-            zipAction.extraExcludes = ["views/**"];
-            project.tasks.processModuleResources.doLast(zipAction);
+            GzipAction zipAction = new GzipAction()
+            zipAction.extraExcludes = ["views/**"]
+            project.tasks.named("processModuleResources").configure {doLast(zipAction)}
         }
     }
 }
