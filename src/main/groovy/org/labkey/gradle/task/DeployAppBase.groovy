@@ -26,7 +26,7 @@ class DeployAppBase extends DefaultTask {
         }
         // For TC builds, we deposit the artifacts of the Linux TPP Tools and Windows Proteomics Tools into
         // the external directory, so we want to copy those over as well.
-        // TODO: package the output of these builds into the Artfactory artifact to simplify
+        // TODO: package the output of these builds into the Artifactory artifact to simplify
         if (project.file(_externalDir).exists()) {
             project.logger.info("Copying from ${_externalDir} to ${project.serverDeploy.binDir}")
             if (SystemUtils.IS_OS_MAC)
