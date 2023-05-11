@@ -60,9 +60,9 @@ class Jsp implements Plugin<Project>
     {
         project.apply plugin: 'java-base'
 
+        addSourceSet(project)
         addConfiguration(project)
         addDependencies(project)
-        addSourceSet(project)
         addJspTasks(project)
     }
 
@@ -82,8 +82,6 @@ class Jsp implements Plugin<Project>
     {
         project.configurations
                 {
-                    jspImplementation
-                    jsp
                     jspTagLibs
                 }
         project.configurations.named('jspImplementation') {
@@ -104,13 +102,10 @@ class Jsp implements Plugin<Project>
                     if (project.hasProperty('apiJar'))
                         jspImplementation project.files(project.tasks.apiJar)
                     BuildUtils.addTomcatBuildDependencies(project, "jspImplementation")
-
-                    jsp ("org.apache.tomcat:tomcat-jasper:${project.apacheTomcatVersion}") { transitive = false }
-                    jsp ("org.apache.tomcat:tomcat-juli:${project.apacheTomcatVersion}") { transitive = false }
                 }
     }
 
-    private void addJspTasks(Project project)
+    private static void addJspTasks(Project project)
     {
         project.tasks.register('listJsps') {
             Task task ->
@@ -191,7 +186,7 @@ class Jsp implements Plugin<Project>
                 task.outputs.cacheIf({true} )
         }
 
-         project.tasks.register('jspJar', Jar) {
+        project.tasks.register('jspJar', Jar) {
              Jar jar ->
                  jar.group = GroupNames.JSP
                  jar.description = "produce jar file of jsps"
@@ -201,13 +196,10 @@ class Jsp implements Plugin<Project>
                  jar.outputs.cacheIf({true})
          }
 
-        project.artifacts {
-            jspImplementation project.tasks.jspJar
-        }
         project.tasks.assemble.dependsOn(project.tasks.jspJar)
     }
 
-    private TaskProvider getCopyTagLibs(Project project)
+    private static TaskProvider getCopyTagLibs(Project project)
     {
         return project.tasks.register("copyTagLibs", Copy) {
             Copy task ->
