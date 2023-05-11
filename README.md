@@ -18,6 +18,7 @@ _Note: 1.28.0 and later require Gradle 7_
 ### 1.40.6
 *Released*: TBD
 (Earliest compatible LabKey version: 23.3)
+* Remove use of reserved configuration name for JSPs
 * [Issue 47854: Improve audit trail of LabKey install script](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=47854)
 
 ### 1.40.5
