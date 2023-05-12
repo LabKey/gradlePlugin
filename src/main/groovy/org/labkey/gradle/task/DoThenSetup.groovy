@@ -140,8 +140,16 @@ class DoThenSetup extends DefaultTask
                             line = line.replace("#server.ssl", "server.ssl")
                         }
                         if (project.hasProperty("useLocalBuild")) {
+                            // Let properties file specify which properties require 'useLocalBuild'
+                            line = line.replace("#useLocalBuild#", "");
+
+                            // Old method enables specific properties for 'useLocalBuild' (before 22.6)
                             line = line.replace("#context.webAppLocation=", "context.webAppLocation=")
                             line = line.replace("#spring.devtools.restart.additional-paths=", "spring.devtools.restart.additional-paths=")
+                        }
+                        else {
+                            // Remove placeholder
+                            line = line.replace("#useLocalBuild#", "#");
                         }
                         if (configProperties.containsKey("extraJdbcDataSource"))
                         {
