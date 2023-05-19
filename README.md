@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 23.3)
+* Add plugin for purging artifact versions from Artfactory
+
 ### 1.40.6
 *Released*: 15 May 2023
 (Earliest compatible LabKey version: 23.3)
