@@ -27,6 +27,12 @@ class PurgeArtifacts extends DefaultTask
         return BuildUtils.compareVersions( version, "19.3") < 0
     }
 
+    enum Response {
+        SUCCESS,
+        NOT_FOUND,
+        ERROR
+    }
+
     @TaskAction
     void purgeVersions()
     {
@@ -36,23 +42,36 @@ class PurgeArtifacts extends DefaultTask
         purgeVersion = project.property(VERSION_PROPERTY)
         boolean isPreSplitVersion = isPreSplitVersion(purgeVersion)
         String[] undeletedVersions = []
+        int numDeleted = 0
+        int numNotFound = 0
         project.allprojects({ Project p ->
             def plugins = p.getPlugins()
             if (plugins.hasPlugin(Module.class) || plugins.hasPlugin(JavaModule.class) || plugins.hasPlugin(FileModule.class)) {
-                project.logger.quiet("Considering ${p.path}...")
-                if (!makeDeleteRequest(p.name, purgeVersion, "module")) {
+                logger.quiet("Considering ${p.path}...")
+                Response response = makeDeleteRequest(p.name, purgeVersion, "module")
+                if (response == Response.NOT_FOUND)
+                    numNotFound++
+                else if (response == Response.ERROR) {
                     undeletedVersions += "${p.path} - module: ${purgeVersion}"
                 }
+                else
+                    numDeleted++
                 if (!isPreSplitVersion && plugins.hasPlugin(Api.class)) {
-                    if (!makeDeleteRequest(p.name, purgeVersion, "api")) {
+                    response = makeDeleteRequest(p.name, purgeVersion, "api")
+                    if (response == Response.NOT_FOUND)
+                        numNotFound++
+                    else if (response == Response.ERROR) {
                         undeletedVersions += "${p.path} - api: ${purgeVersion}"
                     }
+                    else
+                        numDeleted++
                 }
             }
         })
 
+        logger.quiet("Deleted ${numDeleted} artifacts; ${numNotFound} artifacts not found.")
         if (undeletedVersions.size() > 0 && !project.hasProperty("dryRun"))
-            throw new GradleException("The following versions were not deleted.\n${StringUtils.join(undeletedVersions, "\n")}\nCheck the log for more information.")
+            throw new GradleException("The following ${undeletedVersions.size()} versions were not deleted.\n${StringUtils.join(undeletedVersions, "\n")}\nCheck the log for more information.")
     }
 
     /**
@@ -64,16 +83,16 @@ class PurgeArtifacts extends DefaultTask
      * @return true if deletion was successful, false otherwise
      * @throws GradleException if the delete request throws an exception
      */
-    boolean makeDeleteRequest(String artifactName, String version, String type)
+    Response makeDeleteRequest(String artifactName, String version, String type)
     {
         if (project.hasProperty("dryRun")) {
-            project.logger.quiet("\tRemoving version ${version} of ${artifactName} ${type} -- Skipped for dry run")
+            logger.quiet("\tRemoving version ${version} of ${artifactName} ${type} -- Skipped for dry run")
             return
         }
 
         CloseableHttpClient httpClient = HttpClients.createDefault();
         String endpoint = project.property('artifactory_contextUrl')
-        boolean success = true
+        Response responseStatus = Response.SUCCESS
         if (!endpoint.endsWith("/"))
             endpoint += "/"
 
@@ -82,7 +101,7 @@ class PurgeArtifacts extends DefaultTask
             endpoint += repo + "/org/labkey/" + artifactName + "/" + version
         else
             endpoint += repo + "/org/labkey/" + type + "/" + artifactName + "/" + version
-        project.logger.quiet("\tMaking delete request for ${type} artifact ${artifactName} and version ${version} via endpoint ${endpoint}")
+        logger.quiet("\tMaking delete request for ${type} artifact ${artifactName} and version ${version} via endpoint ${endpoint}")
 
         try
         {
@@ -91,12 +110,17 @@ class PurgeArtifacts extends DefaultTask
             httpDelete.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${project.property('artifactory_user')}:${project.property('artifactory_password')}".getBytes()))
             CloseableHttpResponse response = httpClient.execute(httpDelete)
             int statusCode = response.getStatusLine().getStatusCode()
-            if (statusCode != HttpStatus.SC_OK && statusCode != HttpStatus.SC_NO_CONTENT) {
-                project.logger.error("Unable to delete using ${endpoint}: ${response.getStatusLine()}")
-                success = false
+
+            if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                logger.info("No such file or directory: ${endpoint}")
+                responseStatus = Response.NOT_FOUND
+            }
+            else if (statusCode != HttpStatus.SC_OK && statusCode != HttpStatus.SC_NO_CONTENT) {
+                logger.error("Unable to delete using ${endpoint}: ${response.getStatusLine()}")
+                responseStatus = Response.ERROR
             }
             response.close()
-            return success
+            return responseStatus
         }
         catch (Exception e)
         {
