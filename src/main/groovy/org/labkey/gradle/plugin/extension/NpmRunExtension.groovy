@@ -32,7 +32,8 @@ class NpmRunExtension
 
     NpmRunExtension(Project project) {
         npmRunLimit = project.getGradle().getSharedServices().registerIfAbsent("npmRunLimit", NpmRunLimit.class, spec -> {
-            spec.maxParallelUsages project.getProperties().get("npmRunLimit", 2)
+            if (project.hasProperty("npmRunLimit"))
+                spec.getMaxParallelUsages().set(Integer.valueOf(project.property("npmRunLimit")))
         })
     }
 }
