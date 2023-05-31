@@ -15,10 +15,26 @@
  */
 package org.labkey.gradle.plugin.extension
 
+import org.gradle.api.Project
+import org.gradle.api.provider.Provider
+import org.gradle.api.services.BuildService
+
+import static org.gradle.api.services.BuildServiceParameters.None
+
 class NpmRunExtension
 {
     String clean = "clean"
     String setup = "setup"
     String buildProd = "build-prod"
     String buildDev = "build"
+
+    final Provider<BuildService<None>> npmRunLimit
+
+    NpmRunExtension(Project project) {
+        npmRunLimit = project.getGradle().getSharedServices().registerIfAbsent("npmRunLimit", NpmRunLimit.class, spec -> {
+            spec.maxParallelUsages project.getProperties().get("npmRunLimit", 2)
+        })
+    }
 }
+
+abstract class NpmRunLimit implements BuildService<None> { }

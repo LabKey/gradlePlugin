@@ -115,8 +115,8 @@ class NpmRun implements Plugin<Project>
                     task.dependsOn "yarn_run_${project.npmRun.buildProd}"
                     task.mustRunAfter "yarn_install"
                 }
-        addTaskInputOutput(project.tasks.named('yarnRunBuildProd'))
-        addTaskInputOutput(project.tasks.named("yarn_run_${project.npmRun.buildProd}"))
+        configureBuildTask(project.tasks.named('yarnRunBuildProd'))
+        configureBuildTask(project.tasks.named("yarn_run_${project.npmRun.buildProd}"))
 
         def yarnRunBuild = project.tasks.register("yarnRunBuild")
                 {Task task ->
@@ -126,8 +126,8 @@ class NpmRun implements Plugin<Project>
                     task.dependsOn "yarn_run_${project.npmRun.buildDev}"
                     task.mustRunAfter "yarn_install"
                 }
-        addTaskInputOutput(project.tasks.named('yarnRunBuild'))
-        addTaskInputOutput(project.tasks.named("yarn_run_${project.npmRun.buildDev}"))
+        configureBuildTask(project.tasks.named('yarnRunBuild'))
+        configureBuildTask(project.tasks.named("yarn_run_${project.npmRun.buildDev}"))
 
         def runCommand = LabKeyExtension.isDevMode(project) ? yarnRunBuild : yarnRunBuildProd
         TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
@@ -161,8 +161,8 @@ class NpmRun implements Plugin<Project>
                     task.mustRunAfter "npmInstall"
 
                 }
-        addTaskInputOutput(project.tasks.named('npmRunBuildProd'))
-        addTaskInputOutput(project.tasks.named("npm_run_${project.npmRun.buildProd}"))
+        configureBuildTask(project.tasks.named('npmRunBuildProd'))
+        configureBuildTask(project.tasks.named("npm_run_${project.npmRun.buildProd}"))
 
         def npmRunBuild = project.tasks.register("npmRunBuild")
                 {Task task ->
@@ -172,8 +172,8 @@ class NpmRun implements Plugin<Project>
                     task.mustRunAfter "npmInstall"
                 }
 
-        addTaskInputOutput(project.tasks.named('npmRunBuild'))
-        addTaskInputOutput(project.tasks.named("npm_run_${project.npmRun.buildDev}"))
+        configureBuildTask(project.tasks.named('npmRunBuild'))
+        configureBuildTask(project.tasks.named("npm_run_${project.npmRun.buildDev}"))
 
         project.tasks.named('npmInstall').configure
                 {Task task ->
@@ -241,7 +241,7 @@ class NpmRun implements Plugin<Project>
 
     }
 
-    private static void addTaskInputOutput(TaskProvider tp)
+    private static void configureBuildTask(TaskProvider tp)
     {
         tp.configure { Task task ->
             if (task.project.file(NPM_PROJECT_FILE).exists())
@@ -266,6 +266,8 @@ class NpmRun implements Plugin<Project>
             }
 
             task.outputs.cacheIf({ true })
+
+            task.usesService(task.project.npmRun.npmRunLimit)
         }
     }
 }
