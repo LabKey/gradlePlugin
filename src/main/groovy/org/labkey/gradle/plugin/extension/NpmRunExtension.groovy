@@ -28,6 +28,7 @@ class NpmRunExtension
     String buildProd = "build-prod"
     String buildDev = "build"
 
+    // https://docs.gradle.org/current/userguide/build_services.html#concurrent_access_to_the_service
     final Provider<BuildService<None>> npmRunLimit
 
     NpmRunExtension(Project project) {
