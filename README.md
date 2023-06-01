@@ -18,6 +18,7 @@ _Note: 1.28.0 and later require Gradle 7_
 ### TBD
 *Released*: TBD
 (Earliest compatible LabKey version: 23.3)
+* Add plugin for purging artifact versions from Artfactory
 * Add property to limit NPM build task concurrency (`npmRunLimit`)
 
 ### 1.40.6
