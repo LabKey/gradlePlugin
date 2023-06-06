@@ -15,11 +15,12 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 1.41.0
+*Released*: TDB June 2023
 (Earliest compatible LabKey version: 23.3)
-* Add plugin for purging artifact versions from Artfactory
+* Add plugin for purging artifact versions from Artifactory
 * Add property to limit NPM build task concurrency (`npmRunLimit`)
+* Remove use of local repository for dependencies
 
 ### 1.40.6
 *Released*: 15 May 2023
