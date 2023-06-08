@@ -25,9 +25,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven {
-        url "${artifactory_contextUrl}/libs-release"
-    }
 }
 
 dependencies {
@@ -45,7 +42,7 @@ dependencies {
 }
 
 group 'org.labkey.build'
-project.version = "1.41.0-SNAPSHOT"
+project.version = "1.42.0-SNAPSHOT"
 
 gradlePlugin {
     // TODO after transitioning to using these plugin ids, remove the properties files from resources/META-INF.gradle-plugins
