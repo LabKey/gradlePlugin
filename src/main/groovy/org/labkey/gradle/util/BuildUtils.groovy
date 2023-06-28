@@ -649,14 +649,14 @@ class BuildUtils
             {
                 parentProject.logger.debug("${depProjectPath} project not found; assumed to be external.")
                 if (depVersion == null)
-                    depVersion = parentProject.version
+                    depVersion = parentProject.labkeyVersion
             }
             else
             {
                 parentProject.logger.debug("${depProjectPath} project found but not building from source because: "
                         + whyNotBuildFromSource(parentProject, BUILD_FROM_SOURCE_PROP).join("; "))
                 if (depVersion == null)
-                    depVersion = depProject.version
+                    depVersion = depProject.labkeyVersion
             }
 
             // TODO I don't think this combinedClosure works. Change to just pass transitive through in the add
