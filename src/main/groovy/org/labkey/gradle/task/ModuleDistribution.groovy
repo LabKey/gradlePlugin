@@ -196,6 +196,7 @@ class ModuleDistribution extends DefaultTask
         { CopySpec copy ->
             copy.from(BuildUtils.getWebappConfigFile(project, "labkey.xml"))
             copy.into(project.buildDir)
+            copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             copy.filter({ String line ->
                 return PropertiesUtils.replaceProps(line, copyProps, true)
             })
@@ -273,6 +274,7 @@ class ModuleDistribution extends DefaultTask
                 CopySpec copy ->
                     copy.from(project.configurations.utilities.collect { project.zipTree(it) })
                     copy.into utilsDir
+                    copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             })
         }
     }
@@ -422,6 +424,7 @@ class ModuleDistribution extends DefaultTask
                 copy.from(embeddedJarFile)
                 copy.into(project.buildDir)
                 copy.rename(embeddedJarFile.getName(), serverJarFile.getName())
+                copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         }
 
         ant.jar(
@@ -500,6 +503,7 @@ class ModuleDistribution extends DefaultTask
             copy.from(zipFile)
             copy.exclude "*.xml"
             copy.into(project.buildDir)
+            copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
         // Allow distributions to include custom README
         File resources = project.file("resources")
@@ -507,10 +511,12 @@ class ModuleDistribution extends DefaultTask
             project.copy({ CopySpec copy ->
                 copy.from(resources)
                 copy.into(project.buildDir)
+                copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             })
             project.copy({ CopySpec copy ->
                 copy.from(resources)
                 copy.into(new File(project.buildDir, "embedded"))
+                copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             })
         }
         // This is necessary for reasons that are unclear.  Without it, you get:

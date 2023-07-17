@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 23.3)
+* Set DuplicateStrategy for various copy tasks
+
 ### 1.41.1
 *Released*: 28 June 2023
 (Earliest compatible LabKey version: 23.3)

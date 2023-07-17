@@ -16,6 +16,7 @@
 package org.labkey.gradle.plugin
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -150,6 +151,7 @@ class Jsp implements Plugin<Project>
                                 copy.from 'resources'
                                 copy.into "${project.buildDir}/${WEBAPP_DIR}/org/labkey/${project.name}"
                                 copy.include '**/*.jsp'
+                                copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                             })
                         }
                 }

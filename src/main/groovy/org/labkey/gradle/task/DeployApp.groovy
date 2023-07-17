@@ -16,6 +16,7 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -81,6 +82,7 @@ class DeployApp extends DeployAppBase
         project.copy( { CopySpec copy ->
             copy.from stagingPipelineJarDir
             copy.into deployPipelineLibDir
+            copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
     }
 }

@@ -16,6 +16,7 @@
 package org.labkey.gradle.plugin
 
 import org.apache.commons.lang3.SystemUtils
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -253,6 +254,7 @@ class ServerDeploy implements Plugin<Project>
                         CopySpec copy ->
                             copy.from new File(embeddedProject.buildDir, "libs")
                             copy.into project.serverDeploy.embeddedDir
+                            copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                     }
                 }
             }

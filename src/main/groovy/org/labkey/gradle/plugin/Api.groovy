@@ -19,6 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.util.BuildUtils
@@ -104,6 +105,7 @@ class Api implements Plugin<Project>
                     copy.from project.tasks.apiJar.outputs
                     copy.into "${project.rootProject.buildDir}/${MODULES_API_DIR}"
                     copy.include "${project.name}_api*.jar"
+                    copy.setDuplicatesStrategy(DuplicatesStrategy.WARN)
                 }
             }
         }

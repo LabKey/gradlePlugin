@@ -54,6 +54,7 @@ class DeployAppBase extends DefaultTask {
                 project.copy { CopySpec copy ->
                     copy.from dir
                     copy.into deployBinDir.getPath()
+                    copy.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
                 }
             }
         }

@@ -23,6 +23,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.Delete
@@ -237,11 +238,13 @@ class FileModule implements Plugin<Project>
                             copy.from moduleTask
                             copy.from project.configurations.modules
                             copy.into project.staging.modulesDir
+                            copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                         }
                         project.copy { CopySpec copy ->
                             copy.from moduleTask
                             copy.from project.configurations.modules
                             copy.into ServerDeployExtension.getModulesDeployDirectory(project)
+                            copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                         }
                     }
                 }

@@ -18,6 +18,7 @@ package org.labkey.gradle.task
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
@@ -80,6 +81,7 @@ class DoThenSetup extends DefaultTask
                 project.copy({ CopySpec copy ->
                     copy.from labkeyXml
                     copy.into "${project.rootProject.buildDir}"
+                    copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                     copy.filter({ String line ->
                         if (project.ext.has('enableJms') && project.ext.enableJms) {
                             line = line.replace("<!--@@jmsConfig@@", "")
@@ -111,6 +113,7 @@ class DoThenSetup extends DefaultTask
                     copy.from "${project.rootProject.buildDir}"
                     copy.into "${project.tomcat.tomcatConfDir}"
                     copy.include "labkey.xml"
+                    copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                 })
             }
         }
@@ -135,6 +138,7 @@ class DoThenSetup extends DefaultTask
                     copy.from configsDir
                     copy.into embeddedDir
                     copy.include "application.properties"
+                    copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                     copy.filter({ String line ->
                         if (project.hasProperty("useSsl")) {
                             line = line.replace("#server.ssl", "server.ssl")
