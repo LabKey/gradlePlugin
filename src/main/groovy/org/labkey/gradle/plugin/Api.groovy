@@ -105,7 +105,7 @@ class Api implements Plugin<Project>
                     copy.from project.tasks.apiJar.outputs
                     copy.into "${project.rootProject.buildDir}/${MODULES_API_DIR}"
                     copy.include "${project.name}_api*.jar"
-                    copy.setDuplicatesStrategy(DuplicatesStrategy.WARN)
+                    copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                 }
             }
         }
