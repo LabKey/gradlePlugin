@@ -16,6 +16,7 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.labkey.gradle.util.BuildUtils
@@ -39,6 +40,7 @@ class PickDb extends DoThenSetup
             copy.rename { String fileName ->
                 fileName.replace(dbType, "config")
             }
+            copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
         super.doDatabaseTask();
     }

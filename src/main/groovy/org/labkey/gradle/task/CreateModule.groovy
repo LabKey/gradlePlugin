@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.util.BuildUtils
@@ -154,6 +155,7 @@ class CreateModule extends DefaultTask
 
             copy.from(project.zipTree(zipFile))
             copy.into(moduleDestinationFile)
+            copy.setDuplicatesStrategy(DuplicatesStrategy.FAIL)
             if (hasManagedSchema)
             {
                 copy.exclude("**/MODULE_NAMECodeOnlyModule.java")

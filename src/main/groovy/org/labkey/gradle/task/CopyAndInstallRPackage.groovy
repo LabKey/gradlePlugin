@@ -1,6 +1,7 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskExecutionException
@@ -27,6 +28,7 @@ class CopyAndInstallRPackage extends InstallRPackage
                 copy.into(rLibsUserDir)
                 copy.include(packageName + "*.tar.gz")
                 copy.rename(packageName + ".*.tar.gz", packageName + ".tar.gz")
+                copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         }
         installFromArchive(packageName + ".tar.gz")
     }

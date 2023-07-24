@@ -17,6 +17,7 @@ package org.labkey.gradle.task
 
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.labkey.gradle.plugin.TeamCity
@@ -59,6 +60,7 @@ class RunTestSuite extends RunUiTest
                     project.copy({ CopySpec copy ->
                         copy.from "${project.tomcat.catalinaHome}/logs"
                         copy.into "${project.buildDir}/logs/test/tomcat"
+                        copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                     })
                 })
             }

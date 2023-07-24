@@ -17,6 +17,7 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
@@ -56,6 +57,7 @@ class StageDistribution extends DefaultTask
             spec.from distArchiveTree.files
             spec.into modulesStagingDir
             spec.include "**/*.module"
+            spec.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
 
         String baseName = distributionFile.getName().substring(0, distributionFile.getName().length() - (extension.length() + 1))
@@ -63,6 +65,7 @@ class StageDistribution extends DefaultTask
         project.copy({ CopySpec spec ->
             spec.from distArchiveTree
             spec.into stagingDir
+            spec.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             spec.eachFile {
                 FileCopyDetails fcp ->
                     if (fcp.relativePath.pathString.startsWith("${baseName}/labkeywebapp")) {
@@ -84,6 +87,7 @@ class StageDistribution extends DefaultTask
         project.copy({ CopySpec spec ->
             spec.from distArchiveTree
             spec.into pipelineJarStagingDir
+            spec.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             spec.eachFile {
                 FileCopyDetails fcp ->
                     if (fcp.relativePath.pathString.startsWith("${baseName}/pipeline-lib")) {
@@ -101,6 +105,7 @@ class StageDistribution extends DefaultTask
         project.copy({ CopySpec spec ->
             spec.from distArchiveTree.matching {include '*/tomcat-lib/*.jar'}.files
             spec.into tomcatJarStagingDir
+            spec.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
     }
 }
