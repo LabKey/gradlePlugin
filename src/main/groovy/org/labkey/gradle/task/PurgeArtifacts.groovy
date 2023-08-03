@@ -18,8 +18,8 @@ import org.labkey.gradle.util.BuildUtils
 
 class PurgeArtifacts extends DefaultTask
 {
-    private static final String SNAPSHOT_REPOSITORY_NAME = 'libs-snapshot-local'
-    private static final String RELEASE_REPOSITORY_NAME = 'libs-release-local'
+    public static final String SNAPSHOT_REPOSITORY_NAME = 'libs-snapshot-local'
+    public static final String RELEASE_REPOSITORY_NAME = 'libs-release-local'
     public static final String VERSION_PROPERTY = 'purgeVersion'
 
     static boolean isPreSplitVersion(String version)
@@ -56,7 +56,7 @@ class PurgeArtifacts extends DefaultTask
                 }
                 else
                     numDeleted++
-                if (!isPreSplitVersion && plugins.hasPlugin(Api.class)) {
+                if (!isPreSplitVersion && (plugins.hasPlugin(Api.class) || project.path == BuildUtils.getApiProjectPath(project.gradle))) {
                     response = makeDeleteRequest(p.name, purgeVersion, "api")
                     if (response == Response.NOT_FOUND)
                         numNotFound++
