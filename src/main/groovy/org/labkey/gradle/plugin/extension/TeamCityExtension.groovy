@@ -190,6 +190,6 @@ class TeamCityExtension
 
     static String getLabKeyPassword(Project project)
     {
-        return getTeamCityProperty(project, "labkey.server.password", "yekbal1!")
+        return getTeamCityProperty(project, "labkey.server.password", "We'reSo\$tr0ng@yekbal1!")
     }
 }

@@ -19,6 +19,7 @@ _Note: 1.28.0 and later require Gradle 7_
 *Released*: TBD
 (Earliest compatible LabKey version: 23.3)
 * Add RestoreFromTrash task to make it easier to restore artifact version from Artifactory
+* Increase complexity of default TeamCity test password
 
 ### 1.41.2
 *Released*: 24 July 2023
