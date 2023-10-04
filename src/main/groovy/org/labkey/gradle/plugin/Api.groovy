@@ -66,6 +66,9 @@ class Api implements Plugin<Project>
                         java {
                             srcDirs = [project.file(SOURCE_DIR).exists() ? SOURCE_DIR : ALT_SOURCE_DIR, 'internal/gwtsrc']
                         }
+                        resources {
+                            srcDirs = ["schemas"]
+                        }
                     }
                 }
     }
@@ -91,7 +94,7 @@ class Api implements Plugin<Project>
                  jar.outputs.cacheIf({true})
          }
 
-        project.tasks.processApiResources.enabled = false
+        project.tasks.processApiResources.enabled = project.file("schemas").exists()
         if (project.hasProperty('jsp2Java'))
             project.tasks.jsp2Java.dependsOn(project.tasks.apiJar)
 
