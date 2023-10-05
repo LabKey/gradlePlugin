@@ -16,7 +16,6 @@
 package org.labkey.gradle.task
 
 import org.apache.commons.lang3.StringUtils
-import org.gradle.api.provider.Property
 import org.gradle.api.tasks.testing.Test
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
@@ -25,7 +24,7 @@ import org.labkey.gradle.plugin.extension.UiTestExtension
 /**
  * Class that sets up jvmArgs and our standard output options
  */
-class RunUiTest extends Test
+abstract class RunUiTest extends Test
 {
     public static final String LOG_DIR = "test/logs"
     protected UiTestExtension testExt
@@ -48,12 +47,6 @@ class RunUiTest extends Test
 
         ignoreFailures = true // Failing tests should not cause task to fail
         outputs.upToDateWhen( { return false }) // always run tests when asked to
-    }
-
-    @Override
-    Property<Boolean> getDryRun()
-    {
-        return null
     }
 
     void setJvmArgs()
