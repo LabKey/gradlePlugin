@@ -16,6 +16,7 @@
 package org.labkey.gradle.task
 
 import org.apache.commons.lang3.StringUtils
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.testing.Test
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
@@ -47,6 +48,12 @@ class RunUiTest extends Test
 
         ignoreFailures = true // Failing tests should not cause task to fail
         outputs.upToDateWhen( { return false }) // always run tests when asked to
+    }
+
+    @Override
+    Property<Boolean> getDryRun()
+    {
+        return null
     }
 
     void setJvmArgs()
