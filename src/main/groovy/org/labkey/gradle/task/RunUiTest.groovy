@@ -24,7 +24,7 @@ import org.labkey.gradle.plugin.extension.UiTestExtension
 /**
  * Class that sets up jvmArgs and our standard output options
  */
-class RunUiTest extends Test
+abstract class RunUiTest extends Test
 {
     public static final String LOG_DIR = "test/logs"
     protected UiTestExtension testExt

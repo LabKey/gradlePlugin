@@ -28,7 +28,7 @@ import org.labkey.gradle.util.DatabaseProperties
  * Class that sets our test/Runner.class as the junit test suite and configures a bunch of system properties for
  * running these suites of tests.
  */
-class RunTestSuite extends RunUiTest
+abstract class RunTestSuite extends RunUiTest
 {
     // Desginated as @Internal instead of @Input to avoid this error in TeamCity (dbProperties is not used for running local tests).
     //    [10:00:41][Gradle failure report] Execution failed for task ':server:testAutomation:ciTestsSqlserver2019'.
