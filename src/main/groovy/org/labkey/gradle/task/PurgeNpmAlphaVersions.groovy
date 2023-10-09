@@ -40,21 +40,24 @@ class PurgeNpmAlphaVersions extends DefaultTask
         String[] undeletedVersions = []
         for (String packageName : PACKAGE_NAMES)
         {
-            project.logger.quiet("Considering ${packageName}...")
+            logger.quiet("Considering ${packageName}...")
             List<String> alphaVersions = getNpmAlphaVersions(packageName, alphaPrefix)
-            project.logger.quiet("Found ${alphaVersions.size()} versions with alpha prefix ${alphaPrefix} in package ${packageName}")
-            if (!alphaVersions.isEmpty())
-            {
-                alphaVersions.forEach(version -> {
-                    if (project.hasProperty("dryRun"))
-                        project.logger.quiet("Removing version ${version} of package ${packageName} -- Skipped for dry run")
-                    else {
-                        project.logger.quiet("Removing version ${version} of package ${packageName}")
-                        if (!makeDeleteRequest(packageName, version)) {
-                            undeletedVersions += "${packageName}: ${version}"
+            if (alphaVersions == null)
+                logger.quiet("Package ${packageName} not found.")
+            else {
+                logger.quiet("Found ${alphaVersions.size()} versions with alpha prefix ${alphaPrefix} in package ${packageName}")
+                if (!alphaVersions.isEmpty()) {
+                    alphaVersions.forEach(version -> {
+                        if (project.hasProperty("dryRun"))
+                            logger.quiet("Removing version ${version} of package ${packageName} -- Skipped for dry run")
+                        else {
+                            logger.quiet("Removing version ${version} of package ${packageName}")
+                            if (!makeDeleteRequest(packageName, version)) {
+                                undeletedVersions += "${packageName}: ${version}"
+                            }
                         }
-                    }
-                })
+                    })
+                }
             }
         }
         if (undeletedVersions.size() > 0)
@@ -70,10 +73,11 @@ class PurgeNpmAlphaVersions extends DefaultTask
             if (parsedJson instanceof ArrayList) {
                 return parsedJson.stream().filter(version -> {
                     version.matches(".+-" + alphaPrefix + "\\.\\d+")
-                }).collect(Collectors.toList())
+                }).collect(Collectors.toList()) as List<String>
             } else
                 throw new GradleException("Error retrieving versions for package ${packageName}: ${parsedJson.error}")
         }
+        return null
     }
 
     /**
@@ -106,7 +110,7 @@ class PurgeNpmAlphaVersions extends DefaultTask
 
         // The coordinates of the packages look like this: "@labkey/components/-/@labkey/components-2.14.2-fb-update-react-select.1.tgz"
         endpoint += REPOSITORY_NAME + "/" + packageName + "/-/" + packageName + "-" + version + ".tgz"
-        project.logger.debug("Making delete request for package ${packageName} and version ${version} via endpoint ${endpoint}")
+        logger.debug("Making delete request for package ${packageName} and version ${version} via endpoint ${endpoint}")
         try
         {
             HttpDelete httpDelete = new HttpDelete(endpoint)
@@ -115,7 +119,7 @@ class PurgeNpmAlphaVersions extends DefaultTask
             CloseableHttpResponse response = httpClient.execute(httpDelete)
             int statusCode = response.getStatusLine().getStatusCode()
             if (statusCode != HttpStatus.SC_OK && statusCode != HttpStatus.SC_NO_CONTENT) {
-                project.logger.error("Unable to delete using ${endpoint}: ${response.getStatusLine()}")
+                logger.error("Unable to delete using ${endpoint}: ${response.getStatusLine()}")
                 success = false
             }
             response.close()
