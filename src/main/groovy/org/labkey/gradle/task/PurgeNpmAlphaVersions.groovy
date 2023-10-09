@@ -24,6 +24,7 @@ class PurgeNpmAlphaVersions extends DefaultTask
             '@labkey/assayreport',
             '@labkey/build',
             '@labkey/components',
+            '@labkey/ehr',
             '@labkey/premium',
             '@labkey/test',
             '@labkey/themes'

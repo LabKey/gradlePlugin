@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 23.3)
+* Add `@labkey/ehr` to set of npm packages to purge versions for
+
 ### 1.42.0
 *Released*: 5 October 2023
 (Earliest compatible LabKey version: 23.3)
