@@ -67,12 +67,19 @@ class PurgeNpmAlphaVersions extends DefaultTask
 
     private static List<String> getNpmAlphaVersions(String packageName, String alphaPrefix)
     {
+        String alphaPrefixPattern = ".+-" + alphaPrefix + "\\.\\d+";
         String output = (NpmRun.getNpmCommand() + " view ${packageName} versions --json").execute().text
         if (!StringUtils.isEmpty(output)) {
             def parsedJson = new JsonSlurper().parseText(output)
-            if (parsedJson instanceof ArrayList) {
+            if (parsedJson instanceof String) {
+                if (parsedJson.matches(alphaPrefixPattern))
+                    return List.of(parsedJson)
+                else
+                    return Collections.emptyList()
+            }
+            else if (parsedJson instanceof ArrayList) {
                 return parsedJson.stream().filter(version -> {
-                    version.matches(".+-" + alphaPrefix + "\\.\\d+")
+                    version.matches(alphaPrefixPattern)
                 }).collect(Collectors.toList()) as List<String>
             } else
                 throw new GradleException("Error retrieving versions for package ${packageName}: ${parsedJson.error}")
