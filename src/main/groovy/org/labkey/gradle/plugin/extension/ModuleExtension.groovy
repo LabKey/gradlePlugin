@@ -142,7 +142,7 @@ class ModuleExtension
         modProperties.setProperty("BuildUser", System.getProperty("user.name"))
         modProperties.setProperty("BuildOS", System.getProperty("os.name"))
         modProperties.setProperty("BuildTime", SimpleDateFormat.getDateTimeInstance().format(new Date()))
-        modProperties.setProperty("BuildPath", project.layout.buildDirectory.get().asFile.getAbsolutePath())
+        modProperties.setProperty("BuildPath", BuildUtils.getBuildDir(project).getAbsolutePath())
         modProperties.setProperty("SourcePath", project.projectDir.getAbsolutePath())
         modProperties.setProperty("ResourcePath", "") // TODO  _project.getResources().... ???
         modProperties.setProperty("ReleaseVersion", (String) project.getProperty("labkeyVersion"))

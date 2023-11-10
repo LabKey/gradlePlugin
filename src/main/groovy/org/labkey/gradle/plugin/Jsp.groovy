@@ -73,7 +73,7 @@ class Jsp implements Plugin<Project>
                 {
                     jsp {
                         java {
-                            srcDirs = [project.layout.buildDirectory.dir(JspCompile2Java.CLASSES_DIR).get().asFile.getPath()]
+                            srcDirs = [BuildUtils.getBuildDirFile(project, JspCompile2Java.CLASSES_DIR).getPath()]
                         }
                     }
                 }
@@ -167,7 +167,7 @@ class Jsp implements Plugin<Project>
 
         project.tasks.register('jsp2Java', JspCompile2Java) {
            JspCompile2Java task ->
-               task.webappDirectory = project.layout.buildDirectory.dir(WEBAPP_DIR).get().asFile
+               task.webappDirectory = BuildUtils.getBuildDirFile(project, WEBAPP_DIR)
                task.group = GroupNames.JSP
                task.description = "compile jsp files into Java classes"
 

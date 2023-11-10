@@ -130,7 +130,7 @@ class JavaModule implements Plugin<Project>
         project.sourceSets {
             main {
                 java {
-                    srcDirs = XmlBeans.isApplicable(project) ? ['src', project.layout.buildDirectory.file(XmlBeans.CLASS_DIR).get().asFile.getPath()] : ['src']
+                    srcDirs = XmlBeans.isApplicable(project) ? ['src', BuildUtils.getBuildDirFile(project, XmlBeans.CLASS_DIR).getPath()] : ['src']
                 }
             }
         }
@@ -173,7 +173,7 @@ class JavaModule implements Plugin<Project>
 
             project.tasks.register("copyExternalLibs", Copy) {
                 Copy task ->
-                    File destination = project.layout.buildDirectory.file("libsExternal").get().asFile;
+                    File destination = BuildUtils.getBuildDirFile(project, "libsExternal")
                     task.group = GroupNames.MODULE
                     task.description = "copy the dependencies declared in the 'external' configuration into the lib directory of the built module"
                     task.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)

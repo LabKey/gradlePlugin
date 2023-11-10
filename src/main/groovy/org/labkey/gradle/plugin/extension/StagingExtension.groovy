@@ -16,6 +16,7 @@
 package org.labkey.gradle.plugin.extension
 
 import org.gradle.api.Project
+import org.labkey.gradle.util.BuildUtils
 
 class StagingExtension
 {
@@ -35,12 +36,13 @@ class StagingExtension
 
     void setDirectories(Project project)
     {
-        dir = "${project.rootProject.buildDir}/${STAGING_DIR}"
-        webappClassesDir = "${project.rootProject.buildDir}/${STAGING_WEBINF_DIR}/classes"
-        jspDir = "${project.rootProject.buildDir}/${STAGING_WEBINF_DIR}/jsp"
-        webInfDir = "${project.rootProject.buildDir}/${STAGING_WEBINF_DIR}"
-        webappDir = "${project.rootProject.buildDir}/${STAGING_WEBAPP_DIR}"
-        modulesDir = "${project.rootProject.buildDir}/${STAGING_MODULES_DIR}"
+        String buildDirPath = BuildUtils.getRootBuildDirPath(project)
+        dir = "${buildDirPath}/${STAGING_DIR}"
+        webappClassesDir = "${buildDirPath}/${STAGING_WEBINF_DIR}/classes"
+        jspDir = "${buildDirPath}/${STAGING_WEBINF_DIR}/jsp"
+        webInfDir = "${buildDirPath}/${STAGING_WEBINF_DIR}"
+        webappDir = "${buildDirPath}/${STAGING_WEBAPP_DIR}"
+        modulesDir = "${buildDirPath}/${STAGING_MODULES_DIR}"
         tomcatLibDir = "${dir}/tomcat-lib" // Note: Keep this path in sync with AdminController.getTomcatJars()
         pipelineLibDir = "${dir}/pipelineLib"
     }

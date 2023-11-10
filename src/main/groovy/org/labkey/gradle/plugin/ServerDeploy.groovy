@@ -513,7 +513,7 @@ class ServerDeploy implements Plugin<Project>
 
         Path pmLinkPath = Paths.get("${linkContainer.getPath()}/${packageMgr}")
         String pmDirName = "${packageMgr}-v${version}"
-        Path pmTargetPath = Paths.get(pmLinkProject.layout.buildDirectory.file("${workDirectory}/${pmDirName}").get().asFile.getPath())
+        Path pmTargetPath = Paths.get(BuildUtils.getBuildDirFile(pmLinkProject, "${workDirectory}/${pmDirName}").getPath())
 
         if (!Files.isSymbolicLink(pmLinkPath) || !Files.readSymbolicLink(pmLinkPath).getFileName().toString().equals(pmDirName))
         {
@@ -528,7 +528,7 @@ class ServerDeploy implements Plugin<Project>
         Path nodeLinkPath = Paths.get("${linkContainer.getPath()}/node")
         if (!Files.isSymbolicLink(nodeLinkPath) || !Files.readSymbolicLink(nodeLinkPath).getFileName().toString().startsWith(nodeFilePrefix))
         {
-            File nodeDir = project.layout.buildDirectory.file(project.nodeWorkDirectory).get().asFile
+            File nodeDir = BuildUtils.getBuildDirFile(project, project.nodeWorkDirectory)
             File[] nodeFiles = nodeDir.listFiles({ File file -> file.name.startsWith(nodeFilePrefix) } as FileFilter)
             if (nodeFiles != null && nodeFiles.length > 0)
             {

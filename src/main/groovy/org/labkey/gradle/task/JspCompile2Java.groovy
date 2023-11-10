@@ -24,6 +24,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.util.BuildUtils
 
 @CacheableTask
 class JspCompile2Java extends DefaultTask
@@ -37,7 +38,7 @@ class JspCompile2Java extends DefaultTask
     @OutputDirectory
     File getClassesDirectory()
     {
-        return new File("${project.buildDir}/${CLASSES_DIR}")
+        return BuildUtils.getBuildDirFile(project, CLASSES_DIR)
     }
 
     @TaskAction

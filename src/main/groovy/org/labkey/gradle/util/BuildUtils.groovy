@@ -834,4 +834,29 @@ class BuildUtils
             dependency -> addExternalDependency(project, dependency)
         })
     }
+
+    static File getBuildDir(Project project)
+    {
+        return project.layout.buildDirectory.getAsFile().get()
+    }
+
+    static String getBuildDirPath(Project project)
+    {
+        return getBuildDir(project).path
+    }
+
+    static File getBuildDirFile(Project project, String filePath)
+    {
+        return project.layout.buildDirectory.file(filePath).get().asFile
+    }
+
+    static File getRootBuildDirFile(Project project, String filePath)
+    {
+        return project.rootProject.layout.buildDirectory.file(filePath).get().asFile
+    }
+
+    static String getRootBuildDirPath(Project project)
+    {
+        return project.rootProject.layout.buildDirectory.get().asFile.path
+    }
 }

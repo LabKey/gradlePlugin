@@ -80,7 +80,7 @@ class DoThenSetup extends DefaultTask
                 File labkeyXml = BuildUtils.getWebappConfigFile(project, "labkey.xml")
                 project.copy({ CopySpec copy ->
                     copy.from labkeyXml
-                    copy.into "${project.rootProject.buildDir}"
+                    copy.into project.rootProject.layout.buildDirectory
                     copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                     copy.filter({ String line ->
                         if (project.ext.has('enableJms') && project.ext.enableJms) {
@@ -110,7 +110,7 @@ class DoThenSetup extends DefaultTask
                 })
 
                 project.copy({ CopySpec copy ->
-                    copy.from "${project.rootProject.buildDir}"
+                    copy.from project.rootProject.layout.buildDirectory
                     copy.into "${project.tomcat.tomcatConfDir}"
                     copy.include "labkey.xml"
                     copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)

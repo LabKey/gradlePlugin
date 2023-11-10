@@ -18,7 +18,6 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.FileTree
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.tasks.Copy
@@ -102,8 +101,8 @@ class Gwt implements Plugin<Project>
                         java.group = GroupNames.GWT
                         java.description = "compile GWT source files for " + gwtModuleClass.getKey() + " into JS"
 
-                        File extrasDir = project.layout.buildDirectory.file(project.gwt.extrasDir).get().asFile
-                        File outputDir = project.layout.buildDirectory.file(project.gwt.outputDir).get().asFile
+                        File extrasDir = BuildUtils.getBuildDirFile(project, project.gwt.extrasDir)
+                        File outputDir = BuildUtils.getBuildDirFile(project, project.gwt.outputDir)
 
                         java.inputs.files(project.sourceSets.gwt.java.srcDirs)
                         String extrasDirPath = extrasDir.getPath()

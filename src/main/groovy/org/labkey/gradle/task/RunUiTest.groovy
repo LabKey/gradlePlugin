@@ -20,6 +20,7 @@ import org.gradle.api.tasks.testing.Test
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
+import org.labkey.gradle.util.BuildUtils
 
 /**
  * Class that sets up jvmArgs and our standard output options
@@ -38,9 +39,9 @@ abstract class RunUiTest extends Test
 
         reports { TestTaskReports -> reports
             reports.junitXml.required = false
-            reports.junitXml.outputLocation =  new File("${project.buildDir}/${LOG_DIR}/reports/xml")
+            reports.junitXml.outputLocation = BuildUtils.getBuildDirFile(project, "${LOG_DIR}/reports/xml")
             reports.html.required = true
-            reports.html.outputLocation = new File( "${project.buildDir}/${LOG_DIR}/reports/html")
+            reports.html.outputLocation = BuildUtils.getBuildDirFile(project, "${LOG_DIR}/reports/html")
         }
         setClasspath (project.sourceSets.uiTest.runtimeClasspath)
         setTestClassesDirs (project.sourceSets.uiTest.output.classesDirs)
@@ -83,7 +84,7 @@ abstract class RunUiTest extends Test
                 systemProperty key, testConfig.get(key)
         }
         systemProperty "devMode", LabKeyExtension.isDevMode(project)
-        systemProperty "failure.output.dir", "${project.buildDir}/${LOG_DIR}"
+        systemProperty "failure.output.dir", "${BuildUtils.getBuildDirPath(project)}/${LOG_DIR}"
         systemProperty "labkey.root", project.rootProject.projectDir
         systemProperty "project.root", project.rootProject.projectDir
         systemProperty "user.home", System.getProperty('user.home')

@@ -131,7 +131,7 @@ class TestRunner extends UiTest
             }
         })
 
-        File sampleDataFile = project.layout.buildDirectory.file("sampledata.dirs").get().asFile
+        File sampleDataFile = BuildUtils.getBuildDirFile(project,"sampledata.dirs")
 
         project.tasks.register("writeSampleDataFile") {
             Task task ->
@@ -214,7 +214,7 @@ class TestRunner extends UiTest
                 classpath: project.configurations.aspectj.asPath
             )
             ant.iajc(
-                destdir: project.layout.buildDirectory.dir("classes/java/uiTest/").get().asFile.getPath(),
+                destdir: BuildUtils.getBuildDirFile(project,"classes/java/uiTest/").getPath(),
                 source: project.sourceCompatibility,
                 target: project.targetCompatibility,
                 classpath: project.configurations.uiTestRuntimeClasspath.asPath,
