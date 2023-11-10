@@ -32,7 +32,7 @@ class CreateXsdDocs extends DefaultTask
     @OutputDirectory
     File getOutputDirectory()
     {
-        return new File(XsdDoc.getXsdDocDirectory(project), "docs")
+        return XsdDoc.getXsdDocDirectory(project).file( "docs").asFile
     }
 
     @TaskAction

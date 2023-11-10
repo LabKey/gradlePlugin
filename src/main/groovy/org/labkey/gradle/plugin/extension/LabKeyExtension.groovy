@@ -77,11 +77,11 @@ class LabKeyExtension
 
     void setDirectories(Project project)
     {
-        explodedModuleDir = "${project.buildDir}/explodedModule"
+        explodedModuleDir = project.layout.buildDirectory.file("explodedModule").get().asFile.getPath()
         explodedModuleWebDir = "${explodedModuleDir}/web"
         explodedModuleConfigDir = "${explodedModuleDir}/config"
         explodedModuleLibDir = "${explodedModuleDir}/lib"
-        srcGenDir = "${project.buildDir}/gensrc"
+        srcGenDir = project.layout.buildDirectory.file("gensrc").get().asFile.getPath()
 
         externalDir = "${project.rootDir}/external"
     }

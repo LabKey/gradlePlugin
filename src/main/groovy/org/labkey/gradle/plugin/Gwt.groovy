@@ -102,10 +102,12 @@ class Gwt implements Plugin<Project>
                         java.group = GroupNames.GWT
                         java.description = "compile GWT source files for " + gwtModuleClass.getKey() + " into JS"
 
-                        GString extrasDir = "${project.buildDir}/${project.gwt.extrasDir}"
-                        String outputDir = "${project.buildDir}/${project.gwt.outputDir}"
+                        File extrasDir = project.layout.buildDirectory.file(project.gwt.extrasDir).get().asFile
+                        File outputDir = project.layout.buildDirectory.file(project.gwt.outputDir).get().asFile
 
                         java.inputs.files(project.sourceSets.gwt.java.srcDirs)
+                        String extrasDirPath = extrasDir.getPath()
+                        String outputDirPath = outputDir.getPath()
 
                         java.outputs.dir extrasDir
                         java.outputs.dir outputDir
@@ -114,8 +116,8 @@ class Gwt implements Plugin<Project>
                         java.outputs.upToDateSpec = new AndSpec()
 
                         java.doFirst {
-                            project.file(extrasDir).mkdirs()
-                            project.file(outputDir).mkdirs()
+                            extrasDir.mkdirs()
+                            outputDir.mkdirs()
                         }
 
                         if (!LabKeyExtension.isDevMode(project))
@@ -138,11 +140,11 @@ class Gwt implements Plugin<Project>
 
                         java.args =
                                 [
-                                        '-war', outputDir,
+                                        '-war', outputDirPath,
                                         '-style', project.gwt.style,
                                         '-logLevel', project.gwt.logLevel,
-                                        '-extra', extrasDir,
-                                        '-deploy', extrasDir,
+                                        '-extra', extrasDirPath,
+                                        '-deploy', extrasDirPath,
                                         '-localWorkers', 4,
                                         gwtModuleClass.getValue()
                                 ]

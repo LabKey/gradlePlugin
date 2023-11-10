@@ -22,6 +22,7 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
+import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.task.CheckForVersionConflicts
 import org.labkey.gradle.util.BuildUtils
@@ -129,7 +130,7 @@ class JavaModule implements Plugin<Project>
         project.sourceSets {
             main {
                 java {
-                    srcDirs = XmlBeans.isApplicable(project) ? ['src', "$project.buildDir/$XmlBeans.CLASS_DIR"] : ['src']
+                    srcDirs = XmlBeans.isApplicable(project) ? ['src', project.layout.buildDirectory.file(XmlBeans.CLASS_DIR).get().asFile.getPath()] : ['src']
                 }
             }
         }
@@ -172,7 +173,7 @@ class JavaModule implements Plugin<Project>
 
             project.tasks.register("copyExternalLibs", Copy) {
                 Copy task ->
-                    File destination = new File(project.buildDir, "libsExternal");
+                    File destination = project.layout.buildDirectory.file("libsExternal").get().asFile;
                     task.group = GroupNames.MODULE
                     task.description = "copy the dependencies declared in the 'external' configuration into the lib directory of the built module"
                     task.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
@@ -198,6 +199,8 @@ class JavaModule implements Plugin<Project>
                 if (project.tasks.findByName('apiJar') != null)
                 {
                     dependsOn(project.tasks.apiJar)
+                    if (LabKeyExtension.isDevMode(project))
+                        dependsOn(project.tasks.copyToModulesApi)
                 }
                 if (project.tasks.findByName('jspJar') != null)
                 {

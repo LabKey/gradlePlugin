@@ -19,6 +19,8 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.Directory
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.XsdDocExtension
 import org.labkey.gradle.task.CreateXsdDocs
@@ -26,14 +28,14 @@ import org.labkey.gradle.util.GroupNames
 
 class XsdDoc implements Plugin<Project>
 {
-    static File getClientDocsBuildDir(Project project)
+    static Provider<Directory> getClientDocsBuildDir(Project project)
     {
-        return new File("${project.rootProject.buildDir}/client-api")
+        return project.rootProject.layout.buildDirectory.dir("client-api")
     }
 
-    static File getXsdDocDirectory(Project project)
+    static Directory getXsdDocDirectory(Project project)
     {
-        return new File(getClientDocsBuildDir(project), "xml-schemas")
+        return getClientDocsBuildDir(project).get().dir( "xml-schemas")
     }
 
     @Override
@@ -67,7 +69,7 @@ class XsdDoc implements Plugin<Project>
                 task.archiveVersion.set(project.getVersion().toString())
                 task.archiveExtension.set("zip")
                 task.from project.tasks.xsddoc
-                task.destinationDirectory = getXsdDocDirectory(project)
+                task.destinationDirectory.set(getXsdDocDirectory(project))
                 task.dependsOn(project.tasks.xsddoc)
         }
 

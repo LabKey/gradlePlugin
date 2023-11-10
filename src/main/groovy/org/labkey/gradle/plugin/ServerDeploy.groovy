@@ -252,7 +252,7 @@ class ServerDeploy implements Plugin<Project>
                 doLast {
                     project.copy {
                         CopySpec copy ->
-                            copy.from new File(embeddedProject.buildDir, "libs")
+                            copy.from embeddedProject.layout.buildDirectory.file( "libs")
                             copy.into project.serverDeploy.embeddedDir
                             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                     }
@@ -348,9 +348,9 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.register("cleanBuild", Delete) {
             Delete task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Remove the build directory ${project.rootProject.buildDir}"
+                task.description = "Remove the build directory ${project.rootProject.layout.buildDirectory}"
                 task.configure({ DeleteSpec spec ->
-                    spec.delete project.rootProject.buildDir
+                    spec.delete project.rootProject.layout.buildDirectory
                 })
         }
         project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanBuild)}
@@ -513,7 +513,7 @@ class ServerDeploy implements Plugin<Project>
 
         Path pmLinkPath = Paths.get("${linkContainer.getPath()}/${packageMgr}")
         String pmDirName = "${packageMgr}-v${version}"
-        Path pmTargetPath = Paths.get("${pmLinkProject.buildDir}/${workDirectory}/${pmDirName}")
+        Path pmTargetPath = Paths.get(pmLinkProject.layout.buildDirectory.file("${workDirectory}/${pmDirName}").get().asFile.getPath())
 
         if (!Files.isSymbolicLink(pmLinkPath) || !Files.readSymbolicLink(pmLinkPath).getFileName().toString().equals(pmDirName))
         {
@@ -528,7 +528,7 @@ class ServerDeploy implements Plugin<Project>
         Path nodeLinkPath = Paths.get("${linkContainer.getPath()}/node")
         if (!Files.isSymbolicLink(nodeLinkPath) || !Files.readSymbolicLink(nodeLinkPath).getFileName().toString().startsWith(nodeFilePrefix))
         {
-            File nodeDir = new File("${pmLinkProject.buildDir}/${project.nodeWorkDirectory}")
+            File nodeDir = project.layout.buildDirectory.file(project.nodeWorkDirectory).get().asFile
             File[] nodeFiles = nodeDir.listFiles({ File file -> file.name.startsWith(nodeFilePrefix) } as FileFilter)
             if (nodeFiles != null && nodeFiles.length > 0)
             {

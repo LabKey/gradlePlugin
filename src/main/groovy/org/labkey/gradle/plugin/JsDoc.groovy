@@ -20,6 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.Directory
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.JsDocExtension
@@ -38,13 +39,13 @@ class JsDoc implements Plugin<Project>
     {
         project.extensions.create("jsDoc", JsDocExtension)
         project.jsDoc.root = "${project.rootDir}/tools/jsdoc-toolkit/"
-        project.jsDoc.outputDir =new File(getJsDocDirectory(project), "docs")
+        project.jsDoc.outputDir = getJsDocDirectory(project).file( "docs").asFile
         addTasks(project)
     }
 
-    static File getJsDocDirectory(Project project)
+    static Directory getJsDocDirectory(Project project)
     {
-        return new File(XsdDoc.getClientDocsBuildDir(project),"javascript")
+        return XsdDoc.getClientDocsBuildDir(project).get().dir("javascript")
     }
 
     private static void addTasks(Project project)

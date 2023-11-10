@@ -16,6 +16,7 @@
 package org.labkey.gradle.util
 
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 
 class TaskUtils
@@ -26,5 +27,20 @@ class TaskUtils
             project.tasks.named(taskName).configure closure
         }
         catch (UnknownTaskException ignore) {}
+    }
+
+    static void addOptionalTaskDependency(Project project, Task task, String optionalTaskName)
+    {
+        try {
+            def optionalTask = project.tasks.named(optionalTaskName)
+            task.dependsOn(optionalTask)
+        } catch (UnknownTaskException ignore) { }
+    }
+
+    static void addOptionalTaskDependencies(Project project, Task task, List<String> taskNames)
+    {
+        for (String taskName : taskNames) {
+            addOptionalTaskDependency(project, task, taskName)
+        }
     }
 }

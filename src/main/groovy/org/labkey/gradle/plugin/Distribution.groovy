@@ -123,10 +123,10 @@ class Distribution implements Plugin<Project>
         project.tasks.register('clean', Delete) {
             Delete task ->
                 task.group = GroupNames.BUILD
-                task.description = "Removes the distribution build directory ${project.buildDir} and distribution directory ${project.dist.dir}/${project.name}"
+                task.description = "Removes the distribution build directory ${project.layout.buildDirectory.asFile.get()} and distribution directory ${project.dist.dir}/${project.name}"
                 task.configure ({
                     DeleteSpec spec ->
-                        spec.delete project.buildDir
+                        spec.delete project.layout.buildDirectory
                         spec.delete "${project.dist.dir}/${project.name}"
                 })
         }
