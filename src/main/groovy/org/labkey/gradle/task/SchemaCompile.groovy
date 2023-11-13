@@ -38,7 +38,7 @@ class SchemaCompile extends DefaultTask {
   @Input
   String getXmlBeansVersion()
   {
-    return project.property('xmlbeansVersion');
+    return project.property('xmlbeansVersion')
   }
 
   @InputDirectory

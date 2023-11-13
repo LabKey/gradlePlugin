@@ -149,7 +149,7 @@ class ModuleDistribution extends DefaultTask
             if (!BuildUtils.isOpenSource(project) && licensingProject == null)
                 throw new GradleException("Cannot build non-open source distribution. Unable to find project with the plugin org.labkey.build.applyLicenses in ${project.path} ancestors.")
         }
-        return licensingProject;
+        return licensingProject
     }
 
     private void gatherModules()
@@ -345,7 +345,7 @@ class ModuleDistribution extends DefaultTask
     {
         if (makeDistribution)
         {
-            copyWindowsCoreUtilities();
+            copyWindowsCoreUtilities()
             def utilsDir = getWindowsUtilDir()
             StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
 
@@ -467,7 +467,7 @@ class ModuleDistribution extends DefaultTask
 
     private void embeddedTomcatZipArchive()
     {
-        copyWindowsCoreUtilities();
+        copyWindowsCoreUtilities()
         def utilsDir = getWindowsUtilDir()
 
         File serverJarFile = new File(getEmbeddedTomcatJarPath())
@@ -525,7 +525,7 @@ class ModuleDistribution extends DefaultTask
         project.ant.fixcrlf (srcdir: BuildUtils.getBuildDirPath(project), includes: "manual-upgrade.sh", eol: "unix")
     }
 
-    public static FileTree getDistributionResources(Project project) {
+    static FileTree getDistributionResources(Project project) {
         // This seems a very convoluted way to get to the zip file in the jar file.  Using the classLoader did not
         // work as expected, however.  Following the example from here:
         // https://discuss.gradle.org/t/gradle-plugin-copy-directory-tree-with-files-from-resources/12767/7

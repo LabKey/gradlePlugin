@@ -25,18 +25,18 @@ import org.gradle.api.file.FileTree
  */
 class GzipAction implements Action<Task>
 {
-    String[] extraExcludes = [];
+    String[] extraExcludes = []
 
     @Override
     void execute(Task task)
     {
         FileTree tree = task.outputs.files.getAsFileTree().matching {
             include("**/*.css")
-            include("**/*.js");
-            include("**/*.html");
-            exclude("WEB-INF/**");
-            exclude("**/src/**");
-            exclude(extraExcludes);
+            include("**/*.js")
+            include("**/*.html")
+            exclude("WEB-INF/**")
+            exclude("**/src/**")
+            exclude(extraExcludes)
         }
 
         tree.each { File file ->

@@ -22,7 +22,7 @@ class DeployAppBase extends DefaultTask {
                     copy.from(project.configurations.binaries.collect { project.zipTree(it) })
                     copy.into deployBinDir.path
             })
-            project.logger.debug("Contents of ${deployBinDir}\n" + deployBinDir.listFiles());
+            project.logger.debug("Contents of ${deployBinDir}\n" + deployBinDir.listFiles())
         }
         // For TC builds, we deposit the artifacts of the Linux TPP Tools and Windows Proteomics Tools into
         // the external directory, so we want to copy those over as well.
@@ -87,7 +87,7 @@ class DeployAppBase extends DefaultTask {
         if (nlpSource.exists())
         {
             File nlpDir = new File(deployBinDir, "nlp")
-            nlpDir.mkdirs();
+            nlpDir.mkdirs()
             ant.copy(
                     toDir: nlpDir,
                     preserveLastModified: true

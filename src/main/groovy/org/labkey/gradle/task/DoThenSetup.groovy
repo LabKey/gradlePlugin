@@ -145,7 +145,7 @@ class DoThenSetup extends DefaultTask
                         }
                         if (project.hasProperty("useLocalBuild")) {
                             // Let properties file specify which properties require 'useLocalBuild'
-                            line = line.replace("#useLocalBuild#", "");
+                            line = line.replace("#useLocalBuild#", "")
 
                             // Old method enables specific properties for 'useLocalBuild' (before 22.6)
                             line = line.replace("#context.webAppLocation=", "context.webAppLocation=")
@@ -153,7 +153,7 @@ class DoThenSetup extends DefaultTask
                         }
                         else {
                             // Remove placeholder
-                            line = line.replace("#useLocalBuild#", "#");
+                            line = line.replace("#useLocalBuild#", "#")
                         }
                         if (configProperties.containsKey("extraJdbcDataSource"))
                         {
@@ -175,7 +175,7 @@ class DoThenSetup extends DefaultTask
      */
     private Properties getExtraJdbcProperties()
     {
-        def extraJdbcProperties = new Properties();
+        def extraJdbcProperties = new Properties()
         def tcProperties = TeamCityExtension.getTeamCityProperties(project)
         for (Map.Entry entry : tcProperties.entrySet())
         {

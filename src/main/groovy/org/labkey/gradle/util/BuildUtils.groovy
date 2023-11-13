@@ -231,8 +231,8 @@ class BuildUtils
     }
 
     static String convertPathToRelativeDir(String path) {
-        String relativePath = path.startsWith(":") ? path.substring(1) : path;
-        relativePath.replace(":", "/");
+        String relativePath = path.startsWith(":") ? path.substring(1) : path
+        relativePath.replace(":", "/")
     }
 
     static String convertDirToPath(File rootDir, File directory)
@@ -297,7 +297,7 @@ class BuildUtils
         // without the toString call below, you get the following error:
         // Caused by: java.lang.ArrayStoreException: arraycopy: element type mismatch: can not cast one of the elements of
         // java.lang.Object[] to the type of the destination array, java.lang.String
-        return "${getPlatformProjectPath(gradle)}:${name}".toString();
+        return "${getPlatformProjectPath(gradle)}:${name}".toString()
     }
 
     // The gradle path to the project containing the platform (base) modules (e.g., core)
@@ -309,7 +309,7 @@ class BuildUtils
 
     static String getCommonAssayModuleProjectPath(Gradle gradle, String name)
     {
-        return "${getCommonAssaysProjectPath(gradle)}:${name}".toString();
+        return "${getCommonAssaysProjectPath(gradle)}:${name}".toString()
     }
 
     // The gradle path to the project containing the common assays
@@ -360,7 +360,7 @@ class BuildUtils
 
     static String getJdbcApiProjectPath(Gradle gradle)
     {
-        return getProjectPath(gradle, "jdbcApiProjectPath", ":remoteapi:labkey-api-jdbc");
+        return getProjectPath(gradle, "jdbcApiProjectPath", ":remoteapi:labkey-api-jdbc")
     }
 
     static String getLabKeyClientApiVersion(Project project)
@@ -450,7 +450,7 @@ class BuildUtils
             if (rootBranch.startsWith("release") && /* e.g. release20.11-SNAPSHOT */
                     project.labkeyVersion.contains("-SNAPSHOT")) /* e.g. 20.11-SNAPSHOT */
             {
-                distVersion = distVersion.replace("-SNAPSHOT", "Beta");
+                distVersion = distVersion.replace("-SNAPSHOT", "Beta")
             }
             project.logger.info("${project.path} version ${distVersion}")
         }
@@ -532,7 +532,7 @@ class BuildUtils
 
     static void addTomcatBuildDependencies(Project project, String configuration)
     {
-        List<String> tomcatLibs = new ArrayList<>(TOMCAT_LIBS); // Don't modify list
+        List<String> tomcatLibs = new ArrayList<>(TOMCAT_LIBS) // Don't modify list
         if (!"${project.apacheTomcatVersion}".startsWith("7."))
             tomcatLibs.replaceAll({it.replace('tomcat7-', 'tomcat-')})
         for (String lib : tomcatLibs)
@@ -577,7 +577,7 @@ class BuildUtils
         distributionProject.logger.info("${distributionProject.path}: adding ${depProjectPath} as dependency for config ${config}")
         addLabKeyDependency(project: distributionProject, config: config, depProjectPath: depProjectPath, depProjectConfig: "published", depExtension: "module", depVersion: distributionProject.labkeyVersion)
         if (addTransitive) {
-            Set<String> pathsAdded = new HashSet<>();
+            Set<String> pathsAdded = new HashSet<>()
             addTransitiveModuleDependencies(distributionProject, distributionProject.findProject(depProjectPath), config, pathsAdded)
         }
 
@@ -784,7 +784,7 @@ class BuildUtils
 
         String[] thisVersionParts = ((String) thisVersion).split("\\.")
         String[] thatVersionParts = ((String) thatVersion).split("\\.")
-        int i = 0;
+        int i = 0
         while (i < thisVersionParts.length && i < thatVersionParts.length)
         {
             int thisPartNum = Integer.valueOf(thisVersionParts[i])
@@ -818,7 +818,7 @@ class BuildUtils
         File[] jarFiles = deployDir.listFiles(new FilenameFilter() {
             @Override
             boolean accept(File dir, String name) {
-                return name.endsWith("jar");
+                return name.endsWith("jar")
             }
         })
         if (jarFiles.size() == 0)

@@ -73,7 +73,7 @@ class WriteDependenciesFile extends DefaultTask
         List<String> licenseMissing = []
         configuration.resolvedConfiguration.resolvedArtifacts.forEach {
             ResolvedArtifact artifact ->
-                String versionString = artifact.moduleVersion.toString();
+                String versionString = artifact.moduleVersion.toString()
                 if (!StringUtils.isEmpty(artifact.getClassifier()))
                     versionString += ":" + artifact.getClassifier()
                 ExternalDependency dep = extension.getExternalDependency(versionString)
@@ -97,7 +97,7 @@ class WriteDependenciesFile extends DefaultTask
                         licenseMissing.add(artifact.moduleVersion.toString())
                     }
                     parts.add(dep.getPurpose() == null ? "" : dep.getPurpose())
-                    writer.write("${parts.join("|")}\n");
+                    writer.write("${parts.join("|")}\n")
                 } else {
                     missing.add(artifact.moduleVersion.toString())
                 }
@@ -115,7 +115,7 @@ class WriteDependenciesFile extends DefaultTask
     {
         ModuleExtension extension = project.extensions.findByType(ModuleExtension.class)
         if (extension.getExternalDependencies().isEmpty())
-            return;
+            return
 
         OutputStreamWriter writer = null
         try {

@@ -47,7 +47,7 @@ class JspCompile2Java extends DefaultTask
         if (!webappDirectory.exists())
         {
             project.logger.info("${webappDirectory.getAbsolutePath()}: no such file or directory.  Nothing to do here.")
-            return;
+            return
         }
 
         project.logger.info("${project.path} Compiling jsps to Java from ${webappDirectory.getAbsolutePath()}")
@@ -56,7 +56,7 @@ class JspCompile2Java extends DefaultTask
         FileUtils.listFiles(webappDirectory, extensions, true).forEach({
             File file ->
                 project.logger.info(file.getAbsolutePath())
-        });
+        })
 
         File classesDir = getClassesDirectory()
 

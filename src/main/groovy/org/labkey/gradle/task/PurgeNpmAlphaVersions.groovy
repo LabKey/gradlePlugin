@@ -2,7 +2,6 @@ package org.labkey.gradle.task
 
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
-import org.apache.commons.lang3.SystemUtils
 import org.apache.http.HttpStatus
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpDelete
@@ -33,7 +32,7 @@ class PurgeNpmAlphaVersions extends DefaultTask
     @TaskAction
     void purgeVersions()
     {
-        String alphaPrefix;
+        String alphaPrefix
         if (!project.hasProperty(ALPHA_PREFIX_PROPERTY))
             throw new GradleException("No value provided for alphaPrefix.")
         alphaPrefix = project.property(ALPHA_PREFIX_PROPERTY)
@@ -67,7 +66,7 @@ class PurgeNpmAlphaVersions extends DefaultTask
 
     private static List<String> getNpmAlphaVersions(String packageName, String alphaPrefix)
     {
-        String alphaPrefixPattern = ".+-" + alphaPrefix + "\\.\\d+";
+        String alphaPrefixPattern = ".+-" + alphaPrefix + "\\.\\d+"
         String output = (NpmRun.getNpmCommand() + " view ${packageName} versions --json").execute().text
         if (!StringUtils.isEmpty(output)) {
             def parsedJson = new JsonSlurper().parseText(output)
@@ -109,7 +108,7 @@ class PurgeNpmAlphaVersions extends DefaultTask
      */
     boolean makeDeleteRequest(String packageName, String version)
     {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpClient httpClient = HttpClients.createDefault()
         String endpoint = project.property('artifactory_contextUrl')
         boolean success = true
         if (!endpoint.endsWith("/"))

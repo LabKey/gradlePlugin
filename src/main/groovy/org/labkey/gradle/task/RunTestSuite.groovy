@@ -22,6 +22,7 @@ import org.gradle.api.tasks.Internal
 import org.labkey.gradle.plugin.TeamCity
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.DatabaseProperties
+import org.labkey.gradle.util.TaskUtils
 
 /**
  * Class that sets our test/Runner.class as the junit test suite and configures a bunch of system properties for
@@ -29,7 +30,7 @@ import org.labkey.gradle.util.DatabaseProperties
  */
 abstract class RunTestSuite extends RunUiTest
 {
-    // Desginated as @Internal instead of @Input to avoid this error in TeamCity (dbProperties is not used for running local tests).
+    // Designated as @Internal instead of @Input to avoid this error in TeamCity (dbProperties is not used for running local tests).
     //    [10:00:41][Gradle failure report] Execution failed for task ':server:testAutomation:ciTestsSqlserver2019'.
     //    [10:00:41][Gradle failure report] > Unable to store input properties for task ':server:testAutomation:ciTestsSqlserver2019'. Property 'dbProperties' with value 'org.labkey.gradle.util.DatabaseProperties@3a6453c6' cannot be serialized.
     // Not sure why it can't be serialized, but we don't really need this to participate in up-to-date checks
@@ -38,7 +39,6 @@ abstract class RunTestSuite extends RunUiTest
 
     RunTestSuite()
     {
-        project.logger.info("RunTestSuite: constructor");
         scanForTestClasses = false
         include "org/labkey/test/Runner.class"
         dependsOn(project.tasks.writeSampleDataFile)
@@ -46,8 +46,9 @@ abstract class RunTestSuite extends RunUiTest
         dependsOn(project.tasks.ensurePassword)
         if (project.findProject(":tools:Rpackages:install") != null)
             dependsOn(project.project(':tools:Rpackages:install'))
-        if (!project.getPlugins().hasPlugin(TeamCity.class) && project.tasks.findByName('packageChromeExtensions') != null)
-            dependsOn(project.tasks.packageChromeExtensions)
+        if (!project.getPlugins().hasPlugin(TeamCity.class)) {
+            TaskUtils.addOptionalTaskDependency(project, this, 'packageChromeExtensions')
+        }
         if (project.getPlugins().hasPlugin(TeamCity.class))
         {
             dependsOn(project.tasks.killChrome)
@@ -68,7 +69,6 @@ abstract class RunTestSuite extends RunUiTest
 
     protected void setTeamCityProperties()
     {
-        project.logger.info("RunTestSuite: setTeamCityProperties");
         if (TeamCityExtension.isOnTeamCity(project))
         {
             systemProperty "teamcity.tests.recentlyFailedTests.file", project.teamcity['teamcity.tests.recentlyFailedTests.file']
