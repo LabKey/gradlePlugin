@@ -17,6 +17,7 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.UnknownTaskException
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
@@ -37,7 +38,7 @@ import org.labkey.gradle.util.TaskUtils
  */
 class JavaModule implements Plugin<Project>
 {
-    public static final DIR_NAME = "src";
+    public static final DIR_NAME = "src"
 
     static boolean isApplicable(Project project)
     {
@@ -150,14 +151,18 @@ class JavaModule implements Plugin<Project>
                 copy.group = GroupNames.MODULE
                 copy.description = "Copy the jar files needed for the module into the ${project.labkey.explodedModuleLibDir} directory from their respective output directories"
                 copy.into project.labkey.explodedModuleLibDir
-                if (project.tasks.findByName("jar") != null)
+                try {
                     copy.from project.tasks.named("jar")
-                if (project.tasks.findByName("apiJar") != null)
+                } catch (UnknownTaskException ignore) { }
+                try {
                     copy.from project.tasks.named("apiJar")
-                if (project.tasks.findByName("jspJar") != null)
-                    copy.from project.tasks.named('jspJar')
-                if (project.tasks.findByName("copyExternalLibs") != null)
-                    copy.from project.tasks.named('copyExternalLibs')
+                } catch (UnknownTaskException ignore) {}
+                try {
+                    copy.from project.tasks.named("jspJar")
+                } catch (UnknownTaskException ignore) {}
+                try {
+                    copy.from project.tasks.named("copyExternalLibs")
+                } catch (UnknownTaskException ignore) {}
         }
         populateLib.configure {
             it.doFirst {
@@ -186,26 +191,23 @@ class JavaModule implements Plugin<Project>
                     task.doFirst({
                         // first clean out the directory, if it existed from a previous build
                         if (destinationDir.exists()) // I think Windows doesn't deal well with delete without this check first
-                            destination.deleteDir();
+                            destination.deleteDir()
                     })
             }
 
             TaskUtils.configureTaskIfPresent(project, 'module', {
                 dependsOn(project.tasks.copyExternalLibs)
-                if (project.tasks.findByName("jar") != null)
-                {
-                    dependsOn(project.tasks.jar)
-                }
-                if (project.tasks.findByName('apiJar') != null)
-                {
-                    dependsOn(project.tasks.apiJar)
+                try {
+                    dependsOn(project.tasks.named("jar"))
+                } catch (UnknownTaskException ignore) {}
+                try {
+                    dependsOn(project.tasks.named("apiJar"))
                     if (LabKeyExtension.isDevMode(project))
-                        dependsOn(project.tasks.copyToModulesApi)
-                }
-                if (project.tasks.findByName('jspJar') != null)
-                {
-                    dependsOn(project.tasks.jspJar)
-                }
+                        dependsOn(project.tasks.named("copyToModulesApi"))
+                } catch (UnknownTaskException ignore) {}
+                try {
+                    dependsOn(project.tasks.named("jspJar"))
+                } catch (UnknownTaskException ignore) {}
             } )
 
             project.tasks.register(
@@ -213,18 +215,15 @@ class JavaModule implements Plugin<Project>
                     { CheckForVersionConflicts task ->
 
                         FileCollection allJars = externalFiles
-                        if (project.tasks.findByName("jar") != null)
-                        {
-                            allJars = allJars + project.tasks.jar.outputs.files
-                        }
-                        if (project.tasks.findByName('apiJar') != null)
-                        {
-                            allJars = allJars + project.tasks.apiJar.outputs.files
-                        }
-                        if (project.tasks.findByName('jspJar') != null)
-                        {
-                            allJars = allJars + project.tasks.jspJar.outputs.files
-                        }
+                        try {
+                            allJars = allJars + project.tasks.named("jar").get().outputs.files
+                        } catch (UnknownTaskException ignore) {}
+                        try {
+                            allJars = allJars + project.tasks.named("apiJar").get().outputs.files
+                        } catch (UnknownTaskException ignore) {}
+                        try {
+                            allJars = allJars + project.tasks.named("jspJar").get().outputs.files
+                        } catch (UnknownTaskException ignore) {}
 
                         task.group = GroupNames.MODULE
                         task.description = "Check for conflicts in version numbers of jar files to be included in the module and files already in the build directory ${project.labkey.explodedModuleLibDir}." +
