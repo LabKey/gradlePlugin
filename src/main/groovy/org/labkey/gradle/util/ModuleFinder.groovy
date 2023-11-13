@@ -68,6 +68,11 @@ class ModuleFinder extends SimpleFileVisitor<Path>
         }
     }
 
+    List<String> getModulePaths()
+    {
+        return modulePaths
+    }
+
     // This method is called before all plugins are applied, so we cannot use a check for the Distribution Plugin here.
     static boolean isDistributionProject(Project p)
     {

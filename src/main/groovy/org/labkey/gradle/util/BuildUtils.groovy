@@ -171,7 +171,8 @@ class BuildUtils
                 ModuleFinder finder = new ModuleFinder(rootDir, path, excludedModules)
                 Files.walkFileTree(Paths.get(rootDir.getAbsolutePath()), finder)
                 finder.modulePaths.each{String modulePath ->
-                    settings.include modulePath
+                    if (!excludedModules.contains(modulePath))
+                        settings.include modulePath
                 }
             }
             else
@@ -184,9 +185,13 @@ class BuildUtils
                         // exclude non-directories, explicitly excluded names, and directories beginning with a .
                         f.isDirectory() && !excludedModules.contains(f.getName()) &&  !(f.getName() =~ "^\\..*") && !f.getName().equals("node_modules")
                     }
-                    settings.include potentialModules.collect {
+                    List<String> includePaths =  potentialModules.collect {
                         (String) "${prefix}:${it.getName()}"
-                    }.toArray(new String[0])
+                    }
+                    includePaths.forEach(includePath -> {
+                        if (!excludedModules.contains(includePath))
+                            settings.include includePath
+                    })
 
                     if (includeModuleContainers)
                     {
