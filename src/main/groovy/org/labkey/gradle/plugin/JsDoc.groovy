@@ -86,7 +86,7 @@ class JsDoc implements Plugin<Project>
                 task.archiveVersion.set(project.getVersion().toString())
                 task.archiveExtension.set("zip")
                 task.from project.tasks.jsdoc
-                task.destinationDirectory = getJsDocDirectory(project)
+                task.destinationDirectory.set(getJsDocDirectory(project))
         }
 
         project.tasks.register('cleanJsDoc', DefaultTask) {
