@@ -57,7 +57,7 @@ class JsDoc implements Plugin<Project>
                         { CopySpec copy ->
                             copy.from project.file("${project.jsDoc.root}/templates/jsdoc")
                             copy.filter( { String line ->
-                                Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line);
+                                Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
                                 String newLine = line;
                                 while (matcher.find())
                                 {
