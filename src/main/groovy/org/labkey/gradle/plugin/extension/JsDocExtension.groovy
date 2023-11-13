@@ -17,10 +17,7 @@ package org.labkey.gradle.plugin.extension
 
 class JsDocExtension
 {
-    // TODO does this need to be here? Replace with Provider in JsDoc plugin?
     String root
-    // TODO perhaps can configure differently to eliminate the extension.
     String[] paths = []
-    // TODO does this need to be here? Replace with Provider in JsDoc plugin?
     File outputDir
 }
