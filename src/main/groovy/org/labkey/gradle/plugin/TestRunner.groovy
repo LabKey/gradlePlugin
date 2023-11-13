@@ -119,7 +119,7 @@ class TestRunner extends UiTest
         }
     }
 
-    private void addDataFileTasks(Project project)
+    private static void addDataFileTasks(Project project)
     {
         List<File> directories = new ArrayList<>()
 
