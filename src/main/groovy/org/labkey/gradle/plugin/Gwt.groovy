@@ -36,7 +36,7 @@ class Gwt implements Plugin<Project>
 {
     public static final String SOURCE_DIR = "gwtsrc"
 
-    private Project project;
+    private Project project
     private static final String GWT_EXTENSION = ".gwt.xml"
 
     static boolean isApplicable(Project project)
@@ -90,7 +90,7 @@ class Gwt implements Plugin<Project>
     private void addTasks()
     {
         Map<String, String> gwtModuleClasses = getGwtModuleClasses(project)
-        List<TaskProvider> gwtTasks = new ArrayList<>(gwtModuleClasses.size());
+        List<TaskProvider> gwtTasks = new ArrayList<>(gwtModuleClasses.size())
         gwtModuleClasses.entrySet().each {
              gwtModuleClass ->
 
@@ -174,18 +174,18 @@ class Gwt implements Plugin<Project>
     private static Map<String, String> getGwtModuleClasses(Project project)
     {
         File gwtSrc = project.file(project.gwt.srcDir)
-        FileTree tree = project.fileTree(dir: gwtSrc, includes: ["**/*${GWT_EXTENSION}"]);
-        Map<String, String> nameToClass = new HashMap<>();
-        String separator = System.getProperty("file.separator").equals("\\") ? "\\\\" : System.getProperty("file.separator");
+        FileTree tree = project.fileTree(dir: gwtSrc, includes: ["**/*${GWT_EXTENSION}"])
+        Map<String, String> nameToClass = new HashMap<>()
+        String separator = System.getProperty("file.separator").equals("\\") ? "\\\\" : System.getProperty("file.separator")
         for (File file : tree.getFiles())
         {
             String className = file.getPath()
-            className = className.substring(gwtSrc.getPath().length() + 1); // lop off the part of the path before the package structure
-            className = className.replaceAll(separator, "."); // convert from path to class package
-            className = className.substring(0, className.indexOf(GWT_EXTENSION)); // remove suffix
-            nameToClass.put(file.getName().substring(0, file.getName().indexOf(GWT_EXTENSION)),className);
+            className = className.substring(gwtSrc.getPath().length() + 1) // lop off the part of the path before the package structure
+            className = className.replaceAll(separator, ".") // convert from path to class package
+            className = className.substring(0, className.indexOf(GWT_EXTENSION)) // remove suffix
+            nameToClass.put(file.getName().substring(0, file.getName().indexOf(GWT_EXTENSION)),className)
         }
-        return nameToClass;
+        return nameToClass
     }
 
 }
