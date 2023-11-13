@@ -36,11 +36,4 @@ class TaskUtils
             task.dependsOn(optionalTask)
         } catch (UnknownTaskException ignore) { }
     }
-
-    static void addOptionalTaskDependencies(Project project, Task task, List<String> taskNames)
-    {
-        for (String taskName : taskNames) {
-            addOptionalTaskDependency(project, task, taskName)
-        }
-    }
 }
