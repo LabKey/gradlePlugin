@@ -116,7 +116,17 @@ class BuildUtils
      */
     static void includeBaseModules(Settings settings)
     {
-        includeModules(settings, getBaseModules(settings.gradle))
+        includeBaseModules(settings, [])
+    }
+
+    /**
+     * This includes modules that are required for any LabKey server build (e.g., bootstrap, api, internal)
+     * @param settings the settings
+     * @param excludedModules the list of module names or paths to exclude
+     */
+    static void includeBaseModules(Settings settings, List<String> excludedModules)
+    {
+        includeModules(settings, getBaseModules(settings.gradle), excludedModules)
     }
 
     /**
@@ -141,21 +151,34 @@ class BuildUtils
      */
     static void includeTestModules(Settings settings, File rootDir)
     {
-        settings.include "${getTestProjectPath(settings.gradle)}:data:qc"
-        settings.include getTestProjectPath(settings.gradle)
-        includeModules(settings, rootDir, ["${convertPathToRelativeDir(getTestProjectPath(settings.gradle))}/modules"], [])
+        includeTestModules(settings, rootDir, [])
     }
 
-    static void includeModules(Settings settings, List<String> modules)
+    static void includeTestModules(Settings settings, File rootDir, List<String> excludedModulePaths)
     {
-        settings.include modules.toArray(new String[0])
+        String qcPath = "${getTestProjectPath(settings.gradle)}:data:qc"
+        if (!excludedModulePaths.contains(qcPath))
+            settings.include qcPath
+        String testPath = getTestProjectPath(settings.gradle)
+        if (!excludedModulePaths.contains(testPath)) {
+            settings.include testPath
+            includeModules(settings, rootDir, ["${convertPathToRelativeDir(testPath)}/modules"], excludedModulePaths)
+        }
+    }
+
+    static void includeModules(Settings settings, List<String> modules, List<String> excludedModules)
+    {
+        modules.forEach(modulePath -> {
+            if (!excludedModules.contains(modulePath))
+                settings.include modulePath
+        })
     }
 
     /**
      * Can be used in a gradle settings file to include the projects in a particular directory.
      * @param rootDir - the root directory for the gradle build (project.rootDir)
      * @param moduleDirs - the list of directories that are parents of module directories to be included
-     * @param excludedModules - a list of directory names that are to be excluded from the build configuration (e.g., movies)
+     * @param excludedModules - a list of directory names or fully qualified project paths that are to be excluded from the build configuration (e.g., movies)
      */
     static void includeModules(Settings settings, File rootDir, List<String> moduleDirs, List<String> excludedModules)
     {
