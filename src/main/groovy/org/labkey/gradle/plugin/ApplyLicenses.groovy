@@ -11,7 +11,7 @@ import org.labkey.gradle.util.GroupNames
 class ApplyLicenses implements Plugin<Project>
 {
     @Override
-    public void apply(Project project)
+    void apply(Project project)
     {
         if (project.findProject(BuildUtils.getApiProjectPath(project.gradle)))
             project.evaluationDependsOn(BuildUtils.getApiProjectPath(project.gradle))
