@@ -243,8 +243,6 @@ class Distribution implements Plugin<Project>
                 if (task.get() instanceof ModuleDistribution)
                     return ((ModuleDistribution) project.tasks.distribution).getArtifactId()
             } catch (UnknownTaskException ignore) {}
-//            if (project.tasks.distribution instanceof ModuleDistribution)
-//                return ((ModuleDistribution) project.tasks.distribution).getArtifactId()
         }
         return project.name
     }
