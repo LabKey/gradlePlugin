@@ -17,6 +17,9 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.UnknownTaskException
+import org.gradle.api.provider.Provider
 import org.labkey.gradle.util.BuildUtils
 
 /**
@@ -69,10 +72,14 @@ class SpringConfig implements Plugin<Project>
                     depProjectConfig: 'apiJarFile',
                     transitive: false
             )
-            if (project.tasks.findByName("jar") != null)
-                project.dependencies.add("springImplementation", project.tasks.jar.outputs.files)
-            if (project.tasks.findByName("apiJar") != null)
-                project.dependencies.add("springImplementation", project.tasks.apiJar.outputs.files)
+            try {
+                Provider<Task> jarTask = project.tasks.named("jar")
+                project.dependencies.add("springImplementation", jarTask.get().outputs.files)
+            } catch (UnknownTaskException ignore) {}
+            try {
+                Provider<Task> jarTask = project.tasks.named("apiJar")
+                project.dependencies.add("springImplementation", jarTask.get().outputs.files)
+            } catch (UnknownTaskException ignore) {}
         }
     }
 }

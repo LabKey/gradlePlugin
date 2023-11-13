@@ -16,6 +16,7 @@
 package org.labkey.gradle.plugin
 
 import org.apache.commons.lang3.SystemUtils
+import org.gradle.api.UnknownTaskException
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
@@ -390,8 +391,13 @@ class ServerDeploy implements Plugin<Project>
                     String[] projectsMissingTasks = []
                     project.subprojects({
                         Project sub ->
-                            if (sub.file("module.properties").exists() && sub.tasks.findByName("module") == null)
-                                projectsMissingTasks += sub.path
+                            if (sub.file("module.properties").exists()) {
+                                try {
+                                    sub.tasks.named("module")
+                                } catch (UnknownTaskException ignore) {
+                                    projectsMissingTasks += sub.path
+                                }
+                            }
                     })
                     if (projectsMissingTasks.length > 0)
                         project.logger.quiet("Each of the following projects has a 'module.properties' file but no 'module' task. " +
@@ -502,7 +508,7 @@ class ServerDeploy implements Plugin<Project>
                 }
     }
 
-    private linkBinaries(Project project, String packageMgr, String version, workDirectory) {
+    private static linkBinaries(Project project, String packageMgr, String version, workDirectory) {
 
         Project pmLinkProject = project.findProject(BuildUtils.getNodeBinProjectPath(project.gradle))
         if (pmLinkProject == null)
