@@ -18,6 +18,10 @@ package org.labkey.gradle.util
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
+import org.gradle.api.tasks.TaskProvider
+
+import java.util.function.Consumer
+import java.util.function.Function
 
 class TaskUtils
 {
@@ -35,5 +39,29 @@ class TaskUtils
             def optionalTask = project.tasks.named(optionalTaskName)
             task.dependsOn(optionalTask)
         } catch (UnknownTaskException ignore) { }
+    }
+
+    static TaskProvider doIfTaskPresent(Project project, String taskName, Consumer<TaskProvider> consumer)
+    {
+        return getFromTaskIfPresent(project, taskName, task -> {
+            consumer.accept(task)
+            return task
+        })
+    }
+
+    static <R> R getFromTaskIfPresent(Project project, String taskName, Function<TaskProvider, R> func)
+    {
+        return getFromTaskIfPresent(project, taskName, func, null)
+    }
+
+    static <R> R getFromTaskIfPresent(Project project, String taskName, Function<TaskProvider, R> func, R defaultValue)
+    {
+        try {
+            var task = project.tasks.named(taskName)
+            return func.apply(task)
+        }
+        catch (UnknownTaskException ignore) {
+            return defaultValue
+        }
     }
 }

@@ -17,10 +17,8 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.UnknownTaskException
-import org.gradle.api.provider.Provider
 import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.util.TaskUtils
 
 /**
  * Used for copying the Spring config files to the module's build directory.
@@ -72,14 +70,12 @@ class SpringConfig implements Plugin<Project>
                     depProjectConfig: 'apiJarFile',
                     transitive: false
             )
-            try {
-                Provider<Task> jarTask = project.tasks.named("jar")
+            TaskUtils.doIfTaskPresent(project, "jar", (jarTask) -> {
                 project.dependencies.add("springImplementation", jarTask.get().outputs.files)
-            } catch (UnknownTaskException ignore) {}
-            try {
-                Provider<Task> jarTask = project.tasks.named("apiJar")
-                project.dependencies.add("springImplementation", jarTask.get().outputs.files)
-            } catch (UnknownTaskException ignore) {}
+            })
+            TaskUtils.doIfTaskPresent(project, "apiJar", (apiJarTask) -> {
+                project.dependencies.add("springImplementation", apiJarTask.get().outputs.files)
+            })
         }
     }
 }

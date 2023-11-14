@@ -40,6 +40,8 @@ class JavaModule implements Plugin<Project>
 {
     public static final DIR_NAME = "src"
 
+    private static final List<String> JAR_TASK_NAMES = ["jar", "apiJar", "jspJar"]
+
     static boolean isApplicable(Project project)
     {
         return project.file(DIR_NAME).exists()
@@ -146,23 +148,16 @@ class JavaModule implements Plugin<Project>
 
     protected static void addTasks(Project project)
     {
+        List<String> copyFromTasks = JAR_TASK_NAMES + "copyExternalLibs"
         def populateLib = project.tasks.register("populateExplodedLib", Copy) {
             CopySpec copy ->
                 copy.group = GroupNames.MODULE
                 copy.description = "Copy the jar files needed for the module into the ${project.labkey.explodedModuleLibDir} directory from their respective output directories"
                 copy.into project.labkey.explodedModuleLibDir
-                try {
-                    copy.from project.tasks.named("jar")
-                } catch (UnknownTaskException ignore) { }
-                try {
-                    copy.from project.tasks.named("apiJar")
-                } catch (UnknownTaskException ignore) {}
-                try {
-                    copy.from project.tasks.named("jspJar")
-                } catch (UnknownTaskException ignore) {}
-                try {
-                    copy.from project.tasks.named("copyExternalLibs")
-                } catch (UnknownTaskException ignore) {}
+                for (String taskName : copyFromTasks)
+                    TaskUtils.doIfTaskPresent(project, taskName, task -> {
+                        copy.from task
+                    })
         }
         populateLib.configure {
             it.doFirst {
@@ -197,17 +192,11 @@ class JavaModule implements Plugin<Project>
 
             TaskUtils.configureTaskIfPresent(project, 'module', {
                 dependsOn(project.tasks.copyExternalLibs)
-                try {
-                    dependsOn(project.tasks.named("jar"))
-                } catch (UnknownTaskException ignore) {}
-                try {
-                    dependsOn(project.tasks.named("apiJar"))
-                    if (LabKeyExtension.isDevMode(project))
-                        dependsOn(project.tasks.named("copyToModulesApi"))
-                } catch (UnknownTaskException ignore) {}
-                try {
-                    dependsOn(project.tasks.named("jspJar"))
-                } catch (UnknownTaskException ignore) {}
+                JAR_TASK_NAMES.forEach(taskName -> {
+                    TaskUtils.addOptionalTaskDependency(project, it, taskName)
+                })
+                if (LabKeyExtension.isDevMode(project))
+                    TaskUtils.addOptionalTaskDependency(project, it, "copyToModulesApi")
             } )
 
             project.tasks.register(
@@ -215,15 +204,10 @@ class JavaModule implements Plugin<Project>
                     { CheckForVersionConflicts task ->
 
                         FileCollection allJars = externalFiles
-                        try {
-                            allJars = allJars + project.tasks.named("jar").get().outputs.files
-                        } catch (UnknownTaskException ignore) {}
-                        try {
-                            allJars = allJars + project.tasks.named("apiJar").get().outputs.files
-                        } catch (UnknownTaskException ignore) {}
-                        try {
-                            allJars = allJars + project.tasks.named("jspJar").get().outputs.files
-                        } catch (UnknownTaskException ignore) {}
+                        for (String taskName : JAR_TASK_NAMES)
+                            TaskUtils.doIfTaskPresent(project, taskName, (jarTask) -> {
+                                allJars = allJars + jarTask.get().outputs.files
+                            })
 
                         task.group = GroupNames.MODULE
                         task.description = "Check for conflicts in version numbers of jar files to be included in the module and files already in the build directory ${project.labkey.explodedModuleLibDir}." +

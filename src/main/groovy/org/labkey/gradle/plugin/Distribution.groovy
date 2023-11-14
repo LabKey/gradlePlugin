@@ -18,7 +18,6 @@ package org.labkey.gradle.plugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
@@ -142,9 +141,7 @@ class Distribution implements Plugin<Project>
                     if (it instanceof DefaultProjectDependency)
                     {
                         DefaultProjectDependency dep = (DefaultProjectDependency) it
-                        try {
-                            distTask.dependsOn(dep.dependencyProject.tasks.named("module"))
-                        } catch (UnknownTaskException ignore) {}
+                        TaskUtils.addOptionalTaskDependency(dep.dependencyProject, distTask, "module")
                     }
                 }
             }
@@ -237,12 +234,10 @@ class Distribution implements Plugin<Project>
             return project.dist.artifactId
         else
         {
-            try
-            {
-                def task = project.tasks.named("distribution")
-                if (task.get() instanceof ModuleDistribution)
-                    return ((ModuleDistribution) project.tasks.distribution).getArtifactId()
-            } catch (UnknownTaskException ignore) {}
+            TaskUtils.doIfTaskPresent(project, "distribution", (distTask) -> {
+                if (distTask.get() instanceof ModuleDistribution)
+                    return ((ModuleDistribution) distTask).getArtifactId()
+            })
         }
         return project.name
     }
