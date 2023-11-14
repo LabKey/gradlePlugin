@@ -246,7 +246,7 @@ class TeamCity extends Tomcat
                 RunTestSuite task ->
                     task.group = GroupNames.TEST_SERVER
                     task.description = "Run a test suite for ${properties.dbTypeAndVersion} on the TeamCity server"
-                    task.dependsOn(setUpDbTask, undeployTaskProvider)
+                    task.dependsOn(setUpDbTask, undeployTask)
                     task.dbProperties = properties
                     task.mustRunAfter(project.tasks.validateConfiguration)
                     task.mustRunAfter(project.tasks.cleanTestLogs)
