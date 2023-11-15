@@ -21,48 +21,28 @@ import org.gradle.api.UnknownTaskException
 import org.gradle.api.tasks.TaskProvider
 
 import java.util.function.Consumer
-import java.util.function.Function
 
 class TaskUtils
 {
     static void configureTaskIfPresent(Project project, String taskName, Closure closure)
     {
-        try {
-            project.tasks.named(taskName).configure closure
-        }
-        catch (UnknownTaskException ignore) {}
+        doIfTaskPresent(project, taskName, task -> {
+            task.configure closure
+        })
     }
 
     static void addOptionalTaskDependency(Project project, Task task, String optionalTaskName)
     {
-        try {
-            def optionalTask = project.tasks.named(optionalTaskName)
+        getOptionalTask(project, optionalTaskName).ifPresent(optionalTask -> {
             task.dependsOn(optionalTask)
-        } catch (UnknownTaskException ignore) { }
-    }
-
-    static TaskProvider doIfTaskPresent(Project project, String taskName, Consumer<TaskProvider> consumer)
-    {
-        return getFromTaskIfPresent(project, taskName, task -> {
-            consumer.accept(task)
-            return task
         })
     }
 
-    static <R> R getFromTaskIfPresent(Project project, String taskName, Function<TaskProvider, R> func)
+    static void doIfTaskPresent(Project project, String taskName, Consumer<TaskProvider> consumer)
     {
-        return getFromTaskIfPresent(project, taskName, func, null)
-    }
-
-    static <R> R getFromTaskIfPresent(Project project, String taskName, Function<TaskProvider, R> func, R defaultValue)
-    {
-        try {
-            var task = project.tasks.named(taskName)
-            return func.apply(task)
-        }
-        catch (UnknownTaskException ignore) {
-            return defaultValue
-        }
+        getOptionalTask(project, taskName).ifPresent(task -> {
+            consumer.accept(task)
+        })
     }
 
     static Optional<TaskProvider> getOptionalTask(Project project, String taskName)
