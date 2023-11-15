@@ -234,12 +234,11 @@ class Distribution implements Plugin<Project>
             return project.dist.artifactId
         else
         {
-            TaskUtils.doIfTaskPresent(project, "distribution", (distTask) -> {
-                if (distTask.get() instanceof ModuleDistribution)
-                    return ((ModuleDistribution) distTask).getArtifactId()
-            })
+            return TaskUtils.getOptionalTask(project, "distribution")
+                    .filter(task -> task.get() instanceof ModuleDistribution)
+                    .map(task -> ((ModuleDistribution)task.get()).getArtifactId())
+                    .orElse(project.name)
         }
-        return project.name
     }
 
 }

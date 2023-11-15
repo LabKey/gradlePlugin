@@ -64,4 +64,14 @@ class TaskUtils
             return defaultValue
         }
     }
+
+    static Optional<TaskProvider> getOptionalTask(Project project, String taskName)
+    {
+        try {
+            return Optional.of(project.tasks.named(taskName))
+        }
+        catch (UnknownTaskException ignore) {
+            return Optional.empty()
+        }
+    }
 }
