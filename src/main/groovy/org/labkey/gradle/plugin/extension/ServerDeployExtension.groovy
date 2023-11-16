@@ -16,6 +16,7 @@
 package org.labkey.gradle.plugin.extension
 
 import org.gradle.api.Project
+import org.labkey.gradle.util.BuildUtils
 
 class ServerDeployExtension
 {
@@ -29,7 +30,7 @@ class ServerDeployExtension
 
     static String getServerDeployDirectory(Project project)
     {
-        return "${project.rootProject.buildDir}/deploy"
+        return BuildUtils.getRootBuildDirFile(project, "deploy").path
     }
 
     static String getEmbeddedServerDeployDirectory(Project project)

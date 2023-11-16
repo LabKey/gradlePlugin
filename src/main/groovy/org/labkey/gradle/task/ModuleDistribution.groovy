@@ -131,9 +131,9 @@ class ModuleDistribution extends DefaultTask
     @OutputDirectory
     File getModulesDir()
     {
-        // we use a common directory to save on disk space for TeamCity.  This mimics the behavior of the ant build.
+        // we use a common directory to save on disk space for TeamCity.
         // (This is just a conjecture about why it continues to run out of space and not be able to copy files from one place to the other).
-        return new File("${project.rootProject.buildDir}/distModules")
+        return new File("${BuildUtils.getRootBuildDirPath(project)}/distModules")
     }
 
     Project findLicensingProject()
@@ -149,7 +149,7 @@ class ModuleDistribution extends DefaultTask
             if (!BuildUtils.isOpenSource(project) && licensingProject == null)
                 throw new GradleException("Cannot build non-open source distribution. Unable to find project with the plugin org.labkey.build.applyLicenses in ${project.path} ancestors.")
         }
-        return licensingProject;
+        return licensingProject
     }
 
     private void gatherModules()
@@ -180,12 +180,12 @@ class ModuleDistribution extends DefaultTask
     {
         if (makeDistribution)
         {
-            copyLibXml()
+            copyLabkeyXml()
         }
         packageArchives()
     }
 
-    private void copyLibXml()
+    private void copyLabkeyXml()
     {
         Properties copyProps = new Properties()
         // Pre-configure labkey.xml to work with postgresql
@@ -195,7 +195,7 @@ class ModuleDistribution extends DefaultTask
         project.copy
         { CopySpec copy ->
             copy.from(BuildUtils.getWebappConfigFile(project, "labkey.xml"))
-            copy.into(project.buildDir)
+            copy.into(project.layout.buildDirectory)
             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             copy.filter({ String line ->
                 return PropertiesUtils.replaceProps(line, copyProps, true)
@@ -232,7 +232,7 @@ class ModuleDistribution extends DefaultTask
 
     private String getEmbeddedTomcatJarPath()
     {
-        return "${project.buildDir}/labkeyServer-${project.version}.jar"
+        return BuildUtils.getBuildDirFile(project, "labkeyServer-${project.version}.jar").path
     }
 
     private String getTarArchivePath()
@@ -311,13 +311,13 @@ class ModuleDistribution extends DefaultTask
                     tarfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
                 }
 
-                tarfileset(dir: "${project.buildDir}/",
+                tarfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
                         prefix: archiveName,
                         mode: 744) {
                     include(name: "manual-upgrade.sh")
                 }
 
-                tarfileset(dir: project.buildDir,
+                tarfileset(dir: BuildUtils.getBuildDirPath(project),
                         prefix: archiveName) {
                     include(name: "README.txt")
                     include(name: "VERSION")
@@ -345,7 +345,7 @@ class ModuleDistribution extends DefaultTask
     {
         if (makeDistribution)
         {
-            copyWindowsCoreUtilities();
+            copyWindowsCoreUtilities()
             def utilsDir = getWindowsUtilDir()
             StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
 
@@ -371,13 +371,13 @@ class ModuleDistribution extends DefaultTask
                     zipfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
                 }
 
-                zipfileset(dir: "${project.buildDir}/",
+                zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
                         prefix: "${archiveName}",
                         filemode: 744){
                     include(name: "manual-upgrade.sh")
                 }
 
-                zipfileset(dir: "${project.buildDir}/",
+                zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
                         prefix: "${archiveName}") {
                     include(name: "README.txt")
                     include(name: "VERSION")
@@ -403,18 +403,18 @@ class ModuleDistribution extends DefaultTask
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
 
         File embeddedJarFile = project.configurations.embedded.singleFile
-        File modulesZipFile = new File(project.buildDir, "labkey/distribution.zip")
+        File modulesZipFile = BuildUtils.getBuildDirFile(project,"labkey/distribution.zip")
         File serverJarFile = new File(getEmbeddedTomcatJarPath())
         ant.zip(destFile: modulesZipFile.getAbsolutePath()) {
             zipfileset(dir: staging.webappDir,
                     prefix: "labkeywebapp") {
                 exclude(name: "WEB-INF/classes/distribution")
             }
-            zipfileset(dir: new File("${project.rootProject.buildDir}/distModules"),
+            zipfileset(dir: BuildUtils.getRootBuildDirFile(project, "distModules"),
                     prefix: "modules") {
                 include(name: "*.module")
             }
-            zipfileset(dir: "${project.buildDir}/") {
+            zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/") {
                 include(name: "labkeywebapp/**")
             }
         }
@@ -422,17 +422,17 @@ class ModuleDistribution extends DefaultTask
         project.copy {
             CopySpec copy ->
                 copy.from(embeddedJarFile)
-                copy.into(project.buildDir)
+                copy.into(project.layout.buildDirectory)
                 copy.rename(embeddedJarFile.getName(), serverJarFile.getName())
                 copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         }
 
         ant.jar(
-            destfile: new File(project.buildDir, serverJarFile.getName()),
+            destfile: BuildUtils.getBuildDirFile(project, serverJarFile.getName()),
             update: true,
             keepcompression: true
         ) {
-            fileset(dir: "${project.buildDir}", includes: "labkey/**")
+            fileset(dir: "${BuildUtils.getBuildDirPath(project)}", includes: "labkey/**")
         }
     }
 
@@ -448,17 +448,17 @@ class ModuleDistribution extends DefaultTask
         ant.tar(tarfile: getEmbeddedTarArchivePath(),
                 longfile: "gnu",
                 compression: "gzip") {
-            tarfileset(dir: project.buildDir, prefix: archiveName) { include(name: serverJarFile.getName()) }
+            tarfileset(dir: project.layout.buildDirectory, prefix: archiveName) { include(name: serverJarFile.getName()) }
 
             if (!simpleDistribution) {
                 tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
             }
 
-            tarfileset(dir: project.buildDir, prefix: archiveName) {
+            tarfileset(dir: project.layout.buildDirectory, prefix: archiveName) {
                 include(name: "VERSION")
             }
 
-            tarfileset(dir: new File(project.buildDir, "embedded"), prefix: archiveName) {
+            tarfileset(dir: BuildUtils.getBuildDirFile(project, "embedded"), prefix: archiveName) {
                 // include(name: "manual-upgrade.sh")
                 include(name: "README.txt")
             }
@@ -467,7 +467,7 @@ class ModuleDistribution extends DefaultTask
 
     private void embeddedTomcatZipArchive()
     {
-        copyWindowsCoreUtilities();
+        copyWindowsCoreUtilities()
         def utilsDir = getWindowsUtilDir()
 
         File serverJarFile = new File(getEmbeddedTomcatJarPath())
@@ -475,18 +475,18 @@ class ModuleDistribution extends DefaultTask
             makeEmbeddedTomcatJar()
 
         ant.zip(destfile: getEmbeddedZipArchivePath()) {
-            zipfileset(dir: project.buildDir, prefix: archiveName) { include(name: serverJarFile.getName()) }
+            zipfileset(dir: project.layout.buildDirectory, prefix: archiveName) { include(name: serverJarFile.getName()) }
 
             if (!simpleDistribution) {
                 zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
             }
 
-            zipfileset(dir: "${project.buildDir}/",
+            zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
                     prefix: "${archiveName}") {
                 include(name: "VERSION")
             }
 
-            zipfileset(dir: "${project.buildDir}/embedded/",
+            zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/embedded/",
                     prefix: "${archiveName}") {
                 // include(name: "manual-upgrade.sh")
                 include(name: "README.txt")
@@ -502,7 +502,7 @@ class ModuleDistribution extends DefaultTask
         project.copy({ CopySpec copy ->
             copy.from(zipFile)
             copy.exclude "*.xml"
-            copy.into(project.buildDir)
+            copy.into(project.layout.buildDirectory)
             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
         // Allow distributions to include custom README
@@ -510,22 +510,22 @@ class ModuleDistribution extends DefaultTask
         if (resources.isDirectory()) {
             project.copy({ CopySpec copy ->
                 copy.from(resources)
-                copy.into(project.buildDir)
+                copy.into(project.layout.buildDirectory)
                 copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             })
             project.copy({ CopySpec copy ->
                 copy.from(resources)
-                copy.into(new File(project.buildDir, "embedded"))
+                copy.into(project.layout.buildDirectory.file("embedded"))
                 copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             })
         }
         // This is necessary for reasons that are unclear.  Without it, you get:
         // -bash: ./manual-upgrade.sh: /bin/sh^M: bad interpreter: No such file or directory
         // even though the original file has unix line endings. Dunno.
-        project.ant.fixcrlf (srcdir: project.buildDir, includes: "manual-upgrade.sh", eol: "unix")
+        project.ant.fixcrlf (srcdir: BuildUtils.getBuildDirPath(project), includes: "manual-upgrade.sh", eol: "unix")
     }
 
-    public static FileTree getDistributionResources(Project project) {
+    static FileTree getDistributionResources(Project project) {
         // This seems a very convoluted way to get to the zip file in the jar file.  Using the classLoader did not
         // work as expected, however.  Following the example from here:
         // https://discuss.gradle.org/t/gradle-plugin-copy-directory-tree-with-files-from-resources/12767/7
@@ -540,7 +540,7 @@ class ModuleDistribution extends DefaultTask
 
     private File getDistributionFile()
     {
-        File distExtraDir = new File(project.buildDir, DistributionExtension.DIST_FILE_DIR)
+        File distExtraDir = BuildUtils.getBuildDirFile(project, DistributionExtension.DIST_FILE_DIR)
         return new File(distExtraDir,  DistributionExtension.DIST_FILE_NAME)
     }
 
@@ -552,7 +552,7 @@ class ModuleDistribution extends DefaultTask
     @OutputFile
     File getVersionFile()
     {
-        return new File(project.buildDir.absolutePath, DistributionExtension.VERSION_FILE_NAME)
+        return BuildUtils.getBuildDirFile(project, DistributionExtension.VERSION_FILE_NAME)
     }
 
     private void writeVersionFile()

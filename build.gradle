@@ -42,7 +42,7 @@ dependencies {
 }
 
 group 'org.labkey.build'
-project.version = "1.43.0-SNAPSHOT"
+project.version = "1.44.0-SNAPSHOT"
 
 gradlePlugin {
     // TODO after transitioning to using these plugin ids, remove the properties files from resources/META-INF.gradle-plugins
@@ -167,7 +167,7 @@ if (project.file("moduleTemplate").exists())
         Zip zip ->
             zip.archiveFileName = "moduleTemplate.zip"
             zip.from project.file("moduleTemplate")
-            zip.destinationDirectory = new File(project.projectDir, "src/main/resources")
+            zip.destinationDirectory.set(new File(project.projectDir, "src/main/resources"))
     }
     project.tasks.processResources.dependsOn(project.tasks.zipModuleTemplate)
 }
@@ -176,7 +176,7 @@ project.tasks.register("zipDistributionResources", Zip) {
     Zip zip ->
         zip.archiveFileName = "distributionResources.zip"
         zip.from project.file("distributionResources")
-        zip.destinationDirectory = new File(project.projectDir, "src/main/resources")
+        zip.destinationDirectory.set(new File(project.projectDir, "src/main/resources"))
 }
 project.tasks.processResources.dependsOn(project.tasks.zipDistributionResources)
 

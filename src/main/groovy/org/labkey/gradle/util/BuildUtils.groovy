@@ -116,7 +116,17 @@ class BuildUtils
      */
     static void includeBaseModules(Settings settings)
     {
-        includeModules(settings, getBaseModules(settings.gradle))
+        includeBaseModules(settings, [])
+    }
+
+    /**
+     * This includes modules that are required for any LabKey server build (e.g., bootstrap, api, internal)
+     * @param settings the settings
+     * @param excludedModules the list of module names or paths to exclude
+     */
+    static void includeBaseModules(Settings settings, List<String> excludedModules)
+    {
+        includeModules(settings, getBaseModules(settings.gradle), excludedModules)
     }
 
     /**
@@ -141,21 +151,34 @@ class BuildUtils
      */
     static void includeTestModules(Settings settings, File rootDir)
     {
-        settings.include "${getTestProjectPath(settings.gradle)}:data:qc"
-        settings.include getTestProjectPath(settings.gradle)
-        includeModules(settings, rootDir, ["${convertPathToRelativeDir(getTestProjectPath(settings.gradle))}/modules"], [])
+        includeTestModules(settings, rootDir, [])
     }
 
-    static void includeModules(Settings settings, List<String> modules)
+    static void includeTestModules(Settings settings, File rootDir, List<String> excludedModulePaths)
     {
-        settings.include modules.toArray(new String[0])
+        String qcPath = "${getTestProjectPath(settings.gradle)}:data:qc"
+        if (!excludedModulePaths.contains(qcPath))
+            settings.include qcPath
+        String testPath = getTestProjectPath(settings.gradle)
+        if (!excludedModulePaths.contains(testPath)) {
+            settings.include testPath
+            includeModules(settings, rootDir, ["${convertPathToRelativeDir(testPath)}/modules"], excludedModulePaths)
+        }
+    }
+
+    static void includeModules(Settings settings, List<String> modules, List<String> excludedModules)
+    {
+        modules.forEach(modulePath -> {
+            if (!excludedModules.contains(modulePath))
+                settings.include modulePath
+        })
     }
 
     /**
      * Can be used in a gradle settings file to include the projects in a particular directory.
      * @param rootDir - the root directory for the gradle build (project.rootDir)
      * @param moduleDirs - the list of directories that are parents of module directories to be included
-     * @param excludedModules - a list of directory names that are to be excluded from the build configuration (e.g., movies)
+     * @param excludedModules - a list of directory names or fully qualified project paths that are to be excluded from the build configuration (e.g., movies)
      */
     static void includeModules(Settings settings, File rootDir, List<String> moduleDirs, List<String> excludedModules)
     {
@@ -171,7 +194,8 @@ class BuildUtils
                 ModuleFinder finder = new ModuleFinder(rootDir, path, excludedModules)
                 Files.walkFileTree(Paths.get(rootDir.getAbsolutePath()), finder)
                 finder.modulePaths.each{String modulePath ->
-                    settings.include modulePath
+                    if (!excludedModules.contains(modulePath))
+                        settings.include modulePath
                 }
             }
             else
@@ -184,9 +208,13 @@ class BuildUtils
                         // exclude non-directories, explicitly excluded names, and directories beginning with a .
                         f.isDirectory() && !excludedModules.contains(f.getName()) &&  !(f.getName() =~ "^\\..*") && !f.getName().equals("node_modules")
                     }
-                    settings.include potentialModules.collect {
+                    List<String> includePaths =  potentialModules.collect {
                         (String) "${prefix}:${it.getName()}"
-                    }.toArray(new String[0])
+                    }
+                    includePaths.forEach(includePath -> {
+                        if (!excludedModules.contains(includePath))
+                            settings.include includePath
+                    })
 
                     if (includeModuleContainers)
                     {
@@ -203,8 +231,8 @@ class BuildUtils
     }
 
     static String convertPathToRelativeDir(String path) {
-        String relativePath = path.startsWith(":") ? path.substring(1) : path;
-        relativePath.replace(":", "/");
+        String relativePath = path.startsWith(":") ? path.substring(1) : path
+        relativePath.replace(":", "/")
     }
 
     static String convertDirToPath(File rootDir, File directory)
@@ -269,7 +297,7 @@ class BuildUtils
         // without the toString call below, you get the following error:
         // Caused by: java.lang.ArrayStoreException: arraycopy: element type mismatch: can not cast one of the elements of
         // java.lang.Object[] to the type of the destination array, java.lang.String
-        return "${getPlatformProjectPath(gradle)}:${name}".toString();
+        return "${getPlatformProjectPath(gradle)}:${name}".toString()
     }
 
     // The gradle path to the project containing the platform (base) modules (e.g., core)
@@ -281,7 +309,7 @@ class BuildUtils
 
     static String getCommonAssayModuleProjectPath(Gradle gradle, String name)
     {
-        return "${getCommonAssaysProjectPath(gradle)}:${name}".toString();
+        return "${getCommonAssaysProjectPath(gradle)}:${name}".toString()
     }
 
     // The gradle path to the project containing the common assays
@@ -332,7 +360,7 @@ class BuildUtils
 
     static String getJdbcApiProjectPath(Gradle gradle)
     {
-        return getProjectPath(gradle, "jdbcApiProjectPath", ":remoteapi:labkey-api-jdbc");
+        return getProjectPath(gradle, "jdbcApiProjectPath", ":remoteapi:labkey-api-jdbc")
     }
 
     static String getLabKeyClientApiVersion(Project project)
@@ -422,7 +450,7 @@ class BuildUtils
             if (rootBranch.startsWith("release") && /* e.g. release20.11-SNAPSHOT */
                     project.labkeyVersion.contains("-SNAPSHOT")) /* e.g. 20.11-SNAPSHOT */
             {
-                distVersion = distVersion.replace("-SNAPSHOT", "Beta");
+                distVersion = distVersion.replace("-SNAPSHOT", "Beta")
             }
             project.logger.info("${project.path} version ${distVersion}")
         }
@@ -504,7 +532,7 @@ class BuildUtils
 
     static void addTomcatBuildDependencies(Project project, String configuration)
     {
-        List<String> tomcatLibs = new ArrayList<>(TOMCAT_LIBS); // Don't modify list
+        List<String> tomcatLibs = new ArrayList<>(TOMCAT_LIBS) // Don't modify list
         if (!"${project.apacheTomcatVersion}".startsWith("7."))
             tomcatLibs.replaceAll({it.replace('tomcat7-', 'tomcat-')})
         for (String lib : tomcatLibs)
@@ -549,7 +577,7 @@ class BuildUtils
         distributionProject.logger.info("${distributionProject.path}: adding ${depProjectPath} as dependency for config ${config}")
         addLabKeyDependency(project: distributionProject, config: config, depProjectPath: depProjectPath, depProjectConfig: "published", depExtension: "module", depVersion: distributionProject.labkeyVersion)
         if (addTransitive) {
-            Set<String> pathsAdded = new HashSet<>();
+            Set<String> pathsAdded = new HashSet<>()
             addTransitiveModuleDependencies(distributionProject, distributionProject.findProject(depProjectPath), config, pathsAdded)
         }
 
@@ -756,7 +784,7 @@ class BuildUtils
 
         String[] thisVersionParts = ((String) thisVersion).split("\\.")
         String[] thatVersionParts = ((String) thatVersion).split("\\.")
-        int i = 0;
+        int i = 0
         while (i < thisVersionParts.length && i < thatVersionParts.length)
         {
             int thisPartNum = Integer.valueOf(thisVersionParts[i])
@@ -790,7 +818,7 @@ class BuildUtils
         File[] jarFiles = deployDir.listFiles(new FilenameFilter() {
             @Override
             boolean accept(File dir, String name) {
-                return name.endsWith("jar");
+                return name.endsWith("jar")
             }
         })
         if (jarFiles.size() == 0)
@@ -833,5 +861,30 @@ class BuildUtils
         dependencies.forEach({
             dependency -> addExternalDependency(project, dependency)
         })
+    }
+
+    static File getBuildDir(Project project)
+    {
+        return project.layout.buildDirectory.getAsFile().get()
+    }
+
+    static String getBuildDirPath(Project project)
+    {
+        return getBuildDir(project).path
+    }
+
+    static File getBuildDirFile(Project project, String filePath)
+    {
+        return project.layout.buildDirectory.file(filePath).get().asFile
+    }
+
+    static File getRootBuildDirFile(Project project, String filePath)
+    {
+        return project.rootProject.layout.buildDirectory.file(filePath).get().asFile
+    }
+
+    static String getRootBuildDirPath(Project project)
+    {
+        return project.rootProject.layout.buildDirectory.get().asFile.path
     }
 }

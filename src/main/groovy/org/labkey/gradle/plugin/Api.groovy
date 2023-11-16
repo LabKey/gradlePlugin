@@ -17,9 +17,8 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.util.BuildUtils
@@ -102,11 +101,12 @@ class Api implements Plugin<Project>
 
         if (LabKeyExtension.isDevMode(project))
         {
-            // we put all API jar files into a special directory for the RecompilingJspClassLoader's classpath
-            project.tasks.apiJar.doLast {
-                project.copy { CopySpec copy ->
+            project.tasks.register("copyToModulesApi", Copy) {
+                Copy copy -> {
+                    copy.group = GroupNames.API
+                    copy.description = "Copies api jar files to the ${MODULES_API_DIR} for use with RecompilingJspClassLoader"
                     copy.from project.tasks.apiJar.outputs
-                    copy.into "${project.rootProject.buildDir}/${MODULES_API_DIR}"
+                    copy.into project.rootProject.layout.buildDirectory.file(MODULES_API_DIR)
                     copy.include "${project.name}_api*.jar"
                     copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                 }
@@ -120,7 +120,7 @@ class Api implements Plugin<Project>
     // deletion a step for the 'undeployModule' task instead
     static void deleteModulesApiJar(Project project)
     {
-        project.delete project.fileTree("${project.rootProject.buildDir}/${MODULES_API_DIR}") {include "**/${project.name}_api*.jar"}
+        project.delete project.fileTree(project.rootProject.layout.buildDirectory.file(MODULES_API_DIR)) {include "**/${project.name}_api*.jar"}
     }
 
     private void addArtifacts(Project project)

@@ -24,6 +24,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.XmlBeans
+import org.labkey.gradle.util.BuildUtils
 
 /**
  * Task to compile XSD schema files into Java class files using the ant XMLBean
@@ -37,7 +38,7 @@ class SchemaCompile extends DefaultTask {
   @Input
   String getXmlBeansVersion()
   {
-    return project.property('xmlbeansVersion');
+    return project.property('xmlbeansVersion')
   }
 
   @InputDirectory
@@ -59,7 +60,7 @@ class SchemaCompile extends DefaultTask {
   @OutputDirectory
   File getClassesDir()
   {
-    return new File("$project.buildDir/$XmlBeans.CLASS_DIR")
+    return BuildUtils.getBuildDirFile(project, XmlBeans.CLASS_DIR)
   }
 
   @TaskAction

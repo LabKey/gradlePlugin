@@ -171,7 +171,7 @@ class MultiGit implements Plugin<Project>
 
             private Type(topic, enlistmentProject)
             {
-                this.topic = topic;
+                this.topic = topic
                 this.enlistmentProject = enlistmentProject
             }
         }
@@ -368,7 +368,7 @@ class MultiGit implements Plugin<Project>
 
         private Grgit getGit()
         {
-            File enlistmentDir = getEnlistmentDir();
+            File enlistmentDir = getEnlistmentDir()
 
             if (enlistmentDir.exists())
             {
@@ -489,7 +489,7 @@ class MultiGit implements Plugin<Project>
                 })
             }
 
-            return moduleNames;
+            return moduleNames
         }
 
         Project getProject()
@@ -524,8 +524,8 @@ class MultiGit implements Plugin<Project>
 
         Branch getCurrentBranch()
         {
-            Grgit git = getGit();
-            return git != null ?  git.branch.current : null
+            Grgit git = getGit()
+            return git != null ?  git.branch.current() : null
         }
 
         String toString()
@@ -663,7 +663,7 @@ class MultiGit implements Plugin<Project>
 
         private static String getAuthorizationToken()
         {
-            return System.getenv('GIT_ACCESS_TOKEN');
+            return System.getenv('GIT_ACCESS_TOKEN')
         }
 
         private String getQueryString(String filterString = "")
@@ -763,7 +763,7 @@ class MultiGit implements Plugin<Project>
                     names.push(((String) topicMap.get('name')).toLowerCase())
                 }
             }
-            return names;
+            return names
         }
 
         private void setLicenseInfo(Repository repository, Map<String, Object> node)
@@ -825,12 +825,12 @@ class MultiGit implements Plugin<Project>
             {
                 project.logger.info("getAllRepositories - includeArchived: ${includeArchived}, filterString: '${filterString}'")
                 Map<String, Object> rawData = makeRequest(project, getSearchString(filterString, endCursor))
-                Map<String, Object> pageInfo = getMap(rawData, ['data', 'search', 'pageInfo']);
+                Map<String, Object> pageInfo = getMap(rawData, ['data', 'search', 'pageInfo'])
                 hasNextPage = (Boolean) pageInfo.get('hasNextPage')
                 endCursor = (String) pageInfo.get('endCursor')
                 project.logger.info("hasNextPage ${hasNextPage} endCursor ${endCursor}")
 
-                List<Map<String, Object>> searchResults = getMapList(rawData, ['data', 'search'], "edges");
+                List<Map<String, Object>> searchResults = getMapList(rawData, ['data', 'search'], "edges")
                 for (Map<String, Object> nodeMap: searchResults)
                 {
                     Map<String, Object> node = (Map<String, Object>) nodeMap.get('node')
@@ -850,7 +850,7 @@ class MultiGit implements Plugin<Project>
                     repositories.put(repository.getName(), repository)
                 }
             }
-            return repositories;
+            return repositories
         }
 
         Map<String, Repository> execute() throws IOException
@@ -875,12 +875,12 @@ class MultiGit implements Plugin<Project>
 
         private static Map<String, Object> makeRequest(Project project, String queryString) throws IOException
         {
-            CloseableHttpClient httpClient = HttpClients.createDefault();
+            CloseableHttpClient httpClient = HttpClients.createDefault()
             Map<String, Object> rawData
             project.logger.info("Making request with queryString '${queryString}'")
             try
             {
-                HttpPost httpPost = new HttpPost(GITHUB_GRAPHQL_ENDPOINT);
+                HttpPost httpPost = new HttpPost(GITHUB_GRAPHQL_ENDPOINT)
                 httpPost.setHeader("Authorization", "Bearer " + getAuthorizationToken())
 
                 Map<String, String> requestObject = new HashMap<>()
@@ -898,11 +898,11 @@ class MultiGit implements Plugin<Project>
                 }
                 catch (Exception re)
                 {
-                    throw new GradleException("Problem retrieving response from query '${queryString}'", re);
+                    throw new GradleException("Problem retrieving response from query '${queryString}'", re)
                 }
                 finally
                 {
-                    response.close();
+                    response.close()
                 }
             }
             catch (Exception e)
@@ -922,13 +922,13 @@ class MultiGit implements Plugin<Project>
         }
     }
 
-    private Project project;
+    private Project project
 
     @Override
     void apply(Project project)
     {
         this.project = project
-        addTasks(project);
+        addTasks(project)
     }
 
     private static Map<String, Object> getMap(Map<String, Object> data, List<String> path)
@@ -937,9 +937,9 @@ class MultiGit implements Plugin<Project>
 
         for (String step: path)
         {
-            current = (Map<String, Object>) current.get(step);
+            current = (Map<String, Object>) current.get(step)
         }
-        return current;
+        return current
     }
 
     private static List<Map<String, Object>> getMapList(Map<String, Object> response, List<String> path, String finalKey)
@@ -974,7 +974,7 @@ class MultiGit implements Plugin<Project>
                 }
         })
 
-        return baseRepos;
+        return baseRepos
     }
 
     void addTasks(Project project)
@@ -1165,7 +1165,7 @@ class MultiGit implements Plugin<Project>
                             if (repository.enlistmentDir.exists() && (project.hasProperty(RepositoryQuery.TOPICS_PROPERTY) || repository.project != null))
                             {
                                 project.logger.quiet("Pulling for ${repository.enlistmentDir} ")
-                                Grgit grgit = repository.getGit();
+                                Grgit grgit = repository.getGit()
                                 try
                                 {
                                     grgit.pull(rebase: project.hasProperty('gitRebase'))

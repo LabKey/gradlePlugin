@@ -68,7 +68,7 @@ class ClientLibsCompress extends DefaultTask
             File file ->
                 importerMap.put(file, parseXmlFile(getSourceDir(file), file))
         }
-        return importerMap;
+        return importerMap
     }
 
     static File getMinificationDir(Project project)
@@ -79,10 +79,10 @@ class ClientLibsCompress extends DefaultTask
 
     static File getSourceDir(File libXmlFile)
     {
-        String absolutePath = libXmlFile.getAbsolutePath();
+        String absolutePath = libXmlFile.getAbsolutePath()
         int endIndex = absolutePath.lastIndexOf("webapp${File.separator}")
         if (endIndex >= 0)
-            endIndex += 6;
+            endIndex += 6
         else
         {
             endIndex = absolutePath.lastIndexOf("web${File.separator}")
@@ -178,7 +178,7 @@ class ClientLibsCompress extends DefaultTask
     void compressAllFiles()
     {
         FileTree libXmlFiles = xmlFiles
-        Map<File, XmlImporter> importerMap = getImporterMap();
+        Map<File, XmlImporter> importerMap = getImporterMap()
         libXmlFiles.files.each() {
             File file -> compressSingleFile(file, importerMap.get(file))
         }
@@ -196,7 +196,7 @@ class ClientLibsCompress extends DefaultTask
         }
         else
         {
-            this.logger.info("No compile necessary for ${xmlFile}");
+            this.logger.info("No compile necessary for ${xmlFile}")
         }
     }
 
@@ -216,7 +216,7 @@ class ClientLibsCompress extends DefaultTask
         }
         catch (Exception e)
         {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e)
         }
     }
 
@@ -366,7 +366,7 @@ class ClientLibsCompress extends DefaultTask
     File concatenateFilesForNpm(File xmlFile, Set<File> srcFiles, String extension)
     {
         if (srcFiles.isEmpty())
-            return null;
+            return null
 
 
         File concatFile = new File(getMinificationWorkingDir(xmlFile), getNewExtensionFileName(xmlFile, null, extension))
@@ -379,7 +379,7 @@ class ClientLibsCompress extends DefaultTask
     {
         if (!LabKeyExtension.isDevMode(project))
         {
-            this.logger.info("Compressing " + file);
+            this.logger.info("Compressing " + file)
             project.ant.gzip(
                     src: file,
                     destfile: "${file}.gz"
@@ -397,18 +397,18 @@ class ClientLibsCompress extends DefaultTask
 
     static File getOutputFile(File xmlFile, String token, String ex)
     {
-        return new File(xmlFile.getParentFile(), getNewExtensionFileName(xmlFile, token, ex));
+        return new File(xmlFile.getParentFile(), getNewExtensionFileName(xmlFile, token, ex))
     }
 
     private static void concatenateFiles(Set<File> files, File output)
     {
         try
         {
-            output.createNewFile();
+            output.createNewFile()
         }
         catch (IOException e)
         {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e)
         }
 
         PrintWriter saveAs = null
@@ -423,12 +423,12 @@ class ClientLibsCompress extends DefaultTask
                 {
                     readBuff = new BufferedReader(new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8))
 
-                    String line = readBuff.readLine();
+                    String line = readBuff.readLine()
 
                     while (line != null)
                     {
-                        saveAs.println(line);
-                        line = readBuff.readLine();
+                        saveAs.println(line)
+                        line = readBuff.readLine()
                     }
                 }
                 finally
@@ -495,23 +495,23 @@ class ClientLibsCompress extends DefaultTask
             {
                 if (attributes.getValue("compileInProductionMode") != null)
                 {
-                    doCompile = Boolean.parseBoolean(attributes.getValue("compileInProductionMode"));
+                    doCompile = Boolean.parseBoolean(attributes.getValue("compileInProductionMode"))
                 }
-                withinScriptsTag = true;
+                withinScriptsTag = true
             }
             if (withinScriptsTag && "script".equals(localName))
             {
-                String path = attributes.getValue("path");
-                File scriptFile = new File(sourceDir, path);
+                String path = attributes.getValue("path")
+                File scriptFile = new File(sourceDir, path)
                 if (!scriptFile.exists())
                 {
                     if (isExternalScript(path))
                     {
-                        throw new RuntimeException("ERROR: External scripts (e.g. https://.../script.js) cannot be declared in library definition. Consider making it a <dependency>.");
+                        throw new RuntimeException("ERROR: External scripts (e.g. https://.../script.js) cannot be declared in library definition. Consider making it a <dependency>.")
                     }
                     else
                     {
-                        throw new RuntimeException("ERROR: Unable to find script file: " + scriptFile + " from library: " + xmlFile);
+                        throw new RuntimeException("ERROR: Unable to find script file: " + scriptFile + " from library: " + xmlFile)
                     }
                 }
                 else
@@ -519,23 +519,23 @@ class ClientLibsCompress extends DefaultTask
                     //linux will be case-sensitive, so we proactively throw errors on any filesystem
                     try
                     {
-                        File f = FileUtils.getFileUtils().normalize(scriptFile.getPath());
+                        File f = FileUtils.getFileUtils().normalize(scriptFile.getPath())
                         if( !scriptFile.getCanonicalFile().getName().equals(f.getName()))
                         {
-                            throw new RuntimeException("File must be a case-sensitive match. Found: " + scriptFile.getAbsolutePath() + ", expected: " + scriptFile.getCanonicalPath());
+                            throw new RuntimeException("File must be a case-sensitive match. Found: " + scriptFile.getAbsolutePath() + ", expected: " + scriptFile.getCanonicalPath())
                         }
                     }
                     catch (IOException e)
                     {
-                        throw new RuntimeException(e);
+                        throw new RuntimeException(e)
                     }
 
                     if (scriptFile.getName().endsWith(".js"))
-                        javascriptFiles.add(scriptFile);
+                        javascriptFiles.add(scriptFile)
                     else if (scriptFile.getName().endsWith(".css"))
-                        cssFiles.add(scriptFile);
+                        cssFiles.add(scriptFile)
                     else
-                        this.logger.info("Unknown file extension, ignoring: " + scriptFile.getName());
+                        this.logger.info("Unknown file extension, ignoring: " + scriptFile.getName())
                 }
             }
         }
@@ -543,12 +543,12 @@ class ClientLibsCompress extends DefaultTask
         void endElement(String uri, String localName, String qName) throws SAXException
         {
             if ("library".equals(localName))
-                withinScriptsTag = false;
+                withinScriptsTag = false
         }
 
         private boolean isExternalScript(String path)
         {
-            return path != null && (path.contains("http://") || path.contains("https://"));
+            return path != null && (path.contains("http://") || path.contains("https://"))
         }
     }
 }

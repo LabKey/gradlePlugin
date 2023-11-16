@@ -42,6 +42,6 @@ class PickDb extends DoThenSetup
             }
             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
-        super.doDatabaseTask();
+        super.doDatabaseTask()
     }
 }

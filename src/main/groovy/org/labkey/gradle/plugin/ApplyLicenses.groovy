@@ -11,7 +11,7 @@ import org.labkey.gradle.util.GroupNames
 class ApplyLicenses implements Plugin<Project>
 {
     @Override
-    public void apply(Project project)
+    void apply(Project project)
     {
         if (project.findProject(BuildUtils.getApiProjectPath(project.gradle)))
             project.evaluationDependsOn(BuildUtils.getApiProjectPath(project.gradle))
@@ -61,7 +61,7 @@ class ApplyLicenses implements Plugin<Project>
                     jar.archiveVersion.set(project.getVersion().toString())
                     jar.archiveClassifier.set("extJsCommercial")
                     jar.archiveExtension.set('module')
-                    jar.destinationDirectory = project.file("${project.buildDir}/patchApiModule")
+                    jar.destinationDirectory.set(project.layout.buildDirectory.dir("patchApiModule"))
                     jar.outputs.cacheIf({ true })
                     // first include the ext-3.4.1 and ext-4.2.1 directories from the extjs configuration artifacts
                     jar.into('web') {

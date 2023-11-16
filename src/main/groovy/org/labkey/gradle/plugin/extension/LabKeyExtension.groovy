@@ -16,6 +16,7 @@
 package org.labkey.gradle.plugin.extension
 
 import org.gradle.api.Project
+import org.labkey.gradle.util.BuildUtils
 
 /**
  * Created by susanh on 4/23/17.
@@ -77,11 +78,11 @@ class LabKeyExtension
 
     void setDirectories(Project project)
     {
-        explodedModuleDir = "${project.buildDir}/explodedModule"
+        explodedModuleDir = BuildUtils.getBuildDirFile(project,"explodedModule").getPath()
         explodedModuleWebDir = "${explodedModuleDir}/web"
         explodedModuleConfigDir = "${explodedModuleDir}/config"
         explodedModuleLibDir = "${explodedModuleDir}/lib"
-        srcGenDir = "${project.buildDir}/gensrc"
+        srcGenDir = BuildUtils.getBuildDirFile(project,"gensrc").getPath()
 
         externalDir = "${project.rootDir}/external"
     }

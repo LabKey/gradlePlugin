@@ -36,7 +36,7 @@ class PurgeArtifacts extends DefaultTask
     @TaskAction
     void purgeVersions()
     {
-        String purgeVersion;
+        String purgeVersion
         if (!project.hasProperty(VERSION_PROPERTY))
             throw new GradleException("No value provided for ${VERSION_PROPERTY}.")
         purgeVersion = project.property(VERSION_PROPERTY)
@@ -90,7 +90,7 @@ class PurgeArtifacts extends DefaultTask
             return
         }
 
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpClient httpClient = HttpClients.createDefault()
         String endpoint = project.property('artifactory_contextUrl')
         Response responseStatus = Response.SUCCESS
         if (!endpoint.endsWith("/"))

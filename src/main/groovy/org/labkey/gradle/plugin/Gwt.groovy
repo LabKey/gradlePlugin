@@ -18,7 +18,6 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.FileTree
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.tasks.Copy
@@ -37,7 +36,7 @@ class Gwt implements Plugin<Project>
 {
     public static final String SOURCE_DIR = "gwtsrc"
 
-    private Project project;
+    private Project project
     private static final String GWT_EXTENSION = ".gwt.xml"
 
     static boolean isApplicable(Project project)
@@ -91,7 +90,7 @@ class Gwt implements Plugin<Project>
     private void addTasks()
     {
         Map<String, String> gwtModuleClasses = getGwtModuleClasses(project)
-        List<TaskProvider> gwtTasks = new ArrayList<>(gwtModuleClasses.size());
+        List<TaskProvider> gwtTasks = new ArrayList<>(gwtModuleClasses.size())
         gwtModuleClasses.entrySet().each {
              gwtModuleClass ->
 
@@ -102,10 +101,12 @@ class Gwt implements Plugin<Project>
                         java.group = GroupNames.GWT
                         java.description = "compile GWT source files for " + gwtModuleClass.getKey() + " into JS"
 
-                        GString extrasDir = "${project.buildDir}/${project.gwt.extrasDir}"
-                        String outputDir = "${project.buildDir}/${project.gwt.outputDir}"
+                        File extrasDir = BuildUtils.getBuildDirFile(project, project.gwt.extrasDir)
+                        File outputDir = BuildUtils.getBuildDirFile(project, project.gwt.outputDir)
 
                         java.inputs.files(project.sourceSets.gwt.java.srcDirs)
+                        String extrasDirPath = extrasDir.getPath()
+                        String outputDirPath = outputDir.getPath()
 
                         java.outputs.dir extrasDir
                         java.outputs.dir outputDir
@@ -114,8 +115,8 @@ class Gwt implements Plugin<Project>
                         java.outputs.upToDateSpec = new AndSpec()
 
                         java.doFirst {
-                            project.file(extrasDir).mkdirs()
-                            project.file(outputDir).mkdirs()
+                            extrasDir.mkdirs()
+                            outputDir.mkdirs()
                         }
 
                         if (!LabKeyExtension.isDevMode(project))
@@ -138,11 +139,11 @@ class Gwt implements Plugin<Project>
 
                         java.args =
                                 [
-                                        '-war', outputDir,
+                                        '-war', outputDirPath,
                                         '-style', project.gwt.style,
                                         '-logLevel', project.gwt.logLevel,
-                                        '-extra', extrasDir,
-                                        '-deploy', extrasDir,
+                                        '-extra', extrasDirPath,
+                                        '-deploy', extrasDirPath,
                                         '-localWorkers', 4,
                                         gwtModuleClass.getValue()
                                 ]
@@ -173,18 +174,18 @@ class Gwt implements Plugin<Project>
     private static Map<String, String> getGwtModuleClasses(Project project)
     {
         File gwtSrc = project.file(project.gwt.srcDir)
-        FileTree tree = project.fileTree(dir: gwtSrc, includes: ["**/*${GWT_EXTENSION}"]);
-        Map<String, String> nameToClass = new HashMap<>();
-        String separator = System.getProperty("file.separator").equals("\\") ? "\\\\" : System.getProperty("file.separator");
+        FileTree tree = project.fileTree(dir: gwtSrc, includes: ["**/*${GWT_EXTENSION}"])
+        Map<String, String> nameToClass = new HashMap<>()
+        String separator = System.getProperty("file.separator").equals("\\") ? "\\\\" : System.getProperty("file.separator")
         for (File file : tree.getFiles())
         {
             String className = file.getPath()
-            className = className.substring(gwtSrc.getPath().length() + 1); // lop off the part of the path before the package structure
-            className = className.replaceAll(separator, "."); // convert from path to class package
-            className = className.substring(0, className.indexOf(GWT_EXTENSION)); // remove suffix
-            nameToClass.put(file.getName().substring(0, file.getName().indexOf(GWT_EXTENSION)),className);
+            className = className.substring(gwtSrc.getPath().length() + 1) // lop off the part of the path before the package structure
+            className = className.replaceAll(separator, ".") // convert from path to class package
+            className = className.substring(0, className.indexOf(GWT_EXTENSION)) // remove suffix
+            nameToClass.put(file.getName().substring(0, file.getName().indexOf(GWT_EXTENSION)),className)
         }
-        return nameToClass;
+        return nameToClass
     }
 
 }

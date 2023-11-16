@@ -24,6 +24,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.util.BuildUtils
 
 @CacheableTask
 class JspCompile2Java extends DefaultTask
@@ -37,7 +38,7 @@ class JspCompile2Java extends DefaultTask
     @OutputDirectory
     File getClassesDirectory()
     {
-        return new File("${project.buildDir}/${CLASSES_DIR}")
+        return BuildUtils.getBuildDirFile(project, CLASSES_DIR)
     }
 
     @TaskAction
@@ -46,7 +47,7 @@ class JspCompile2Java extends DefaultTask
         if (!webappDirectory.exists())
         {
             project.logger.info("${webappDirectory.getAbsolutePath()}: no such file or directory.  Nothing to do here.")
-            return;
+            return
         }
 
         project.logger.info("${project.path} Compiling jsps to Java from ${webappDirectory.getAbsolutePath()}")
@@ -55,7 +56,7 @@ class JspCompile2Java extends DefaultTask
         FileUtils.listFiles(webappDirectory, extensions, true).forEach({
             File file ->
                 project.logger.info(file.getAbsolutePath())
-        });
+        })
 
         File classesDir = getClassesDirectory()
 

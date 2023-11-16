@@ -123,10 +123,10 @@ class Distribution implements Plugin<Project>
         project.tasks.register('clean', Delete) {
             Delete task ->
                 task.group = GroupNames.BUILD
-                task.description = "Removes the distribution build directory ${project.buildDir} and distribution directory ${project.dist.dir}/${project.name}"
+                task.description = "Removes the distribution build directory ${project.layout.buildDirectory.asFile.get()} and distribution directory ${project.dist.dir}/${project.name}"
                 task.configure ({
                     DeleteSpec spec ->
-                        spec.delete project.buildDir
+                        spec.delete project.layout.buildDirectory
                         spec.delete "${project.dist.dir}/${project.name}"
                 })
         }
@@ -141,8 +141,7 @@ class Distribution implements Plugin<Project>
                     if (it instanceof DefaultProjectDependency)
                     {
                         DefaultProjectDependency dep = (DefaultProjectDependency) it
-                        if (dep.dependencyProject.tasks.findByName("module") != null)
-                            distTask.dependsOn(dep.dependencyProject.tasks.module)
+                        TaskUtils.addOptionalTaskDependency(dep.dependencyProject, distTask, "module")
                     }
                 }
             }
@@ -233,12 +232,13 @@ class Distribution implements Plugin<Project>
     {
         if (project.dist.artifactId != null)
             return project.dist.artifactId
-        else if (project.tasks.findByName("distribution") != null)
+        else
         {
-            if (project.tasks.distribution instanceof ModuleDistribution)
-                return ((ModuleDistribution) project.tasks.distribution).getArtifactId()
+            return TaskUtils.getOptionalTask(project, "distribution")
+                    .filter(task -> task.get() instanceof ModuleDistribution)
+                    .map(task -> ((ModuleDistribution)task.get()).getArtifactId())
+                    .orElse(project.name)
         }
-        return project.name
     }
 
 }

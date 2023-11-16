@@ -33,7 +33,7 @@ class ConfigureLog4J extends DefaultTask
     String fileName
 
     private File stagingDir = new File((String) project.staging.webappClassesDir)
-    private File deployDir = new File("${project.serverDeploy.webappDir}/WEB-INF/classes");
+    private File deployDir = new File("${project.serverDeploy.webappDir}/WEB-INF/classes")
 
     @InputFile
     File getLog4jXml()

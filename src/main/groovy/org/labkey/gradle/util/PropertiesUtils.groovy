@@ -62,12 +62,12 @@ class PropertiesUtils
     {
         if (val != null)
         {
-            String stringVal = val.toString();
+            String stringVal = val.toString()
             if (xmlEncode)
                 stringVal = StringEscapeUtils.escapeXml10(stringVal)
             return line.replace("@@" + propName + "@@", stringVal)
         }
-        return line;
+        return line
     }
 
     static String replaceProps(String line, Properties props, Boolean xmlEncode = false)

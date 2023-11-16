@@ -119,7 +119,7 @@ class TestRunner extends UiTest
         }
     }
 
-    private void addDataFileTasks(Project project)
+    private static void addDataFileTasks(Project project)
     {
         List<File> directories = new ArrayList<>()
 
@@ -131,7 +131,7 @@ class TestRunner extends UiTest
             }
         })
 
-        File sampleDataFile = new File("${project.buildDir}/sampledata.dirs")
+        File sampleDataFile = BuildUtils.getBuildDirFile(project,"sampledata.dirs")
 
         project.tasks.register("writeSampleDataFile") {
             Task task ->
@@ -180,7 +180,7 @@ class TestRunner extends UiTest
                             task.archiveBaseName.set(dir.getName())
                             task.archiveExtension.set("zip")
                             task.from dir
-                            task.destinationDirectory = new File("${project.buildDir}/chromextensions")
+                            task.destinationDirectory.set(project.layout.buildDirectory.dir("chromextensions"))
                     }
 
                     extensionsZipTasks.add(project.tasks.named(extensionTaskName))
@@ -214,7 +214,7 @@ class TestRunner extends UiTest
                 classpath: project.configurations.aspectj.asPath
             )
             ant.iajc(
-                destdir: "${project.buildDir}/classes/java/uiTest/",
+                destdir: BuildUtils.getBuildDirFile(project,"classes/java/uiTest/").getPath(),
                 source: project.sourceCompatibility,
                 target: project.targetCompatibility,
                 classpath: project.configurations.uiTestRuntimeClasspath.asPath,

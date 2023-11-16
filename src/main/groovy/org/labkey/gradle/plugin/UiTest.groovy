@@ -27,7 +27,7 @@ class UiTest implements Plugin<Project>
     UiTestExtension testRunnerExt
 
     public static final String TEST_SRC_DIR = "test/src"
-    public static final String TEST_RESOURCES_DIR = "test/resources";
+    public static final String TEST_RESOURCES_DIR = "test/resources"
 
     static Boolean isApplicable(Project project)
     {
@@ -72,7 +72,7 @@ class UiTest implements Plugin<Project>
         }
     }
 
-    protected void addDependencies(Project project)
+    protected static void addDependencies(Project project)
     {
         String testProjectPath = BuildUtils.getTestProjectPath(project.gradle)
 

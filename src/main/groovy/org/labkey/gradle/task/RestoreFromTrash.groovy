@@ -28,7 +28,7 @@ class RestoreFromTrash extends DefaultTask
         String restoreVersion
         if (!project.hasProperty(VERSION_PROPERTY))
             throw new GradleException("No value provided for ${VERSION_PROPERTY}.")
-        restoreVersion = project.property(VERSION_PROPERTY);
+        restoreVersion = project.property(VERSION_PROPERTY)
         String[] unrestoredVersions = []
         int numRestored = 0
         int numNotFound = 0
@@ -77,7 +77,7 @@ class RestoreFromTrash extends DefaultTask
             return
         }
 
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpClient httpClient = HttpClients.createDefault()
         String endpoint = project.property('artifactory_contextUrl')
         Response responseStatus = Response.SUCCESS
         if (!endpoint.endsWith("/"))

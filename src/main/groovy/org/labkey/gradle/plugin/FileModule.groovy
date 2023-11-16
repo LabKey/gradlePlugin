@@ -15,7 +15,6 @@
  */
 package org.labkey.gradle.plugin
 
-
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -35,6 +34,7 @@ import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.PropertiesUtils
+import org.labkey.gradle.util.TaskUtils
 
 import java.util.regex.Matcher
 
@@ -92,7 +92,7 @@ class FileModule implements Plugin<Project>
     }
 
 
-    private void addSourceSet(Project project)
+    private static void addSourceSet(Project project)
     {
         ModuleResources.addSourceSet(project)
     }
@@ -143,7 +143,7 @@ class FileModule implements Plugin<Project>
                         throw new GradleException("Could not find 'module.template.xml' as resource file")
                     }
 
-                    List<String> moduleDependencies = [];
+                    List<String> moduleDependencies = []
                     project.configurations.modules.dependencies.each {
                         Dependency dep -> moduleDependencies += dep.getName()
                     }
@@ -201,7 +201,7 @@ class FileModule implements Plugin<Project>
                     jar.exclude 'gwt-unitCache/**'
                     jar.archiveBaseName.set(project.name)
                     jar.archiveExtension.set('module')
-                    jar.destinationDirectory = project.buildDir
+                    jar.destinationDirectory.set(project.layout.buildDirectory)
                     jar.outputs.cacheIf({true})
             }
 
@@ -265,7 +265,6 @@ class FileModule implements Plugin<Project>
                     })
                     task.doFirst {
                         undeployModule(project)
-                        undeployJspJar(project)
                         Api.deleteModulesApiJar(project)
                     }
             }
@@ -276,10 +275,8 @@ class FileModule implements Plugin<Project>
                     task.group = GroupNames.BUILD
                     task.description = "Deletes the build, staging, and deployment directories of this module"
                     task.dependsOn(project.tasks.clean, project.tasks.undeployModule)
-                    if (project.tasks.findByName('cleanNodeModules') != null)
-                        task.dependsOn(project.tasks.cleanNodeModules)
-                    if (project.tasks.findByName('cleanSchemasCompile') != null)
-                        task.dependsOn(project.tasks.cleanSchemasCompile)
+                    TaskUtils.addOptionalTaskDependency(project, task, "cleanNodeModules")
+                    TaskUtils.addOptionalTaskDependency(project, task, "cleanSchemasCompile")
             }
         }
     }
@@ -298,26 +295,6 @@ class FileModule implements Plugin<Project>
         getModuleFilesAndDirectories(project).forEach({File file ->
             project.delete file
         })
-    }
-
-    static undeployJspJar(Project project)
-    {
-        File jspDir = new File("${project.rootProject.buildDir}/deploy/labkeyWebapp/WEB-INF/jsp")
-        if (jspDir.isDirectory())
-        {
-            List<File> files = new ArrayList<>()
-            files.addAll(jspDir.listFiles(new FileFilter() {
-                @Override
-                boolean accept(final File file)
-                {
-                    return file.isFile() && file.getName().startsWith("${project.tasks.module.baseName}_jsp");
-                }
-            })
-            )
-            files.each {
-                File file -> project.delete file
-            }
-        }
     }
 
 

@@ -23,6 +23,8 @@ import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.UnknownTaskException
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.process.JavaExecSpec
@@ -50,7 +52,7 @@ class TeamCity extends Tomcat
     private static final String TEST_CONFIGS_DIR = "configs/config-test"
     private static final String NLP_CONFIG_FILE = "nlpConfig.xml"
     private static final String PIPELINE_CONFIG_FILE =  "pipelineConfig.xml"
-    private static final Duration TOMCAT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(15);
+    private static final Duration TOMCAT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(15)
 
     private TeamCityExtension extension
 
@@ -186,10 +188,11 @@ class TeamCity extends Tomcat
             String shortType = properties.shortType
             if (shortType == null || shortType.isEmpty())
                 continue
+            Provider<Task> pickDbTask
             String pickDbTaskName = "pick${shortType.capitalize()}"
-            Task pickDbTask = project.tasks.findByName(pickDbTaskName)
-            if (pickDbTask == null)
-            {
+            try {
+                pickDbTask = project.tasks.named(pickDbTaskName)
+            } catch (UnknownTaskException ignore) {
                 project.tasks.register(pickDbTaskName, PickDb) {
                     PickDb task ->
                         task.group = GroupNames.TEST_SERVER
@@ -197,7 +200,7 @@ class TeamCity extends Tomcat
                         task.dbType = "${shortType}"
                         task.dbPropertiesChanged = true
                 }
-                pickDbTask = project.tasks.getByName(pickDbTaskName)
+                pickDbTask = project.tasks.named(pickDbTaskName)
             }
 
             String suffix = properties.dbTypeAndVersion.capitalize()
@@ -219,9 +222,10 @@ class TeamCity extends Tomcat
             // ones that are not supported.  But, undeployModule currently knows nothing about the build/deploy/embedded
             // directory, so that needs to be updated as well.
             String undeployTaskName = "undeployModulesNotFor${properties.shortType.capitalize()}"
-            Task undeployTask = project.tasks.findByName(undeployTaskName)
-            if (undeployTask == null)
-            {
+            Provider<Task> undeployTask
+            try {
+                undeployTask = project.tasks.named(undeployTaskName)
+            } catch (UnknownTaskException ignore) {
                 project.tasks.register(undeployTaskName, UndeployModules) {
                     UndeployModules task ->
                         task.group = GroupNames.DEPLOY
@@ -231,9 +235,9 @@ class TeamCity extends Tomcat
                         task.mustRunAfter(BuildUtils.getServerProject(project).tasks.pickPg)
                 }
             }
-            TaskProvider undeployTaskProvider = project.tasks.named(undeployTaskName)
+            undeployTask = project.tasks.named(undeployTaskName)
             project.tasks.named("startTomcat").configure {
-                mustRunAfter(undeployTaskProvider)
+                mustRunAfter(undeployTask)
             }
 
             project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startTomcat.mustRunAfter(setUpDbTask)
@@ -242,7 +246,7 @@ class TeamCity extends Tomcat
                 RunTestSuite task ->
                     task.group = GroupNames.TEST_SERVER
                     task.description = "Run a test suite for ${properties.dbTypeAndVersion} on the TeamCity server"
-                    task.dependsOn(setUpDbTask, undeployTaskProvider)
+                    task.dependsOn(setUpDbTask, undeployTask)
                     task.dbProperties = properties
                     task.mustRunAfter(project.tasks.validateConfiguration)
                     task.mustRunAfter(project.tasks.cleanTestLogs)
@@ -263,7 +267,7 @@ class TeamCity extends Tomcat
                     task.description = "Generate server properties file to run with modules from a specified distribution"
                     task.doLast {
                         project.logger.info("inheriting from distribution ${inheritedDistPath}")
-                        Set<String> includeModules = new HashSet<>();
+                        Set<String> includeModules = new HashSet<>()
                         project.project(inheritedDistPath).configurations.distribution.dependencies.each {
                             includeModules.add(it.getName())
                         }

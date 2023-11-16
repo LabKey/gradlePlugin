@@ -80,7 +80,7 @@ class DoThenSetup extends DefaultTask
                 File labkeyXml = BuildUtils.getWebappConfigFile(project, "labkey.xml")
                 project.copy({ CopySpec copy ->
                     copy.from labkeyXml
-                    copy.into "${project.rootProject.buildDir}"
+                    copy.into project.rootProject.layout.buildDirectory
                     copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                     copy.filter({ String line ->
                         if (project.ext.has('enableJms') && project.ext.enableJms) {
@@ -110,7 +110,7 @@ class DoThenSetup extends DefaultTask
                 })
 
                 project.copy({ CopySpec copy ->
-                    copy.from "${project.rootProject.buildDir}"
+                    copy.from project.rootProject.layout.buildDirectory
                     copy.into "${project.tomcat.tomcatConfDir}"
                     copy.include "labkey.xml"
                     copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
@@ -145,7 +145,7 @@ class DoThenSetup extends DefaultTask
                         }
                         if (project.hasProperty("useLocalBuild")) {
                             // Let properties file specify which properties require 'useLocalBuild'
-                            line = line.replace("#useLocalBuild#", "");
+                            line = line.replace("#useLocalBuild#", "")
 
                             // Old method enables specific properties for 'useLocalBuild' (before 22.6)
                             line = line.replace("#context.webAppLocation=", "context.webAppLocation=")
@@ -153,7 +153,7 @@ class DoThenSetup extends DefaultTask
                         }
                         else {
                             // Remove placeholder
-                            line = line.replace("#useLocalBuild#", "#");
+                            line = line.replace("#useLocalBuild#", "#")
                         }
                         if (configProperties.containsKey("extraJdbcDataSource"))
                         {
@@ -175,7 +175,7 @@ class DoThenSetup extends DefaultTask
      */
     private Properties getExtraJdbcProperties()
     {
-        def extraJdbcProperties = new Properties();
+        def extraJdbcProperties = new Properties()
         def tcProperties = TeamCityExtension.getTeamCityProperties(project)
         for (Map.Entry entry : tcProperties.entrySet())
         {

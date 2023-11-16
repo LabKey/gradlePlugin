@@ -70,7 +70,7 @@ class CheckForVersionConflicts  extends DefaultTask
         File[] existingFiles = directory.listFiles(new FilenameFilter() {
             @Override
             boolean accept(File dir, String name) {
-                return extension == null || name.endsWith(extension);
+                return extension == null || name.endsWith(extension)
             }
         })
         for (File dFile: existingFiles) {
@@ -111,10 +111,10 @@ class CheckForVersionConflicts  extends DefaultTask
                     if (version != null)
                         version = version.substring(1)
                     this.logger.debug("Checking name (with classifier): ${name} and version ${version}")
-                    String existingVersion = nameVersionMap.get(name).first
+                    String existingVersion = nameVersionMap.get(name).v1
                     if (existingVersion != version)
                     {
-                        existingFilesInConflict.add(nameVersionMap.get(name).second)
+                        existingFilesInConflict.add(nameVersionMap.get(name).v2)
                         conflictMessages += "Conflicting version of ${matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)} ${extension} file (${existingVersion} in directory vs. ${version} from build)."
                     }
                 }

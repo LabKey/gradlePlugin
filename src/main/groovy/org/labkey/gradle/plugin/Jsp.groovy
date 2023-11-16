@@ -73,7 +73,7 @@ class Jsp implements Plugin<Project>
                 {
                     jsp {
                         java {
-                            srcDirs = ["${project.buildDir}/${JspCompile2Java.CLASSES_DIR}"]
+                            srcDirs = [BuildUtils.getBuildDirFile(project, JspCompile2Java.CLASSES_DIR).getPath()]
                         }
                     }
                 }
@@ -125,11 +125,11 @@ class Jsp implements Plugin<Project>
                         task.description = "Copy jsp files to jsp compile directory"
                         task.configure({ CopySpec copy ->
                             copy.from 'src'
-                            copy.into "${project.buildDir}/${WEBAPP_DIR}"
+                            copy.into project.layout.buildDirectory.file(WEBAPP_DIR)
                             copy.include '**/*.jsp'
                         })
                         task.doFirst {
-                            project.delete "${project.buildDir}/${WEBAPP_DIR}/org"
+                            project.delete project.layout.buildDirectory.file("${WEBAPP_DIR}/org")
                         }
                 }
 
@@ -149,7 +149,7 @@ class Jsp implements Plugin<Project>
                         task.doLast {
                             project.copySpec({ CopySpec copy ->
                                 copy.from 'resources'
-                                copy.into "${project.buildDir}/${WEBAPP_DIR}/org/labkey/${project.name}"
+                                copy.into project.layout.buildDirectory.file("${WEBAPP_DIR}/org/labkey/${project.name}")
                                 copy.include '**/*.jsp'
                                 copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                             })
@@ -167,7 +167,7 @@ class Jsp implements Plugin<Project>
 
         project.tasks.register('jsp2Java', JspCompile2Java) {
            JspCompile2Java task ->
-               task.webappDirectory = new File("${project.buildDir}/${WEBAPP_DIR}")
+               task.webappDirectory = BuildUtils.getBuildDirFile(project, WEBAPP_DIR)
                task.group = GroupNames.JSP
                task.description = "compile jsp files into Java classes"
 
@@ -221,7 +221,7 @@ class Jsp implements Plugin<Project>
                         // 'path.replace' leaves some empty directories
                         copy.setIncludeEmptyDirs false
                     }
-                    copy.into "${project.buildDir}/${WEBAPP_DIR}"
+                    copy.into project.layout.buildDirectory.dir(WEBAPP_DIR)
                     copy.include "${prefix}WEB-INF/web.xml"
                     copy.include "${prefix}WEB-INF/*.tld"
                     copy.include "${prefix}WEB-INF/*.jspf"

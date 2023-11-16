@@ -22,6 +22,7 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
+import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.task.CheckForVersionConflicts
 import org.labkey.gradle.util.BuildUtils
@@ -36,7 +37,9 @@ import org.labkey.gradle.util.TaskUtils
  */
 class JavaModule implements Plugin<Project>
 {
-    public static final DIR_NAME = "src";
+    public static final DIR_NAME = "src"
+
+    private static final List<String> JAR_TASK_NAMES = ["jar", "apiJar", "jspJar"]
 
     static boolean isApplicable(Project project)
     {
@@ -129,7 +132,7 @@ class JavaModule implements Plugin<Project>
         project.sourceSets {
             main {
                 java {
-                    srcDirs = XmlBeans.isApplicable(project) ? ['src', "$project.buildDir/$XmlBeans.CLASS_DIR"] : ['src']
+                    srcDirs = XmlBeans.isApplicable(project) ? ['src', BuildUtils.getBuildDirFile(project, XmlBeans.CLASS_DIR).getPath()] : ['src']
                 }
             }
         }
@@ -144,19 +147,16 @@ class JavaModule implements Plugin<Project>
 
     protected static void addTasks(Project project)
     {
+        List<String> copyFromTasks = JAR_TASK_NAMES + "copyExternalLibs"
         def populateLib = project.tasks.register("populateExplodedLib", Copy) {
             CopySpec copy ->
                 copy.group = GroupNames.MODULE
                 copy.description = "Copy the jar files needed for the module into the ${project.labkey.explodedModuleLibDir} directory from their respective output directories"
                 copy.into project.labkey.explodedModuleLibDir
-                if (project.tasks.findByName("jar") != null)
-                    copy.from project.tasks.named("jar")
-                if (project.tasks.findByName("apiJar") != null)
-                    copy.from project.tasks.named("apiJar")
-                if (project.tasks.findByName("jspJar") != null)
-                    copy.from project.tasks.named('jspJar')
-                if (project.tasks.findByName("copyExternalLibs") != null)
-                    copy.from project.tasks.named('copyExternalLibs')
+                for (String taskName : copyFromTasks)
+                    TaskUtils.doIfTaskPresent(project, taskName, task -> {
+                        copy.from task
+                    })
         }
         populateLib.configure {
             it.doFirst {
@@ -172,7 +172,7 @@ class JavaModule implements Plugin<Project>
 
             project.tasks.register("copyExternalLibs", Copy) {
                 Copy task ->
-                    File destination = new File(project.buildDir, "libsExternal");
+                    File destination = BuildUtils.getBuildDirFile(project, "libsExternal")
                     task.group = GroupNames.MODULE
                     task.description = "copy the dependencies declared in the 'external' configuration into the lib directory of the built module"
                     task.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
@@ -185,24 +185,17 @@ class JavaModule implements Plugin<Project>
                     task.doFirst({
                         // first clean out the directory, if it existed from a previous build
                         if (destinationDir.exists()) // I think Windows doesn't deal well with delete without this check first
-                            destination.deleteDir();
+                            destination.deleteDir()
                     })
             }
 
             TaskUtils.configureTaskIfPresent(project, 'module', {
                 dependsOn(project.tasks.copyExternalLibs)
-                if (project.tasks.findByName("jar") != null)
-                {
-                    dependsOn(project.tasks.jar)
-                }
-                if (project.tasks.findByName('apiJar') != null)
-                {
-                    dependsOn(project.tasks.apiJar)
-                }
-                if (project.tasks.findByName('jspJar') != null)
-                {
-                    dependsOn(project.tasks.jspJar)
-                }
+                JAR_TASK_NAMES.forEach(taskName -> {
+                    TaskUtils.addOptionalTaskDependency(project, it, taskName)
+                })
+                if (LabKeyExtension.isDevMode(project))
+                    TaskUtils.addOptionalTaskDependency(project, it, "copyToModulesApi")
             } )
 
             project.tasks.register(
@@ -210,18 +203,10 @@ class JavaModule implements Plugin<Project>
                     { CheckForVersionConflicts task ->
 
                         FileCollection allJars = externalFiles
-                        if (project.tasks.findByName("jar") != null)
-                        {
-                            allJars = allJars + project.tasks.jar.outputs.files
-                        }
-                        if (project.tasks.findByName('apiJar') != null)
-                        {
-                            allJars = allJars + project.tasks.apiJar.outputs.files
-                        }
-                        if (project.tasks.findByName('jspJar') != null)
-                        {
-                            allJars = allJars + project.tasks.jspJar.outputs.files
-                        }
+                        for (String taskName : JAR_TASK_NAMES)
+                            TaskUtils.doIfTaskPresent(project, taskName, (jarTask) -> {
+                                allJars = allJars + jarTask.get().outputs.files
+                            })
 
                         task.group = GroupNames.MODULE
                         task.description = "Check for conflicts in version numbers of jar files to be included in the module and files already in the build directory ${project.labkey.explodedModuleLibDir}." +

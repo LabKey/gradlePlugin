@@ -43,7 +43,7 @@ class ModuleExtension
 
     ModuleExtension(Project project)
     {
-        this(project, true);
+        this(project, true)
     }
 
     Project getProject()
@@ -85,7 +85,7 @@ class ModuleExtension
         if (propertiesFile.exists()) {
             PropertiesUtils.readProperties(propertiesFile, this.modProperties)
             if (logDeprecations) {
-                List<String> deprecationMsgs = [];
+                List<String> deprecationMsgs = []
                 if (this.modProperties.get(MODULE_DEPENDENCIES_PROPERTY))
                     deprecationMsgs += "The '" + MODULE_DEPENDENCIES_PROPERTY + "' property is no longer supported as of gradlePlugin version 1.25.0 (LabKey Server version 21.3.0)." +
                             " Declare the dependency in the module's build.gradle file instead using the 'modules' configuration." +
@@ -142,7 +142,7 @@ class ModuleExtension
         modProperties.setProperty("BuildUser", System.getProperty("user.name"))
         modProperties.setProperty("BuildOS", System.getProperty("os.name"))
         modProperties.setProperty("BuildTime", SimpleDateFormat.getDateTimeInstance().format(new Date()))
-        modProperties.setProperty("BuildPath", project.buildDir.getAbsolutePath())
+        modProperties.setProperty("BuildPath", BuildUtils.getBuildDir(project).getAbsolutePath())
         modProperties.setProperty("SourcePath", project.projectDir.getAbsolutePath())
         modProperties.setProperty("ResourcePath", "") // TODO  _project.getResources().... ???
         modProperties.setProperty("ReleaseVersion", (String) project.getProperty("labkeyVersion"))
@@ -181,6 +181,6 @@ class ModuleExtension
 
     Map<String, ExternalDependency> getExternalDependencies()
     {
-        return externalDependencies;
+        return externalDependencies
     }
 }

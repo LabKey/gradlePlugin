@@ -18,6 +18,7 @@ package org.labkey.gradle.plugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.util.TaskUtils
 
 /**
  * Used for copying the Spring config files to the module's build directory.
@@ -69,10 +70,12 @@ class SpringConfig implements Plugin<Project>
                     depProjectConfig: 'apiJarFile',
                     transitive: false
             )
-            if (project.tasks.findByName("jar") != null)
-                project.dependencies.add("springImplementation", project.tasks.jar.outputs.files)
-            if (project.tasks.findByName("apiJar") != null)
-                project.dependencies.add("springImplementation", project.tasks.apiJar.outputs.files)
+            TaskUtils.doIfTaskPresent(project, "jar", (jarTask) -> {
+                project.dependencies.add("springImplementation", jarTask.get().outputs.files)
+            })
+            TaskUtils.doIfTaskPresent(project, "apiJar", (apiJarTask) -> {
+                project.dependencies.add("springImplementation", apiJarTask.get().outputs.files)
+            })
         }
     }
 }

@@ -29,7 +29,7 @@ class TeamCityDbSetup extends DoThenSetup
     @Override
     protected void doDatabaseTask()
     {
-        databaseProperties.mergePropertiesFromFile();
+        databaseProperties.mergePropertiesFromFile()
         if (dropDatabase) {
             if (testValidationOnly){
                 logger.info("The 'testValidationOnly' flag is true, not going to drop the database.")

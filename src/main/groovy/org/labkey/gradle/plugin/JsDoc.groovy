@@ -20,6 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.Directory
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.JsDocExtension
@@ -38,13 +39,13 @@ class JsDoc implements Plugin<Project>
     {
         project.extensions.create("jsDoc", JsDocExtension)
         project.jsDoc.root = "${project.rootDir}/tools/jsdoc-toolkit/"
-        project.jsDoc.outputDir =new File(getJsDocDirectory(project), "docs")
+        project.jsDoc.outputDir = getJsDocDirectory(project).file( "docs").asFile
         addTasks(project)
     }
 
-    static File getJsDocDirectory(Project project)
+    static Directory getJsDocDirectory(Project project)
     {
-        return new File(XsdDoc.getClientDocsBuildDir(project),"javascript")
+        return XsdDoc.getClientDocsBuildDir(project).get().dir("javascript")
     }
 
     private static void addTasks(Project project)
@@ -56,7 +57,7 @@ class JsDoc implements Plugin<Project>
                         { CopySpec copy ->
                             copy.from project.file("${project.jsDoc.root}/templates/jsdoc")
                             copy.filter( { String line ->
-                                Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line);
+                                Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
                                 String newLine = line;
                                 while (matcher.find())
                                 {
@@ -85,7 +86,7 @@ class JsDoc implements Plugin<Project>
                 task.archiveVersion.set(project.getVersion().toString())
                 task.archiveExtension.set("zip")
                 task.from project.tasks.jsdoc
-                task.destinationDirectory = getJsDocDirectory(project)
+                task.destinationDirectory.set(getJsDocDirectory(project))
         }
 
         project.tasks.register('cleanJsDoc', DefaultTask) {

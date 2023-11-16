@@ -56,7 +56,7 @@ class CreateModule extends DefaultTask
         if (moduleName == null || moduleName == "") {
             throw new GradleException("moduleName is not specified")
         }
-        Pattern namePattern = Pattern.compile("[a-zA-Z][a-zA-Z_\\-\\d]*");
+        Pattern namePattern = Pattern.compile("[a-zA-Z][a-zA-Z_\\-\\d]*")
         if (!namePattern.matcher(moduleName).matches()) {
             throw new GradleException("Invalid module name: " + moduleName)
         }
@@ -133,7 +133,7 @@ class CreateModule extends DefaultTask
             throw new GradleException("Failed to create new module directory at ${moduleDestinationFile.getAbsolutePath()}")
         }
 
-        String[] versionParts = BuildUtils.getLabKeyModuleVersion(project.rootProject).split("\\.");
+        String[] versionParts = BuildUtils.getLabKeyModuleVersion(project.rootProject).split("\\.")
         String version = versionParts[0] + ".000"
         Map<String, String> substitutions = [
                 'MODULE_DIR_NAME' : moduleName.toLowerCase(),
@@ -199,7 +199,7 @@ class CreateModule extends DefaultTask
             renameCrawler(f, substitutions)
             String name = f.getName()
             substitutions.each({curr, updated ->
-                name = name.replace(curr, updated);
+                name = name.replace(curr, updated)
             })
             if (!name.equals(f.getName()))
             {

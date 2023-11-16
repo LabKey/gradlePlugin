@@ -231,7 +231,7 @@ class NpmRun implements Plugin<Project>
                         if (p.getPlugins().hasPlugin(NpmRun.class))
                             nodeProjects.add("${p.path} (${useYarn(p) ? 'yarn' : 'npm'})")
                     })
-                    if (nodeProjects.size == 0)
+                    if (nodeProjects.size() == 0)
                         println("No projects found containing ${NPM_PROJECT_FILE}")
                     else {
                         println("The following projects use Node in their builds:\n\t${nodeProjects.join("\n\t")}\n")

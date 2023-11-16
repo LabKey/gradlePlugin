@@ -45,9 +45,9 @@ class LabKey implements Plugin<Project>
         project.version = BuildUtils.getVersionNumber(project)
         project.subprojects { Project subproject ->
             if (ModuleFinder.isDistributionProject(subproject))
-                subproject.buildDir = "${project.rootProject.buildDir}/installer/${subproject.name}"
+                subproject.layout.buildDirectory = project.rootProject.layout.buildDirectory.file("installer/${subproject.name}")
             else
-                subproject.buildDir = "${project.rootProject.buildDir}/modules/${subproject.name}"
+                subproject.layout.buildDirectory = project.rootProject.layout.buildDirectory.file("modules/${subproject.name}")
         }
 
         addConfigurations(project)
