@@ -15,8 +15,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 1.43.0
+*Released*: 16 November 2023
 (Earliest compatible LabKey version: 23.3)
 * [Issue 49045](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=49045) - make copying to the modules-api directory a proper task, so it can run even if apiJar does not
 * Eliminate usages of deprecated `project.buildDir`
