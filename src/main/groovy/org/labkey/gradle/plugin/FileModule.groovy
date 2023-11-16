@@ -44,11 +44,26 @@ import java.util.regex.Matcher
  */
 class FileModule implements Plugin<Project>
 {
+    static boolean shouldDoBuild(Project project, boolean logMessages)
+    {
+        List<String> indicators = new ArrayList<>()
+        if (!project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
+            indicators.add(ModuleExtension.MODULE_PROPERTIES_FILE + " does not exist")
+        if (project.hasProperty("skipBuild"))
+            indicators.add("skipBuild property set for Gradle project")
+
+        if (indicators.size() > 0 && logMessages)
+        {
+            project.logger.quiet("${project.path} build skipped because: " + indicators.join("; "))
+        }
+        return indicators.isEmpty()
+    }
+
     @Override
     void apply(Project project)
     {
         def moduleKey = project.getName().toLowerCase()
-        def shouldBuild = BuildUtils.shouldDoBuild(project, true)
+        def shouldBuild = shouldDoBuild(project, true)
         if (project.findProject(BuildUtils.getServerProjectPath(project.gradle)) != null) {
             ServerDeployExtension deployExt = BuildUtils.getServerProject(project).extensions.getByType(ServerDeployExtension.class)
 
@@ -461,7 +476,7 @@ class FileModule implements Plugin<Project>
                             if (dep instanceof ProjectDependency)
                             {
                                 ProjectDependency projectDep = (ProjectDependency) dep
-                                if (BuildUtils.shouldDoBuild(projectDep.dependencyProject, false)) {
+                                if (shouldDoBuild(projectDep.dependencyProject, false)) {
                                     BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: projectDep.dependencyProject.getPath(), depProjectConfig: 'published', depExtension: 'module')
                                 }
                                 else {

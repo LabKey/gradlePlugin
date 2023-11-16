@@ -888,18 +888,4 @@ class BuildUtils
         return project.rootProject.layout.buildDirectory.get().asFile.path
     }
 
-    static boolean shouldDoBuild(Project project, boolean logMessages)
-    {
-        List<String> indicators = new ArrayList<>()
-        if (!project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
-            indicators.add(ModuleExtension.MODULE_PROPERTIES_FILE + " does not exist")
-        if (project.hasProperty("skipBuild"))
-            indicators.add("skipBuild property set for Gradle project")
-
-        if (indicators.size() > 0 && logMessages)
-        {
-            project.logger.quiet("${project.path} build skipped because: " + indicators.join("; "))
-        }
-        return indicators.isEmpty()
-    }
 }
