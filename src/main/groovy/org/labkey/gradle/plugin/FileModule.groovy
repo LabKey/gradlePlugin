@@ -44,6 +44,21 @@ import java.util.regex.Matcher
  */
 class FileModule implements Plugin<Project>
 {
+    static boolean shouldDoBuild(Project project, boolean logMessages)
+    {
+        List<String> indicators = new ArrayList<>()
+        if (!project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
+            indicators.add(ModuleExtension.MODULE_PROPERTIES_FILE + " does not exist")
+        if (project.hasProperty("skipBuild"))
+            indicators.add("skipBuild property set for Gradle project")
+
+        if (indicators.size() > 0 && logMessages)
+        {
+            project.logger.quiet("${project.path} build skipped because: " + indicators.join("; "))
+        }
+        return indicators.isEmpty()
+    }
+
     @Override
     void apply(Project project)
     {
@@ -75,22 +90,6 @@ class FileModule implements Plugin<Project>
             addArtifacts(project)
         }
     }
-
-    static boolean shouldDoBuild(Project project, boolean logMessages)
-    {
-        List<String> indicators = new ArrayList<>()
-        if (!project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
-            indicators.add(ModuleExtension.MODULE_PROPERTIES_FILE + " does not exist")
-        if (project.hasProperty("skipBuild"))
-            indicators.add("skipBuild property set for Gradle project")
-
-        if (indicators.size() > 0 && logMessages)
-        {
-            project.logger.quiet("${project.path} build skipped because: " + indicators.join("; "))
-        }
-        return indicators.isEmpty()
-    }
-
 
     private static void addSourceSet(Project project)
     {

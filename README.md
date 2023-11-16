@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 1.43.1
+*Released*: 16 November 2023
+(Earliest compatible LabKey version: 23.3)
+* Don't use providers for ant directories.
+
 ### 1.43.0
 *Released*: 16 November 2023
 (Earliest compatible LabKey version: 23.3)
