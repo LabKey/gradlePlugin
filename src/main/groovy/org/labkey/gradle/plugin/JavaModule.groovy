@@ -49,7 +49,7 @@ class JavaModule implements Plugin<Project>
     @Override
     void apply(Project project)
     {
-        if (FileModule.shouldDoBuild(project, false)) {
+        if (BuildUtils.shouldDoBuild(project, false)) {
             applyPlugins(project)
             addConfigurations(project)
             addTasks(project)

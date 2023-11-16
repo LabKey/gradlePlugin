@@ -23,6 +23,7 @@ import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.FileModule
 import org.labkey.gradle.plugin.JavaModule
 import org.labkey.gradle.plugin.Module
+import org.labkey.gradle.util.BuildUtils
 
 /**
  * Removes modules from the deploy and staging directories.  If a value for dbType is provided,
@@ -39,7 +40,7 @@ class UndeployModules extends DefaultTask
     {
         project.rootProject.allprojects.each { Project p ->
             if (isLabKeyModule(p) &&
-                    (dbType == null || !FileModule.shouldDoBuild(p, true) || !JavaModule.isDatabaseSupported(p, dbType)))
+                    (dbType == null || !BuildUtils.shouldDoBuild(p, true) || !JavaModule.isDatabaseSupported(p, dbType)))
             {
                 this.logger.info("Undeploying module ${p.path} for dbType ${dbType}")
                 FileModule.undeployModule(p)
