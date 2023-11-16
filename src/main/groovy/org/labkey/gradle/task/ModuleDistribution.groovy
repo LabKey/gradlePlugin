@@ -317,7 +317,7 @@ class ModuleDistribution extends DefaultTask
                     include(name: "manual-upgrade.sh")
                 }
 
-                tarfileset(dir: BuildUtils.getBuildDirPath(project),
+                tarfileset(dir: BuildUtils.getBuildDir(project),
                         prefix: archiveName) {
                     include(name: "README.txt")
                     include(name: "VERSION")
@@ -448,13 +448,13 @@ class ModuleDistribution extends DefaultTask
         ant.tar(tarfile: getEmbeddedTarArchivePath(),
                 longfile: "gnu",
                 compression: "gzip") {
-            tarfileset(dir: project.layout.buildDirectory, prefix: archiveName) { include(name: serverJarFile.getName()) }
+            tarfileset(dir: BuildUtils.getBuildDir(project), prefix: archiveName) { include(name: serverJarFile.getName()) }
 
             if (!simpleDistribution) {
                 tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
             }
 
-            tarfileset(dir: project.layout.buildDirectory, prefix: archiveName) {
+            tarfileset(dir: BuildUtils.getBuildDir(project), prefix: archiveName) {
                 include(name: "VERSION")
             }
 
@@ -475,7 +475,7 @@ class ModuleDistribution extends DefaultTask
             makeEmbeddedTomcatJar()
 
         ant.zip(destfile: getEmbeddedZipArchivePath()) {
-            zipfileset(dir: project.layout.buildDirectory, prefix: archiveName) { include(name: serverJarFile.getName()) }
+            zipfileset(dir: BuildUtils.getBuildDir(project), prefix: archiveName) { include(name: serverJarFile.getName()) }
 
             if (!simpleDistribution) {
                 zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
