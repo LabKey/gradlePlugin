@@ -661,9 +661,6 @@ class BuildUtils
                                     Closure closure
                                     )
     {
-        if (!shouldDoBuild(parentProject, false))
-            return
-
         Project depProject = parentProject.rootProject.findProject(depProjectPath)
 
         if (depProject != null && shouldBuildFromSource(depProject))
