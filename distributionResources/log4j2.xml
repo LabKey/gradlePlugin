@@ -21,8 +21,22 @@
             </PatternLayout>
             <Policies>
                 <OnStartupTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="10 MB"/>
             </Policies>
-            <DefaultRolloverStrategy max="3"/>
+            <DefaultRolloverStrategy fileIndex="min" max="3">
+                <Delete basePath="${sys:labkey.log.home}">
+                    <ScriptCondition>
+                        <!-- Use custom Java code to retain the first log file from the current session if it's about
+                        to be rotated out. It may have root cause information about problems that would otherwise be lost -->
+                        <Script name="retainFirst" language="rhino"><![CDATA[
+                                var ErrorLogRotator = org.labkey.api.util.logging.ErrorLogRotator;
+                                var rotator = new ErrorLogRotator();
+                                rotator.filter(pathList);
+                            ]]>
+                        </Script>
+                    </ScriptCondition>
+                </Delete>
+            </DefaultRolloverStrategy>
 
         </RollingFile>
 
@@ -39,7 +53,7 @@
                 <OnStartupTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="100 MB"/>
             </Policies>
-            <DefaultRolloverStrategy max="3"/>
+            <DefaultRolloverStrategy max="3" fileIndex="min" />
         </RollingFile>
 
         <RollingFile name="QUERY_STATS"
@@ -55,7 +69,7 @@
                 <OnStartupTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="100 MB"/>
             </Policies>
-            <DefaultRolloverStrategy max="3"/>
+            <DefaultRolloverStrategy max="3" fileIndex="min" />
         </RollingFile>
 
         <RollingFile name="LABKEY"
@@ -70,6 +84,7 @@
             <Policies>
                 <SizeBasedTriggeringPolicy size="10 MB"/>
             </Policies>
+            <DefaultRolloverStrategy fileIndex="min" />
         </RollingFile>
 
         <RollingFile name="LABKEY_AUDIT"
@@ -84,6 +99,7 @@
             <Policies>
                 <SizeBasedTriggeringPolicy size="10 MB"/>
             </Policies>
+            <DefaultRolloverStrategy fileIndex="min" />
         </RollingFile>
 
         <SessionAppender name="SessionAppender">
@@ -103,6 +119,7 @@
             <Policies>
                 <SizeBasedTriggeringPolicy size="1000 KB"/>
             </Policies>
+            <DefaultRolloverStrategy fileIndex="min" />
         </RollingFile>
 
         <RollingFile name="THREAD_DUMP"
@@ -116,6 +133,36 @@
             <Policies>
                 <SizeBasedTriggeringPolicy size="10 MB"/>
             </Policies>
+            <DefaultRolloverStrategy fileIndex="min" />
+        </RollingFile>
+
+        <RollingFile name="CSP_REPORT"
+                     fileName="${sys:labkey.log.home}/csp-report.log"
+                     append="true"
+                     filePattern="${sys:labkey.log.home}/csp-report.log.%i">
+            <!-- p=priority c=category d=datetime t=thread m=message n=newline -->
+            <PatternLayout>
+                <Pattern>%-5p %-24.24c{1} %d{ISO8601} %24.24t : %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy fileIndex="min" />
+        </RollingFile>
+
+        <RollingFile name="INDEXED_DOCUMENTS"
+                     fileName="${sys:labkey.log.home}/labkey-indexed-documents.log"
+                     append="true"
+                     bufferedIO="false"
+                     filePattern="${sys:labkey.log.home}/labkey-indexed-documents.log.%i">
+            <!-- d=datetime m=message n=newline -->
+            <PatternLayout>
+                <Pattern>%d{ISO8601} %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="1 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="3" fileIndex="min" />
         </RollingFile>
 
     </Appenders>
@@ -214,8 +261,17 @@
             <AppenderRef ref="LABKEYMemory"/>
         </Logger>
 
+        <Logger name="org.labkey.api.search.SearchService$SearchCategory" additivity="false" level="info">
+            <AppenderRef ref="INDEXED_DOCUMENTS"/>
+        </Logger>
+
         <Logger name="org.labkey.api.util.DebugInfoDumper" level="debug">
             <AppenderRef ref="THREAD_DUMP"/>
+        </Logger>
+
+        <Logger name="org.labkey.core.admin.AdminController.ContentSecurityPolicyReportAction"  additivity="false" level="warn">
+            <AppenderRef ref="CSP_REPORT" />
+            <AppenderRef ref="CONSOLE"/>
         </Logger>
 
         <!--
