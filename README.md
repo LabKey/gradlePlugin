@@ -15,7 +15,7 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### 1.43.2
+### 1.44.0
 *Released*: TBD
 (Earliest compatible LabKey version: 23.3)
 * Add syntax to uncomment certain properties in `application.properties` during deploy tasks
