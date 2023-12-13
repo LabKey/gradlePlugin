@@ -121,9 +121,8 @@ class DoThenSetup extends DefaultTask
             if (!embeddedConfigUpToDate()) {
                 Properties configProperties = databaseProperties.getConfigProperties()
                 configProperties.putAll(getExtraJdbcProperties())
-                if (project.hasProperty("useLocalBuild"))
-                    // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes, even on Windows
-                    configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
+                // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes, even on Windows
+                configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
                 if (TeamCityExtension.getLabKeyServerPort(project) != null)
                     configProperties.setProperty("serverPort", TeamCityExtension.getLabKeyServerPort(project))
                 else if (project.hasProperty("serverPort"))
@@ -140,6 +139,8 @@ class DoThenSetup extends DefaultTask
                     copy.include "application.properties"
                     copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                     copy.filter({ String line ->
+                        // Always uncomment properties prepended by '#setupTask#'
+                        line = line.replace("#setupTask#", "")
                         if (project.hasProperty("useSsl")) {
                             line = line.replace("#server.ssl", "server.ssl")
                         }
@@ -147,7 +148,7 @@ class DoThenSetup extends DefaultTask
                             // Let properties file specify which properties require 'useLocalBuild'
                             line = line.replace("#useLocalBuild#", "")
 
-                            // Old method enables specific properties for 'useLocalBuild' (before 22.6)
+                            // Old method enables specific properties for 'useLocalBuild' (before 24.1)
                             line = line.replace("#context.webAppLocation=", "context.webAppLocation=")
                             line = line.replace("#spring.devtools.restart.additional-paths=", "spring.devtools.restart.additional-paths=")
                         }
