@@ -96,7 +96,7 @@ class Jsp implements Plugin<Project>
     {
         project.dependencies
                 {
-                    if (!project.hasProperty("ignoreApi")) {
+                    if (!project.hasProperty("ignoreApiDep")) {
                         BuildUtils.addLabKeyDependency(project: project, config: "jspImplementation", depProjectPath: BuildUtils.getApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
                         BuildUtils.addLabKeyDependency(project: project, config: "jspImplementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: BuildUtils.getLabKeyClientApiVersion(project))
                         BuildUtils.addLabKeyDependency(project: project, config: "jspTagLibs", depProjectPath: BuildUtils.getApiProjectPath(project.gradle), depVersion: project.labkeyVersion, depExtension: 'module', transitive: false)

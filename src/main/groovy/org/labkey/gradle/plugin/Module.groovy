@@ -44,7 +44,7 @@ class Module implements Plugin<Project> {
                 {
                     BuildUtils.addTomcatBuildDependencies(project, 'implementation')
 
-                    if (!project.hasProperty("ignoreApi")) {
+                    if (!project.hasProperty("ignoreApiDep")) {
                         BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
                         BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: BuildUtils.getLabKeyClientApiVersion(project))
                     }
