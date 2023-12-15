@@ -1,26 +1,30 @@
 <?xml version='1.0' encoding='utf-8'?>
 <!-- https://www.labkey.org/Documentation/wiki-page.view?name=installComponents#4 -->
 <Context docBase="@@appDocBase@@" reloadable="true" crossContext="true">
-    
+
     <Resource name="jdbc/labkeyDataSource" auth="Container"
-        type="javax.sql.DataSource"
-        username="@@jdbcUser@@"
-        password="@@jdbcPassword@@"
-        driverClassName="@@jdbcDriverClassName@@"
-        url="@@jdbcURL@@"
-        maxTotal="20"
-        maxIdle="10"
-        maxWaitMillis="120000"
-        accessToUnderlyingConnectionAllowed="true"
-        validationQuery="SELECT 1"
-        />
+              type="javax.sql.DataSource"
+              username="@@jdbcUser@@"
+              password="@@jdbcPassword@@"
+              driverClassName="@@jdbcDriverClassName@@"
+              url="@@jdbcURL@@"
+              maxTotal="20"
+              maxIdle="3"
+              minIdle="1"
+              maxWaitMillis="120000"
+              testOnBorrow="false"
+              testWhileIdle="true"
+              timeBetweenEvictionRunsMillis="300000"
+              minEvictableIdleTimeMillis="300000"
+              accessToUnderlyingConnectionAllowed="true"
+    />
 
     <!-- https://www.labkey.org/Documentation/wiki-page.view?name=cpasxml#SMTPsettings -->
     <Resource name="mail/Session" auth="Container"
-        type="javax.mail.Session"
-        mail.smtp.host="@@smtpHost@@"
-        mail.smtp.user="@@smtpUser@@"
-        mail.smtp.port="@@smtpPort@@"/>
+              type="javax.mail.Session"
+              mail.smtp.host="@@smtpHost@@"
+              mail.smtp.user="@@smtpUser@@"
+              mail.smtp.port="@@smtpPort@@"/>
 
     <Resources cachingAllowed="true" cacheMaxSize="20000" />
 
