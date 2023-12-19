@@ -76,8 +76,10 @@ class Api implements Plugin<Project>
     {
         project.dependencies
                 {
-                    BuildUtils.addLabKeyDependency(project: project, config: 'apiImplementation', depProjectPath: BuildUtils.getApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
-                    BuildUtils.addLabKeyDependency(project: project, config: "apiImplementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: BuildUtils.getLabKeyClientApiVersion(project))
+                    if (!project.hasProperty("ignoreApiDep")) {
+                        BuildUtils.addLabKeyDependency(project: project, config: 'apiImplementation', depProjectPath: BuildUtils.getApiProjectPath(project.gradle), depVersion: project.labkeyVersion)
+                        BuildUtils.addLabKeyDependency(project: project, config: "apiImplementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: BuildUtils.getLabKeyClientApiVersion(project))
+                    }
                 }
     }
 
