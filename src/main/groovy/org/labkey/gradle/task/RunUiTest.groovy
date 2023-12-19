@@ -91,6 +91,8 @@ abstract class RunUiTest extends Test
         // A handfull of tests require tomcat.home to be defined when running within IntelliJ
         systemProperty "tomcat.home", project.tomcat.catalinaHome
         systemProperty "test.credentials.file", "${project.projectDir}/test.credentials.json"
+        if (BuildUtils.useEmbeddedTomcat(project))
+            systemProperty BuildUtils.USE_EMBEDDED_TOMCAT, ''
 
         setTeamCityProperties()
     }
