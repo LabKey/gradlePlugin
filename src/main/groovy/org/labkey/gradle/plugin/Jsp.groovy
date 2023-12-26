@@ -173,6 +173,7 @@ class Jsp implements Plugin<Project>
                task.group = GroupNames.JSP
                task.description = "compile jsp files into Java classes"
 
+               task.inputs.files project.configurations.jspCompileClasspath
                task.inputs.files project.tasks.copyJsp
                task.inputs.files project.tasks.copyResourceJsp
                task.inputs.files project.tasks.copyTagLibs
