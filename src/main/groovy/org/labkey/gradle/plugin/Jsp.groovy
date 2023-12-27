@@ -174,7 +174,7 @@ class Jsp implements Plugin<Project>
                task.description = "compile jsp files into Java classes"
 
                if (project.hasProperty('apacheTomcatVersion'))
-                   task.inputs.property 'apacheTomcatVersion', property('apacheTomcatVersion')
+                   task.inputs.property 'apacheTomcatVersion', project.property('apacheTomcatVersion')
                else
                    task.outputs.cacheIf { false } // Just don't cache if we can't be sure of the Jasper version
                task.inputs.files project.tasks.copyJsp
