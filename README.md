@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 1.44.1
+*Released*: 28 December 2023
+(Earliest compatible LabKey version: 23.3)
+* Prevent improper caching of `jsp2Java` task
+
 ### 1.44.0
 *Released*: 19 December 2023
 (Earliest compatible LabKey version: 23.3)
