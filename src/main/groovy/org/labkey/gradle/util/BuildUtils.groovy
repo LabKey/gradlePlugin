@@ -15,6 +15,8 @@
  */
 package org.labkey.gradle.util
 
+import org.ajoberstar.grgit.Grgit
+import org.ajoberstar.grgit.Remote
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -506,6 +508,25 @@ class BuildUtils
             ret.setProperty("VcsRevision", vcsProject.versioning.info.commit)
             ret.setProperty("BuildNumber", buildNumber != null ? buildNumber : vcsProject.versioning.info.build)
         }
+        else if (project.plugins.hasPlugin("net.nemerosa.versioning"))
+        {
+            // In our fork of the plugin (above), we added the url property to the VersioningInfo object
+            Project vcsProject = project
+            String url = getGitUrl(vcsProject)
+            while (url == null && vcsProject != project.rootProject)
+            {
+                vcsProject = vcsProject.parent
+                url = getGitUr(vcsProject)
+            }
+            vcsProject.println("${project.path} versioning info ${ vcsProject.versioning.info}")
+            ret.setProperty("VcsURL", url)
+            if (vcsProject.versioning.info.branch != null)
+                ret.setProperty("VcsBranch", vcsProject.versioning.info.branch)
+            if (vcsProject.versioning.info.tag != null)
+                ret.setProperty("VcsTag", vcsProject.versioning.info.tag)
+            ret.setProperty("VcsRevision", vcsProject.versioning.info.commit)
+            ret.setProperty("BuildNumber", buildNumber != null ? buildNumber : vcsProject.versioning.info.build)
+        }
         else
         {
             ret.setProperty("VcsBranch", "Unknown")
@@ -527,6 +548,19 @@ class BuildUtils
             'tomcat-websocket-api',
             'tomcat7-websocket'
     ]
+
+    static String getGitUrl(Project project)
+    {
+        def grgit = Grgit.open(currentDir: project.projectDir)
+        List<Remote> remotes = grgit.remote.list()
+        grgit.close()
+        if (remotes) {
+            return remotes.get(0).url
+        } else {
+            return null
+        }
+
+    }
 
     static void setTomcatLibs(List<String> libs)
     {
