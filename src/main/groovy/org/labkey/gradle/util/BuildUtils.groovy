@@ -18,6 +18,9 @@ package org.labkey.gradle.util
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.UnknownDomainObjectException
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.DependencySubstitutions
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.initialization.Settings
@@ -607,7 +610,6 @@ class BuildUtils
                     distributionProject.logger.info("${distributionProject.path}: Adding ${config} dependency on artifact ${dep}")
                     distributionProject.dependencies.add(config, dep)
                 }
-
             }
         }
     }
@@ -888,4 +890,34 @@ class BuildUtils
         return project.rootProject.layout.buildDirectory.get().asFile.path
     }
 
+    static void substituteModuleDependencies(Project project, String configName)
+    {
+        try {
+            project.configurations.named(configName) { Configuration config ->
+                resolutionStrategy.dependencySubstitution { DependencySubstitutions ds ->
+                    project.rootProject.subprojects {
+                        Project p ->
+                            {
+                                p.logger.debug("Considering substitution for ${p.path}.")
+                                if (shouldBuildFromSource(p)) {
+                                    if (p.plugins.hasPlugin('org.labkey.build.module') ||
+                                            p.plugins.hasPlugin('org.labkey.build.fileModule') ||
+                                            p.plugins.hasPlugin('org.labkey.build.javaModule')
+                                    ) {
+                                        ds.substitute ds.module("org.labkey.module:${p.name}") using ds.project(p.path)
+                                        p.logger.debug("Substituting org.labkey.module:${p.name} with ${p.path}")
+                                    }
+                                    if (p.plugins.hasPlugin('org.labkey.build.api'))
+                                    {
+                                        ds.substitute ds.module("org.labkey.api:${p.name}")
+                                    }
+                                }
+                            }
+                    }
+                }
+            }
+        } catch (UnknownDomainObjectException ignore) {
+            project.logger.debug("No ${configName} configuration found for ${project.path}.")
+        }
+    }
 }
