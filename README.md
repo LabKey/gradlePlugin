@@ -15,6 +15,15 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 2.0.0
+*Released*: TBD
+(Earliest compatible LabKey version: 24.2)
+* Remove redundant plugin identifiers using org.labkey namespace instead of org.labkey.build 
+   (e.g., org.labkey.module removed in favor of org.labkey.build.module)
+* Add support for using the net.nemerosa.versioning plugin directly instead of our forked version 
+* Update dependency versions
+* Add `substituteModuleDependecies` utility method for experimentation with some dependency substitution ([Issue 49316](https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=49316))
+
 ### 1.44.1
 *Released*: 28 December 2023
 (Earliest compatible LabKey version: 23.3)
