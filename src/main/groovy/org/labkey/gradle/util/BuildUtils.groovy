@@ -941,10 +941,10 @@ class BuildUtils
                                         ds.substitute ds.module("org.labkey.module:${p.name}") using ds.project(p.path)
                                         p.logger.debug("Substituting org.labkey.module:${p.name} with ${p.path}")
                                     }
-                                    if (p.plugins.hasPlugin('org.labkey.build.api'))
-                                    {
-                                        ds.substitute ds.module("org.labkey.api:${p.name}")
-                                    }
+//                                    if (p.plugins.hasPlugin('org.labkey.build.api'))
+//                                    {
+//                                        ds.substitute ds.module("org.labkey.api:${p.name}") using ds.project(p.path)
+//                                    }
                                 }
                             }
                     }
