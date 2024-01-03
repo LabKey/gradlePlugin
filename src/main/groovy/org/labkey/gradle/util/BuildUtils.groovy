@@ -28,6 +28,7 @@ import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.ModuleDistribution
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.regex.Matcher
@@ -195,7 +196,10 @@ class BuildUtils
                 Files.walkFileTree(Paths.get(rootDir.getAbsolutePath()), finder)
                 finder.modulePaths.each{String modulePath ->
                     if (!excludedModules.contains(modulePath))
+                    {
                         settings.include modulePath
+                        excludedModules.addAll(getModuleContainerExcludedProjects(settings, modulePath))
+                    }
                 }
             }
             else
@@ -213,7 +217,10 @@ class BuildUtils
                     }
                     includePaths.forEach(includePath -> {
                         if (!excludedModules.contains(includePath))
+                        {
                             settings.include includePath
+                            excludedModules.addAll(getModuleContainerExcludedProjects(settings, includePath))
+                        }
                     })
 
                     if (includeModuleContainers)
@@ -228,6 +235,26 @@ class BuildUtils
                 }
             }
         }
+    }
+
+    private static List<String> getModuleContainerExcludedProjects(Settings settings, String moduleContainerPath) {
+        List<String> excludedModules = []
+        File propFile = new File(settings.project(moduleContainerPath).projectDir, 'gradle.properties')
+        if (propFile.isFile()) {
+            Properties projectProperties = new Properties();
+            try (Reader propReader = new InputStreamReader(new FileInputStream(propFile), StandardCharsets.UTF_8)) {
+                projectProperties.load(propReader);
+            }
+            if (projectProperties.containsKey('moduleContainerExcludedDirs')) {
+                String moduleContainerExcludedDirs = projectProperties.get('moduleContainerExcludedDirs')
+                for (String excludedDir : moduleContainerExcludedDirs.split(',')) {
+                    if (!excludedDir.isBlank()) {
+                        excludedModules.add(moduleContainerPath + ':' + excludedDir)
+                    }
+                }
+            }
+        }
+        return excludedModules
     }
 
     static String convertPathToRelativeDir(String path) {
