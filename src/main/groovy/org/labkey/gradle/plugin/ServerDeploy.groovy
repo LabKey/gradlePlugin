@@ -534,7 +534,7 @@ class ServerDeploy implements Plugin<Project>
         Path nodeLinkPath = Paths.get("${linkContainer.getPath()}/node")
         if (!Files.isSymbolicLink(nodeLinkPath) || !Files.readSymbolicLink(nodeLinkPath).getFileName().toString().startsWith(nodeFilePrefix))
         {
-            File nodeDir = BuildUtils.getBuildDirFile(project, project.nodeWorkDirectory)
+            File nodeDir = BuildUtils.getBuildDirFile(pmLinkProject, project.nodeWorkDirectory)
             File[] nodeFiles = nodeDir.listFiles({ File file -> file.name.startsWith(nodeFilePrefix) } as FileFilter)
             if (nodeFiles != null && nodeFiles.length > 0)
             {

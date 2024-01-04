@@ -49,8 +49,10 @@ class FileModule implements Plugin<Project>
         List<String> indicators = new ArrayList<>()
         if (!project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
             indicators.add(ModuleExtension.MODULE_PROPERTIES_FILE + " does not exist")
-        if (project.hasProperty("skipBuild"))
+        if (project.hasProperty("skipBuild")) {
+            project.logger.quiet("${project.path}: The skipBuild property is deprecated and will be removed in version 2.0.0. Use the property excludedModules instead. See https://www.labkey.org/Documentation/wiki-page.view?name=customizingBuild#skip. ")
             indicators.add("skipBuild property set for Gradle project")
+        }
 
         if (indicators.size() > 0 && logMessages)
         {

@@ -23,6 +23,12 @@ _Note: 1.28.0 and later require Gradle 7_
 * Add support for using the net.nemerosa.versioning plugin directly instead of our forked version 
 * Update dependency versions
 * Add `substituteModuleDependecies` utility method for experimentation with some dependency substitution ([Issue 49316](https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=49316))
+* Remove support for `skipBuild` property
+
+### 1.44.2
+*Released*: 4 January 2024
+(Earliest compatible LabKey version: 23.3)
+* Fix `symlinkNode` task to use proper propject
 
 ### 1.44.1
 *Released*: 28 December 2023
