@@ -15,8 +15,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 1.44.2
+*Released*: 4 January 2024
 (Earliest compatible LabKey version: 23.3)
 * Fix `symlinkNode` task to use proper propject
 
