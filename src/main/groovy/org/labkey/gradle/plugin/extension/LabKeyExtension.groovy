@@ -50,8 +50,6 @@ class LabKeyExtension
         }
     }
 
-    Boolean skipBuild = false // set this to true in an individual module's build.gradle file to skip building
-
     String explodedModuleDir
     String explodedModuleWebDir
     String explodedModuleConfigDir
