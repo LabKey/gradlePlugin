@@ -16,7 +16,7 @@ on how to do that, including how to develop and test locally and the versioning 
 _Note: 1.28.0 and later require Gradle 7_
 
 ### 2.0.0
-*Released*: TBD
+*Released*: 9 January 2024
 (Earliest compatible LabKey version: 24.2)
 * Remove redundant plugin identifiers using org.labkey namespace instead of org.labkey.build 
    (e.g., org.labkey.module removed in favor of org.labkey.build.module)
