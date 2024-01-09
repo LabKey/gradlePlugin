@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.impldep.it.unimi.dsi.fastutil.Hash
 import org.labkey.gradle.plugin.Tomcat
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
@@ -65,10 +66,12 @@ class StartTomcat extends DefaultTask
             if (!logFile.exists())
                 logFile.createNewFile()
             FileOutputStream outputStream = new FileOutputStream(logFile)
+            def envMap = new HashMap<>(System.getenv())
+            envMap.put('PATH', "${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/bin${File.pathSeparator}${System.getenv("PATH")}")
             def env = []
-            env += "PATH=${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/bin${File.pathSeparator}${System.getenv("PATH")}"
-            if (System.getenv("R_LIBS_USER") != null)
-                env += "R_LIBS_USER=${System.getenv("R_LIBS_USER")}"
+            for (String key : envMap.keySet()) {
+                env += "${key}=${envMap.get(key)}"
+            }
             this.logger.info("Starting embedded tomcat with command ${commandParts} and env ${env} in directory ${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}")
             Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
             process.consumeProcessOutput(outputStream, outputStream)

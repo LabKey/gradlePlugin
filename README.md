@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 1.44.3
+*Released*: TBD
+(Earliest compatible LabKey version: 23.3)
+* Make `startTomcat` environment consistent between standalone and embedded Tomcat
+
 ### 1.44.2
 *Released*: 4 January 2024
 (Earliest compatible LabKey version: 23.3)
