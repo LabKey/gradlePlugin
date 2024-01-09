@@ -21,7 +21,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.impldep.it.unimi.dsi.fastutil.Hash
 import org.labkey.gradle.plugin.Tomcat
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
