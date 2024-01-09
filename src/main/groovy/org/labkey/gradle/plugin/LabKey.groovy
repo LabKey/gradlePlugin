@@ -25,7 +25,6 @@ import org.labkey.gradle.util.BuildUtils
 /**
  * Defines a set of extension properties for ease of reference. This also adds a two extensions
  * for some basic properties.
- * Created by susanh on 4/13/16.
  */
 class LabKey implements Plugin<Project>
 {
@@ -38,7 +37,10 @@ class LabKey implements Plugin<Project>
     {
         if (project.hasProperty('includeVcs'))
         {
-            project.apply plugin: 'org.labkey.versioning'
+            if (project.hasProperty('nemerosaVersioningPluginVersion'))
+                project.apply plugin: 'net.nemerosa.versioning'
+            else
+                project.apply plugin: 'org.labkey.versioning'
         }
 
         project.group = LabKeyExtension.LABKEY_GROUP

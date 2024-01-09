@@ -15,9 +15,14 @@
  */
 package org.labkey.gradle.util
 
+import org.ajoberstar.grgit.Grgit
+import org.ajoberstar.grgit.Remote
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.UnknownDomainObjectException
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.DependencySubstitutions
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.initialization.Settings
@@ -503,6 +508,25 @@ class BuildUtils
             ret.setProperty("VcsRevision", vcsProject.versioning.info.commit)
             ret.setProperty("BuildNumber", buildNumber != null ? buildNumber : vcsProject.versioning.info.build)
         }
+        else if (project.plugins.hasPlugin("net.nemerosa.versioning"))
+        {
+            // In our fork of the plugin (above), we added the url property to the VersioningInfo object
+            Project vcsProject = project
+            String url = getGitUrl(vcsProject)
+            while (url == null && vcsProject != project.rootProject)
+            {
+                vcsProject = vcsProject.parent
+                url = getGitUr(vcsProject)
+            }
+            vcsProject.println("${project.path} versioning info ${ vcsProject.versioning.info}")
+            ret.setProperty("VcsURL", url)
+            if (vcsProject.versioning.info.branch != null)
+                ret.setProperty("VcsBranch", vcsProject.versioning.info.branch)
+            if (vcsProject.versioning.info.tag != null)
+                ret.setProperty("VcsTag", vcsProject.versioning.info.tag)
+            ret.setProperty("VcsRevision", vcsProject.versioning.info.commit)
+            ret.setProperty("BuildNumber", buildNumber != null ? buildNumber : vcsProject.versioning.info.build)
+        }
         else
         {
             ret.setProperty("VcsBranch", "Unknown")
@@ -524,6 +548,19 @@ class BuildUtils
             'tomcat-websocket-api',
             'tomcat7-websocket'
     ]
+
+    static String getGitUrl(Project project)
+    {
+        def grgit = Grgit.open(currentDir: project.projectDir)
+        List<Remote> remotes = grgit.remote.list()
+        grgit.close()
+        if (remotes) {
+            return remotes.get(0).url
+        } else {
+            return null
+        }
+
+    }
 
     static void setTomcatLibs(List<String> libs)
     {
@@ -607,7 +644,6 @@ class BuildUtils
                     distributionProject.logger.info("${distributionProject.path}: Adding ${config} dependency on artifact ${dep}")
                     distributionProject.dependencies.add(config, dep)
                 }
-
             }
         }
     }
@@ -888,4 +924,34 @@ class BuildUtils
         return project.rootProject.layout.buildDirectory.get().asFile.path
     }
 
+    static void substituteModuleDependencies(Project project, String configName)
+    {
+        try {
+            project.configurations.named(configName) { Configuration config ->
+                resolutionStrategy.dependencySubstitution { DependencySubstitutions ds ->
+                    project.rootProject.subprojects {
+                        Project p ->
+                            {
+                                p.logger.debug("Considering substitution for ${p.path}.")
+                                if (shouldBuildFromSource(p)) {
+                                    if (p.plugins.hasPlugin('org.labkey.build.module') ||
+                                            p.plugins.hasPlugin('org.labkey.build.fileModule') ||
+                                            p.plugins.hasPlugin('org.labkey.build.javaModule')
+                                    ) {
+                                        ds.substitute ds.module("org.labkey.module:${p.name}") using ds.project(p.path)
+                                        p.logger.debug("Substituting org.labkey.module:${p.name} with ${p.path}")
+                                    }
+//                                    if (p.plugins.hasPlugin('org.labkey.build.api'))
+//                                    {
+//                                        ds.substitute ds.module("org.labkey.api:${p.name}") using ds.project(p.path)
+//                                    }
+                                }
+                            }
+                    }
+                }
+            }
+        } catch (UnknownDomainObjectException ignore) {
+            project.logger.debug("No ${configName} configuration found for ${project.path}.")
+        }
+    }
 }
