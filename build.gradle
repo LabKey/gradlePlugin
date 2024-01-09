@@ -42,10 +42,9 @@ dependencies {
 }
 
 group 'org.labkey.build'
-project.version = "1.45.0-embeddedEnv-SNAPSHOT"
+project.version = "2.0.0-embeddedEnv-SNAPSHOT"
 
 gradlePlugin {
-    // TODO after transitioning to using these plugin ids, remove the properties files from resources/META-INF.gradle-plugins
     plugins {
         antBuild {
             id = 'org.labkey.build.antBuild'
