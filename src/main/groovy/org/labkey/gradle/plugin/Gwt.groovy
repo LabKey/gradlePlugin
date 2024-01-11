@@ -70,7 +70,7 @@ class Gwt implements Plugin<Project>
         }
         if (project.hasProperty("validationJakartaApiVersion"))
             project.dependencies {
-                gwtImplementation "jakarta.validation:jakarta.validation-api:${validationJakartaApiVersion}"
+                gwtImplementation "jakarta.validation:jakarta.validation-api:${project.validationJakartaApiVersion}"
             }
         else if (project.hasProperty("validationApiVersion"))
             project.dependencies {
