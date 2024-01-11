@@ -65,8 +65,8 @@ class Gwt implements Plugin<Project>
     private void addDependencies()
     {
         project.dependencies {
-            gwtImplementation "com.google.gwt:gwt-user:${project.gwtVersion}",
-                    "com.google.gwt:gwt-dev:${project.gwtVersion}",
+            gwtImplementation "org.gwtproject:gwt-user:${project.gwtVersion}",
+                    "org.gwtproject:gwt-dev:${project.gwtVersion}",
                     "javax.validation:validation-api:${project.validationApiVersion}"
         }
     }
