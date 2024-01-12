@@ -15,8 +15,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### 2.?.?
-*Released*: TBD
+### 2.1.0
+*Released*: 12 January 2024
 (Earliest compatible LabKey version: 24.2)
 * Update coordinates for gwt dependencies to `org.gwtproject` instead of `com.google.gwt`
 
