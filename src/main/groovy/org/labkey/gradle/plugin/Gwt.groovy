@@ -65,10 +65,17 @@ class Gwt implements Plugin<Project>
     private void addDependencies()
     {
         project.dependencies {
-            gwtImplementation "com.google.gwt:gwt-user:${project.gwtVersion}",
-                    "com.google.gwt:gwt-dev:${project.gwtVersion}",
-                    "javax.validation:validation-api:${project.validationApiVersion}"
+            gwtImplementation "org.gwtproject:gwt-user:${project.gwtVersion}",
+                    "org.gwtproject:gwt-dev:${project.gwtVersion}"
         }
+        if (project.hasProperty("validationJakartaApiVersion"))
+            project.dependencies {
+                gwtImplementation "jakarta.validation:jakarta.validation-api:${project.validationJakartaApiVersion}"
+            }
+        else if (project.hasProperty("validationApiVersion"))
+            project.dependencies {
+                gwtImplementation "javax.validation:validation-api:${project.validationApiVersion}"
+            }
     }
 
     private void addSourceSets()
