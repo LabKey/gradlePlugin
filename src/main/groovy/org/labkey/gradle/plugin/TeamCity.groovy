@@ -352,6 +352,10 @@ class TeamCity extends Tomcat
                     }
             project.ant.exec(executable: "killall")
                     {
+                        arg(line: "-q firefox-bin")
+                    }
+            project.ant.exec(executable: "killall")
+                    {
                         arg(line: "-q geckodriver")
                     }
         }
@@ -470,7 +474,7 @@ class TeamCity extends Tomcat
     private void ensureShutdown(Project project)
     {
         String debugPort = extension.getTeamCityProperty("tomcat.debug")
-        if (!debugPort.isEmpty() && !BuildUtils.useEmbeddedTomcat(project))
+        if (!debugPort.isEmpty())
         {
             project.logger.debug("Ensuring shutdown using port ${debugPort}")
             try

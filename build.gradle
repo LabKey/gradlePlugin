@@ -42,7 +42,7 @@ dependencies {
 }
 
 group 'org.labkey.build'
-project.version = "2.2.0-SNAPSHOT"
+project.version = "2.1.1-stopEmbeddedTomcat-SNAPSHOT"
 
 gradlePlugin {
     plugins {

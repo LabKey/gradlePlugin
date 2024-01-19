@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 2.1.1
+*Released*: TBD
+(Earliest compatible LabKey version: 24.2)
+* Make `stopTomcat` and `killFirefox` tasks more reliable on TeamCity
+
 ### 2.1.0
 *Released*: 12 January 2024
 (Earliest compatible LabKey version: 24.2)
