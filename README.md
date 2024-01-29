@@ -25,6 +25,8 @@ _Note: 1.28.0 and later require Gradle 7_
 (Earliest compatible LabKey version: 24.2)
 * Make `stopTomcat` and `killFirefox` tasks more reliable on TeamCity
 
+### 2.1.1 - 2.2.0 accidentally skipped
+
 ### 2.1.0
 *Released*: 12 January 2024
 (Earliest compatible LabKey version: 24.2)
