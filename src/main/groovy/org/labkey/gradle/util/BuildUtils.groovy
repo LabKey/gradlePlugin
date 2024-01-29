@@ -882,7 +882,7 @@ class BuildUtils
 
     static boolean useEmbeddedTomcat(Project project)
     {
-        project.hasProperty(USE_EMBEDDED_TOMCAT)
+        project.hasProperty(USE_EMBEDDED_TOMCAT) && "false" != project.property(USE_EMBEDDED_TOMCAT)
     }
 
     static void addExternalDependency(Project project, ExternalDependency dependency, Closure closure=null)
