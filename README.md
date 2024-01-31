@@ -16,7 +16,7 @@ on how to do that, including how to develop and test locally and the versioning 
 _Note: 1.28.0 and later require Gradle 7_
 
 ### 2.2.2
-*Released*: TBD
+*Released*: 31 January 2024
 (Earliest compatible LabKey version: 24.2)
 * Allow `useEmbeddedTomcat` and `useLocalBuild` to be turned off
 
