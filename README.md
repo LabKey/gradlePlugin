@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 3.0.0
+*Released*: TBD
+(Earliest compatible LabKey version: 24.3)
+* Use consistent directory structure for embedded deployment 
+
 ### 2.2.2
 *Released*: 31 January 2024
 (Earliest compatible LabKey version: 24.2)

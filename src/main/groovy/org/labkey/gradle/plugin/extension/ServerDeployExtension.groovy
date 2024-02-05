@@ -35,7 +35,7 @@ class ServerDeployExtension
 
     static String getEmbeddedServerDeployDirectory(Project project)
     {
-        return "${getServerDeployDirectory(project)}/embedded"
+        return "${getServerDeployDirectory(project)}"
     }
 
     static String getModulesDeployDirectory(Project project)

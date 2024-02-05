@@ -22,7 +22,7 @@ class StagingExtension
 {
     public static final String STAGING_DIR = "staging"
     public static final String STAGING_MODULES_DIR = "${STAGING_DIR}/modules/"
-    public static final String STAGING_WEBAPP_DIR = "${STAGING_DIR}/labkeyWebapp"
+    public static final String STAGING_WEBAPP_DIR = "${STAGING_DIR}/labkeywebapp"
     public static final String STAGING_WEBINF_DIR = "${STAGING_WEBAPP_DIR}/WEB-INF/"
 
     String dir
