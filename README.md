@@ -15,7 +15,7 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### 2.2.3
+### TBD
 *Released*: TBD
 (Earliest compatible LabKey version: 24.2)
 * `DoThenSetup` tasks: update embedded property replacement for new jdbc config pattern
