@@ -21,10 +21,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.tasks.Delete
+import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
 import org.labkey.gradle.task.StartTomcat
 import org.labkey.gradle.task.StopTomcat
+import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
 /**
@@ -70,14 +72,16 @@ class Tomcat implements Plugin<Project>
 
         project.tasks.register("cleanLogs", Delete) {
             Delete task ->
+                var logDir = BuildUtils.useEmbeddedTomcat(project)
+                        ? "${tomcat.catalinaHome}/logs"
+                        : "${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/logs"
+
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Delete logs from ${tomcat.catalinaHome}"
-                task.doFirst {tomcat.validateCatalinaHome()}
-                task.configure(
-                {
-                    DeleteSpec spec -> spec.delete project.fileTree("${tomcat.catalinaHome}/logs")
-                    }
-                )
+                task.description = "Delete logs from ${logDir}"
+                if (!BuildUtils.useEmbeddedTomcat(project)) {
+                    task.doFirst {tomcat.validateCatalinaHome()}
+                }
+                task.configure { DeleteSpec spec -> spec.delete project.fileTree(logDir) }
         }
 
         project.tasks.register("cleanTemp", DefaultTask) {
