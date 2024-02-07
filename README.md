@@ -18,6 +18,7 @@ _Note: 1.28.0 and later require Gradle 7_
 ### 3.0.0
 *Released*: TBD
 (Earliest compatible LabKey version: 24.3)
+* `DoThenSetup` tasks: update property replacement for new jdbc config pattern
 * Use consistent directory structure for embedded deployment
 * Modify or skip some cleanup steps for embedded Tomcat
 
