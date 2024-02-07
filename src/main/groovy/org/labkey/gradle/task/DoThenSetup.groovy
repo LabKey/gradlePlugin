@@ -152,9 +152,9 @@ class DoThenSetup extends DefaultTask
                             // Remove placeholder
                             line = line.replace("#useLocalBuild#", "#")
                         }
-                        if (configProperties.containsKey("extraJdbcDataSource"))
+                        if (configProperties.containsKey("extraJdbcDataSource") && line.contains("=@@extraJdbc"))
                         {
-                            line = line.replaceAll("^#(context\\..+\\[1].*)", "\$1")
+                            line = line.replace("#context.", "context.")
                         }
                         if (line.startsWith("#")) {
                             return line // Don't apply replacements to comments
