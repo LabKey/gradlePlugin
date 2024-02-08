@@ -246,7 +246,7 @@ echo "  - See https://www.labkey.org/Documentation/wiki-page.view?name=backupSce
 echo "    for more information on how to perform a backup of your database."
 echo ""
 echo " Additionally, the upgrade process will replace the current contents of your deployment's"
-echo " ./modules and ./labkeywebapp directories. If you have added your own modules or content, "
+echo " ./modules and ./labkeyWebapp directories. If you have added your own modules or content, "
 echo " please migrate to using ./externalModules before proceeding."
 echo "  - See https://www.labkey.org/Documentation/wiki-page.view?name=moduleUpgrades"
 echo ""

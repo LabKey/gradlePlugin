@@ -59,7 +59,7 @@ class ServerDeploy implements Plugin<Project>
         serverDeploy.dir = ServerDeployExtension.getServerDeployDirectory(project)
         serverDeploy.embeddedDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project)
         serverDeploy.modulesDir = "${serverDeploy.dir}/modules"
-        serverDeploy.webappDir = "${serverDeploy.dir}/labkeywebapp"
+        serverDeploy.webappDir = "${serverDeploy.dir}/labkeyWebapp"
         serverDeploy.binDir = "${serverDeploy.dir}/bin"
         serverDeploy.pipelineLibDir = "${serverDeploy.dir}/pipelineLib"
 

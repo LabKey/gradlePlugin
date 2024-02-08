@@ -68,7 +68,16 @@ class StageDistribution extends DefaultTask
             spec.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             spec.eachFile {
                 FileCopyDetails fcp ->
-                    if (!fcp.relativePath.pathString.startsWith("${baseName}/labkeywebapp")) {
+                    if (fcp.relativePath.pathString.startsWith("${baseName}/labkeywebapp")) {
+                        // remap the file to the root
+                        String[] segments = fcp.relativePath.segments
+                        for (int i = 0; i < segments.length - 1; i++) // HACK we should get rid of once we're not using ant to create distributions
+                        {
+                            segments[i] = segments[i].replace("labkeywebapp", "labkeyWebapp")
+                        }
+                        String[] pathSegments = segments[1..-1] as String[]
+                        fcp.relativePath = new RelativePath(!fcp.file.isDirectory(), pathSegments)
+                    } else {
                         fcp.exclude()
                     }
             }
