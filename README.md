@@ -19,6 +19,7 @@ _Note: 1.28.0 and later require Gradle 7_
 *Released*: TBD
 (Earliest compatible LabKey version: 24.3)
 * `DoThenSetup` tasks: update property replacement for new jdbc config pattern
+* `DoThenSetup` tasks: configure shutdown port for embedded tomcat
 * Modify or skip some cleanup steps for embedded Tomcat
 * Put startup properties in correct location for embedded distribution
 
