@@ -135,6 +135,8 @@ class DoThenSetup extends DefaultTask
 
                 if (TeamCityExtension.getLabKeyServerShutdownPort(project) != null)
                     configProperties.setProperty("shutdownPort", TeamCityExtension.getLabKeyServerShutdownPort(project))
+                else if (project.hasProperty("shutdownPort"))
+                    configProperties.setProperty("shutdownPort", (String) project.property("shutdownPort"))
                 else
                     configProperties.setProperty("shutdownPort", "8081")
 
