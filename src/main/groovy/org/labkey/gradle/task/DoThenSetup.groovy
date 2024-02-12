@@ -123,6 +123,7 @@ class DoThenSetup extends DefaultTask
                 configProperties.putAll(getExtraJdbcProperties())
                 // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes, even on Windows
                 configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
+
                 if (TeamCityExtension.getLabKeyServerPort(project) != null)
                     configProperties.setProperty("serverPort", TeamCityExtension.getLabKeyServerPort(project))
                 else if (project.hasProperty("serverPort"))
@@ -131,6 +132,12 @@ class DoThenSetup extends DefaultTask
                     configProperties.setProperty("serverPort", "8443")
                 else
                     configProperties.setProperty("serverPort", "8080")
+
+                if (TeamCityExtension.getLabKeyServerShutdownPort(project) != null)
+                    configProperties.setProperty("shutdownPort", TeamCityExtension.getLabKeyServerShutdownPort(project))
+                else
+                    configProperties.setProperty("shutdownPort", "8081")
+
                 String embeddedDir = BuildUtils.getEmbeddedConfigPath(project)
                 File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
                 project.copy({ CopySpec copy ->

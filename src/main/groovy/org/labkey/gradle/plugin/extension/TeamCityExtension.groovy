@@ -46,8 +46,6 @@ class TeamCityExtension
     {
         if (getTeamCityProperty("suite").isEmpty())
             validationMessages.add("'suite' property not specified")
-        if (getTeamCityProperty("tomcat.port").isEmpty())
-            validationMessages.add("'tomcat.port' property not specified")
         if (this.databaseTypes.isEmpty())
             validationMessages.add("'database.types' property not specified or does not specify a supported database.")
         if (getTeamCityProperty('agent.name').isEmpty())
@@ -58,6 +56,8 @@ class TeamCityExtension
             validationMessages.add("'tomcat.debug' property (for debug port) not specified")
         if (getTeamCityProperty('tomcat.port').isEmpty())
             validationMessages.add("'tomcat.port' property not specified")
+        if (getTeamCityProperty('tomcat.shutdown').isEmpty())
+            validationMessages.add("'tomcat.shutdown' property not specified")
     }
 
     private void setDatabaseProperties()
@@ -187,6 +187,11 @@ class TeamCityExtension
     static String getLabKeyServerPort(Project project)
     {
         return getTeamCityProperty(project, 'tomcat.port', null)
+    }
+
+    static String getLabKeyServerShutdownPort(Project project)
+    {
+        return getTeamCityProperty(project, 'tomcat.shutdown', null)
     }
 
     static String getLabKeyUsername(Project project)
