@@ -51,7 +51,7 @@ class StopTomcat extends DefaultTask
     void stopEmbeddedTomcat()
     {
         def applicationProperties = PropertiesUtils.getApplicationProperties(project)
-        def port = applicationProperties["server.port"]
+        def port = applicationProperties.getProperty("management.server.port", applicationProperties.getProperty("server.port"))
         def endpoint =  "${project.hasProperty("useSsl") ? "https" : "http"}://localhost:$port/actuator/shutdown"
         def command = "curl -X POST $endpoint"
         this.logger.info("Sending command to $endpoint")
