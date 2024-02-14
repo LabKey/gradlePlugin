@@ -73,8 +73,8 @@ class Tomcat implements Plugin<Project>
         project.tasks.register("cleanLogs", Delete) {
             Delete task ->
                 var logDir = BuildUtils.useEmbeddedTomcat(project)
-                        ? "${tomcat.catalinaHome}/logs"
-                        : "${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/logs"
+                        ? "${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/logs"
+                        : "${tomcat.catalinaHome}/logs"
 
                 task.group = GroupNames.WEB_APPLICATION
                 task.description = "Delete logs from ${logDir}"
