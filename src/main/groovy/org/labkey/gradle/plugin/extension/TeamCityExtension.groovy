@@ -194,6 +194,16 @@ class TeamCityExtension
         return getTeamCityProperty(project, 'tomcat.shutdown', null)
     }
 
+    static String getLabKeyServerKeystore(Project project)
+    {
+        return getTeamCityProperty(project, 'labkey.keystore', null)
+    }
+
+    static String getLabKeyServerKeystorePassword(Project project)
+    {
+        return getTeamCityProperty(project, 'labkey.keystore.password', null)
+    }
+
     static String getLabKeyUsername(Project project)
     {
         return getTeamCityProperty(project, "labkey.server.email", "teamcity@labkey.test")
