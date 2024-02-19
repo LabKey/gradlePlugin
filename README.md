@@ -15,10 +15,13 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 2.3.0
+*Released*: 19 February 2024
 (Earliest compatible LabKey version: 24.2)
-* `DoThenSetup` tasks: update embedded property replacement for new jdbc config pattern
+* `DoThenSetup` tasks: update property replacement for new jdbc config pattern
+* `DoThenSetup` tasks: configure shutdown port for embedded tomcat
+* Modify or skip some cleanup steps for embedded Tomcat
+* `TeamCityExtension.writeStartupProperties`: Target correct directory for embedded distribution
 
 ### 2.2.2
 *Released*: 31 January 2024

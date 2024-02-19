@@ -17,6 +17,7 @@ package org.labkey.gradle.plugin.extension
 
 import org.apache.commons.io.FileUtils
 import org.gradle.api.Project
+import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 
 import java.nio.charset.StandardCharsets
@@ -45,8 +46,6 @@ class TeamCityExtension
     {
         if (getTeamCityProperty("suite").isEmpty())
             validationMessages.add("'suite' property not specified")
-        if (getTeamCityProperty("tomcat.port").isEmpty())
-            validationMessages.add("'tomcat.port' property not specified")
         if (this.databaseTypes.isEmpty())
             validationMessages.add("'database.types' property not specified or does not specify a supported database.")
         if (getTeamCityProperty('agent.name').isEmpty())
@@ -57,6 +56,8 @@ class TeamCityExtension
             validationMessages.add("'tomcat.debug' property (for debug port) not specified")
         if (getTeamCityProperty('tomcat.port').isEmpty())
             validationMessages.add("'tomcat.port' property not specified")
+        if (getTeamCityProperty('tomcat.shutdown').isEmpty())
+            validationMessages.add("'tomcat.shutdown' property not specified")
     }
 
     private void setDatabaseProperties()
@@ -115,7 +116,12 @@ class TeamCityExtension
     }
 
     File startupPropertiesDir() {
-        File startupDir = new File(new File(ServerDeployExtension.getServerDeployDirectory(project)), 'startup')
+        File startupDir
+        if (BuildUtils.useEmbeddedTomcat(project)) {
+            startupDir = new File(new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)), 'server/startup')
+        } else {
+            startupDir = new File(new File(ServerDeployExtension.getServerDeployDirectory(project)), 'startup')
+        }
         FileUtils.forceMkdir(startupDir)
         return startupDir
     }
@@ -181,6 +187,21 @@ class TeamCityExtension
     static String getLabKeyServerPort(Project project)
     {
         return getTeamCityProperty(project, 'tomcat.port', null)
+    }
+
+    static String getLabKeyServerShutdownPort(Project project)
+    {
+        return getTeamCityProperty(project, 'tomcat.shutdown', null)
+    }
+
+    static String getLabKeyServerKeystore(Project project)
+    {
+        return getTeamCityProperty(project, 'labkey.keystore', null)
+    }
+
+    static String getLabKeyServerKeystorePassword(Project project)
+    {
+        return getTeamCityProperty(project, 'labkey.keystore.password', null)
     }
 
     static String getLabKeyUsername(Project project)

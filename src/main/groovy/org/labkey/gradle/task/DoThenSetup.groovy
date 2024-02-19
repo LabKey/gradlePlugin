@@ -17,6 +17,7 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Input
@@ -26,6 +27,8 @@ import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.PropertiesUtils
+
+import java.util.function.Function
 
 class DoThenSetup extends DefaultTask
 {
@@ -123,14 +126,29 @@ class DoThenSetup extends DefaultTask
                 configProperties.putAll(getExtraJdbcProperties())
                 // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes, even on Windows
                 configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
-                if (TeamCityExtension.getLabKeyServerPort(project) != null)
-                    configProperties.setProperty("serverPort", TeamCityExtension.getLabKeyServerPort(project))
-                else if (project.hasProperty("serverPort"))
-                    configProperties.setProperty("serverPort", (String) project.property("serverPort"))
-                else if (project.hasProperty("useSsl"))
-                    configProperties.setProperty("serverPort", "8443")
-                else
-                    configProperties.setProperty("serverPort", "8080")
+
+                configProperties.setProperty("serverPort", tcPropOrDefault(project,
+                        TeamCityExtension::getLabKeyServerPort,
+                        "serverPort",
+                        project.hasProperty("useSsl") ? "8443" : "8080"))
+
+                configProperties.setProperty("shutdownPort", tcPropOrDefault(project,
+                        TeamCityExtension::getLabKeyServerShutdownPort,
+                        "shutdownPort",
+                        "8081"))
+
+                if (project.hasProperty("useSsl")) {
+                    configProperties.setProperty("keyStore", tcPropOrDefault(project,
+                            TeamCityExtension::getLabKeyServerKeystore,
+                            "keyStore",
+                            "/opt/teamcity-agent/localhost.keystore"))
+
+                    configProperties.setProperty("keyStorePassword", tcPropOrDefault(project,
+                            TeamCityExtension::getLabKeyServerKeystorePassword,
+                            "keyStorePassword",
+                            "changeit"))
+                }
+
                 String embeddedDir = BuildUtils.getEmbeddedConfigPath(project)
                 File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
                 project.copy({ CopySpec copy ->
@@ -237,5 +255,17 @@ class DoThenSetup extends DefaultTask
     DatabaseProperties getDatabaseProperties()
     {
         return databaseProperties
+    }
+
+    private static String tcPropOrDefault(Project project, Function<Project, String> tcPropertyFunc, String projectPropertyName, String defaultValue)
+    {
+        String value = tcPropertyFunc.apply(project)
+        if (value == null) {
+            if (project.hasProperty(projectPropertyName))
+                value = (String) project.property(projectPropertyName)
+            else
+                value = defaultValue
+        }
+        return value
     }
 }
