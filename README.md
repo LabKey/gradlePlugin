@@ -21,7 +21,7 @@ _Note: 1.28.0 and later require Gradle 7_
 * `DoThenSetup` tasks: update property replacement for new jdbc config pattern
 * `DoThenSetup` tasks: configure shutdown port for embedded tomcat
 * Modify or skip some cleanup steps for embedded Tomcat
-* Put startup properties in correct location for embedded distribution
+* `TeamCityExtension.writeStartupProperties`: Target correct directory for embedded distribution
 
 ### 2.2.2
 *Released*: 31 January 2024
