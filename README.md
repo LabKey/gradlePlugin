@@ -16,7 +16,7 @@ on how to do that, including how to develop and test locally and the versioning 
 _Note: 1.28.0 and later require Gradle 7_
 
 ### 2.3.0
-*Released*: TBD
+*Released*: 19 February 2024
 (Earliest compatible LabKey version: 24.3)
 * `DoThenSetup` tasks: update property replacement for new jdbc config pattern
 * `DoThenSetup` tasks: configure shutdown port for embedded tomcat
