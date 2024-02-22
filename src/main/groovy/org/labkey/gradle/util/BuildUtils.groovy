@@ -699,9 +699,10 @@ class BuildUtils
     {
         Project depProject = parentProject.rootProject.findProject(depProjectPath)
 
-        if (depProject != null && shouldBuildFromSource(depProject))
+        if (depProject != null && shouldBuildFromSource(depProject) || shouldForceBuildFromSource(parentProject, depProjectPath))
         {
-            parentProject.logger.debug("Found project ${depProjectPath}; building ${depProjectPath} from source")
+            if (depProject != null)
+                parentProject.logger.debug("Found project ${depProjectPath}; building ${depProjectPath} from source")
             if (depProjectConfig != null)
                 parentProject.dependencies.add(parentProjectConfig, parentProject.dependencies.project(path: depProjectPath, configuration: depProjectConfig, transitive: isTransitive), closure)
             else
@@ -733,6 +734,11 @@ class BuildUtils
 
             parentProject.dependencies.add(parentProjectConfig, getLabKeyArtifactName(parentProject, depProjectPath, depVersion, depExtension), combinedClosure)
         }
+    }
+
+    private static boolean shouldForceBuildFromSource(Project parentProject, String projectPath)
+    {
+        return parentProject.hasProperty('forceBuildModulesFromSource') && projectPath.startsWith(":server:modules:")
     }
 
     static String getLabKeyArtifactName(Project parentProject, String projectPath, String version, String extension)
