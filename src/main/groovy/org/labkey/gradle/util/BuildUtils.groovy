@@ -738,7 +738,7 @@ class BuildUtils
 
     private static boolean shouldForceBuildFromSource(Project parentProject, String projectPath)
     {
-        return parentProject.hasProperty('forceBuildModulesFromSource') && projectPath.startsWith(":server:modules:")
+        return parentProject.hasProperty('forceBuildModulesFromSource') && projectPath.contains(":modules:")
     }
 
     static String getLabKeyArtifactName(Project parentProject, String projectPath, String version, String extension)
