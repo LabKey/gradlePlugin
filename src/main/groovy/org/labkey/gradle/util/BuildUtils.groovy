@@ -266,8 +266,8 @@ class BuildUtils
             if (isSvnModule(project))
                 reasons.add("svn module without ${property} property set to true")
         }
-        else if (!Boolean.valueOf((String) value))
-            reasons.add("${property} property is false")
+        else if (BuildFromSource.fromProperty(value) == BuildFromSource._FALSE)
+            reasons.add("${property} property is not 'true'")
 
         return reasons
     }
@@ -699,9 +699,13 @@ class BuildUtils
     {
         Project depProject = parentProject.rootProject.findProject(depProjectPath)
 
-        if (depProject != null && shouldBuildFromSource(depProject))
+        if (depProject != null && shouldBuildFromSource(depProject) || shouldForceBuildFromSource(parentProject, depProjectPath))
         {
-            parentProject.logger.debug("Found project ${depProjectPath}; building ${depProjectPath} from source")
+            if (depProject != null)
+                parentProject.logger.debug("Found project ${depProjectPath}; building ${depProjectPath} from source")
+            else
+                parentProject.logger.debug("Did not find project ${depProjectPath}; forcing project dependency as requested by '-P${BUILD_FROM_SOURCE_PROP}'")
+
             if (depProjectConfig != null)
                 parentProject.dependencies.add(parentProjectConfig, parentProject.dependencies.project(path: depProjectPath, configuration: depProjectConfig, transitive: isTransitive), closure)
             else
@@ -733,6 +737,11 @@ class BuildUtils
 
             parentProject.dependencies.add(parentProjectConfig, getLabKeyArtifactName(parentProject, depProjectPath, depVersion, depExtension), combinedClosure)
         }
+    }
+
+    private static boolean shouldForceBuildFromSource(Project parentProject, String projectPath)
+    {
+        return BuildFromSource.fromProperty(parentProject, BUILD_FROM_SOURCE_PROP) == BuildFromSource.FORCE && projectPath.contains(":modules:")
     }
 
     static String getLabKeyArtifactName(Project parentProject, String projectPath, String version, String extension)
@@ -962,6 +971,24 @@ class BuildUtils
             }
         } catch (UnknownDomainObjectException ignore) {
             project.logger.debug("No ${configName} configuration found for ${project.path}.")
+        }
+    }
+
+    enum BuildFromSource {
+        _TRUE,
+        _FALSE,
+        FORCE
+
+        static BuildFromSource fromProperty(Project project, String propertyName) {
+            String propertyValue = project.hasProperty(propertyName) ? project.property(propertyName) : null
+            fromProperty(propertyValue)
+        }
+
+        static BuildFromSource fromProperty(String propertyValue) {
+            if ('force' == propertyValue)
+                return FORCE
+            else
+                return Boolean.valueOf(propertyValue) ? _TRUE : _FALSE
         }
     }
 }
