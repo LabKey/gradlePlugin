@@ -417,6 +417,10 @@ class ModuleDistribution extends DefaultTask
             zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/") {
                 include(name: "labkeywebapp/**")
             }
+            zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
+                    prefix: "${DistributionExtension.DIST_FILE_DIR}") {
+                include(name: "VERSION")
+            }
         }
 
         project.copy {
