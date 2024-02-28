@@ -16,9 +16,10 @@ on how to do that, including how to develop and test locally and the versioning 
 _Note: 1.28.0 and later require Gradle 7_
 
 ### 2.4.0
-*Released*: TBD
+*Released*: 27 February 2024
 (Earliest compatible LabKey version: 24.2)
 * Make `-PbuildFromSource=force` force modules to be built from source
+* Update `log4j2.xml` to match embedded tomcat version
 
 ### 2.3.0
 *Released*: 19 February 2024
