@@ -19,6 +19,7 @@ _Note: 1.28.0 and later require Gradle 7_
 *Released*: TBD
 (Earliest compatible LabKey version: 24.2)
 * Include `application.properties` in embedded distributions
+* Remove version from executable server jar: `labkeyServer.jar`
 
 ### 2.4.0
 *Released*: 27 February 2024

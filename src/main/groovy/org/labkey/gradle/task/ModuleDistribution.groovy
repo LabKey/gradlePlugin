@@ -232,7 +232,7 @@ class ModuleDistribution extends DefaultTask
 
     private String getEmbeddedTomcatJarPath()
     {
-        return BuildUtils.getBuildDirFile(project, "labkeyServer-${project.version}.jar").path
+        return BuildUtils.getBuildDirFile(project, "labkeyServer.jar").path
     }
 
     private String getTarArchivePath()
