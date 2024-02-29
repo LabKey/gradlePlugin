@@ -1,8 +1,16 @@
 .gradle
 build/
 out/
+lib/
 
-.idea/dataSources.local.xml
+# Unless specified, ignore all IDEA project files
+.idea/
+!.idea/codeStyles/codeStyleConfig.xml
+!.idea/inspectionProfiles/Project_Default.xml
+!.idea/runConfigurations/Debug_plugins.xml
+!.idea/compiler.xml
+!.idea/misc.xml
+!.idea/vcs.xml
 
 # Ignore zip files created by build
 src/main/resources/moduleTemplate.zip
