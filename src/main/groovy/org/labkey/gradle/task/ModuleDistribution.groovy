@@ -38,9 +38,7 @@ class ModuleDistribution extends DefaultTask
     @Optional @Input
     Boolean includeTarGZArchive = false
     @Optional @Input
-    Boolean includeEmbeddedArchive = false // New way to include embedded distribution, tar.gz only
-    @Optional @Input
-    String embeddedArchiveType = ""
+    String embeddedArchiveType = null
     @Optional @Input
     Boolean makeDistribution = true // set to false for just an archive of modules
     @Optional @Input
@@ -87,20 +85,8 @@ class ModuleDistribution extends DefaultTask
     }
 
     private boolean shouldBuildEmbeddedArchive(String extension = null) {
-        boolean includeThisExtension = false
-        switch (extension) {
-            case DistributionExtension.TAR_ARCHIVE_EXTENSION:
-                includeThisExtension = includeEmbeddedArchive || embeddedArchiveType.contains(extension)
-                break;
-            case DistributionExtension.ZIP_ARCHIVE_EXTENSION:
-                includeThisExtension = embeddedArchiveType.contains(extension)
-                break;
-            case null:
-                includeThisExtension = includeEmbeddedArchive || !embeddedArchiveType.isEmpty()
-        }
-        return includeThisExtension
-                && makeDistribution
-                && BuildUtils.useEmbeddedTomcat(project)
+        return (embeddedArchiveType != null && (extension == null || embeddedArchiveType.indexOf(extension) >= 0)) &&
+                makeDistribution && BuildUtils.useEmbeddedTomcat(project)
     }
 
     @OutputFiles
