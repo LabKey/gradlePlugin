@@ -462,7 +462,7 @@ class ModuleDistribution extends DefaultTask
                 include(name: "VERSION")
             }
 
-            tarfileset(dir: BuildUtils.getWebappConfigFile(project, "embedded"), prefix: archiveName)
+            tarfileset(dir: BuildUtils.getBuildDirFile(project, "embedded"), prefix: archiveName)
         }
     }
 
@@ -487,10 +487,7 @@ class ModuleDistribution extends DefaultTask
                 include(name: "VERSION")
             }
 
-            zipfileset(dir: "${BuildUtils.getWebappConfigFile(project, "embedded")}/",
-                    prefix: "${archiveName}") {
-                exclude(name: "manual-upgrade.sh")
-            }
+            zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/embedded/", prefix: "${archiveName}")
         }
     }
 
@@ -505,6 +502,15 @@ class ModuleDistribution extends DefaultTask
             copy.into(project.layout.buildDirectory)
             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
+        // Prefer files from 'server/configs/webapps' if they exist
+        if (BuildUtils.getWebappConfigDir(project) != null) {
+            project.copy({ CopySpec copy ->
+                copy.from(BuildUtils.getWebappConfigDir(project))
+                copy.exclude "*.xml"
+                copy.into(project.layout.buildDirectory)
+                copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
+            })
+        }
         // Allow distributions to include custom README
         File resources = project.file("resources")
         if (resources.isDirectory()) {
