@@ -462,10 +462,7 @@ class ModuleDistribution extends DefaultTask
                 include(name: "VERSION")
             }
 
-            tarfileset(dir: BuildUtils.getBuildDirFile(project, "embedded"), prefix: archiveName) {
-                // include(name: "manual-upgrade.sh")
-                include(name: "README.txt")
-            }
+            tarfileset(dir: BuildUtils.getWebappConfigFile(project, "embedded"), prefix: archiveName)
         }
     }
 
@@ -490,10 +487,9 @@ class ModuleDistribution extends DefaultTask
                 include(name: "VERSION")
             }
 
-            zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/embedded/",
+            zipfileset(dir: "${BuildUtils.getWebappConfigFile(project, "embedded")}/",
                     prefix: "${archiveName}") {
-                // include(name: "manual-upgrade.sh")
-                include(name: "README.txt")
+                exclude(name: "manual-upgrade.sh")
             }
         }
     }
