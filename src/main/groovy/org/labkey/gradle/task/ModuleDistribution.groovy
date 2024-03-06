@@ -462,7 +462,7 @@ class ModuleDistribution extends DefaultTask
                 include(name: "VERSION")
             }
 
-            tarfileset(dir: BuildUtils.getBuildDirFile(project, "embedded"), prefix: archiveName) {
+            tarfileset(dir: "${BuildUtils.getBuildDirPath(project)}/embedded", prefix: archiveName) {
                 exclude(name: "manual-upgrade.sh")
             }
         }
