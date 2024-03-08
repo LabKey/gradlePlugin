@@ -909,7 +909,7 @@ class BuildUtils
     /**
      * Writes a file in the build/deploy/modules directory that can be used as a trigger file for restarting
      * SpringBoot. Without this, restarts may happen before the full application deployment is done, resulting
-     * if a failed start. See
+     * in a failed start. See
      * https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using.devtools.restart.triggerfile
      * We use build/deploy/modules because when using a local build it's added in the application.properties file as a
      * spring.devtools.restart.additional-paths
