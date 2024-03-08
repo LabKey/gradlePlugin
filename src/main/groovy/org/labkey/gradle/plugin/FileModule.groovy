@@ -243,6 +243,7 @@ class FileModule implements Plugin<Project>
                             copy.into ServerDeployExtension.getModulesDeployDirectory(project)
                             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                         }
+                        BuildUtils.touchRestartTriggerFile(project)
                     }
                 }
 
@@ -263,6 +264,9 @@ class FileModule implements Plugin<Project>
                     task.doFirst {
                         undeployModule(project)
                         Api.deleteModulesApiJar(project)
+                    }
+                    task.doLast {
+                        BuildUtils.touchRestartTriggerFile(project)
                     }
             }
 

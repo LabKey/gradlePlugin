@@ -78,6 +78,9 @@ class ServerDeploy implements Plugin<Project>
             DeployApp task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Deploy the application locally into ${serverDeploy.dir}"
+                task.doLast( {
+                    BuildUtils.touchRestartTriggerFile(project)
+                } )
         }
 
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
