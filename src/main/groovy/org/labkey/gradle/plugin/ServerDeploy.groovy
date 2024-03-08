@@ -79,7 +79,7 @@ class ServerDeploy implements Plugin<Project>
                 task.group = GroupNames.DEPLOY
                 task.description = "Deploy the application locally into ${serverDeploy.dir}"
                 task.doLast( {
-                    BuildUtils.touchRestartTriggerFile(project)
+                    BuildUtils.updateRestartTriggerFile(project)
                 } )
         }
 

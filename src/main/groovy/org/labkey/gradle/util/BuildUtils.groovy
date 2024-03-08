@@ -916,7 +916,7 @@ class BuildUtils
      *
      * @param project
      */
-    static void touchRestartTriggerFile(Project project)
+    static void updateRestartTriggerFile(Project project)
     {
         OutputStreamWriter writer = null
         try {

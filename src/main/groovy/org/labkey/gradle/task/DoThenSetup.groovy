@@ -180,7 +180,7 @@ class DoThenSetup extends DefaultTask
                         return PropertiesUtils.replaceProps(line, configProperties, false)
                     })
                 })
-                BuildUtils.touchRestartTriggerFile(project)
+                BuildUtils.updateRestartTriggerFile(project)
             }
         }
     }
