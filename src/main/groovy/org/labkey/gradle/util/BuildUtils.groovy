@@ -914,7 +914,7 @@ class BuildUtils
      * We use build/deploy/modules because when using a local build it's added in the application.properties file as a
      * spring.devtools.restart.additional-paths
      *
-     * @param project
+     * @param project - for use in getting the rootProject's build directory
      */
     static void updateRestartTriggerFile(Project project)
     {
