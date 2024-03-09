@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.task
 
+import org.apache.commons.lang3.StringUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -563,6 +564,8 @@ class ModuleDistribution extends DefaultTask
 
     private void writeVersionFile()
     {
-        Files.write(getVersionFile().toPath(), ((String) project.version).getBytes())
+        // Include TeamCity buildUrl, if present.
+        def buildUrl = StringUtils.trimToEmpty(System.getenv("BUILD_URL"))
+        Files.write(getVersionFile().toPath(), "${project.version}\n${buildUrl}".trim().getBytes())
     }
 }
