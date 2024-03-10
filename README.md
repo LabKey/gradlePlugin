@@ -15,8 +15,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 2.5.0
+*Released*: 10 March 2024
 (Earliest compatible LabKey version: 24.2)
 * [Issue 49824](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=49824): Improve embedded Tomcat auto-redeploy using a trigger file
 
