@@ -21,6 +21,7 @@ _Note: 1.28.0 and later require Gradle 7_
 * Include `application.properties` in embedded distributions
 * Remove version from executable server jar name: `labkeyServer.jar`
 * Make `startTomcat` task work for embedded Tomcat on Windows
+* Avoid errors for missing `distributionDir` property
 
 ### 2.5.0
 *Released*: 10 March 2024
