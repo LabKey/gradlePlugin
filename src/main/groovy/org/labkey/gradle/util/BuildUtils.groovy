@@ -926,6 +926,9 @@ class BuildUtils
      */
     static void updateRestartTriggerFile(Project project)
     {
+        if (!project.hasProperty('useLocalBuild') || "false" == project.property("useLocalBuild"))
+            return
+
         OutputStreamWriter writer = null
         try {
             File triggerFile = project.rootProject.layout.buildDirectory.file("deploy/modules/${RESTART_FILE_NAME}").get().getAsFile()
