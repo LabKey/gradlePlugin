@@ -242,27 +242,27 @@ class ModuleDistribution extends DefaultTask
 
     private String getTarArchivePath()
     {
-        return "${getResolvedDistributionDir()}/${getArchiveName()}.${DistributionExtension.TAR_ARCHIVE_EXTENSION}"
+        return "${getDistributionDir()}/${getArchiveName()}.${DistributionExtension.TAR_ARCHIVE_EXTENSION}"
     }
 
     private String getEmbeddedTarArchivePath()
     {
-        return "${getResolvedDistributionDir()}/${getArchiveName()}${DistributionExtension.EMBEDDED_SUFFIX}.${DistributionExtension.TAR_ARCHIVE_EXTENSION}"
+        return "${getDistributionDir()}/${getArchiveName()}${DistributionExtension.EMBEDDED_SUFFIX}.${DistributionExtension.TAR_ARCHIVE_EXTENSION}"
     }
 
     private String getZipArchivePath()
     {
-        return "${getResolvedDistributionDir()}/${getArchiveName()}.${DistributionExtension.ZIP_ARCHIVE_EXTENSION}"
+        return "${getDistributionDir()}/${getArchiveName()}.${DistributionExtension.ZIP_ARCHIVE_EXTENSION}"
     }
 
     private String getEmbeddedZipArchivePath()
     {
-        return "${getResolvedDistributionDir()}/${getArchiveName()}${DistributionExtension.EMBEDDED_SUFFIX}.${DistributionExtension.ZIP_ARCHIVE_EXTENSION}"
+        return "${getDistributionDir()}/${getArchiveName()}${DistributionExtension.EMBEDDED_SUFFIX}.${DistributionExtension.ZIP_ARCHIVE_EXTENSION}"
     }
 
     private String getWarArchivePath()
     {
-        return "${getResolvedDistributionDir()}/${getArchiveName()}.war"
+        return "${getDistributionDir()}/${getArchiveName()}.war"
     }
 
     private File getWindowsUtilDir()
