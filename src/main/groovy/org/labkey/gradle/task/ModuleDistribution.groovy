@@ -15,6 +15,8 @@
  */
 package org.labkey.gradle.task
 
+import org.apache.commons.lang3.StringUtils
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -54,8 +56,7 @@ class ModuleDistribution extends DefaultTask
     @Input
     boolean simpleDistribution = false // Set to true to exclude pipeline tools and remote pipeline libraries
 
-    @OutputDirectory
-    File distributionDir
+    private File distributionDir
 
     private final DistributionExtension distExtension
     private Project licensingProject
@@ -77,10 +78,14 @@ class ModuleDistribution extends DefaultTask
     }
 
     @OutputDirectory
-    File getResolvedDistributionDir()
+    File getDistributionDir()
     {
-        if (distributionDir == null && subDirName != null)
-            distributionDir = project.file("${distExtension.dir}/${subDirName}")
+        if (distributionDir == null) {
+            var subDir = StringUtils.trimToNull(subDirName)
+            if (subDir == null)
+                subDir = project.name
+            distributionDir = project.file("${distExtension.dir}/${subDir}")
+        }
         return distributionDir
     }
 
