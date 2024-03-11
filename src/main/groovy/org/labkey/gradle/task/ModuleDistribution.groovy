@@ -16,7 +16,6 @@
 package org.labkey.gradle.task
 
 import org.apache.commons.lang3.StringUtils
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -237,7 +236,7 @@ class ModuleDistribution extends DefaultTask
 
     private String getEmbeddedTomcatJarPath()
     {
-        return BuildUtils.getBuildDirFile(project, "labkeyServer-${project.version}.jar").path
+        return BuildUtils.getBuildDirFile(project, "labkeyServer.jar").path
     }
 
     private String getTarArchivePath()
@@ -422,6 +421,10 @@ class ModuleDistribution extends DefaultTask
             zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/") {
                 include(name: "labkeywebapp/**")
             }
+            zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
+                    prefix: "${DistributionExtension.DIST_FILE_DIR}") {
+                include(name: "VERSION")
+            }
         }
 
         project.copy {
@@ -463,10 +466,7 @@ class ModuleDistribution extends DefaultTask
                 include(name: "VERSION")
             }
 
-            tarfileset(dir: BuildUtils.getBuildDirFile(project, "embedded"), prefix: archiveName) {
-                // include(name: "manual-upgrade.sh")
-                include(name: "README.txt")
-            }
+            tarfileset(dir: "${BuildUtils.getBuildDirPath(project)}/embedded", prefix: archiveName)
         }
     }
 
@@ -491,11 +491,7 @@ class ModuleDistribution extends DefaultTask
                 include(name: "VERSION")
             }
 
-            zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/embedded/",
-                    prefix: "${archiveName}") {
-                // include(name: "manual-upgrade.sh")
-                include(name: "README.txt")
-            }
+            zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/embedded/", prefix: "${archiveName}")
         }
     }
 
@@ -510,6 +506,16 @@ class ModuleDistribution extends DefaultTask
             copy.into(project.layout.buildDirectory)
             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
+        // Prefer files from 'server/configs/webapps' if they exist
+        File serverConfigDir = project.rootProject.file("server/configs/webapps/")
+        if (serverConfigDir.exists()) {
+            project.copy({ CopySpec copy ->
+                copy.from(serverConfigDir)
+                copy.exclude "*.xml"
+                copy.into(project.layout.buildDirectory)
+                copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
+            })
+        }
         // Allow distributions to include custom README
         File resources = project.file("resources")
         if (resources.isDirectory()) {
@@ -562,6 +568,8 @@ class ModuleDistribution extends DefaultTask
 
     private void writeVersionFile()
     {
-        Files.write(getVersionFile().toPath(), ((String) project.version).getBytes())
+        // Include TeamCity buildUrl, if present.
+        def buildUrl = StringUtils.trimToEmpty(System.getenv("BUILD_URL"))
+        Files.write(getVersionFile().toPath(), "${project.version}\n${buildUrl}".trim().getBytes())
     }
 }

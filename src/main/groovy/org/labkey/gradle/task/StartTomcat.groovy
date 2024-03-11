@@ -52,7 +52,8 @@ class StartTomcat extends DefaultTask
             String javaHome = TeamCityExtension.getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
             if (StringUtils.isEmpty(javaHome))
                 throw new GradleException("JAVA_HOME must be set in order to start your embedded tomcat server.")
-            File javaExec = new File(javaHome, "bin/java")
+            File javaBin = new File(javaHome, "bin")
+            File javaExec = new File(javaBin, SystemUtils.IS_OS_WINDOWS ? "java.exe" : "java")
             if (!javaExec.exists())
                 throw new GradleException("Invalid value for JAVA_HOME. Could not find java command in ${javaExec}")
             String[] commandParts = [javaExec.getAbsolutePath()]
