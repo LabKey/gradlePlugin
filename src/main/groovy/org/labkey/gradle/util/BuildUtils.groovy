@@ -33,8 +33,10 @@ import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.ModuleDistribution
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.text.SimpleDateFormat
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -50,7 +52,7 @@ class BuildUtils
     public static final String PLATFORM_MODULES_DIR = "server/modules/platform"
     public static final String COMMON_ASSAYS_MODULES_DIR = "server/modules/commonAssays"
     public static final String CUSTOM_MODULES_DIR = "server/modules/customModules"
-
+    private static final String RESTART_FILE_NAME = ".restartTrigger"
 
     public static final List<String> EHR_MODULE_NAMES = [
             "EHR_ComplianceDB",
@@ -910,6 +912,31 @@ class BuildUtils
     private static boolean _useEmbeddedTomcat(Object o)
     {
         o.hasProperty(USE_EMBEDDED_TOMCAT) && o[USE_EMBEDDED_TOMCAT] != "false"
+    }
+
+    /**
+     * Writes a file in the build/deploy/modules directory that can be used as a trigger file for restarting
+     * SpringBoot. Without this, restarts may happen before the full application deployment is done, resulting
+     * in a failed start. See
+     * https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using.devtools.restart.triggerfile
+     * We use build/deploy/modules because when using a local build it's added in the application.properties file as a
+     * spring.devtools.restart.additional-paths
+     *
+     * @param project - for use in getting the rootProject's build directory
+     */
+    static void updateRestartTriggerFile(Project project)
+    {
+        OutputStreamWriter writer = null
+        try {
+            File triggerFile = project.rootProject.layout.buildDirectory.file("deploy/modules/${RESTART_FILE_NAME}").get().getAsFile()
+            writer = new OutputStreamWriter(new FileOutputStream(triggerFile), StandardCharsets.UTF_8)
+            writer.write(SimpleDateFormat.getDateTimeInstance().format(new Date()))
+        }
+        finally
+        {
+            if (writer != null)
+                writer.close()
+        }
     }
 
     static void addExternalDependency(Project project, ExternalDependency dependency, Closure closure=null)

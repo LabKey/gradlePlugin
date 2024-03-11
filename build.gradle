@@ -42,7 +42,7 @@ dependencies {
 }
 
 group 'org.labkey.build'
-project.version = "2.5.0-embeddedUpgrade-SNAPSHOT"
+project.version = "2.6.0-embeddedUpgrade-SNAPSHOT"
 
 gradlePlugin {
     plugins {

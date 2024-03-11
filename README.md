@@ -15,12 +15,17 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### 2.5.0
+### 2.6.0
 *Released*: TBD
 (Earliest compatible LabKey version: 24.2)
 * Include `application.properties` in embedded distributions
 * Remove version from executable server jar name: `labkeyServer.jar`
 * Make `startTomcat` task work for embedded Tomcat on Windows
+
+### 2.5.0
+*Released*: 10 March 2024
+(Earliest compatible LabKey version: 24.2)
+* [Issue 49824](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=49824): Improve embedded Tomcat auto-redeploy using a trigger file
 
 ### 2.4.0
 *Released*: 27 February 2024
