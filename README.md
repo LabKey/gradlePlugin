@@ -21,6 +21,11 @@ _Note: 1.28.0 and later require Gradle 7_
 * Include `application.properties` in embedded distributions
 * Remove version from executable server jar name: `labkeyServer.jar`
 * Make `startTomcat` task work for embedded Tomcat on Windows
+
+### 2.5.1
+*Released*: 11 March 2024
+(Earliest compatible LabKey version: 24.2)
+* Don't write restartTrigger file if not using local build (e.g., on TeamCity)
 * Avoid errors for missing `distributionDir` property
 
 ### 2.5.0

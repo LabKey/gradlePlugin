@@ -16,6 +16,7 @@
 package org.labkey.gradle.task
 
 import org.apache.commons.lang3.StringUtils
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
