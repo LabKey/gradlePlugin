@@ -16,7 +16,6 @@
 package org.labkey.gradle.task
 
 import org.apache.commons.lang3.StringUtils
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -508,9 +507,10 @@ class ModuleDistribution extends DefaultTask
             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
         // Prefer files from 'server/configs/webapps' if they exist
-        if (BuildUtils.getWebappConfigDir(project) != null) {
+        File serverConfigDir = project.rootProject.file("server/configs/webapps/")
+        if (serverConfigDir.exists()) {
             project.copy({ CopySpec copy ->
-                copy.from(BuildUtils.getWebappConfigDir(project))
+                copy.from(serverConfigDir)
                 copy.exclude "*.xml"
                 copy.into(project.layout.buildDirectory)
                 copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)

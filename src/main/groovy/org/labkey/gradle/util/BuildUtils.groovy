@@ -886,14 +886,6 @@ class BuildUtils
             return ModuleDistribution.getDistributionResources(project).matching {include fileName}.singleFile
     }
 
-    static File getWebappConfigDir(Project project)
-    {
-        if (project.rootProject.file("server/configs/webapps/").exists())
-            return project.rootProject.file("server/configs/webapps/")
-        else
-            return null
-    }
-
     static boolean embeddedProjectExists(Project project)
     {
         return project.findProject(getEmbeddedProjectPath(project.gradle)) != null
