@@ -18,7 +18,7 @@ _Note: 1.28.0 and later require Gradle 7_
 ### TBD
 *Released*: TBD
 (Earliest compatible LabKey version: 24.2)
-* Create output directory for reloadTrigger file if it doesn't exist
+* Account for missing directory for reloadTrigger fle
 
 ### 2.6.0
 *Released*: 11 March 2024
