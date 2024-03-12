@@ -923,7 +923,10 @@ class BuildUtils
 
         OutputStreamWriter writer = null
         try {
-            File triggerFile = project.rootProject.layout.buildDirectory.file("deploy/modules/${RESTART_FILE_NAME}").get().getAsFile()
+            File triggerFileDir = project.rootProject.layout.buildDirectory.file("deploy/modules").get().getAsFile()
+            triggerFileDir.mkdirs()
+
+            File triggerFile = new File(triggerFileDir, RESTART_FILE_NAME)
             writer = new OutputStreamWriter(new FileOutputStream(triggerFile), StandardCharsets.UTF_8)
             writer.write(SimpleDateFormat.getDateTimeInstance().format(new Date()))
         }
