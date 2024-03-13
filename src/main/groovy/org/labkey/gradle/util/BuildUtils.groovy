@@ -921,9 +921,13 @@ class BuildUtils
         if (!project.hasProperty('useLocalBuild') || "false" == project.property("useLocalBuild"))
             return
 
+        File triggerFileDir = project.rootProject.layout.buildDirectory.file("deploy/modules").get().getAsFile()
+        if (!triggerFileDir.exists())
+            return
+
         OutputStreamWriter writer = null
         try {
-            File triggerFile = project.rootProject.layout.buildDirectory.file("deploy/modules/${RESTART_FILE_NAME}").get().getAsFile()
+            File triggerFile = new File(triggerFileDir, RESTART_FILE_NAME)
             writer = new OutputStreamWriter(new FileOutputStream(triggerFile), StandardCharsets.UTF_8)
             writer.write(SimpleDateFormat.getDateTimeInstance().format(new Date()))
         }
