@@ -551,6 +551,8 @@ class BuildUtils
             'tomcat7-websocket'
     ]
 
+    private static List LIMS_MODULES = ["biologics", "inventory", "labbook", "puppeteer", "recipe", "sampleManagement"]
+
     static String getGitUrl(Project project)
     {
         def grgit = Grgit.open(currentDir: project.projectDir)
@@ -788,6 +790,8 @@ class BuildUtils
 
     static String getModuleProjectPath(ModuleDependency dependency)
     {
+        if (LIMS_MODULES.contains(dependency.getName()))
+            return ":server:modules:limsModules:" + dependency.getName()
         return ":server:modules:" + dependency.getName()
     }
 
