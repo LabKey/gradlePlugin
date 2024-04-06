@@ -16,7 +16,7 @@ on how to do that, including how to develop and test locally and the versioning 
 _Note: 1.28.0 and later require Gradle 7_
 
 ### 2.6.2
-*Released*: TBD
+*Released*: 6 April 2024
 (Earliest compatible LabKey version: 24.3)
 * Fix problem with `BuildUtils.getModuleProjectPath` to account for `limsModules` repo
 
