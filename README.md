@@ -17,7 +17,7 @@ _Note: 1.28.0 and later require Gradle 7_
 
 ### TBD
 *Released*: TBD
-(Earliest compatible LabKey version: 24.3)
+(Earliest compatible LabKey version: 24.4)
 * Change `Distribution.inheritDependencies` exclusion list to be just the module names
 
 ### 2.6.2
