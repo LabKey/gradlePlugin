@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 2.6.3
+*Released*: 12 April 2024
+(Earliest compatible LabKey version: 24.5)
+* Change `Distribution.inheritDependencies` exclusion list to be just the module names
+
 ### 2.6.2
 *Released*: 6 April 2024
 (Earliest compatible LabKey version: 24.3)
