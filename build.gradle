@@ -42,7 +42,7 @@ dependencies {
 }
 
 group 'org.labkey.build'
-project.version = "2.7.0-moduleExclusion-SNAPSHOT"
+project.version = "2.7.0-SNAPSHOT"
 
 gradlePlugin {
     plugins {
