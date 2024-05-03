@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 2.6.4
+*Released*: TBD
+(Earliest compatible LabKey version: 24.5)
+* Put startup properties in correct folder for embedded deployments
+
 ### 2.6.3
 *Released*: 12 April 2024
 (Earliest compatible LabKey version: 24.5)
