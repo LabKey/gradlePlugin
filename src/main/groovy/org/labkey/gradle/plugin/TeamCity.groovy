@@ -146,7 +146,9 @@ class TeamCity extends Tomcat
             doLast {
                 String properties = extension.getTeamCityProperty('labkey.startup.properties')
 
-                extension.writeStartupProperties('99_teamcity_startup.properties', properties)
+                if (!properties.isBlank()) {
+                    extension.writeStartupProperties('99_teamcity_startup.properties', properties)
+                }
             }
         }
 
