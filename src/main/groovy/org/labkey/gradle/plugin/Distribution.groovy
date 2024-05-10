@@ -101,10 +101,7 @@ class Distribution implements Plugin<Project>
                 utilities "org.labkey.tools.windows:utils:${project.windowsUtilsVersion}@zip"
             }
 
-        if (BuildUtils.useEmbeddedTomcat(project))
-        {
-            BuildUtils.addLabKeyDependency(project: project, config: "embedded", depProjectPath: BuildUtils.getEmbeddedProjectPath(project.gradle), depVersion: project.labkeyVersion, depProjectConfig: "embedded", transitive: false)
-        }
+        BuildUtils.addLabKeyDependency(project: project, config: "embedded", depProjectPath: BuildUtils.getEmbeddedProjectPath(project.gradle), depVersion: project.labkeyVersion, depProjectConfig: "embedded", transitive: false)
         TaskUtils.configureTaskIfPresent(project, 'artifactoryDeploy', { dependsOn(project.tasks.distribution) })
 
     }
