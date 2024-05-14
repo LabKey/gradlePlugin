@@ -31,6 +31,15 @@ import java.util.stream.Collectors
 
 class StartTomcat extends DefaultTask
 {
+    private static final String EMBEDDED_REFLECTION_PARAM = "embeddedReflectionArgs"
+    private static final List<String> DEFAULT_EMBEDDED_REFLECTION_OPTS = [
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=java.base/java.io=ALL-UNNAMED",
+            "--add-opens=java.base/java.util=ALL-UNNAMED",
+            "--add-opens=java.desktop/java.awt.font=ALL-UNNAMED",
+            "--add-opens=java.base/java.text=ALL-UNNAMED"
+    ]
+
     @TaskAction
     void action()
     {
@@ -57,6 +66,7 @@ class StartTomcat extends DefaultTask
             if (!javaExec.exists())
                 throw new GradleException("Invalid value for JAVA_HOME. Could not find java command in ${javaExec}")
             String[] commandParts = [javaExec.getAbsolutePath()]
+            commandParts += getEmbeddedReflectionOpts(project)
             commandParts += getStartupOpts(project)
             commandParts += ["-jar", jarFile.getName()]
 
@@ -164,11 +174,21 @@ class StartTomcat extends DefaultTask
         }
 
         if (project.hasProperty("extraCatalinaOpts"))
-            optsList.addAll(((String) project.property("extraCatalinaOpts")).split(" "))
+            optsList.addAll(((String) project.property("extraCatalinaOpts")).split("\\s+"))
 
         return optsList.stream()
                 .filter({String opt -> return !StringUtils.isEmpty(opt)})
                 .collect(Collectors.toList())
 
+    }
+
+    private static List<String> getEmbeddedReflectionOpts(Project project)
+    {
+        if (project.hasProperty(EMBEDDED_REFLECTION_PARAM)) {
+            return ((String) project.property(EMBEDDED_REFLECTION_PARAM)).trim().split("\\s+")
+        }
+        else {
+            return DEFAULT_EMBEDDED_REFLECTION_OPTS
+        }
     }
 }

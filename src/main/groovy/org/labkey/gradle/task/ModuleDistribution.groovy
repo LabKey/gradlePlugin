@@ -89,8 +89,12 @@ class ModuleDistribution extends DefaultTask
     }
 
     private boolean shouldBuildEmbeddedArchive(String extension = null) {
-        return (embeddedArchiveType != null && (extension == null || embeddedArchiveType.indexOf(extension) >= 0)) &&
-                makeDistribution && BuildUtils.useEmbeddedTomcat(project)
+        return (embeddedArchiveType != null && (extension == null || embeddedArchiveType.indexOf(extension) >= 0)) && makeDistribution
+                || DistributionExtension.TAR_ARCHIVE_EXTENSION == extension && project.hasProperty("forceEmbeddedDist")
+    }
+
+    private boolean shouldBuildStandaloneTarGz() {
+        includeTarGZArchive || project.hasProperty("forceStandaloneDist")
     }
 
     @OutputFiles
@@ -101,7 +105,7 @@ class ModuleDistribution extends DefaultTask
         if (shouldBuildEmbeddedArchive())
             distFiles.add(new File(getEmbeddedTomcatJarPath()))
 
-        if (includeTarGZArchive)
+        if (shouldBuildStandaloneTarGz())
             distFiles.add(new File(getTarArchivePath()))
         if (shouldBuildEmbeddedArchive(DistributionExtension.TAR_ARCHIVE_EXTENSION))
             distFiles.add(new File(getEmbeddedTarArchivePath()))
@@ -209,7 +213,7 @@ class ModuleDistribution extends DefaultTask
 
     private void packageArchives()
     {
-        if (includeTarGZArchive)
+        if (shouldBuildStandaloneTarGz())
             tarArchives()
         if (shouldBuildEmbeddedArchive(DistributionExtension.TAR_ARCHIVE_EXTENSION))
             embeddedTomcatTarArchive()
