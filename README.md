@@ -16,7 +16,7 @@ on how to do that, including how to develop and test locally and the versioning 
 _Note: 1.28.0 and later require Gradle 7_
 
 ### 2.7.0
-*Released*: TBD
+*Released*: 14 May 2024
 (Earliest compatible LabKey version: 24.5)
 * Include required reflection parameters to embedded `StartTomcat`
 * Build embedded distribution archives regardless of `useEmbeddedTomcat` flag

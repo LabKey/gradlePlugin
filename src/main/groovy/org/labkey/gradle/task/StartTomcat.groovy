@@ -174,7 +174,7 @@ class StartTomcat extends DefaultTask
         }
 
         if (project.hasProperty("extraCatalinaOpts"))
-            optsList.addAll(((String) project.property("extraCatalinaOpts")).split(" "))
+            optsList.addAll(((String) project.property("extraCatalinaOpts")).split("\\s+"))
 
         return optsList.stream()
                 .filter({String opt -> return !StringUtils.isEmpty(opt)})
@@ -185,7 +185,7 @@ class StartTomcat extends DefaultTask
     private static List<String> getEmbeddedReflectionOpts(Project project)
     {
         if (project.hasProperty(EMBEDDED_REFLECTION_PARAM)) {
-            return ((String) project.property(EMBEDDED_REFLECTION_PARAM)).trim().split(" +")
+            return ((String) project.property(EMBEDDED_REFLECTION_PARAM)).trim().split("\\s+")
         }
         else {
             return DEFAULT_EMBEDDED_REFLECTION_OPTS
