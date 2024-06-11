@@ -158,9 +158,9 @@ class StartTomcat extends DefaultTask
     {
         List<String> optsList = new ArrayList<>()
         optsList.add(project.tomcat.assertionFlag)
-        optsList.add("-Ddevmode=${LabKeyExtension.isDevMode(project)}")
+        optsList.add("-Ddevmode=${LabKeyExtension.isDevMode(project)}".toString())
         optsList.addAll(project.tomcat.catalinaOpts.split(" "))
-        optsList.add("-Xmx${TeamCityExtension.getTeamCityProperty(project, "Xmx", project.tomcat.maxMemory)}")
+        optsList.add("-Xmx${TeamCityExtension.getTeamCityProperty(project, "Xmx", project.tomcat.maxMemory)}".toString())
         if (project.tomcat.disableRecompileJsp)
             optsList.add("-Dlabkey.disableRecompileJsp=true")
         if (project.tomcat.ignoreModuleSource)
@@ -170,7 +170,7 @@ class StartTomcat extends DefaultTask
 
         if (TeamCityExtension.isOnTeamCity(project) && SystemUtils.IS_OS_UNIX)
         {
-            optsList.add("-DsequencePipelineEnabled=${TeamCityExtension.getTeamCityProperty(project, "sequencePipelineEnabled", false)}")
+            optsList.add("-DsequencePipelineEnabled=${TeamCityExtension.getTeamCityProperty(project, "sequencePipelineEnabled", false)}".toString())
         }
 
         if (project.hasProperty("extraCatalinaOpts"))
