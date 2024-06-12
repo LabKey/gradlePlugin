@@ -36,6 +36,7 @@ import org.labkey.gradle.plugin.extension.StagingExtension
 import org.labkey.gradle.task.*
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
+import org.labkey.gradle.util.TaskUtils
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -256,12 +257,16 @@ class ServerDeploy implements Plugin<Project>
                 doLast {
                     project.copy {
                         CopySpec copy ->
-                            copy.from embeddedProject.layout.buildDirectory.file( "libs")
+                            copy.from embeddedProject.tasks.bootJar
                             copy.into project.serverDeploy.embeddedDir
                             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                     }
                 }
             }
+            TaskUtils.getOptionalTask(embeddedProject, 'checkVersionConflicts').ifPresent(task -> {
+                project.tasks.named('deployApp').configure {dependsOn(task)}
+            })
+
             project.tasks.named('stageApp').configure {dependsOn(embeddedProject.tasks.build)}
             project.tasks.named('setup').configure {mustRunAfter(project.tasks.cleanEmbeddedDeploy)}
 

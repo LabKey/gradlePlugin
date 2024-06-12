@@ -15,6 +15,12 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### 2.7.1
+*Released*: 12 June 2024
+(Earliest compatible LabKey version: 24.5)
+* Compatibility with Gradle 8.8 that doesn't want Strings and GStrings to be in the same list
+* [Issue 50563](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=50563): Better management of versions of embedded jar
+
 ### 2.7.0
 *Released*: 14 May 2024
 (Earliest compatible LabKey version: 24.5)
