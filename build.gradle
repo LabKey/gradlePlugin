@@ -42,7 +42,7 @@ dependencies {
 }
 
 group 'org.labkey.build'
-project.version = "2.8.0-SNAPSHOT"
+project.version = "2.7.2-distDiskSpace-SNAPSHOT"
 
 gradlePlugin {
     plugins {
