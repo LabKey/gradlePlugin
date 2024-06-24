@@ -140,7 +140,6 @@ class ModuleDistribution extends DefaultTask
     File getModulesDir()
     {
         // we use a common directory to save on disk space for TeamCity.
-        // (This is just a conjecture about why it continues to run out of space and not be able to copy files from one place to the other).
         return new File("${BuildUtils.getRootBuildDirPath(project)}/distModules")
     }
 
@@ -240,7 +239,12 @@ class ModuleDistribution extends DefaultTask
 
     private String getEmbeddedTomcatJarPath()
     {
-        return BuildUtils.getBuildDirFile(project, "labkeyServer.jar").path
+        return new File(getModulesDir(), "labkeyServer.jar").path
+    }
+
+    private String getDistributionZipPath()
+    {
+        return new File(getModulesDir(), "labkey/distribution.zip").path
     }
 
     private String getTarArchivePath()
@@ -411,14 +415,14 @@ class ModuleDistribution extends DefaultTask
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
 
         File embeddedJarFile = project.configurations.embedded.singleFile
-        File modulesZipFile = BuildUtils.getBuildDirFile(project,"labkey/distribution.zip")
+        String modulesZipFile = getDistributionZipPath()
         File serverJarFile = new File(getEmbeddedTomcatJarPath())
-        ant.zip(destFile: modulesZipFile.getAbsolutePath()) {
+        ant.zip(destFile: modulesZipFile) {
             zipfileset(dir: staging.webappDir,
                     prefix: "labkeywebapp") {
                 exclude(name: "WEB-INF/classes/distribution")
             }
-            zipfileset(dir: BuildUtils.getRootBuildDirFile(project, "distModules"),
+            zipfileset(dir: getModulesDir(),
                     prefix: "modules") {
                 include(name: "*.module")
             }
@@ -444,7 +448,7 @@ class ModuleDistribution extends DefaultTask
             update: true,
             keepcompression: true
         ) {
-            fileset(dir: "${BuildUtils.getBuildDirPath(project)}", includes: "labkey/**")
+            fileset(dir: "${getModulesDir()}", includes: "labkey/**")
         }
     }
 
