@@ -16,9 +16,9 @@ on how to do that, including how to develop and test locally and the versioning 
 _Note: 1.28.0 and later require Gradle 7_
 
 ### 2.7.2
-*Released*: TBD
+*Released*: 24 June 2024
 (Earliest compatible LabKey version: 24.5)
-* Make `ModuleDistribution` tasks more efficient with disk space
+* Remediate excessive disk space usage by `ModuleDistribution` tasks
 
 ### 2.7.1
 *Released*: 12 June 2024
