@@ -18,6 +18,7 @@ package org.labkey.gradle.task
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.tasks.testing.Test
 import org.labkey.gradle.plugin.extension.LabKeyExtension
+import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
 import org.labkey.gradle.util.BuildUtils
@@ -52,7 +53,7 @@ abstract class RunUiTest extends Test
 
     void setJvmArgs()
     {
-        List<String> jvmArgsList = ["-Xmx512m",
+        List<String> jvmArgsList = [
                                     "-Xdebug",
                                     "-Xrunjdwp:transport=dt_socket,server=y," +
                                             "suspend=${testExt.getTestConfig("debugSuspendSelenium")}," +
@@ -62,8 +63,11 @@ abstract class RunUiTest extends Test
                                     "--add-opens=java.base/java.util=ALL-UNNAMED"
         ]
 
-        if (project.hasProperty("uiTestJvmOpts"))
-            jvmArgsList.add((String) project.property("uiTestJvmOpts"))
+        var memOpts = ((String) TeamCityExtension.getTeamCityProperty(project, "uiTestMemOpts", "-Xmx512m")).split("\n")
+        jvmArgsList.addAll(memOpts)
+
+        var extraJvmOpts = ((String) TeamCityExtension.getTeamCityProperty(project, "uiTestJvmOpts", "")).split("\n")
+        jvmArgsList.addAll(extraJvmOpts)
 
         TomcatExtension tomcat = project.extensions.findByType(TomcatExtension.class)
 
