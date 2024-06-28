@@ -152,19 +152,19 @@ class TeamCityExtension
         return getTeamCityProperty(name, "")
     }
 
-    Object getTeamCityProperty(String name, Object defaultValue)
+    String getTeamCityProperty(String name, Object defaultValue)
     {
         getTeamCityProperty(project, name, defaultValue)
     }
 
-    static Object getTeamCityProperty(Project project, String name, Object defaultValue)
+    static String getTeamCityProperty(Project project, String name, Object defaultValue)
     {
         if (isOnTeamCity(project))
-            return project.teamcity[name] != null ? project.teamcity[name] : defaultValue
+            return project.teamcity[name] != null ? project.teamcity[name] : String.valueOf(defaultValue)
         else if (project.hasProperty(name))
             return project.property(name)
         else
-            return defaultValue
+            return String.valueOf(defaultValue)
     }
 
     static Properties getTeamCityProperties(Project project)

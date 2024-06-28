@@ -63,11 +63,13 @@ abstract class RunUiTest extends Test
                                     "--add-opens=java.base/java.util=ALL-UNNAMED"
         ]
 
-        var memOpts = ((String) TeamCityExtension.getTeamCityProperty(project, "uiTestMemOpts", "-Xmx512m")).split("\n")
+        var memOpts = TeamCityExtension.getTeamCityProperty(project, "uiTestMemOpts", "-Xmx512m").split("\n")
         jvmArgsList.addAll(memOpts)
 
-        var extraJvmOpts = ((String) TeamCityExtension.getTeamCityProperty(project, "uiTestJvmOpts", "")).split("\n")
-        jvmArgsList.addAll(extraJvmOpts)
+        var extraJvmOpts = TeamCityExtension.getTeamCityProperty(project, "uiTestJvmOpts", "")
+        if (!extraJvmOpts.isBlank()) {
+            jvmArgsList.addAll(extraJvmOpts.split("\n"))
+        }
 
         TomcatExtension tomcat = project.extensions.findByType(TomcatExtension.class)
 
