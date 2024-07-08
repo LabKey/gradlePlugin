@@ -32,7 +32,7 @@ class Module implements Plugin<Project> {
     {
         project.apply plugin: 'org.labkey.build.javaModule'
 
-        if (!AntBuild.isApplicable(project) && FileModule.shouldDoBuild(project, false))
+        if (FileModule.shouldDoBuild(project, false))
         {
             addDependencies(project)
         }

@@ -26,11 +26,10 @@ import org.labkey.gradle.util.GroupNames
 /**
  * Class that will convert xsd files into a jar file
  */
-class XmlBeans implements Plugin<Project>
+abstract class XmlBeans implements Plugin<Project>
 {
     public static final String SCHEMAS_DIR = "schemas" // the directory containing the schemas to be compiled
     public static final String CLASS_DIR = "xb" // the name of the directory in build or build/gensrc for the source and class files
-
 
     @Override
     void apply(Project project)
@@ -41,7 +40,7 @@ class XmlBeans implements Plugin<Project>
 
     static boolean isApplicable(Project project)
     {
-        return !AntBuild.isApplicable(project) && project.file(SCHEMAS_DIR).exists()
+        return project.file(SCHEMAS_DIR).exists()
     }
 
     private void addDependencies(Project project)
@@ -75,13 +74,9 @@ class XmlBeans implements Plugin<Project>
                 task.group = GroupNames.XML_SCHEMA
                 task.description = "compile XML schemas from directory '$SCHEMAS_DIR' into Java classes"
                 task.onlyIf {
-                    isApplicable(project)
+                    task.schemasDir.get().asFile.exists()
                 }
-                // remove the directories containing the generated java files and the compiled classes when we have to make changes.
-                task.doFirst( {
-                    project.delete(task.getSrcGenDir())
-                    project.delete(task.getClassesDir())
-                })
+                task.compileClasspath.from(project.configurations.xmlbeans)
                 // make sure we compile any API schemas first as other schemas can depend on that
                 String apiProjectPath = BuildUtils.getApiProjectPath(project.gradle)
                 if (!project.path.equals(apiProjectPath) && project.findProject(apiProjectPath))
