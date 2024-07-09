@@ -131,6 +131,7 @@ abstract class WriteDependenciesFile extends DefaultTask
     }
 
 
+    // For reference: https://docs.gradle.org/8.1.1/userguide/incremental_build.html#sec:task_input_using_dependency_resolution_results
     static class IdExtractor
             implements Transformer<List<ComponentArtifactIdentifier>, Collection<ResolvedArtifactResult>>
     {
