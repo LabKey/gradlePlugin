@@ -15,8 +15,7 @@
  */
 package org.labkey.gradle.plugin
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.DuplicatesStrategy
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -25,6 +24,8 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
+import org.labkey.gradle.task.CopyJsp
+import org.labkey.gradle.task.CopyJspResources
 import org.labkey.gradle.task.JspCompile2Java
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
@@ -35,8 +36,6 @@ import org.labkey.gradle.util.GroupNames
 class Jsp implements Plugin<Project>
 {
     public static final String BASE_NAME_EXTENSION = "_jsp"
-
-    public static final String WEBAPP_DIR = "jspWebappDir/webapp"
 
     static boolean isApplicable(Project project)
     {
@@ -120,43 +119,19 @@ class Jsp implements Plugin<Project>
                 }
         }
 
-        project.tasks.register('copyJsp', Copy)
-                {
-                    Copy task ->
-                        task.group = GroupNames.JSP
-                        task.description = "Copy jsp files to jsp compile directory"
-                        task.configure({ CopySpec copy ->
-                            copy.from 'src'
-                            copy.into project.layout.buildDirectory.file(WEBAPP_DIR)
-                            copy.include '**/*.jsp'
-                        })
-                        task.doFirst {
-                            project.delete project.layout.buildDirectory.file("${WEBAPP_DIR}/org")
-                        }
-                }
 
+        project.tasks.register('copyJsp', CopyJsp) {
+            CopyJsp task ->
+                task.group = GroupNames.JSP
+                task.description = "Copy jsp files to jsp compile directory"
+        }
 
-        // N.B. We don't use a Copy task here because as of Gradle 7.4, we get warning messages about Gradle not
-        // being able to cache the results of the task because it
-        // " ... uses this output of task ':server:modules:platform:core:npmRunBuild' without declaring an explicit or implicit dependency .."
-        // npmRunBuild outputs into the resources/views/gen and resources/web/gen directories. The 'include' configuration for what to copy doesn't
-        // seem to change Gradle's view on this overlap of directories (makes some sense since I believe it uses the directory as part of the cache key).
-        // Since caching the output here doesn't make a lot of sense, it seems low risk to leave as is, but I can't find a way to turn off the warning
-        // when this task is a Copy task. Using project.copy doesn't emit the warning.
-        project.tasks.register('copyResourceJsp', DefaultTask)
-                {
-                    DefaultTask task ->
-                        task.group = GroupNames.JSP
-                        task.description = "Copy resource jsp files to jsp compile directory"
-                        task.doLast {
-                            project.copySpec({ CopySpec copy ->
-                                copy.from 'resources'
-                                copy.into project.layout.buildDirectory.file("${WEBAPP_DIR}/org/labkey/${project.name}")
-                                copy.include '**/*.jsp'
-                                copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-                            })
-                        }
-                }
+        project.tasks.register('copyResourceJsp', CopyJspResources) {
+            CopyJspResources task ->
+                task.group = GroupNames.JSP
+                task.description = "Copy resource jsp files to jsp compile directory"
+                task.directoryName = project.name
+        }
 
         def copyTagLibs = getCopyTagLibs(project)
         if (BuildUtils.isIntellij()) {
@@ -169,7 +144,7 @@ class Jsp implements Plugin<Project>
 
         project.tasks.register('jsp2Java', JspCompile2Java) {
            JspCompile2Java task ->
-               task.webappDirectory = BuildUtils.getBuildDirFile(project, WEBAPP_DIR)
+               task.webappDirectory = BuildUtils.getBuildDirFile(project, CopyJsp.WEBAPP_DIR)
                task.group = GroupNames.JSP
                task.description = "compile jsp files into Java classes"
 
@@ -180,12 +155,14 @@ class Jsp implements Plugin<Project>
                task.inputs.files project.tasks.copyJsp
                task.inputs.files project.tasks.copyResourceJsp
                task.inputs.files project.tasks.copyTagLibs
-               task.doFirst ({
-                   project.delete task.getClassesDirectory()
-               })
+               task.compileClasspath.from(project.configurations.jspCompileClasspath)
                if (project.hasProperty('apiJar'))
                    task.dependsOn('apiJar')
                task.dependsOn('jar')
+        }
+
+        project.tasks.named('jsp2Java') {
+            notCompatibleWithConfigurationCache("ant.jasper doesn't seem completely compatible")
         }
 
         project.tasks.named('compileJspJava').configure {
@@ -227,7 +204,7 @@ class Jsp implements Plugin<Project>
                         // 'path.replace' leaves some empty directories
                         copy.setIncludeEmptyDirs false
                     }
-                    copy.into project.layout.buildDirectory.dir(WEBAPP_DIR)
+                    copy.into project.layout.buildDirectory.dir(CopyJsp.WEBAPP_DIR)
                     copy.include "${prefix}WEB-INF/web.xml"
                     copy.include "${prefix}WEB-INF/*.tld"
                     copy.include "${prefix}WEB-INF/*.jspf"

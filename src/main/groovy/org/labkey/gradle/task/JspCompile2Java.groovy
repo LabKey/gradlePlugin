@@ -18,28 +18,37 @@ package org.labkey.gradle.task
 import org.apache.commons.io.FileUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.tasks.*
 import org.labkey.gradle.util.BuildUtils
 
+import javax.inject.Inject
+
 @CacheableTask
-class JspCompile2Java extends DefaultTask
+abstract class JspCompile2Java extends DefaultTask
 {
     public static final String CLASSES_DIR = "jspTempDir/classes"
+
+    private FileSystemOperations fileSystemOperations
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
     File webappDirectory
 
     @OutputDirectory
-    File getClassesDirectory()
-    {
-        return BuildUtils.getBuildDirFile(project, CLASSES_DIR)
+    final abstract DirectoryProperty classesDirectory = project.objects.directoryProperty().convention(project.layout.buildDirectory.dir(CLASSES_DIR).get())
+
+    @InputFiles
+    @CompileClasspath
+    abstract ConfigurableFileCollection getCompileClasspath()
+
+    @Inject
+    JspCompile2Java(FileSystemOperations fs) {
+        fileSystemOperations = fs
     }
+
 
     @TaskAction
     void compile() {
@@ -50,27 +59,31 @@ class JspCompile2Java extends DefaultTask
             return
         }
 
-        project.logger.info("${project.path} Compiling jsps to Java from ${webappDirectory.getAbsolutePath()}")
+        logger.info("Compiling jsps to Java from ${webappDirectory.getAbsolutePath()}")
         String[] extensions = ["jsp"]
-        project.logger.info("${project.path}: Jsp files in ${webappDirectory.getAbsolutePath()}")
+        logger.info("Jsp files in ${webappDirectory.getAbsolutePath()}")
         FileUtils.listFiles(webappDirectory, extensions, true).forEach({
             File file ->
-                project.logger.info(file.getAbsolutePath())
+                logger.info(file.getAbsolutePath())
         })
 
-        File classesDir = getClassesDirectory()
+        fileSystemOperations.delete( {
+            it.delete(classesDirectory.get())
+        })
 
-        if (!classesDir.exists() && !classesDir.mkdirs())
+        File classesDir = classesDirectory.get().asFile
+
+        if (!classesDir.mkdirs())
             throw new GradleException("${project.path}: problem creating output directory ${classesDir.getAbsolutePath()}")
 
         ant.taskdef(
                 name: 'jasper',
                 classname: 'org.apache.jasper.JspC',
-                classpath: project.configurations.jspCompileClasspath.asPath
+                classpath: getCompileClasspath().getAsPath()
         )
         ant.jasper(
                 uriroot: "${webappDirectory.getAbsolutePath()}",
-                outputDir: getClassesDirectory(),
+                outputDir: getClassesDirectory().get(),
                 package: "org.labkey.jsp.compiled",
                 compilerTargetVM: project.targetCompatibility,
                 compilerSourceVM: project.sourceCompatibility,
