@@ -465,8 +465,8 @@ class MultiGit implements Plugin<Project>
                         this.setLicenseURL((String) this.moduleProperties.get("LicenseURL"))
                     if (this.moduleProperties.containsKey("Description") && !StringUtils.isEmpty(((String) this.moduleProperties.get("Description")).trim()))
                         this.setDescription((String) this.moduleProperties.get("Description"))
-                    if (this.moduleProperties.containsKey("ModuleDependencies"))
-                        this.setDependencies((String) this.moduleProperties.get("ModuleDependencies"))
+                    if (this.moduleProperties.containsKey(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY))
+                        this.setDependencies((String) this.moduleProperties.get(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY))
                     if (this.moduleProperties.containsKey("SupportedDatabases"))
                         this.setSupportedDatabases((String) this.moduleProperties.get("SupportedDatabases"))
                 }
