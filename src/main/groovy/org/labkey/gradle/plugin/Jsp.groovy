@@ -146,7 +146,6 @@ class Jsp implements Plugin<Project>
                else
                    task.outputs.cacheIf { false } // Just don't cache if we can't be sure of the Jasper version
                task.inputs.files project.tasks.copyJsp
-               task.inputs.files project.tasks.copyResourceJsp
                task.inputs.files project.tasks.copyTagLibs
                task.compileClasspath.from(project.configurations.jspCompileClasspath)
                if (project.hasProperty('apiJar'))
