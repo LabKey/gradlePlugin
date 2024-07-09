@@ -25,7 +25,7 @@ import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.task.CopyJsp
-import org.labkey.gradle.task.CopyJspResources
+
 import org.labkey.gradle.task.JspCompile2Java
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
@@ -124,13 +124,6 @@ class Jsp implements Plugin<Project>
             CopyJsp task ->
                 task.group = GroupNames.JSP
                 task.description = "Copy jsp files to jsp compile directory"
-        }
-
-        project.tasks.register('copyResourceJsp', CopyJspResources) {
-            CopyJspResources task ->
-                task.group = GroupNames.JSP
-                task.description = "Copy resource jsp files to jsp compile directory"
-                task.directoryName = project.name
         }
 
         def copyTagLibs = getCopyTagLibs(project)
