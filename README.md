@@ -23,7 +23,9 @@ _Note: 1.28.0 and later require Gradle 7_
   * SchemaCompile
   * WriteDependenciesFile
   * Most of the Jsp plugin, except where not supported from Gradle or not in usual build chain
+  * Create task class `PopulateExplodedLib` as a start for compatibility
 * Remove support for `.jsp` files in module `resources` directories
+* 
 
 ### 2.7.2
 *Released*: 24 June 2024

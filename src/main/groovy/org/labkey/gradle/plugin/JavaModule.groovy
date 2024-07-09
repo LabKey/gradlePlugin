@@ -25,6 +25,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.task.CheckForVersionConflicts
+import org.labkey.gradle.task.PopulateExplodedLib
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.TaskUtils
@@ -39,7 +40,7 @@ class JavaModule implements Plugin<Project>
 {
     public static final DIR_NAME = "src"
 
-    private static final List<String> JAR_TASK_NAMES = ["jar", "apiJar", "jspJar"]
+    public static final List<String> JAR_TASK_NAMES = ["jar", "apiJar", "jspJar"]
 
     static boolean isApplicable(Project project)
     {
@@ -145,24 +146,13 @@ class JavaModule implements Plugin<Project>
 
     protected static void addTasks(Project project)
     {
-        List<String> copyFromTasks = JAR_TASK_NAMES + "copyExternalLibs"
-        def populateLib = project.tasks.register("populateExplodedLib", Copy) {
-            CopySpec copy ->
-                copy.group = GroupNames.MODULE
-                copy.description = "Copy the jar files needed for the module into the ${project.labkey.explodedModuleLibDir} directory from their respective output directories"
-                copy.into project.labkey.explodedModuleLibDir
-                for (String taskName : copyFromTasks)
-                    TaskUtils.doIfTaskPresent(project, taskName, task -> {
-                        copy.from task
-                    })
+        def populateLib = project.tasks.register("populateExplodedLib", PopulateExplodedLib) {
+            PopulateExplodedLib task ->
+                task.group = GroupNames.MODULE
+                task.description = "Copy the jar files needed for the module into the ${project.labkey.explodedModuleLibDir} directory from their respective output directories"
+                task.notCompatibleWithConfigurationCache("Need to configure the copyFromTasks inputs in a compatible way")
         }
-        populateLib.configure {
-            it.doFirst {
-                File explodedLibDir = new File(project.labkey.explodedModuleLibDir)
-                if (explodedLibDir.exists())
-                    explodedLibDir.delete()
-            }
-        }
+
         project.tasks.named('module').configure {dependsOn(populateLib)}
         // We do this afterEvaluate to allow all dependencies to be declared before checking
         project.afterEvaluate({

@@ -31,6 +31,7 @@ class LabKeyExtension
     public static final String LABKEY_MODULE_GROUP = LABKEY_GROUP + MODULE_GROUP_SUFFIX
     public static final String LABKEY_API_GROUP = LABKEY_GROUP + API_GROUP_SUFFIX
     public static final String LABKEY_BUILD_GROUP = LABKEY_GROUP + BUILD_GROUP_SUFFIX
+    public static final String EXPLODED_MODULE_DIR_NAME = "explodedModule"
 
     private static enum DeployMode {
 
@@ -76,7 +77,7 @@ class LabKeyExtension
 
     void setDirectories(Project project)
     {
-        explodedModuleDir = BuildUtils.getBuildDirFile(project,"explodedModule").getPath()
+        explodedModuleDir = BuildUtils.getBuildDirFile(project,EXPLODED_MODULE_DIR_NAME).getPath()
         explodedModuleWebDir = "${explodedModuleDir}/web"
         explodedModuleConfigDir = "${explodedModuleDir}/config"
         explodedModuleLibDir = "${explodedModuleDir}/lib"
