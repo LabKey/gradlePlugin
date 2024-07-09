@@ -164,6 +164,7 @@ class FileModule implements Plugin<Project>
                 if (project.file("build.gradle").exists())
                     task.inputs.file(project.file("build.gradle"))
                 task.outputs.cacheIf { false } // disable build caching. Has too many undeclared inputs.
+                task.notCompatibleWithConfigurationCache("TODO need to rework how/where the properties are stored")
         }
 
         // This is added because Intellij started creating this "out" directory when you build through IntelliJ.
