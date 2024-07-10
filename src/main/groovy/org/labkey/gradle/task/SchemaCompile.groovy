@@ -31,8 +31,7 @@ import javax.inject.Inject
 @CacheableTask
 abstract class SchemaCompile extends DefaultTask {
 
-
-  private FileSystemOperations fileSystemOperations
+  @Inject abstract FileSystemOperations getFs()
 
   // This input declaration is used to defeat the gradle build cache when the xmlbeansVersion changes and should
   // remain even if there are no usages of this method. I don't know why the cache key doesn't change as a result of the
@@ -57,15 +56,11 @@ abstract class SchemaCompile extends DefaultTask {
   @OutputDirectory
   final abstract DirectoryProperty classesDir = project.objects.directoryProperty().convention(project.layout.buildDirectory.dir(XmlBeans.CLASS_DIR).get())
 
-  @Inject
-  SchemaCompile(FileSystemOperations fs) {
-    fileSystemOperations = fs
-  }
 
   @TaskAction
   void cleanAndCompile() {
     // remove the directories containing the generated java files and the compiled classes when we have to make changes.
-    fileSystemOperations.delete( {
+    fs.delete( {
       it.delete(srcGenDir.get())
       it.delete(classesDir.get())
     })
