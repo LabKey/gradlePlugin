@@ -50,7 +50,8 @@ class CheckForVersionConflicts  extends DefaultTask
 
     /** Indicates what should happen when a conflict is detected **/
     @Input
-    public final abstract Property<ConflictAction> conflictAction = project.objects.property(ConflictAction).convention(ConflictAction.fail)
+    public final abstract Property<ConflictAction> conflictAction = project.objects.property(ConflictAction).convention(
+            project.hasProperty('versionConflictAction') ? ConflictAction.valueOf((String) project.property('versionConflictAction')) : ConflictAction.fail)
 
     /** The collection of files to check for.  Usually this will come from a configuration. **/
     @InputFiles

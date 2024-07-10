@@ -204,8 +204,6 @@ class JavaModule implements Plugin<Project>
                         task.extension = "jar"
                         task.cleanTask = "${project.path}:clean"
                         task.collection = allJars
-                        if (project.hasProperty('versionConflictAction'))
-                            task.conflictAction =  CheckForVersionConflicts.ConflictAction.valueOf((String) project.property('versionConflictAction'))
                     }
 
             project.tasks.named("copyExternalLibs").configure {dependsOn(project.tasks.named("checkModuleJarVersions"))}
