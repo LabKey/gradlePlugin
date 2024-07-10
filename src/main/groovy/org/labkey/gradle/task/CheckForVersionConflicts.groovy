@@ -61,6 +61,10 @@ class CheckForVersionConflicts  extends DefaultTask
     @Input
     String cleanTask
 
+    ConflictAction getConflictAction() {
+        return conflictAction.get()
+    }
+
     @TaskAction
     void doAction()
     {
@@ -126,7 +130,7 @@ class CheckForVersionConflicts  extends DefaultTask
         if (!conflictMessages.isEmpty())
         {
             String message  = "Artifact versioning problem(s) in directory ${directory}:\n  " + conflictMessages.join("\n  ")
-            ConflictAction action = conflictAction.get()
+            ConflictAction action = getConflictAction()
 
             if (cleanTask != null && (action != ConflictAction.delete || haveMultiples))
                 message += "\nRun the ${cleanTask} task to remove existing artifacts in that directory."
