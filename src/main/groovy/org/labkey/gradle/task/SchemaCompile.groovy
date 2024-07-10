@@ -38,7 +38,7 @@ abstract class SchemaCompile extends DefaultTask {
   // remain even if there are no usages of this method. I don't know why the cache key doesn't change as a result of the
   // new jar file version, but it doesn't (perhaps an artifact of having to use the ant builder).
   @Input
-  final abstract Property<String> xmlBeansVersion = project.objects.property(String).convention('xmlbeansVersion')
+  final abstract Property<String> xmlBeansVersion = project.objects.property(String).convention(project.hasProperty('xmlbeansVersion') ? (String) project.property('xmlbeansVersion') : null)
 
   @InputFiles
   @CompileClasspath
