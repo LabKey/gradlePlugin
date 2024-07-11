@@ -26,7 +26,7 @@ abstract class PopulateExplodedLib extends DefaultTask
         }
         fs.copy {
             into directory.get()
-            // TODO this won't work with the configuration cache. We likely need to delcare
+            // TODO this won't work with the configuration cache. We likely need to declare
             // these tasks as inputs to this task instead.
             for (String taskName : copyFromTasks)
                 TaskUtils.doIfTaskPresent(project, taskName, task -> {
