@@ -18,13 +18,14 @@ _Note: 1.28.0 and later require Gradle 7_
 ### 3.0.0
 *Released*: TBD
 (Earliest compatible LabKey version: 24.8)
-* Remove `AntBuild` plugin
-* Updates for compatibility with configuration cache
-  * `SchemaCompile`
-  * `WriteDependenciesFile`
-  * Most of the Jsp plugin, except where not supported from Gradle or not in usual build chain
-  * `CheckForVersionConflicts` 
-* Remove support for `.jsp` files in module `resources` directories
+- Remove `AntBuild` plugin
+- Updates for compatibility with configuration cache
+  - `SchemaCompile`
+  - `WriteDependenciesFile`
+  - Most of the Jsp plugin, except where not supported from Gradle or not in usual build chain
+  - `CheckForVersionConflicts` 
+- Remove support for `.jsp` files in module `resources` directories
+- Remove support for creditable configuration for generating entries in jars.txt file
 
 ### 2.7.2
 *Released*: 24 June 2024
