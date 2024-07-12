@@ -27,6 +27,7 @@ _Note: 1.28.0 and later require Gradle 7_
   - `ModuleXmlFile` task introduced for ad-hoc `moduleXml` task
 - Remove support for `.jsp` files in module `resources` directories
 - Remove support for creditable configuration for generating entries in jars.txt file
+- Remove unused `Standalone` plugin for building stand-alone distributions
 
 ### 2.7.2
 *Released*: 24 June 2024
