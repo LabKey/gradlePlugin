@@ -24,6 +24,7 @@ _Note: 1.28.0 and later require Gradle 7_
   - `WriteDependenciesFile`
   - Most of the Jsp plugin, except where not supported from Gradle or not in usual build chain
   - `CheckForVersionConflicts` 
+  - `ModuleXmlFile` task introduced for ad-hoc `moduleXml` task
 - Remove support for `.jsp` files in module `resources` directories
 - Remove support for creditable configuration for generating entries in jars.txt file
 

@@ -30,6 +30,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
+import org.labkey.gradle.task.ModuleXmlFile
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PomFileHelper
@@ -123,48 +124,18 @@ class FileModule implements Plugin<Project>
     {
         ModuleResources.addTasks(project)
 
-        File moduleXmlFile = new File("${project.labkey.explodedModuleConfigDir}/module.xml")
-        var moduleXmlTask = project.tasks.register('moduleXml') {
-            Task task ->
-                task.doLast {
-                    InputStream is = getClass().getClassLoader().getResourceAsStream("module.template.xml")
-                    if (is == null)
-                    {
-                        throw new GradleException("Could not find 'module.template.xml' as resource file")
-                    }
-
-                    List<String> moduleDependencies = []
-                    project.configurations.modules.dependencies.each {
-                        Dependency dep -> moduleDependencies += dep.getName()
-                    }
-                    if (!moduleDependencies.isEmpty())
-                        project.lkModule.setPropertyValue(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY, moduleDependencies.join(", "))
-                    project.mkdir(project.labkey.explodedModuleConfigDir)
-                    OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(moduleXmlFile))
-
-                    is.readLines().each {
-                        String line ->
-                            Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
-                            String newLine = line
-                            while (matcher.find())
-                            {
-                                newLine = newLine.replace(matcher.group(), (String) project.lkModule.getPropertyValue(matcher.group(1), ""))
-                            }
-                            writer.println(newLine)
-                    }
-                    writer.close()
-                    is.close()
+        var moduleXmlTask = project.tasks.register('moduleXml', ModuleXmlFile) {
+            ModuleXmlFile task ->
+                List<String> moduleDependencies = []
+                project.configurations.modules.dependencies.each {
+                    Dependency dep -> moduleDependencies += dep.getName()
                 }
-
-                if (project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
-                    task.inputs.file(project.file(ModuleExtension.MODULE_PROPERTIES_FILE))
-                else
-                    project.logger.info("${project.path} - ${ModuleExtension.MODULE_PROPERTIES_FILE} not found so not added as input to 'moduleXml'")
-                task.outputs.file(moduleXmlFile)
+                if (!moduleDependencies.isEmpty())
+                    project.lkModule.setPropertyValue(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY, moduleDependencies.join(", "))
+                task.getModuleProperties().set(project.lkModule.getModProperties())
                 if (project.file("build.gradle").exists())
                     task.inputs.file(project.file("build.gradle"))
                 task.outputs.cacheIf { false } // disable build caching. Has too many undeclared inputs.
-                task.notCompatibleWithConfigurationCache("TODO need to rework how/where the properties are stored")
         }
 
         // This is added because Intellij started creating this "out" directory when you build through IntelliJ.
