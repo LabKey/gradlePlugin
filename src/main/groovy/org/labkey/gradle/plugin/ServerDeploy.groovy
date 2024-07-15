@@ -390,6 +390,7 @@ class ServerDeploy implements Plugin<Project>
             project.tasks.named('deployApp').configure {dependsOn(project.tasks.deployTomcatJars)}
         }
 
+        // TODO is this still useful?
         project.tasks.register(
                 'checkModuleTasks', DefaultTask) {
             DefaultTask task ->
@@ -415,6 +416,7 @@ class ServerDeploy implements Plugin<Project>
                                 "${projectsMissingTasks.join("\n\t")}")
 
                 })
+                task.notCompatibleWithConfigurationCache("Needs to walk the project tree")
         }
         project.tasks.named('deployApp').configure {dependsOn(project.tasks.named("checkModuleTasks"))}
         project.tasks.named('checkModuleTasks').configure {mustRunAfter(project.tasks.stageApp)} // do this so the message appears at the bottom of the output
