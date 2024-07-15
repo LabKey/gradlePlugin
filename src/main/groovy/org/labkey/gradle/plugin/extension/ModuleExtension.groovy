@@ -23,15 +23,12 @@ import org.labkey.gradle.util.PropertiesUtils
 
 import java.text.SimpleDateFormat
 
-/**
- * Created by susanh on 4/23/17.
- */
 class ModuleExtension
 {
     private static final String ENLISTMENT_PROPERTIES = "enlistment.properties"
     public static final String MODULE_PROPERTIES_FILE = "module.properties"
     public static final String MODULE_DEPENDENCIES_PROPERTY = "ModuleDependencies"
-    private Properties modProperties
+    private Map<Object, Object> modProperties = new HashMap<>()
     private Project project
     private Map<String, ExternalDependency> externalDependencies = new HashMap<>()
 
@@ -51,14 +48,14 @@ class ModuleExtension
         return project
     }
 
-    Properties getModProperties()
+    Map<Object, Object> getModProperties()
     {
         return modProperties
     }
 
     String getPropertyValue(String propertyName, String defaultValue)
     {
-        String value = modProperties.getProperty(propertyName)
+        String value = modProperties.get(propertyName)
         return value == null ? defaultValue : value
 
     }
@@ -75,15 +72,16 @@ class ModuleExtension
 
     void setPropertyValue(String propertyName, String value)
     {
-        modProperties.setProperty(propertyName, value)
+        modProperties.put(propertyName, value)
     }
 
     void setModuleProperties(Project project, boolean logDeprecations)
     {
-        this.modProperties = new Properties()
         File propertiesFile = project.file(MODULE_PROPERTIES_FILE)
         if (propertiesFile.exists()) {
-            PropertiesUtils.readProperties(propertiesFile, this.modProperties)
+            Properties props = new Properties()
+            PropertiesUtils.readProperties(propertiesFile, props)
+            this.modProperties.putAll(props)
             if (logDeprecations) {
                 List<String> deprecationMsgs = []
                 if (this.modProperties.get(MODULE_DEPENDENCIES_PROPERTY))
@@ -131,40 +129,40 @@ class ModuleExtension
         {
             PropertiesUtils.readProperties(enlistmentFile, enlistmentProperties)
         }
-        modProperties.setProperty("EnlistmentId", enlistmentProperties.getProperty("enlistment.id"))
+        modProperties.put("EnlistmentId", enlistmentProperties.getProperty("enlistment.id"))
     }
 
     private void setBuildInfoProperties()
     {
-        modProperties.setProperty("RequiredServerVersion", "0.0")
-        if (modProperties.getProperty("BuildType") == null)
-            modProperties.setProperty("BuildType", LabKeyExtension.getDeployModeName(project))
-        modProperties.setProperty("BuildUser", System.getProperty("user.name"))
-        modProperties.setProperty("BuildOS", System.getProperty("os.name"))
-        modProperties.setProperty("BuildTime", SimpleDateFormat.getDateTimeInstance().format(new Date()))
-        modProperties.setProperty("BuildPath", BuildUtils.getBuildDir(project).getAbsolutePath())
-        modProperties.setProperty("SourcePath", project.projectDir.getAbsolutePath())
-        modProperties.setProperty("ResourcePath", "") // TODO  _project.getResources().... ???
-        modProperties.setProperty("ReleaseVersion", (String) project.getProperty("labkeyVersion"))
-        if (modProperties.getProperty("ManageVersion") == null)
+        modProperties.put("RequiredServerVersion", "0.0")
+        if (modProperties.get("BuildType") == null)
+            modProperties.put("BuildType", LabKeyExtension.getDeployModeName(project))
+        modProperties.put("BuildUser", System.getProperty("user.name"))
+        modProperties.put("BuildOS", System.getProperty("os.name"))
+        modProperties.put("BuildTime", SimpleDateFormat.getDateTimeInstance().format(new Date()))
+        modProperties.put("BuildPath", BuildUtils.getBuildDir(project).getAbsolutePath())
+        modProperties.put("SourcePath", project.projectDir.getAbsolutePath())
+        modProperties.put("ResourcePath", "") // TODO  _project.getResources().... ???
+        modProperties.put("ReleaseVersion", (String) project.getProperty("labkeyVersion"))
+        if (modProperties.get("ManageVersion") == null)
         {
-            modProperties.setProperty("ManageVersion", "true")
+            modProperties.put("ManageVersion", "true")
         }
-        if (modProperties.getProperty("SchemaVersion") == null)
+        if (modProperties.get("SchemaVersion") == null)
         {
-            if (modProperties.getProperty("Version") == null)
-                modProperties.setProperty("SchemaVersion", "")  // Spring binds this as setSchemaVersion(null), which is what we want
+            if (modProperties.get("Version") == null)
+                modProperties.put("SchemaVersion", "")  // Spring binds this as setSchemaVersion(null), which is what we want
             else
-                modProperties.setProperty("SchemaVersion", modProperties.getProperty("Version"))  // For backward compatibility with old modules TODO: Remove
+                modProperties.put("SchemaVersion", modProperties.get("Version"))  // For backward compatibility with old modules TODO: Remove
         }
     }
 
     private void setModuleInfoProperties()
     {
-        if (modProperties.getProperty("Name") == null)
-            modProperties.setProperty("Name", project.name)
-        if (modProperties.getProperty("ModuleClass") == null)
-            modProperties.setProperty("ModuleClass", "org.labkey.api.module.SimpleModule")
+        if (modProperties.get("Name") == null)
+            modProperties.put("Name", project.name)
+        if (modProperties.get("ModuleClass") == null)
+            modProperties.put("ModuleClass", "org.labkey.api.module.SimpleModule")
     }
 
     void addExternalDependency(ExternalDependency dependency)

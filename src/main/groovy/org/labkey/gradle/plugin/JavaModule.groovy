@@ -39,7 +39,7 @@ class JavaModule implements Plugin<Project>
 {
     public static final DIR_NAME = "src"
 
-    private static final List<String> JAR_TASK_NAMES = ["jar", "apiJar", "jspJar"]
+    public static final List<String> JAR_TASK_NAMES = ["jar", "apiJar", "jspJar"]
 
     static boolean isApplicable(Project project)
     {
@@ -61,28 +61,25 @@ class JavaModule implements Plugin<Project>
         project.apply plugin: 'maven-publish'
         project.apply plugin: 'org.labkey.build.fileModule'
 
-        if (!AntBuild.isApplicable(project))
+        // this comes before the setJavaBuildProperties because we declare
+        // dependencies to tasks from this plugin in the jar configuration
+        if (XmlBeans.isApplicable(project))
+            project.apply plugin: 'org.labkey.build.xmlBeans'
+
+        setJavaBuildProperties(project)
+
+        if (Api.isApplicable(project))
+            project.apply plugin: 'org.labkey.build.api'
+
+        if (Jsp.isApplicable(project))
+            project.apply plugin: 'org.labkey.build.jsp'
+
+        if (Gwt.isApplicable(project))
+            project.apply plugin: 'org.labkey.build.gwt'
+
+        if (UiTest.isApplicable(project))
         {
-            // this comes before the setJavaBuildProperties because we declare
-            // dependencies to tasks from this plugin in the jar configuration
-            if (XmlBeans.isApplicable(project))
-                project.apply plugin: 'org.labkey.build.xmlBeans'
-
-            setJavaBuildProperties(project)
-
-            if (Api.isApplicable(project))
-                project.apply plugin: 'org.labkey.build.api'
-
-            if (Jsp.isApplicable(project))
-                project.apply plugin: 'org.labkey.build.jsp'
-
-            if (Gwt.isApplicable(project))
-                project.apply plugin: 'org.labkey.build.gwt'
-
-            if (UiTest.isApplicable(project))
-            {
-                project.apply plugin: 'org.labkey.build.uiTest'
-            }
+            project.apply plugin: 'org.labkey.build.uiTest'
         }
     }
 
@@ -99,6 +96,7 @@ class JavaModule implements Plugin<Project>
                     api.extendsFrom(external)
                     implementation.extendsFrom(external)
                     external.extendsFrom(runtimeOnly)
+                    externalsNotTrans.extendsFrom(external)
                     implementation.extendsFrom(labkey)
                     dedupe {
                         canBeConsumed = false
@@ -165,6 +163,7 @@ class JavaModule implements Plugin<Project>
                     explodedLibDir.delete()
             }
         }
+
         project.tasks.named('module').configure {dependsOn(populateLib)}
         // We do this afterEvaluate to allow all dependencies to be declared before checking
         project.afterEvaluate({

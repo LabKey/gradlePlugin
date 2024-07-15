@@ -30,6 +30,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
+import org.labkey.gradle.task.ModuleXmlFile
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PomFileHelper
@@ -98,24 +99,17 @@ class FileModule implements Plugin<Project>
     {
         project.apply plugin: 'maven-publish'
 
+        if (SpringConfig.isApplicable(project))
+            project.apply plugin: 'org.labkey.build.springConfig'
 
-        if (AntBuild.isApplicable(project))
-        {
-            project.apply plugin: 'org.labkey.build.antBuild'
-        }
-        else
-        {
-            if (SpringConfig.isApplicable(project))
-                project.apply plugin: 'org.labkey.build.springConfig'
+        if (Webapp.isApplicable(project))
+            project.apply plugin: 'org.labkey.build.webapp'
 
-            if (Webapp.isApplicable(project))
-                project.apply plugin: 'org.labkey.build.webapp'
+        ClientLibraries.addTasks(project)
 
-            ClientLibraries.addTasks(project)
+        if (NpmRun.isApplicable(project))
+            project.apply plugin: 'org.labkey.build.npmRun'
 
-            if (NpmRun.isApplicable(project))
-                project.apply plugin: 'org.labkey.build.npmRun'
-        }
     }
 
     protected void addConfigurations(Project project)
@@ -130,44 +124,15 @@ class FileModule implements Plugin<Project>
     {
         ModuleResources.addTasks(project)
 
-        File moduleXmlFile = new File("${project.labkey.explodedModuleConfigDir}/module.xml")
-        var moduleXmlTask = project.tasks.register('moduleXml') {
-            Task task ->
-                task.doLast {
-                    InputStream is = getClass().getClassLoader().getResourceAsStream("module.template.xml")
-                    if (is == null)
-                    {
-                        throw new GradleException("Could not find 'module.template.xml' as resource file")
-                    }
-
-                    List<String> moduleDependencies = []
-                    project.configurations.modules.dependencies.each {
-                        Dependency dep -> moduleDependencies += dep.getName()
-                    }
-                    if (!moduleDependencies.isEmpty())
-                        project.lkModule.setPropertyValue(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY, moduleDependencies.join(", "))
-                    project.mkdir(project.labkey.explodedModuleConfigDir)
-                    OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(moduleXmlFile))
-
-                    is.readLines().each {
-                        String line ->
-                            Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
-                            String newLine = line
-                            while (matcher.find())
-                            {
-                                newLine = newLine.replace(matcher.group(), (String) project.lkModule.getPropertyValue(matcher.group(1), ""))
-                            }
-                            writer.println(newLine)
-                    }
-                    writer.close()
-                    is.close()
+        var moduleXmlTask = project.tasks.register('moduleXml', ModuleXmlFile) {
+            ModuleXmlFile task ->
+                List<String> moduleDependencies = []
+                project.configurations.modules.dependencies.each {
+                    Dependency dep -> moduleDependencies += dep.getName()
                 }
-
-                if (project.file(ModuleExtension.MODULE_PROPERTIES_FILE).exists())
-                    task.inputs.file(project.file(ModuleExtension.MODULE_PROPERTIES_FILE))
-                else
-                    project.logger.info("${project.path} - ${ModuleExtension.MODULE_PROPERTIES_FILE} not found so not added as input to 'moduleXml'")
-                task.outputs.file(moduleXmlFile)
+                if (!moduleDependencies.isEmpty())
+                    project.lkModule.setPropertyValue(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY, moduleDependencies.join(", "))
+                task.getModuleProperties().set(project.lkModule.getModProperties())
                 if (project.file("build.gradle").exists())
                     task.inputs.file(project.file("build.gradle"))
                 task.outputs.cacheIf { false } // disable build caching. Has too many undeclared inputs.
@@ -186,99 +151,96 @@ class FileModule implements Plugin<Project>
                 })
         }
 
-        if (!AntBuild.isApplicable(project))
-        {
-            var moduleTask = project.tasks.register("module", Jar) {
-                Jar jar ->
-                    jar.group = GroupNames.MODULE
-                    jar.description = "create the module file for this project"
-                    jar.from project.labkey.explodedModuleDir
-                    jar.exclude '**/*.uptodate'
-                    jar.exclude "META-INF/${project.name}/**"
-                    jar.exclude 'gwt-unitCache/**'
-                    jar.archiveBaseName.set(project.name)
-                    jar.archiveExtension.set('module')
-                    jar.destinationDirectory.set(project.layout.buildDirectory)
-                    jar.outputs.cacheIf({true})
-            }
+        var moduleTask = project.tasks.register("module", Jar) {
+            Jar jar ->
+                jar.group = GroupNames.MODULE
+                jar.description = "create the module file for this project"
+                jar.from project.labkey.explodedModuleDir
+                jar.exclude '**/*.uptodate'
+                jar.exclude "META-INF/${project.name}/**"
+                jar.exclude 'gwt-unitCache/**'
+                jar.archiveBaseName.set(project.name)
+                jar.archiveExtension.set('module')
+                jar.destinationDirectory.set(project.layout.buildDirectory)
+                jar.outputs.cacheIf({true})
+        }
 
-            moduleTask.configure {
-                it.dependsOn(project.tasks.named('processResources'))
-                it.dependsOn(moduleXmlTask)
-                setJarManifestAttributes(project, (Manifest) it.manifest)
-                if (!LabKeyExtension.isDevMode(project) && BuildUtils.haveMinificationProject(project.gradle))
-                    it.dependsOn(project.tasks.named('compressClientLibs'))
-            }
+        moduleTask.configure {
+            it.dependsOn(project.tasks.named('processResources'))
+            it.dependsOn(moduleXmlTask)
+            setJarManifestAttributes(project, (Manifest) it.manifest)
+            if (!LabKeyExtension.isDevMode(project) && BuildUtils.haveMinificationProject(project.gradle))
+                it.dependsOn(project.tasks.named('compressClientLibs'))
+        }
 
-            project.tasks.named("build").configure {dependsOn(moduleTask)}
-            project.tasks.clean {
-                dependsOn(project.tasks.named('cleanModule'))
-                if (BuildUtils.haveMinificationProject(project.gradle))
-                    dependsOn(project.tasks.named('cleanClientLibs'))
-            }
+        project.tasks.named("build").configure {dependsOn(moduleTask)}
+        project.tasks.clean {
+            dependsOn(project.tasks.named('cleanModule'))
+            if (BuildUtils.haveMinificationProject(project.gradle))
+                dependsOn(project.tasks.named('cleanClientLibs'))
+        }
 
-            project.artifacts
-                    {
-                        // TODO: Figure out how to add this artifact without resolving 'module' task
-                        published moduleTask.get()
-                    }
-
-            project.tasks.register('deployModule')
-                { Task task ->
-                    task.group = GroupNames.MODULE
-                    task.description = "copy a project's .module file to the local deploy directory"
-                    task.inputs.files moduleTask
-                    task.outputs.file "${ServerDeployExtension.getModulesDeployDirectory(project)}/${moduleTask.get().outputs.getFiles()[0].getName()}"
-
-                    task.doLast {
-                        project.copy { CopySpec copy ->
-                            copy.from moduleTask
-                            copy.from project.configurations.modules
-                            copy.into project.staging.modulesDir
-                            copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-                        }
-                        project.copy { CopySpec copy ->
-                            copy.from moduleTask
-                            copy.from project.configurations.modules
-                            copy.into ServerDeployExtension.getModulesDeployDirectory(project)
-                            copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-                        }
-                        BuildUtils.updateRestartTriggerFile(project)
-                    }
+        project.artifacts
+                {
+                    // TODO: Figure out how to add this artifact without resolving 'module' task
+                    published moduleTask.get()
                 }
 
-            project.tasks.register('undeployModule', Delete) {
-                Delete task ->
-                    task.group = GroupNames.MODULE
-                    task.description = "remove a project's .module file and the unjarred file from the deploy directory"
-                    task.configure(
-                    { Delete delete ->
-                        getModuleFilesAndDirectories(project).forEach({
-                            File file ->
-                                if (file.isDirectory())
-                                    delete.inputs.dir file
-                                else
-                                    delete.inputs.file file
-                        })
+        project.tasks.register('deployModule')
+            { Task task ->
+                task.group = GroupNames.MODULE
+                task.description = "copy a project's .module file to the local deploy directory"
+                task.inputs.files moduleTask
+                task.outputs.file "${ServerDeployExtension.getModulesDeployDirectory(project)}/${moduleTask.get().outputs.getFiles()[0].getName()}"
+
+                task.doLast {
+                    project.copy { CopySpec copy ->
+                        copy.from moduleTask
+                        copy.from project.configurations.modules
+                        copy.into project.staging.modulesDir
+                        copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
+                    }
+                    project.copy { CopySpec copy ->
+                        copy.from moduleTask
+                        copy.from project.configurations.modules
+                        copy.into ServerDeployExtension.getModulesDeployDirectory(project)
+                        copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
+                    }
+                    BuildUtils.updateRestartTriggerFile(project)
+                }
+            }
+
+        project.tasks.register('undeployModule', Delete) {
+            Delete task ->
+                task.group = GroupNames.MODULE
+                task.description = "remove a project's .module file and the unjarred file from the deploy directory"
+                task.configure(
+                { Delete delete ->
+                    getModuleFilesAndDirectories(project).forEach({
+                        File file ->
+                            if (file.isDirectory())
+                                delete.inputs.dir file
+                            else
+                                delete.inputs.file file
                     })
-                    task.doFirst {
-                        undeployModule(project)
-                        Api.deleteModulesApiJar(project)
-                    }
-                    task.doLast {
-                        BuildUtils.updateRestartTriggerFile(project)
-                    }
-            }
+                })
+                task.doFirst {
+                    undeployModule(project)
+                    Api.deleteModulesApiJar(project)
+                }
+                task.doLast {
+                    BuildUtils.updateRestartTriggerFile(project)
+                }
+        }
 
 
-            project.tasks.register("reallyClean") {
-                Task task ->
-                    task.group = GroupNames.BUILD
-                    task.description = "Deletes the build, staging, and deployment directories of this module"
-                    task.dependsOn(project.tasks.clean, project.tasks.undeployModule)
-                    TaskUtils.addOptionalTaskDependency(project, task, "cleanNodeModules")
-                    TaskUtils.addOptionalTaskDependency(project, task, "cleanSchemasCompile")
-            }
+        project.tasks.register("reallyClean") {
+            Task task ->
+                task.group = GroupNames.BUILD
+                task.description = "Deletes the build, staging, and deployment directories of this module"
+                task.dependsOn(project.tasks.clean, project.tasks.undeployModule)
+                TaskUtils.addOptionalTaskDependency(project, task, "cleanNodeModules")
+                TaskUtils.addOptionalTaskDependency(project, task, "cleanSchemasCompile")
         }
     }
 
@@ -360,103 +322,100 @@ class FileModule implements Plugin<Project>
 
     protected void addArtifacts(Project project)
     {
-        if (!AntBuild.isApplicable(project))
-        {
-            project.afterEvaluate {
-                project.publishing {
-                    publications {
-                        if (project.hasProperty('module'))
-                        {
-                            Properties pomProperties = LabKeyExtension.getModulePomProperties(project)
-                            modules(MavenPublication) { pub ->
-                                // Use org.labkey.module for module dependency groupIds instead of "org.labkey"
-                                pub.groupId = pomProperties.get('groupId')
-                                pub.artifact(project.tasks.module)
-                                PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, true)
-                                pom {
-                                    name = project.name
-                                    description = pomProperties.getProperty("Description")
-                                    url = pomProperties.getProperty("OrganizationURL")
-//                                    developers PomFileHelper.getLabKeyTeamDevelopers()
-                                    licenses pomUtil.getLicense()
-                                    organization pomUtil.getOrganization()
-//                                    scm PomFileHelper.getLabKeyScm()
-                                    withXml {
-                                        pomUtil.getDependencyClosure(asNode(), true)
-                                    }
+        project.afterEvaluate {
+            project.publishing {
+                publications {
+                    if (project.hasProperty('module'))
+                    {
+                        Properties pomProperties = LabKeyExtension.getModulePomProperties(project)
+                        modules(MavenPublication) { pub ->
+                            // Use org.labkey.module for module dependency groupIds instead of "org.labkey"
+                            pub.groupId = pomProperties.get('groupId')
+                            pub.artifact(project.tasks.module)
+                            PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, true)
+                            pom {
+                                name = project.name
+                                description = pomProperties.getProperty("Description")
+                                url = pomProperties.getProperty("OrganizationURL")
+    //                                    developers PomFileHelper.getLabKeyTeamDevelopers()
+                                licenses pomUtil.getLicense()
+                                organization pomUtil.getOrganization()
+    //                                    scm PomFileHelper.getLabKeyScm()
+                                withXml {
+                                    pomUtil.getDependencyClosure(asNode(), true)
                                 }
-                            }
-                        }
-
-                        if (project.hasProperty('apiJar'))
-                        {
-                            Properties pomProperties = LabKeyExtension.getApiPomProperties(project)
-                            apiLib(MavenPublication) { pub ->
-                                pub.groupId = pomProperties.get('groupId')
-                                pub.artifact(project.tasks.apiJar)
-
-                                PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, false)
-                                pom {
-                                    name = project.name
-                                    description = pomProperties.getProperty("Description")
-                                    url = pomProperties.getProperty("OrganizationURL")
-//                                    developers PomFileHelper.getLabKeyTeamDevelopers()
-                                    licenses pomUtil.getLicense()
-                                    organization pomUtil.getOrganization()
-//                                    scm PomFileHelper.getLabKeyScm()
-                                    withXml {
-                                        pomUtil.getDependencyClosure(asNode(), false)
-                                    }
-                                }
-
-                            }
-                        }
-                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
-                        {
-                            Properties pomProperties = LabKeyExtension.getApiPomProperties(project)
-
-                            apiLib(MavenPublication) { pub ->
-                                pub.groupId = pomProperties.get('groupId')
-                                pub.artifact(project.tasks.jar)
-
-                                PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, false)
-                                pom {
-                                    name = project.name
-                                    description = pomProperties.getProperty("Description")
-                                    url = PomFileHelper.LABKEY_ORG_URL
-                                    developers PomFileHelper.getLabKeyTeamDevelopers()
-                                    licenses pomUtil.getLicense()
-                                    organization pomUtil.getOrganization()
-//                                    scm PomFileHelper.getLabKeyScm()
-                                    withXml {
-                                        pomUtil.getDependencyClosure(asNode(), false)
-                                    }
-                                }
-
                             }
                         }
                     }
 
-                    if (BuildUtils.shouldPublish(project))
+                    if (project.hasProperty('apiJar'))
                     {
-                        if (LabKeyExtension.isDevMode(project))
-                            throw new GradleException("Modules produced with deployMode=dev are not portable and should never be published.")
-                        project.artifactoryPublish {
-                            if (project.hasProperty('module'))
-                            {
-                                dependsOn project.tasks.named("module")
+                        Properties pomProperties = LabKeyExtension.getApiPomProperties(project)
+                        apiLib(MavenPublication) { pub ->
+                            pub.groupId = pomProperties.get('groupId')
+                            pub.artifact(project.tasks.apiJar)
+
+                            PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, false)
+                            pom {
+                                name = project.name
+                                description = pomProperties.getProperty("Description")
+                                url = pomProperties.getProperty("OrganizationURL")
+    //                                    developers PomFileHelper.getLabKeyTeamDevelopers()
+                                licenses pomUtil.getLicense()
+                                organization pomUtil.getOrganization()
+    //                                    scm PomFileHelper.getLabKeyScm()
+                                withXml {
+                                    pomUtil.getDependencyClosure(asNode(), false)
+                                }
                             }
 
-                            if (project.hasProperty('apiJar'))
-                            {
-                                dependsOn project.tasks.named("apiJar")
-                            }
-                            else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
-                            {
-                                dependsOn project.tasks.named("jar")
-                            }
-                            publications('modules', 'apiLib')
                         }
+                    }
+                    else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
+                    {
+                        Properties pomProperties = LabKeyExtension.getApiPomProperties(project)
+
+                        apiLib(MavenPublication) { pub ->
+                            pub.groupId = pomProperties.get('groupId')
+                            pub.artifact(project.tasks.jar)
+
+                            PomFileHelper pomUtil = new PomFileHelper(pomProperties, project, false)
+                            pom {
+                                name = project.name
+                                description = pomProperties.getProperty("Description")
+                                url = PomFileHelper.LABKEY_ORG_URL
+                                developers PomFileHelper.getLabKeyTeamDevelopers()
+                                licenses pomUtil.getLicense()
+                                organization pomUtil.getOrganization()
+    //                                    scm PomFileHelper.getLabKeyScm()
+                                withXml {
+                                    pomUtil.getDependencyClosure(asNode(), false)
+                                }
+                            }
+
+                        }
+                    }
+                }
+
+                if (BuildUtils.shouldPublish(project))
+                {
+                    if (LabKeyExtension.isDevMode(project))
+                        throw new GradleException("Modules produced with deployMode=dev are not portable and should never be published.")
+                    project.artifactoryPublish {
+                        if (project.hasProperty('module'))
+                        {
+                            dependsOn project.tasks.named("module")
+                        }
+
+                        if (project.hasProperty('apiJar'))
+                        {
+                            dependsOn project.tasks.named("apiJar")
+                        }
+                        else if (project.path.equals(BuildUtils.getApiProjectPath(project.gradle)))
+                        {
+                            dependsOn project.tasks.named("jar")
+                        }
+                        publications('modules', 'apiLib')
                     }
                 }
             }

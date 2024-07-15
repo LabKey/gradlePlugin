@@ -1,6 +1,6 @@
 package org.labkey.gradle.util
 
-class ExternalDependency
+class ExternalDependency implements Serializable
 {
     public static final String APACHE_2_LICENSE_NAME = "Apache 2.0"
     public static final String APACHE_2_LICENSE_URL = "http://www.apache.org/licenses/LICENSE-2.0"

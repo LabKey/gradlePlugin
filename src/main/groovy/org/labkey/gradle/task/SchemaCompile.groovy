@@ -16,66 +16,65 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.*
 import org.labkey.gradle.plugin.XmlBeans
-import org.labkey.gradle.util.BuildUtils
+
+import javax.inject.Inject
 
 /**
  * Task to compile XSD schema files into Java class files using the ant XMLBean
  */
 @CacheableTask
-class SchemaCompile extends DefaultTask {
+abstract class SchemaCompile extends DefaultTask {
+
+  @Inject abstract FileSystemOperations getFs()
 
   // This input declaration is used to defeat the gradle build cache when the xmlbeansVersion changes and should
   // remain even if there are no usages of this method. I don't know why the cache key doesn't change as a result of the
   // new jar file version, but it doesn't (perhaps an artifact of having to use the ant builder).
   @Input
-  String getXmlBeansVersion()
-  {
-    return project.property('xmlbeansVersion')
-  }
+  final abstract Property<String> xmlBeansVersion = project.objects.property(String).convention(project.hasProperty('xmlbeansVersion') ? (String) project.property('xmlbeansVersion') : null)
+
+  @InputFiles
+  @CompileClasspath
+  abstract ConfigurableFileCollection getCompileClasspath()
 
   @InputDirectory
   @PathSensitive(PathSensitivity.RELATIVE)
-  File getSchemasDir()
-  {
-    return project.file(XmlBeans.SCHEMAS_DIR)
-  }
+  final abstract DirectoryProperty schemasDir = project.objects.directoryProperty().convention(project.layout.projectDirectory.dir(XmlBeans.SCHEMAS_DIR))
 
-  // Marked as an OutputDirectory as Gradle 7 wants everything to have such an annotation,
+  // Marked as an OutputDirectory as Gradle wants everything to have such an annotation,
   // but we don't want these .java files picked up in the jar, so the jar task should be configured
   // to exclude .java files.
   @OutputDirectory
-  File getSrcGenDir()
-  {
-    return new File("$project.labkey.srcGenDir/$XmlBeans.CLASS_DIR")
-  }
+  final abstract DirectoryProperty srcGenDir = project.objects.directoryProperty().convention(project.layout.projectDirectory.dir("$project.labkey.srcGenDir/$XmlBeans.CLASS_DIR"))
 
   @OutputDirectory
-  File getClassesDir()
-  {
-    return BuildUtils.getBuildDirFile(project, XmlBeans.CLASS_DIR)
-  }
+  final abstract DirectoryProperty classesDir = project.objects.directoryProperty().convention(project.layout.buildDirectory.dir(XmlBeans.CLASS_DIR).get())
+
 
   @TaskAction
-  void compile() {
+  void cleanAndCompile() {
+    // remove the directories containing the generated java files and the compiled classes when we have to make changes.
+    fs.delete( {
+      it.delete(srcGenDir.get())
+      it.delete(classesDir.get())
+    })
     ant.taskdef(
             name: 'xmlbean',
             classname: 'org.apache.xmlbeans.impl.tool.XMLBean',
-            classpath: project.configurations.xmlbeans.asPath
+            classpath: getCompileClasspath().getAsPath()
     )
 
     ant.xmlbean(
-            schema: getSchemasDir(),
-            srcgendir: getSrcGenDir(),
-            classgendir: getClassesDir(),
-            classpath: project.configurations.xmlbeans.asPath,
+            schema: schemasDir.get(),
+            srcgendir: srcGenDir.get(),
+            classgendir: classesDir.get(),
+            classpath: getCompileClasspath().getAsPath(),
             failonerror: true
     )
   }

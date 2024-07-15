@@ -78,8 +78,12 @@ class LabKey implements Plugin<Project>
                         canBeConsumed = true
                         canBeResolved = true
                     }
+                    externalsNotTrans {
+                        transitive = false
+                    }
                 }
         project.configurations.external.setDescription("External dependencies to be included in a module's lib directory")
+        project.configurations.externalsNotTrans.setDescription("Direct external dependencies (not including transitive dependencies), for use in creating jars.txt file")
         project.configurations.modules.setDescription("Modules used in the current server deployment")
         project.configurations.tomcatJars.setDescription("Dependencies to be copied into the tomcat/lib directory upon deployment")
         project.configurations.remotePipelineJars.setDescription("Dependencies required for running remote pipeline jobs")

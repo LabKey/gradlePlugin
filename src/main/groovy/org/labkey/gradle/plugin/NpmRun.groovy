@@ -237,6 +237,7 @@ class NpmRun implements Plugin<Project>
                         println("The following projects use Node in their builds:\n\t${nodeProjects.join("\n\t")}\n")
                     }
                 })
+                task.notCompatibleWithConfigurationCache("Needs to walk the project tree")
         }
 
     }

@@ -18,26 +18,34 @@ package org.labkey.gradle.task
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.Transformer
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.tasks.*
-import org.labkey.gradle.plugin.extension.ModuleExtension
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.labkey.gradle.util.ExternalDependency
 
 import java.nio.charset.StandardCharsets
+import java.util.stream.Collectors
 
-class WriteDependenciesFile extends DefaultTask
+abstract class WriteDependenciesFile extends DefaultTask
 {
     // we assume that if a version number has changed, we should generate a new dependencies file
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFile
-    File globalProperties = project.rootProject.file("gradle.properties")
+    final abstract RegularFileProperty globalProperties = project.objects.fileProperty().fileValue(project.rootProject.file("gradle.properties"))
 
     @OutputFile
-    File getJarsTxtFile()
-    {
-        return project.file("resources/credits/jars.txt")
-    }
+    final abstract RegularFileProperty jarsTxtFile = project.objects.fileProperty().convention(project.layout.projectDirectory.file("resources/credits/jars.txt"))
+
+    @Input
+    final abstract MapProperty<String, ExternalDependency> externalDependencies = project.objects.mapProperty(String, ExternalDependency).convention(Collections.emptyMap())
+
+    @Input
+    abstract ListProperty<ComponentArtifactIdentifier> getArtifactIds()
 
     WriteDependenciesFile()
     {
@@ -49,37 +57,25 @@ class WriteDependenciesFile extends DefaultTask
         {
             this.inputs.file(project.file("gradle.properties"))
         }
-        // add a configuration that has the external dependencies but is not transitive
-        project.configurations {
-            externalsNotTrans.extendsFrom(project.configurations.external)
-            externalsNotTrans {
-                transitive = false
-            }
-        }
-        project.configurations.externalsNotTrans.setDescription("Direct external dependencies (not including transitive dependencies)")
-        onlyIf {
-            !project.configurations.externalsNotTrans.isEmpty()
-        }
     }
 
-    private void writeDependencies(String configurationName, OutputStreamWriter writer)
+    private void writeDependencies(OutputStreamWriter writer)
     {
-        Configuration configuration = project.configurations.findByName(configurationName)
-        if (configuration == null)
+        if (externalDependencies.get().isEmpty())
             return
 
-        ModuleExtension extension = project.extensions.findByType(ModuleExtension.class)
         List<String> missing = []
         List<String> licenseMissing = []
-        configuration.resolvedConfiguration.resolvedArtifacts.forEach {
-            ResolvedArtifact artifact ->
-                String versionString = artifact.moduleVersion.toString()
-                if (!StringUtils.isEmpty(artifact.getClassifier()))
-                    versionString += ":" + artifact.getClassifier()
-                ExternalDependency dep = extension.getExternalDependency(versionString)
+        Map<String, ExternalDependency> dependencies = externalDependencies.get()
+        getArtifactIds().get().forEach {
+            ComponentArtifactIdentifier artifact ->
+                String versionString = artifact.componentIdentifier
+                if (artifact instanceof DefaultModuleComponentArtifactIdentifier && !StringUtils.isEmpty(artifact.name.classifier))
+                    versionString += ":" + artifact.name.classifier
+                ExternalDependency dep = dependencies.get(versionString)
                 if (dep) {
                     List<String> parts = new ArrayList<>()
-                    parts.add(artifact.file.getName())
+                    parts.add(artifact.fileName)
                     parts.add(dep.getComponent())
                     if (!StringUtils.isBlank(dep.getSource())) {
                         if (!StringUtils.isBlank(dep.getSourceURL()))
@@ -94,12 +90,12 @@ class WriteDependenciesFile extends DefaultTask
                         else
                             parts.add(dep.getLicenseName())
                     } else {
-                        licenseMissing.add(artifact.moduleVersion.toString())
+                        licenseMissing.add(artifact.displayName)
                     }
                     parts.add(dep.getPurpose() == null ? "" : dep.getPurpose())
                     writer.write("${parts.join("|")}\n")
                 } else {
-                    missing.add(artifact.moduleVersion.toString())
+                    missing.add(artifact.displayName)
                 }
         }
         List<String> exceptionMsg = []
@@ -113,17 +109,12 @@ class WriteDependenciesFile extends DefaultTask
 
     void writeJarsTxt()
     {
-        ModuleExtension extension = project.extensions.findByType(ModuleExtension.class)
-        if (extension.getExternalDependencies().isEmpty())
-            return
-
         OutputStreamWriter writer = null
         try {
-            writer = new OutputStreamWriter(new FileOutputStream(jarsTxtFile), StandardCharsets.UTF_8)
+            writer = new OutputStreamWriter(new FileOutputStream(jarsTxtFile.get().asFile), StandardCharsets.UTF_8)
             writer.write("{table}\n")
             writer.write("Filename|Component|Source|License|Purpose\n")
-            writeDependencies("externalsNotTrans", writer)
-            writeDependencies("creditable", writer)
+            writeDependencies(writer)
             writer.write("{table}\n")
         }
         finally
@@ -137,5 +128,18 @@ class WriteDependenciesFile extends DefaultTask
     void writeFiles()
     {
         this.writeJarsTxt()
+    }
+
+
+    // For reference: https://docs.gradle.org/8.1.1/userguide/incremental_build.html#sec:task_input_using_dependency_resolution_results
+    static class IdExtractor
+            implements Transformer<List<ComponentArtifactIdentifier>, Collection<ResolvedArtifactResult>>
+    {
+        @Override
+        List<ComponentArtifactIdentifier> transform(Collection<ResolvedArtifactResult> artifacts) {
+           return artifacts.stream().map(artifact -> {
+               return artifact.getId()
+           }).collect(Collectors.toList())
+        }
     }
 }

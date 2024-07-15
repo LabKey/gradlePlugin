@@ -18,6 +18,7 @@ package org.labkey.gradle.task
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
@@ -49,7 +50,8 @@ class CheckForVersionConflicts  extends DefaultTask
 
     /** Indicates what should happen when a conflict is detected **/
     @Input
-    ConflictAction conflictAction = ConflictAction.fail
+    public final abstract Property<ConflictAction> conflictAction = project.objects.property(ConflictAction).convention(
+            project.hasProperty('versionConflictAction') ? ConflictAction.valueOf((String) project.property('versionConflictAction')) : ConflictAction.fail)
 
     /** The collection of files to check for.  Usually this will come from a configuration. **/
     @InputFiles
@@ -58,6 +60,10 @@ class CheckForVersionConflicts  extends DefaultTask
     /** The name of a task to run if conflicts are found that will resolve the conflict (presumably by cleaning out the directory) **/
     @Input
     String cleanTask
+
+    ConflictAction getConflictAction() {
+        return conflictAction.get()
+    }
 
     @TaskAction
     void doAction()
@@ -124,7 +130,7 @@ class CheckForVersionConflicts  extends DefaultTask
         if (!conflictMessages.isEmpty())
         {
             String message  = "Artifact versioning problem(s) in directory ${directory}:\n  " + conflictMessages.join("\n  ")
-            ConflictAction action = project.hasProperty('versionConflictAction') ? ConflictAction.valueOf((String) project.property('versionConflictAction')) : conflictAction
+            ConflictAction action = getConflictAction()
 
             if (cleanTask != null && (action != ConflictAction.delete || haveMultiples))
                 message += "\nRun the ${cleanTask} task to remove existing artifacts in that directory."

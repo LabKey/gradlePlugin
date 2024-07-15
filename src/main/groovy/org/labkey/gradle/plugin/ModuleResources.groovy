@@ -15,11 +15,14 @@
  */
 package org.labkey.gradle.plugin
 
-
 import org.gradle.api.Project
-import org.gradle.api.Task
+import org.gradle.api.UnknownDomainObjectException
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSet
 import org.labkey.gradle.plugin.extension.LabKeyExtension
+import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.task.GzipAction
 import org.labkey.gradle.task.WriteDependenciesFile
 
@@ -30,8 +33,18 @@ class ModuleResources
     static void addTasks(Project project)
     {
         project.tasks.register("writeDependenciesList", WriteDependenciesFile) {
-            Task task ->
+            WriteDependenciesFile task ->
                 task.description = "write a list of direct external dependencies that should be checked on the credits page"
+                try {
+                    project.configurations.named('externalsNotTrans') {
+                        Configuration config ->
+                            Provider<Set<ResolvedArtifactResult>> artifacts = config.getIncoming().getArtifacts().getResolvedArtifacts();
+                            task.getArtifactIds().set(artifacts.map(new WriteDependenciesFile.IdExtractor()))
+                    }
+                } catch (UnknownDomainObjectException ignore) {
+
+                }
+                task.externalDependencies.set(project.extensions.findByType(ModuleExtension.class).getExternalDependencies())
         }
 
         project.tasks.named("processModuleResources").configure {dependsOn(project.tasks.named('writeDependenciesList'))}
