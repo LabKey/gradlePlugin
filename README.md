@@ -16,7 +16,7 @@ on how to do that, including how to develop and test locally and the versioning 
 _Note: 1.28.0 and later require Gradle 7_
 
 ### 3.0.0
-*Released*: TBD
+*Released*: 15 July 2024
 (Earliest compatible LabKey version: 24.8)
 - Remove `AntBuild` plugin
 - Updates for compatibility with configuration cache
@@ -26,7 +26,7 @@ _Note: 1.28.0 and later require Gradle 7_
   - `CheckForVersionConflicts` 
   - `ModuleXmlFile` task introduced for ad-hoc `moduleXml` task
 - Remove support for `.jsp` files in module `resources` directories
-- Remove support for creditable configuration for generating entries in jars.txt file
+- Remove support for `creditable` configuration for generating entries in `jars.txt` file
 - Remove unused `Standalone` plugin for building stand-alone distributions
 
 ### 2.7.2
