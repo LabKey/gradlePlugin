@@ -41,10 +41,13 @@ class ModuleResources
                             Provider<Set<ResolvedArtifactResult>> artifacts = config.getIncoming().getArtifacts().getResolvedArtifacts();
                             task.getArtifactIds().set(artifacts.map(new WriteDependenciesFile.IdExtractor()))
                     }
+                    task.externalDependencies.set(project.extensions.findByType(ModuleExtension.class).getExternalDependencies())
+                    task.onlyIf {
+                        return !task.externalDependencies.get().isEmpty()
+                    }
                 } catch (UnknownDomainObjectException ignore) {
 
                 }
-                task.externalDependencies.set(project.extensions.findByType(ModuleExtension.class).getExternalDependencies())
         }
 
         project.tasks.named("processModuleResources").configure {dependsOn(project.tasks.named('writeDependenciesList'))}

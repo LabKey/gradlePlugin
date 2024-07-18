@@ -61,9 +61,6 @@ abstract class WriteDependenciesFile extends DefaultTask
 
     private void writeDependencies(OutputStreamWriter writer)
     {
-        if (externalDependencies.get().isEmpty())
-            return
-
         List<String> missing = []
         List<String> licenseMissing = []
         Map<String, ExternalDependency> dependencies = externalDependencies.get()
@@ -109,6 +106,9 @@ abstract class WriteDependenciesFile extends DefaultTask
 
     void writeJarsTxt()
     {
+        if (externalDependencies.get().isEmpty())
+            return
+
         OutputStreamWriter writer = null
         try {
             writer = new OutputStreamWriter(new FileOutputStream(jarsTxtFile.get().asFile), StandardCharsets.UTF_8)
