@@ -42,9 +42,6 @@ class ModuleResources
                             task.getArtifactIds().set(artifacts.map(new WriteDependenciesFile.IdExtractor()))
                     }
                     task.externalDependencies.set(project.extensions.findByType(ModuleExtension.class).getExternalDependencies())
-                    task.onlyIf {
-                        return !task.externalDependencies.get().isEmpty()
-                    }
                 } catch (UnknownDomainObjectException ignore) {
 
                 }

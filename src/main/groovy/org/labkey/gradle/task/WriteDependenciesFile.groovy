@@ -57,6 +57,9 @@ abstract class WriteDependenciesFile extends DefaultTask
         {
             this.inputs.file(project.file("gradle.properties"))
         }
+        onlyIf {
+            !externalDependencies.get().isEmpty()
+        }
     }
 
     private void writeDependencies(OutputStreamWriter writer)
