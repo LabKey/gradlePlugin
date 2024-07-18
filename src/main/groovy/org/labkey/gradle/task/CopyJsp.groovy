@@ -3,6 +3,7 @@ package org.labkey.gradle.task
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
@@ -14,6 +15,9 @@ abstract class CopyJsp extends DefaultTask
 
     @Inject abstract FileSystemOperations getFs()
 
+    @InputDirectory
+    final abstract DirectoryProperty srcDir = project.objects.directoryProperty().convention(project.layout.projectDirectory.dir('src'))
+
     @OutputDirectory
     final abstract DirectoryProperty webappDir = project.objects.directoryProperty().convention(project.layout.buildDirectory.dir(WEBAPP_DIR).get())
 
@@ -23,7 +27,7 @@ abstract class CopyJsp extends DefaultTask
             it.delete(webappDir.get().dir("org"))
         }
         fs.copy {
-            from 'src'
+            from srcDir.get()
             into webappDir.get()
             include '**/*.jsp'
         }
