@@ -15,8 +15,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
-### TBD
-*Released*: TBD
+### 3.0.1
+*Released*: 18 July 2024
 (Earliest compatible LabKey version: 24.8)
 - Fix issue with JSP copying because of missing input directory
 - Add missing `onlyIf` condition for `WriteDependenciesFile`
