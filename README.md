@@ -15,6 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 _Note: 1.28.0 and later require Gradle 7_
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 24.8)
+- Add `--add-opens` JVM arg for `java.nio` to `startTomcat` task. Required for Snowflake JDBC.
+
 ### 3.0.1
 *Released*: 18 July 2024
 (Earliest compatible LabKey version: 24.8)
