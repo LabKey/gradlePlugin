@@ -22,6 +22,7 @@ import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileTree
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.labkey.gradle.plugin.ApplyLicenses
 import org.labkey.gradle.plugin.extension.DistributionExtension
@@ -42,7 +43,6 @@ class ModuleDistribution extends DefaultTask
     @Optional @Input
     String versionPrefix = null
     @Optional @Input
-    @Input
     final abstract Property<String> subDirName = project.objects.property(String).convention(project.name)
     @Optional @Input
     String archivePrefix = "LabKey"
@@ -103,7 +103,7 @@ class ModuleDistribution extends DefaultTask
 
         createDistributionFiles()
         gatherModules()
-        packageRedistributables()
+        embeddedTomcatTarArchive()
     }
 
     @OutputDirectory
@@ -153,11 +153,6 @@ class ModuleDistribution extends DefaultTask
         }
     }
 
-    private void packageRedistributables()
-    {
-        embeddedTomcatTarArchive()
-    }
-
     @Input
     String getArtifactId()
     {
@@ -186,11 +181,6 @@ class ModuleDistribution extends DefaultTask
     private String getEmbeddedTarArchivePath()
     {
         return "${getDistributionDir()}/${getArchiveName()}${DistributionExtension.EMBEDDED_SUFFIX}.${DistributionExtension.TAR_ARCHIVE_EXTENSION}"
-    }
-
-    private String getWarArchivePath()
-    {
-        return "${getDistributionDir()}/${getArchiveName()}.war"
     }
 
     private File getWindowsUtilDir()
