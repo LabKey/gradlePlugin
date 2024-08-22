@@ -20,7 +20,8 @@ on how to do that, including how to develop and test locally and the versioning 
 - Update `distributions` task to build embedded Tomcat tar.gz archives only
   - Remove support for building zip, Tomcat standalone, and module archives  
   - Remove `makeDistribution` property and deprecate `embeddedArchiveType` property (currently ignored)
-  - Fix `subDirName` property's optional behavior; this property now correctly defaults to `project.name`.  
+  - Fix `subDirName` property's optional behavior; this property now correctly defaults to `project.name`.
+  - Change `extraFileIdentifier` property's default value to `project.name` as well
 
 ### 3.0.1
 *Released*: 18 July 2024

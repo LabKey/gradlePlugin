@@ -39,7 +39,7 @@ class ModuleDistribution extends DefaultTask
     String embeddedArchiveType = null
 
     @Optional @Input
-    String extraFileIdentifier = ""
+    String extraFileIdentifier = null
     @Optional @Input
     String versionPrefix = null
     @Optional @Input
@@ -163,7 +163,8 @@ class ModuleDistribution extends DefaultTask
     {
         if (archiveName == null)
         {
-            archiveName = "${archivePrefix}${BuildUtils.getDistributionVersion(project)}${extraFileIdentifier}"
+            var extraIdentifier = extraFileIdentifier != null ? extraFileIdentifier : "-" + project.name
+            archiveName = "${archivePrefix}${BuildUtils.getDistributionVersion(project)}" + extraIdentifier
         }
         return archiveName
     }
