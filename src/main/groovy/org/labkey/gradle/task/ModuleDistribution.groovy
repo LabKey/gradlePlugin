@@ -42,7 +42,8 @@ class ModuleDistribution extends DefaultTask
     @Optional @Input
     String versionPrefix = null
     @Optional @Input
-    String subDirName = null
+    @Input
+    final abstract Property<String> subDirName = project.objects.property(String).convention(project.name)
     @Optional @Input
     String archivePrefix = "LabKey"
     @Optional @Input
@@ -75,7 +76,7 @@ class ModuleDistribution extends DefaultTask
     File getDistributionDir()
     {
         if (distributionDir == null) {
-            distributionDir = project.file("${distExtension.dir}/" + getSubDirName())
+            distributionDir = project.file("${distExtension.dir}/" + subDirName.get())
         }
         return distributionDir
     }
@@ -160,7 +161,7 @@ class ModuleDistribution extends DefaultTask
     @Input
     String getArtifactId()
     {
-        return getSubDirName()
+        return subDirName.get()
     }
 
     String getArchiveName()
