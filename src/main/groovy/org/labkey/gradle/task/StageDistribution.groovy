@@ -46,9 +46,8 @@ class StageDistribution extends DefaultTask
     void action()
     {
         distributionFile = DistributionExtension.getDistributionFile(project)
-        String extension = distributionFile.getName().endsWith(DistributionExtension.ZIP_ARCHIVE_EXTENSION) ? DistributionExtension.ZIP_ARCHIVE_EXTENSION : DistributionExtension.TAR_ARCHIVE_EXTENSION
-        Boolean isTar = extension.equals(DistributionExtension.TAR_ARCHIVE_EXTENSION)
-        FileTree distArchiveTree = isTar ? project.tarTree(distributionFile) : project.zipTree(distributionFile)
+        String extension = DistributionExtension.TAR_ARCHIVE_EXTENSION
+        FileTree distArchiveTree = project.tarTree(distributionFile)
 
         // first clean out the staging directory so we don't pick up modules not in this distribution
         project.delete modulesStagingDir
@@ -100,12 +99,6 @@ class StageDistribution extends DefaultTask
                     }
             }
             spec.includeEmptyDirs = false
-        })
-
-        project.copy({ CopySpec spec ->
-            spec.from distArchiveTree.matching {include '*/tomcat-lib/*.jar'}.files
-            spec.into tomcatJarStagingDir
-            spec.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
     }
 }

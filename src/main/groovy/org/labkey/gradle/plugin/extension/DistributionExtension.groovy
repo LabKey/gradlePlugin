@@ -28,7 +28,6 @@ class DistributionExtension
     public static final String DIST_FILE_NAME = "distribution"
     public static final String VERSION_FILE_NAME = "VERSION"
     public static final String TAR_ARCHIVE_EXTENSION = "tar.gz"
-    public static final String ZIP_ARCHIVE_EXTENSION = "zip"
     public static final String EMBEDDED_SUFFIX = "-embedded"
 
     String dir = "${project.rootProject.projectDir}/dist"

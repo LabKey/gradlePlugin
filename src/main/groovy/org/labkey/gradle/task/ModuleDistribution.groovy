@@ -22,36 +22,32 @@ import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileTree
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.labkey.gradle.plugin.ApplyLicenses
 import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.StagingExtension
 import org.labkey.gradle.util.BuildUtils
-import org.labkey.gradle.util.PropertiesUtils
 
 import java.nio.file.Files
 
 class ModuleDistribution extends DefaultTask
 {
-    @Optional @Input
-    Boolean includeZipArchive = false
-    @Optional @Input
-    Boolean includeTarGZArchive = false
+    // TODO: Remove this unused property
     @Optional @Input
     String embeddedArchiveType = null
+
     @Optional @Input
-    Boolean makeDistribution = true // set to false for just an archive of modules
-    @Optional @Input
-    String extraFileIdentifier = ""
+    String extraFileIdentifier = null
     @Optional @Input
     String versionPrefix = null
     @Optional @Input
-    String subDirName
+    final abstract Property<String> subDirName = project.objects.property(String).convention(project.name)
     @Optional @Input
     String archivePrefix = "LabKey"
     @Optional @Input
-    String archiveName
+    String archiveName = null
     @Input
     boolean simpleDistribution = false // Set to true to exclude pipeline tools and remote pipeline libraries
 
@@ -80,21 +76,9 @@ class ModuleDistribution extends DefaultTask
     File getDistributionDir()
     {
         if (distributionDir == null) {
-            var subDir = StringUtils.trimToNull(subDirName)
-            if (subDir == null)
-                subDir = project.name
-            distributionDir = project.file("${distExtension.dir}/${subDir}")
+            distributionDir = project.file("${distExtension.dir}/" + subDirName.get())
         }
         return distributionDir
-    }
-
-    private boolean shouldBuildEmbeddedArchive(String extension = null) {
-        return (embeddedArchiveType != null && (extension == null || embeddedArchiveType.indexOf(extension) >= 0)) && makeDistribution
-                || DistributionExtension.TAR_ARCHIVE_EXTENSION == extension && project.hasProperty("forceEmbeddedDist")
-    }
-
-    private boolean shouldBuildStandaloneTarGz() {
-        includeTarGZArchive || project.hasProperty("forceStandaloneDist")
     }
 
     @OutputFiles
@@ -102,23 +86,11 @@ class ModuleDistribution extends DefaultTask
     {
         List<File> distFiles = new ArrayList<>()
 
-        if (shouldBuildEmbeddedArchive())
-            distFiles.add(new File(getEmbeddedTomcatJarPath()))
+        distFiles.add(new File(getEmbeddedTomcatJarPath()))
+        distFiles.add(new File(getEmbeddedTarArchivePath()))
+        distFiles.add(getDistributionFile())
+        distFiles.add(getVersionFile())
 
-        if (shouldBuildStandaloneTarGz())
-            distFiles.add(new File(getTarArchivePath()))
-        if (shouldBuildEmbeddedArchive(DistributionExtension.TAR_ARCHIVE_EXTENSION))
-            distFiles.add(new File(getEmbeddedTarArchivePath()))
-        if (includeZipArchive)
-            distFiles.add(new File(getZipArchivePath()))
-        if (shouldBuildEmbeddedArchive(DistributionExtension.ZIP_ARCHIVE_EXTENSION))
-            distFiles.add(new File(getEmbeddedZipArchivePath()))
-
-        if (makeDistribution)
-        {
-            distFiles.add(getDistributionFile())
-            distFiles.add(getVersionFile())
-        }
         return distFiles
     }
 
@@ -129,11 +101,9 @@ class ModuleDistribution extends DefaultTask
             throw new GradleException("Distributions should never be created with deployMode=dev as dev modules are not portable. " +
                     "Use -PdevDistribution if you need to override this exception for debugging.")
 
-        if (makeDistribution)
-            createDistributionFiles()
+        createDistributionFiles()
         gatherModules()
-        packageRedistributables()
-
+        embeddedTomcatTarArchive()
     }
 
     @OutputDirectory
@@ -183,56 +153,18 @@ class ModuleDistribution extends DefaultTask
         }
     }
 
-    private void packageRedistributables()
-    {
-        if (makeDistribution)
-        {
-            copyLabkeyXml()
-        }
-        packageArchives()
-    }
-
-    private void copyLabkeyXml()
-    {
-        Properties copyProps = new Properties()
-        // Pre-configure labkey.xml to work with postgresql
-        copyProps.put("jdbcURL", "jdbc:postgresql://localhost/labkey")
-        copyProps.put("jdbcDriverClassName", "org.postgresql.Driver")
-
-        project.copy
-        { CopySpec copy ->
-            copy.from(BuildUtils.getWebappConfigFile(project, "labkey.xml"))
-            copy.into(project.layout.buildDirectory)
-            copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-            copy.filter({ String line ->
-                return PropertiesUtils.replaceProps(line, copyProps, true)
-            })
-        }
-    }
-
-    private void packageArchives()
-    {
-        if (shouldBuildStandaloneTarGz())
-            tarArchives()
-        if (shouldBuildEmbeddedArchive(DistributionExtension.TAR_ARCHIVE_EXTENSION))
-            embeddedTomcatTarArchive()
-        if (includeZipArchive)
-            zipArchives()
-        if (shouldBuildEmbeddedArchive(DistributionExtension.ZIP_ARCHIVE_EXTENSION))
-            embeddedTomcatZipArchive()
-    }
-
     @Input
     String getArtifactId()
     {
-        return subDirName
+        return subDirName.get()
     }
 
     String getArchiveName()
     {
         if (archiveName == null)
         {
-            archiveName = "${archivePrefix}${BuildUtils.getDistributionVersion(project)}${extraFileIdentifier}"
+            var extraIdentifier = extraFileIdentifier != null ? extraFileIdentifier : "-" + project.name
+            archiveName = "${archivePrefix}${BuildUtils.getDistributionVersion(project)}" + extraIdentifier
         }
         return archiveName
     }
@@ -247,29 +179,9 @@ class ModuleDistribution extends DefaultTask
         return new File(getModulesDir(), "labkey/distribution.zip").path
     }
 
-    private String getTarArchivePath()
-    {
-        return "${getDistributionDir()}/${getArchiveName()}.${DistributionExtension.TAR_ARCHIVE_EXTENSION}"
-    }
-
     private String getEmbeddedTarArchivePath()
     {
         return "${getDistributionDir()}/${getArchiveName()}${DistributionExtension.EMBEDDED_SUFFIX}.${DistributionExtension.TAR_ARCHIVE_EXTENSION}"
-    }
-
-    private String getZipArchivePath()
-    {
-        return "${getDistributionDir()}/${getArchiveName()}.${DistributionExtension.ZIP_ARCHIVE_EXTENSION}"
-    }
-
-    private String getEmbeddedZipArchivePath()
-    {
-        return "${getDistributionDir()}/${getArchiveName()}${DistributionExtension.EMBEDDED_SUFFIX}.${DistributionExtension.ZIP_ARCHIVE_EXTENSION}"
-    }
-
-    private String getWarArchivePath()
-    {
-        return "${getDistributionDir()}/${getArchiveName()}.war"
     }
 
     private File getWindowsUtilDir()
@@ -288,125 +200,6 @@ class ModuleDistribution extends DefaultTask
                     copy.into utilsDir
                     copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             })
-        }
-    }
-
-    private void tarArchives()
-    {
-        if (makeDistribution)
-        {
-            copyWindowsCoreUtilities()
-            def utilsDir = getWindowsUtilDir()
-            StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
-
-            ant.tar(tarfile: getTarArchivePath(),
-                    longfile: "gnu",
-                    compression: "gzip") {
-                tarfileset(dir: staging.webappDir,
-                        prefix: "${archiveName}/labkeywebapp") {
-                    exclude(name: "WEB-INF/classes/distribution")
-                }
-                tarfileset(dir: getModulesDir(),
-                        prefix: "${archiveName}/modules") {
-                    include(name: "*.module")
-                }
-                tarfileset(dir: staging.tomcatLibDir, prefix: "${archiveName}/tomcat-lib") {
-                    // this exclusion is necessary because for some reason when buildFromSource=false,
-                    // the tomcat bootstrap jar is included in the staged libraries and the LabKey bootstrap jar is not.
-                    // Not sure why.
-                    exclude(name: "bootstrap.jar")
-                }
-
-                if (!simpleDistribution) {
-                    tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
-
-                    tarfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
-                }
-
-                tarfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
-                        prefix: archiveName,
-                        mode: 744) {
-                    include(name: "manual-upgrade.sh")
-                }
-
-                tarfileset(dir: BuildUtils.getBuildDir(project),
-                        prefix: archiveName) {
-                    include(name: "README.txt")
-                    include(name: "VERSION")
-                    include(name: "labkeywebapp/**")
-                    include(name: "nlp/**")
-                    include(name: "labkey.xml")
-                }
-            }
-        }
-        else
-        {
-            ant.tar(tarfile: getTarArchivePath(),
-                    longfile: "gnu",
-                    compression: "gzip") {
-                tarfileset(dir: getModulesDir(),
-                        prefix: "${archiveName}/modules") {
-                    include(name: "*.module")
-                }
-            }
-        }
-
-    }
-
-    private void zipArchives()
-    {
-        if (makeDistribution)
-        {
-            copyWindowsCoreUtilities()
-            def utilsDir = getWindowsUtilDir()
-            StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
-
-            ant.zip(destfile: getZipArchivePath()) {
-                zipfileset(dir: staging.webappDir,
-                        prefix: "${archiveName}/labkeywebapp") {
-                    exclude(name: "WEB-INF/classes/distribution")
-                }
-                zipfileset(dir: getModulesDir(),
-                        prefix: "${archiveName}/modules") {
-                    include(name: "*.module")
-                }
-                zipfileset(dir: staging.tomcatLibDir, prefix: "${archiveName}/tomcat-lib") {
-                    // this exclusion is necessary because for some reason when buildFromSource=false,
-                    // the tomcat bootstrap jar is included in the staged libraries and the LabKey bootstrap jar is not.
-                    // Not sure why.
-                    exclude(name: "bootstrap.jar")
-                }
-
-                if (!simpleDistribution) {
-                    zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
-
-                    zipfileset(dir: staging.pipelineLibDir, prefix: "${archiveName}/pipeline-lib")
-                }
-
-                zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
-                        prefix: "${archiveName}",
-                        filemode: 744){
-                    include(name: "manual-upgrade.sh")
-                }
-
-                zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
-                        prefix: "${archiveName}") {
-                    include(name: "README.txt")
-                    include(name: "VERSION")
-                    include(name: "labkeywebapp/**")
-                    include(name: "nlp/**")
-                    include(name: "labkey.xml")
-                }
-            }
-        }
-        else
-        {
-            ant.zip(destfile: getZipArchivePath()) {
-                zipfileset(dir: getModulesDir(),
-                        prefix: "${archiveName}/modules") {
-                    include(name: "*.module")
-                }
-            }
         }
     }
 
@@ -475,31 +268,6 @@ class ModuleDistribution extends DefaultTask
             }
 
             tarfileset(dir: "${BuildUtils.getBuildDirPath(project)}/embedded", prefix: archiveName)
-        }
-    }
-
-    private void embeddedTomcatZipArchive()
-    {
-        copyWindowsCoreUtilities()
-        def utilsDir = getWindowsUtilDir()
-
-        File serverJarFile = new File(getEmbeddedTomcatJarPath())
-        if (!serverJarFile.exists())
-            makeEmbeddedTomcatJar()
-
-        ant.zip(destfile: getEmbeddedZipArchivePath()) {
-            zipfileset(dir: BuildUtils.getBuildDir(project), prefix: archiveName) { include(name: serverJarFile.getName()) }
-
-            if (!simpleDistribution) {
-                zipfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
-            }
-
-            zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
-                    prefix: "${archiveName}") {
-                include(name: "VERSION")
-            }
-
-            zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/embedded/", prefix: "${archiveName}")
         }
     }
 

@@ -13,12 +13,15 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-_Note: 1.28.0 and later require Gradle 7_
-
 ### TBD
 *Released*: TBD
 (Earliest compatible LabKey version: 24.8)
-- Add `--add-opens` JVM arg for `java.nio` to `startTomcat` task. Required for Snowflake JDBC.
+- Add `--add-opens` JVM arg for `java.nio` to `startTomcat` task. Required for Snowflake JDBC driver.
+- Update `distributions` task to build embedded Tomcat tar.gz archives only
+  - Remove support for building zip, Tomcat standalone, and module archives  
+  - Remove `makeDistribution` property and deprecate `embeddedArchiveType` property (currently ignored)
+  - Fix `subDirName` property's optional behavior; this property now correctly defaults to `project.name`.
+  - Change `extraFileIdentifier` property's default value to `project.name` as well
 
 ### 3.0.1
 *Released*: 18 July 2024
