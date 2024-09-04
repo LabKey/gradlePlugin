@@ -31,7 +31,6 @@ class StagingExtension
     String webInfDir
     String webappDir
     String modulesDir
-    String tomcatLibDir
     String pipelineLibDir
 
     void setDirectories(Project project)
@@ -43,7 +42,6 @@ class StagingExtension
         webInfDir = "${buildDirPath}/${STAGING_WEBINF_DIR}"
         webappDir = "${buildDirPath}/${STAGING_WEBAPP_DIR}"
         modulesDir = "${buildDirPath}/${STAGING_MODULES_DIR}"
-        tomcatLibDir = "${dir}/tomcat-lib" // Note: Keep this path in sync with AdminController.getTomcatJars()
         pipelineLibDir = "${dir}/pipelineLib"
     }
 }

@@ -60,128 +60,66 @@ class DoThenSetup extends DefaultTask
     @TaskAction
     void setup() {
         doDatabaseTask()
-        boolean useEmbeddedTomcat = BuildUtils.useEmbeddedTomcat(project)
-        if (!useEmbeddedTomcat)
-        {
-            project.tomcat.validateCatalinaHome()
-            File tomcatConfDir = project.file(project.tomcat.tomcatConfDir)
-            if (tomcatConfDir.exists()) {
-                if (!tomcatConfDir.isDirectory())
-                    throw new GradleException("No such directory: ${tomcatConfDir.absolutePath}")
-                if (!tomcatConfDir.canWrite() || !tomcatConfDir.canRead())
-                    throw new GradleException("Directory ${tomcatConfDir.absolutePath} does not have proper permissions")
-            } else if (!canCreate(tomcatConfDir))
-                throw new GradleException("Insufficient permissions to create ${tomcatConfDir.absolutePath}")
+        if (!embeddedConfigUpToDate()) {
+            Properties configProperties = databaseProperties.getConfigProperties()
+            configProperties.putAll(getExtraJdbcProperties())
+            // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes, even on Windows
+            configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
 
-            String appDocBase = project.serverDeploy.webappDir.toString().split("[/\\\\]").join("${File.separator}")
+            configProperties.setProperty("serverPort", tcPropOrDefault(project,
+                    TeamCityExtension::getLabKeyServerPort,
+                    "serverPort",
+                    project.hasProperty("useSsl") ? "8443" : "8080"))
 
-            if (!labkeyXmlUpToDate(appDocBase)) {
-                Properties configProperties = databaseProperties.getConfigProperties()
-                configProperties.putAll(getExtraJdbcProperties())
-                configProperties.setProperty("appDocBase", appDocBase)
-                boolean isNextLineComment = false
-                File labkeyXml = BuildUtils.getWebappConfigFile(project, "labkey.xml")
-                project.copy({ CopySpec copy ->
-                    copy.from labkeyXml
-                    copy.into project.rootProject.layout.buildDirectory
-                    copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-                    copy.filter({ String line ->
-                        if (project.ext.has('enableJms') && project.ext.enableJms) {
-                            line = line.replace("<!--@@jmsConfig@@", "")
-                            line = line.replace("@@jmsConfig@@-->", "")
-                            return line
-                        }
-                        // If we want to automatically enable an LDAP Sync that is hardcoded in the labkey.xml
-                        // for testing purposes, this will uncomment that stanza if the enableLdapSync
-                        // property is defined.
-                        if (project.hasProperty('enableLdapSync')) {
-                            line = line.replace("<!--@@ldapSyncConfig@@", "")
-                            line = line.replace("@@ldapSyncConfig@@-->", "")
-                            return line
-                        }
-                        if (configProperties.containsKey("extraJdbcDataSource"))
-                        {
-                            line = line.replace("<!--@@extraJdbcDataSource@@", "")
-                            line = line.replace("@@extraJdbcDataSource@@-->", "")
-                        }
-                        if (isNextLineComment || line.contains("<!--")) {
-                            isNextLineComment = !line.contains("-->")
-                            return line // Don't apply replacements to comments
-                        }
-                        return PropertiesUtils.replaceProps(line, configProperties, true)
-                    })
-                })
+            configProperties.setProperty("shutdownPort", tcPropOrDefault(project,
+                    TeamCityExtension::getLabKeyServerShutdownPort,
+                    "shutdownPort",
+                    "8081"))
 
-                project.copy({ CopySpec copy ->
-                    copy.from project.rootProject.layout.buildDirectory
-                    copy.into "${project.tomcat.tomcatConfDir}"
-                    copy.include "labkey.xml"
-                    copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-                })
+            if (project.hasProperty("useSsl")) {
+                configProperties.setProperty("keyStore", tcPropOrDefault(project,
+                        TeamCityExtension::getLabKeyServerKeystore,
+                        "keyStore",
+                        "/opt/teamcity-agent/localhost.keystore"))
+
+                configProperties.setProperty("keyStorePassword", tcPropOrDefault(project,
+                        TeamCityExtension::getLabKeyServerKeystorePassword,
+                        "keyStorePassword",
+                        "changeit"))
             }
-        }
-        else {
-            if (!embeddedConfigUpToDate()) {
-                Properties configProperties = databaseProperties.getConfigProperties()
-                configProperties.putAll(getExtraJdbcProperties())
-                // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes, even on Windows
-                configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
 
-                configProperties.setProperty("serverPort", tcPropOrDefault(project,
-                        TeamCityExtension::getLabKeyServerPort,
-                        "serverPort",
-                        project.hasProperty("useSsl") ? "8443" : "8080"))
-
-                configProperties.setProperty("shutdownPort", tcPropOrDefault(project,
-                        TeamCityExtension::getLabKeyServerShutdownPort,
-                        "shutdownPort",
-                        "8081"))
-
-                if (project.hasProperty("useSsl")) {
-                    configProperties.setProperty("keyStore", tcPropOrDefault(project,
-                            TeamCityExtension::getLabKeyServerKeystore,
-                            "keyStore",
-                            "/opt/teamcity-agent/localhost.keystore"))
-
-                    configProperties.setProperty("keyStorePassword", tcPropOrDefault(project,
-                            TeamCityExtension::getLabKeyServerKeystorePassword,
-                            "keyStorePassword",
-                            "changeit"))
-                }
-
-                String embeddedDir = BuildUtils.getEmbeddedConfigPath(project)
-                File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
-                project.copy({ CopySpec copy ->
-                    copy.from configsDir
-                    copy.into embeddedDir
-                    copy.include "application.properties"
-                    copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-                    copy.filter({ String line ->
-                        // Always uncomment properties prepended by '#setupTask#'
-                        line = line.replace("#setupTask#", "")
-                        if (project.hasProperty("useSsl")) {
-                            line = line.replace("#server.ssl", "server.ssl")
-                        }
-                        if (project.hasProperty("useLocalBuild") && "false" != project.property("useLocalBuild")) {
-                            // Enable properties that require 'useLocalBuild' (e.g. 'context.webAppLocation' and 'spring.devtools.restart.additional-paths')
-                            line = line.replace("#useLocalBuild#", "")
-                        }
-                        else {
-                            // Remove placeholder
-                            line = line.replace("#useLocalBuild#", "#")
-                        }
-                        if (configProperties.containsKey("extraJdbcDataSource") && line.contains("=@@extraJdbc"))
-                        {
-                            line = line.replace("#context.", "context.")
-                        }
-                        if (line.startsWith("#")) {
-                            return line // Don't apply replacements to comments
-                        }
-                        return PropertiesUtils.replaceProps(line, configProperties, false)
-                    })
+            String embeddedDir = BuildUtils.getEmbeddedConfigPath(project)
+            File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
+            project.copy({ CopySpec copy ->
+                copy.from configsDir
+                copy.into embeddedDir
+                copy.include "application.properties"
+                copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
+                copy.filter({ String line ->
+                    // Always uncomment properties prepended by '#setupTask#'
+                    line = line.replace("#setupTask#", "")
+                    if (project.hasProperty("useSsl")) {
+                        line = line.replace("#server.ssl", "server.ssl")
+                    }
+                    if (project.hasProperty("useLocalBuild") && "false" != project.property("useLocalBuild")) {
+                        // Enable properties that require 'useLocalBuild' (e.g. 'context.webAppLocation' and 'spring.devtools.restart.additional-paths')
+                        line = line.replace("#useLocalBuild#", "")
+                    }
+                    else {
+                        // Remove placeholder
+                        line = line.replace("#useLocalBuild#", "#")
+                    }
+                    if (configProperties.containsKey("extraJdbcDataSource") && line.contains("=@@extraJdbc"))
+                    {
+                        line = line.replace("#context.", "context.")
+                    }
+                    if (line.startsWith("#")) {
+                        return line // Don't apply replacements to comments
+                    }
+                    return PropertiesUtils.replaceProps(line, configProperties, false)
                 })
-                BuildUtils.updateRestartTriggerFile(project)
-            }
+            })
+            BuildUtils.updateRestartTriggerFile(project)
         }
     }
 

@@ -108,10 +108,6 @@ class TeamCity extends Tomcat
                 task.group = GroupNames.TEST_SERVER
                 task.description = "Removes log files from Tomcat and TeamCity"
                 task.dependsOn project.tasks.cleanLogs
-                if (!BuildUtils.useEmbeddedTomcat(project)) {
-                    // Not valid for embedded Tomcat
-                    task.dependsOn project.tasks.cleanTemp
-                }
                 task.doLast {
                     project.delete "${project.projectDir}/${TEAMCITY_INFO_FILE}"
                 }

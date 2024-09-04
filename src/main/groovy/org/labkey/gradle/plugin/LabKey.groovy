@@ -69,10 +69,6 @@ class LabKey implements Plugin<Project>
         project.configurations
                 {
                     modules
-                    // we don't want this to be transitive because we use this configuration to
-                    // clean out the tomcat/lib directory when we do a cleanDeploy and the transitive
-                    // dependencies include some of the jars that are native to tomcat.
-                    tomcatJars { transitive = false }
                     remotePipelineJars
                     external {
                         canBeConsumed = true
@@ -85,7 +81,6 @@ class LabKey implements Plugin<Project>
         project.configurations.external.setDescription("External dependencies to be included in a module's lib directory")
         project.configurations.externalsNotTrans.setDescription("Direct external dependencies (not including transitive dependencies), for use in creating jars.txt file")
         project.configurations.modules.setDescription("Modules used in the current server deployment")
-        project.configurations.tomcatJars.setDescription("Dependencies to be copied into the tomcat/lib directory upon deployment")
         project.configurations.remotePipelineJars.setDescription("Dependencies required for running remote pipeline jobs")
 
     }

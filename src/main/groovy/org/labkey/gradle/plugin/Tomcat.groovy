@@ -15,7 +15,6 @@
  */
 package org.labkey.gradle.plugin
 
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -26,7 +25,6 @@ import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
 import org.labkey.gradle.task.StartTomcat
 import org.labkey.gradle.task.StopTomcat
-import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
 /**
@@ -60,27 +58,21 @@ class Tomcat implements Plugin<Project>
         project.tasks.register("startTomcat", StartTomcat) {
             StartTomcat task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Start the local or embedded (if property useEmbeddedTomcat is defined) Tomcat instance"
+                task.description = "Start the embedded Tomcat instance"
         }
 
         project.tasks.register(
                 "stopTomcat", StopTomcat) {
             StopTomcat task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Stop the local or embedded (if property useEmbeddedTomcat is defined) Tomcat instance"
+                task.description = "Stop the embedded Tomcat instance"
         }
 
         project.tasks.register("cleanLogs", Delete) {
             Delete task ->
-                var logDir = BuildUtils.useEmbeddedTomcat(project)
-                        ? "${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/logs"
-                        : "${tomcat.catalinaHome}/logs"
-
+                var logDir = "${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/logs"
                 task.group = GroupNames.WEB_APPLICATION
                 task.description = "Delete logs from ${logDir}"
-                if (!BuildUtils.useEmbeddedTomcat(project)) {
-                    task.doFirst {tomcat.validateCatalinaHome()}
-                }
                 task.configure { DeleteSpec spec -> spec.delete project.fileTree(logDir) }
         }
 

@@ -13,7 +13,7 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### TBD
+### 4.0.0
 *Released*: TBD
 (Earliest compatible LabKey version: 24.8)
 - Add `--add-opens` JVM arg for `java.nio` to `startTomcat` task. Required for Snowflake JDBC driver.
@@ -22,6 +22,10 @@ on how to do that, including how to develop and test locally and the versioning 
   - Remove `makeDistribution` property and deprecate `embeddedArchiveType` property (currently ignored)
   - Fix `subDirName` property's optional behavior; this property now correctly defaults to `project.name`.
   - Change `extraFileIdentifier` property's default value to `project.name` as well
+- Remove support for `useEmbeddedTomcat` property and remove all standalone handling 
+- Remove all `tomcat-lib` JAR file handling: `cleanTomcatLib`, `deployTomcatJars`, and `stageTomcatJars` tasks;
+  `tomcatJars` configuration
+- Remove `labkey.xml` and `log4j2.xml` files and handling
 
 ### 3.0.1
 *Released*: 18 July 2024
