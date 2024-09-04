@@ -359,16 +359,6 @@ class ServerDeploy implements Plugin<Project>
         }
         project.tasks.named('deployApp').configure {dependsOn(project.tasks.named("checkModuleTasks"))}
         project.tasks.named('checkModuleTasks').configure {mustRunAfter(project.tasks.stageApp)} // do this so the message appears at the bottom of the output
-        if (project.plugins.hasPlugin(Tomcat)) {
-            if (project.tomcat.hasCatalinaHome()) {
-                project.tasks.named("cleanBuild").configure {
-                    it.dependsOn(project.tasks.stopTomcat)
-                }
-                project.tasks.named("cleanDeploy").configure {
-                    it.dependsOn(project.tasks.stopTomcat)
-                }
-            }
-        }
     }
 
     private static linkBinaries(Project project, String packageMgr, String version, workDirectory) {

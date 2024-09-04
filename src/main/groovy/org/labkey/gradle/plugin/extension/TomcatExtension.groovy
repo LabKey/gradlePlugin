@@ -15,7 +15,6 @@
  */
 package org.labkey.gradle.plugin.extension
 
-import org.gradle.api.GradleException
 import org.gradle.api.Project
 
 class TomcatExtension
@@ -47,36 +46,6 @@ class TomcatExtension
     String getTomcatConfDir()
     {
         return tomcatConfDir
-    }
-
-    void validateCatalinaHome()
-    {
-        String errorMsg = ""
-        if (catalinaHome == null || catalinaHome.isEmpty())
-        {
-            errorMsg = "Tomcat home directory not set"
-        }
-        else if (!project.file(catalinaHome).exists())
-        {
-            errorMsg = "Specified Tomcat home directory [${project.file(catalinaHome).getAbsolutePath()}] does not exist"
-        }
-        else if (!new File(project.file(catalinaHome), "conf/server.xml").exists())
-        {
-            errorMsg = "Specified Tomcat home directory [${project.file(catalinaHome).getAbsolutePath()}] does not appear to be a tomcat installation"
-        }
-        if (!errorMsg.isEmpty())
-        {
-            throw new GradleException("${errorMsg}. Please specify using the environment variable CATALINA_HOME. " +
-                    "You may also set the value of the 'tomcat.home' system property using either " +
-                    "systemProp.tomcat.home=<tomcat home directory> in a gradle.properties file or " +
-                    "-Dtomcat.home=<tomcat home directory> on command line. Note that CATALINA_HOME is not, generally, " +
-                    "visible from within IntelliJ IDEA")
-        }
-    }
-
-    boolean hasCatalinaHome()
-    {
-        return catalinaHome != null && !catalinaHome.isEmpty()
     }
 
     private void setCatalinaDirs(Project project)

@@ -36,10 +36,4 @@ class Bootstrap extends DoThenSetup
     {
         databaseProperties = new DatabaseProperties(project, true)
     }
-
-    @Override
-    boolean labkeyXmlUpToDate(String appDocBase)
-    {
-        return false
-    }
 }
