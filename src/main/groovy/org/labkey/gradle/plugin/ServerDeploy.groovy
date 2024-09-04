@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.tasks.Delete
@@ -47,9 +46,6 @@ import java.nio.file.Paths
  */
 class ServerDeploy implements Plugin<Project>
 {
-    public static final List<String> JDBC_JARS = ["jtds.jar", "mysql.jar", "postgresql.jar"]
-    public static final List<String> TOMCAT_LIB_UNVERSIONED_JARS = JDBC_JARS + ["ant.jar", "mail.jar", "javax.activation.jar"]
-
     private ServerDeployExtension serverDeploy
 
     @Override

@@ -211,10 +211,6 @@ class ModuleDistribution extends DefaultTask
         String modulesZipFile = getDistributionZipPath()
         File serverJarFile = new File(getEmbeddedTomcatJarPath())
         ant.zip(destFile: modulesZipFile) {
-            zipfileset(dir: staging.webappDir,
-                    prefix: "labkeywebapp") {
-                exclude(name: "WEB-INF/classes/distribution")
-            }
             zipfileset(dir: getModulesDir(),
                     prefix: "modules") {
                 include(name: "*.module")

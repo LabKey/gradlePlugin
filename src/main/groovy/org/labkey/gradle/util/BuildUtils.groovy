@@ -45,7 +45,6 @@ import java.util.regex.Pattern
 class BuildUtils
 {
     public static final String BUILD_FROM_SOURCE_PROP = "buildFromSource"
-    public static final String USE_EMBEDDED_TOMCAT = "useEmbeddedTomcat"
     public static final String BUILD_CLIENT_LIBS_FROM_SOURCE_PROP = "buildClientLibsFromSource"
     public static final String SERVER_MODULES_DIR = "server/modules"
     public static final String PLATFORM_MODULES_DIR = "server/modules/platform"

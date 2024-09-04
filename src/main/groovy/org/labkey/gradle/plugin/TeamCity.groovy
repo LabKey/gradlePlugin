@@ -113,7 +113,6 @@ class TeamCity extends Tomcat
                 }
         }
 
-
         project.tasks.named("stopTomcat").configure {
             doLast {
                 ensureShutdown(project)
