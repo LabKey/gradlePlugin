@@ -21,7 +21,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.file.FileTree
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.labkey.gradle.plugin.ApplyLicenses
@@ -33,10 +32,6 @@ import java.nio.file.Files
 
 class ModuleDistribution extends DefaultTask
 {
-    // TODO: Remove this unused property
-    @Optional @Input
-    String embeddedArchiveType = null
-
     @Optional @Input
     String extraFileIdentifier = null
     @Optional @Input
