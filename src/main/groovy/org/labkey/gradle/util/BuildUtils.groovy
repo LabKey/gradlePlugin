@@ -869,16 +869,6 @@ class BuildUtils
             return jarFiles[0]
     }
 
-    static File getWebappConfigFile(Project project, String fileName)
-    {
-        if (project.rootProject.file("webapps/" + fileName).exists())
-            return project.rootProject.fileTree("webapps/" + fileName).singleFile
-        else if (project.rootProject.file("server/configs/webapps/" + fileName).exists())
-            return project.rootProject.fileTree("server/configs/webapps/" + fileName).singleFile
-        else
-            return ModuleDistribution.getDistributionResources(project).matching {include fileName}.singleFile
-    }
-
     static boolean embeddedProjectExists(Project project)
     {
         return project.findProject(getEmbeddedProjectPath(project.gradle)) != null
