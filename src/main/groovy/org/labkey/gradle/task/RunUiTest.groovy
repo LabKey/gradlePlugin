@@ -88,8 +88,6 @@ abstract class RunUiTest extends Test
         systemProperty "labkey.root", project.rootProject.projectDir
         systemProperty "project.root", project.rootProject.projectDir
         systemProperty "user.home", System.getProperty('user.home')
-        // A handful of tests require tomcat.home to be defined when running within IntelliJ
-        systemProperty "tomcat.home", project.tomcat.catalinaHome
         systemProperty "test.credentials.file", "${project.projectDir}/test.credentials.json"
 
         setTeamCityProperties()
