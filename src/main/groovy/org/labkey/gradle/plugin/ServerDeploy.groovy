@@ -132,7 +132,6 @@ class ServerDeploy implements Plugin<Project>
         }
         project.tasks.named('stageModules').configure {dependsOn project.configurations.modules}
 
-
         project.tasks.register("checkModuleVersions", CheckForVersionConflicts) {
             CheckForVersionConflicts task ->
                 task.directory = new File(serverDeploy.modulesDir)
@@ -184,27 +183,25 @@ class ServerDeploy implements Plugin<Project>
             project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
         }
 
-        project.tasks.register(
-                "stageRemotePipelineJars") {
+        project.tasks.register("stageRemotePipelineJars") {
             Task task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Copy files needed for using remote pipeline jobs into ${staging.pipelineLibDir}"
-                task.doLast(
-                        {
+                task.doLast({
                     if (!project.configurations.remotePipelineJars.getFiles().isEmpty()) {
                         project.ant.copy(
                             todir: staging.pipelineLibDir,
                             preserveLastModified: true
                         )
                         {
-                            project.configurations.remotePipelineJars { Configuration collection ->
-                                collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-
+                            project.configurations.remotePipelineJars
+                            {
+                                Configuration collection ->
+                                    collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
                             }
                         }
                     }
-                }
-            )
+                })
         }
 
         project.tasks.named('stageRemotePipelineJars').configure {dependsOn project.configurations.remotePipelineJars}
@@ -354,6 +351,12 @@ class ServerDeploy implements Plugin<Project>
         }
         project.tasks.named('deployApp').configure {dependsOn(project.tasks.named("checkModuleTasks"))}
         project.tasks.named('checkModuleTasks').configure {mustRunAfter(project.tasks.stageApp)} // do this so the message appears at the bottom of the output
+        project.tasks.named("cleanBuild").configure {
+            it.dependsOn(project.tasks.stopTomcat)
+        }
+        project.tasks.named("cleanDeploy").configure {
+            it.dependsOn(project.tasks.stopTomcat)
+        }
     }
 
     private static linkBinaries(Project project, String packageMgr, String version, workDirectory) {
