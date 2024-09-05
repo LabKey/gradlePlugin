@@ -70,8 +70,7 @@ class ServerDeploy implements Plugin<Project>
 
     private void addTasks(Project project)
     {
-        project.tasks.register(
-                "deployApp", DeployApp) {
+        project.tasks.register("deployApp", DeployApp) {
             DeployApp task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Deploy the application locally into ${serverDeploy.dir}"
@@ -121,15 +120,14 @@ class ServerDeploy implements Plugin<Project>
                     if (!localModules.isEmpty())
                     {
                         project.ant.copy(
-                                overwrite: true, // overwrite existing files even if the destination files are newer
-                                todir: staging.modulesDir,
-                                preserveLastModified: true // this is important so we don't re-explode modules that have not changed
+                            overwrite: true, // overwrite existing files even if the destination files are newer
+                            todir: staging.modulesDir,
+                            preserveLastModified: true // this is important so we don't re-explode modules that have not changed
                         )
-                                {
-                                    localModules.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-                                }
+                        {
+                            localModules.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
+                        }
                     }
-
                 })
         }
         project.tasks.named('stageModules').configure {dependsOn project.configurations.modules}
@@ -150,9 +148,7 @@ class ServerDeploy implements Plugin<Project>
                 })
             }
 
-
         project.tasks.named('stageModules').configure {dependsOn(project.tasks.checkModuleVersions)}
-
 
         project.tasks.register("checkVersionConflicts") {
             Task task ->
@@ -188,7 +184,6 @@ class ServerDeploy implements Plugin<Project>
             project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
         }
 
-
         project.tasks.register(
                 "stageRemotePipelineJars") {
             Task task ->
@@ -196,20 +191,20 @@ class ServerDeploy implements Plugin<Project>
                 task.description = "Copy files needed for using remote pipeline jobs into ${staging.pipelineLibDir}"
                 task.doLast(
                         {
-                            if (!project.configurations.remotePipelineJars.getFiles().isEmpty()) {
-                                project.ant.copy(
-                                        todir: staging.pipelineLibDir,
-                                        preserveLastModified: true
-                                )
-                                        {
-                                            project.configurations.remotePipelineJars { Configuration collection ->
-                                                collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
+                    if (!project.configurations.remotePipelineJars.getFiles().isEmpty()) {
+                        project.ant.copy(
+                            todir: staging.pipelineLibDir,
+                            preserveLastModified: true
+                        )
+                        {
+                            project.configurations.remotePipelineJars { Configuration collection ->
+                                collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
 
-                                            }
-                                        }
                             }
                         }
-                )
+                    }
+                }
+            )
         }
 
         project.tasks.named('stageRemotePipelineJars').configure {dependsOn project.configurations.remotePipelineJars}
@@ -349,10 +344,10 @@ class ServerDeploy implements Plugin<Project>
                     })
                     if (projectsMissingTasks.length > 0)
                         project.logger.quiet("Each of the following projects has a 'module.properties' file but no 'module' task. " +
-                                "These modules will not be included in the deployed server. " +
-                                "You should apply either the 'org.labkey.build.fileModule' or 'org.labkey.build.module' plugin in each project's 'build.gradle' file. " +
-                                "See https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules for more information.\n\t" +
-                                "${projectsMissingTasks.join("\n\t")}")
+                            "These modules will not be included in the deployed server. " +
+                            "You should apply either the 'org.labkey.build.fileModule' or 'org.labkey.build.module' plugin in each project's 'build.gradle' file. " +
+                            "See https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules for more information.\n\t" +
+                            "${projectsMissingTasks.join("\n\t")}")
 
                 })
                 task.notCompatibleWithConfigurationCache("Needs to walk the project tree")
@@ -402,6 +397,3 @@ class ServerDeploy implements Plugin<Project>
         }
     }
 }
-
-
-

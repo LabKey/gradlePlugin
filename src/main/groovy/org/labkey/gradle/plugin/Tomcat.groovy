@@ -21,6 +21,8 @@ import org.gradle.api.Project
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
+import org.labkey.gradle.plugin.extension.TomcatExtension
+import org.labkey.gradle.plugin.extension.UiTestExtension
 import org.labkey.gradle.task.StartTomcat
 import org.labkey.gradle.task.StopTomcat
 import org.labkey.gradle.util.GroupNames
@@ -35,6 +37,17 @@ class Tomcat implements Plugin<Project>
     @Override
     void apply(Project project)
     {
+        TomcatExtension tomcat = project.extensions.findByType(TomcatExtension.class)
+        if (tomcat == null)
+        {
+            tomcat = project.extensions.create("tomcat", TomcatExtension, project)
+        }
+        if (project.plugins.hasPlugin(TestRunner.class))
+        {
+            UiTestExtension testEx = (UiTestExtension) project.getExtensions().getByType(UiTestExtension.class)
+            tomcat.assertionFlag = Boolean.valueOf((String) testEx.getTestConfig("disableAssertions")) ? "-da" : "-ea"
+        }
+        tomcat.catalinaOpts = "-Dproject.root=${project.rootProject.projectDir.absolutePath}"
         addTasks(project)
     }
 
