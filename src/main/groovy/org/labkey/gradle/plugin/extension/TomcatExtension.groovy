@@ -21,8 +21,6 @@ class TomcatExtension
 {
     private final Project project
 
-    String catalinaHome
-    String tomcatConfDir
     String assertionFlag = "-ea" // set to -da to disable assertions and -ea to enable assertions
     String maxMemory = "2G"
     boolean disableRecompileJsp = false
@@ -35,49 +33,5 @@ class TomcatExtension
     TomcatExtension(Project project)
     {
         this.project = project
-        setCatalinaDirs(project)
-    }
-
-    String getCatalinaHome()
-    {
-        return catalinaHome
-    }
-
-    String getTomcatConfDir()
-    {
-        return tomcatConfDir
-    }
-
-    private void setCatalinaDirs(Project project)
-    {
-        if (System.getenv("CATALINA_HOME") != null)
-        {
-            this.catalinaHome = System.getenv("CATALINA_HOME")
-        }
-        else if (project.hasProperty("tomcatDir"))
-        {
-            this.catalinaHome = project.tomcatDir
-        }
-        else if (project.ext.hasProperty("tomcatDir"))
-        {
-            this.catalinaHome = project.ext.tomcatDir
-        }
-        else
-        {
-            this.catalinaHome = TeamCityExtension.getTeamCityProperty(project, "tomcat.home", null)
-        }
-
-        if (project.ext.hasProperty("tomcatConfDir"))
-        {
-            this.tomcatConfDir = project.ext.tomcatConfDir
-        }
-        else if (this.catalinaHome != null)
-        {
-            this.tomcatConfDir = "${this.catalinaHome}/conf/Catalina/localhost"
-        }
-        else
-        {
-            this.tomcatConfDir = null
-        }
     }
 }

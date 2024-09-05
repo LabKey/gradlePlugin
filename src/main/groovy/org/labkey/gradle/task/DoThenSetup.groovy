@@ -16,7 +16,6 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
@@ -139,30 +138,6 @@ class DoThenSetup extends DefaultTask
             }
         }
         return extraJdbcProperties
-    }
-
-
-    // labkeyXml is up to date if it was created after the current config file was created
-    // and it has the current appDocBase
-    boolean labkeyXmlUpToDate(String appDocBase)
-    {
-        if (this.dbPropertiesChanged)
-            return false
-
-        File dbPropFile = DatabaseProperties.getPickedConfigFile(project)
-        File tomcatLabkeyXml = new File("${project.tomcat.tomcatConfDir}", "labkey.xml")
-        if (!dbPropFile.exists() || !tomcatLabkeyXml.exists())
-            return false
-        if (dbPropFile.lastModified() < tomcatLabkeyXml.lastModified())
-        {
-            // make sure we haven't switch contexts
-            for (String line: tomcatLabkeyXml.readLines())
-            {
-                if (line.contains("docBase=\"" + appDocBase + "\""))
-                    return true
-            }
-        }
-        return false
     }
 
     boolean embeddedConfigUpToDate()
