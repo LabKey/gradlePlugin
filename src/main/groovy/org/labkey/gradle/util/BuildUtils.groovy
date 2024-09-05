@@ -30,7 +30,6 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
-import org.labkey.gradle.task.ModuleDistribution
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -546,7 +545,7 @@ class BuildUtils
             'tomcat-jsp-api',
             'tomcat-util',
             'tomcat-websocket-api',
-            'tomcat7-websocket'
+            'tomcat-websocket'
     ]
 
     static String getGitUrl(Project project)
@@ -569,10 +568,7 @@ class BuildUtils
 
     static void addTomcatBuildDependencies(Project project, String configuration)
     {
-        List<String> tomcatLibs = new ArrayList<>(TOMCAT_LIBS) // Don't modify list
-        if (!"${project.apacheTomcatVersion}".startsWith("7."))
-            tomcatLibs.replaceAll({it.replace('tomcat7-', 'tomcat-')})
-        for (String lib : tomcatLibs)
+        for (String lib : TOMCAT_LIBS)
             project.dependencies.add(configuration, "org.apache.tomcat:${lib}:${project.apacheTomcatVersion}")
     }
 

@@ -17,8 +17,6 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.RunTestSuite
 import org.labkey.gradle.util.BuildUtils
@@ -34,8 +32,6 @@ class TestRunner extends UiTest
         addPasswordTasks(project)
 
         addDataFileTasks(project)
-
-        addExtensionsTasks(project)
 
         addTestSuiteTask(project)
 
@@ -161,36 +157,6 @@ class TestRunner extends UiTest
                             writer.close()
                     }
                 })
-        }
-    }
-
-    private static void addExtensionsTasks(Project project)
-    {
-        File extensionsDir = project.file("chromeextensions")
-        if (extensionsDir.exists())
-        {
-            List<TaskProvider> extensionsZipTasks = new ArrayList<>()
-            extensionsDir.eachDir({
-                File dir ->
-
-                    String extensionTaskName = "package" + dir.getName().capitalize()
-                    project.tasks.register(extensionTaskName, Zip) {
-                        Zip task ->
-                            task.description = "Package the ${dir.getName()} chrome extension used for testing"
-                            task.archiveBaseName.set(dir.getName())
-                            task.archiveExtension.set("zip")
-                            task.from dir
-                            task.destinationDirectory.set(project.layout.buildDirectory.dir("chromextensions"))
-                    }
-
-                    extensionsZipTasks.add(project.tasks.named(extensionTaskName))
-            })
-            project.tasks.register("packageChromeExtensions") {
-                Task task ->
-                    task.description = "Package all chrome extensions used for testing"
-                    task.dependsOn (extensionsZipTasks)
-            }
-
         }
     }
 
