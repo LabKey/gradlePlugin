@@ -13,10 +13,6 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### TBD
-*Released*: TBD
-(Earliest compatible LabKey version: 24.10)
-
 ### 4.0.0
 *Released*: 5 September 2024
 (Earliest compatible LabKey version: 24.10)
