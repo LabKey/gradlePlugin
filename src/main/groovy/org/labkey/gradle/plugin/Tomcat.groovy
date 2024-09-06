@@ -16,7 +16,6 @@
 package org.labkey.gradle.plugin
 
 
-import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.DeleteSpec
@@ -26,7 +25,6 @@ import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
 import org.labkey.gradle.task.StartTomcat
 import org.labkey.gradle.task.StopTomcat
-import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
 /**
@@ -50,60 +48,31 @@ class Tomcat implements Plugin<Project>
             tomcat.assertionFlag = Boolean.valueOf((String) testEx.getTestConfig("disableAssertions")) ? "-da" : "-ea"
         }
         tomcat.catalinaOpts = "-Dproject.root=${project.rootProject.projectDir.absolutePath}"
-
-        addTasks(project, tomcat)
+        addTasks(project)
     }
 
-
-    private static void addTasks(Project project, TomcatExtension tomcat)
+    private static void addTasks(Project project)
     {
         project.tasks.register("startTomcat", StartTomcat) {
             StartTomcat task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Start the local or embedded (if property useEmbeddedTomcat is defined) Tomcat instance"
+                task.description = "Start the embedded Tomcat instance"
         }
 
         project.tasks.register(
                 "stopTomcat", StopTomcat) {
             StopTomcat task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Stop the local or embedded (if property useEmbeddedTomcat is defined) Tomcat instance"
+                task.description = "Stop the embedded Tomcat instance"
         }
 
         project.tasks.register("cleanLogs", Delete) {
             Delete task ->
-                var logDir = BuildUtils.useEmbeddedTomcat(project)
-                        ? "${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/logs"
-                        : "${tomcat.catalinaHome}/logs"
-
+                var logDir = "${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/logs"
                 task.group = GroupNames.WEB_APPLICATION
                 task.description = "Delete logs from ${logDir}"
-                if (!BuildUtils.useEmbeddedTomcat(project)) {
-                    task.doFirst {tomcat.validateCatalinaHome()}
-                }
                 task.configure { DeleteSpec spec -> spec.delete project.fileTree(logDir) }
         }
-
-        project.tasks.register("cleanTemp", DefaultTask) {
-            DefaultTask task ->
-                task.group = GroupNames.WEB_APPLICATION
-                task.description = "Delete temp files from ${tomcat.catalinaHome}"
-                task.doFirst {tomcat.validateCatalinaHome()}
-                task.doLast(  {
-                    // Note that we use the AntBuilder here because a fileTree in Gradle is a set of FILES only.
-                    // Deleting a file tree will delete all the leaves of the directory structure, but none of the
-                    // directories.
-                    project.ant.delete(includeEmptyDirs: true, quiet: true)
-                    {
-                        fileset(dir: "${tomcat.catalinaHome}/temp")
-                                {
-                                    include(name: "**/*")
-                                }
-                    }
-                    new File("${tomcat.catalinaHome}", "temp").mkdirs()
-                })
-        }
-
     }
 }
 

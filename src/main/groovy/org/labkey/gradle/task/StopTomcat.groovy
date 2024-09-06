@@ -17,8 +17,6 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.process.JavaExecSpec
-import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.PropertiesUtils
 
 /**
@@ -28,27 +26,6 @@ class StopTomcat extends DefaultTask
 {
     @TaskAction
     void action()
-    {
-        if (BuildUtils.useEmbeddedTomcat(project))
-            stopEmbeddedTomcat()
-        else
-            stopLocalTomcat()
-    }
-
-    void stopLocalTomcat()
-    {
-        project.tomcat.validateCatalinaHome()
-        project.javaexec( {
-            JavaExecSpec java ->
-                java.mainClass = "org.apache.catalina.startup.Bootstrap"
-                java.classpath  { ["${project.tomcat.catalinaHome}/bin/bootstrap.jar", "${project.tomcat.catalinaHome}/bin/tomcat-juli.jar"] }
-                java.systemProperties["user.dir"] = project.tomcat.catalinaHome
-                java.args = ["stop"]
-                java.ignoreExitValue = true
-        })
-    }
-
-    void stopEmbeddedTomcat()
     {
         def applicationProperties = PropertiesUtils.getApplicationProperties(project)
         def port = applicationProperties.getProperty("management.server.port", applicationProperties.getProperty("server.port"))

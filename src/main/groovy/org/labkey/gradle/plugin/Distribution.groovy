@@ -237,7 +237,6 @@ class Distribution implements Plugin<Project>
                     .orElse(project.name)
         }
     }
-
 }
 
 

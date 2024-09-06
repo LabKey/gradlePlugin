@@ -44,14 +44,6 @@ class StartTomcat extends DefaultTask
     @TaskAction
     void action()
     {
-        if (BuildUtils.useEmbeddedTomcat(project))
-            startEmbeddedTomcat()
-        else
-            startLocalTomcat()
-    }
-
-    private startEmbeddedTomcat()
-    {
         File jarFile = BuildUtils.getExecutableServerJar(project)
         if (jarFile == null)
         {
@@ -87,72 +79,6 @@ class StartTomcat extends DefaultTask
             Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
             process.consumeProcessOutput(outputStream, outputStream)
         }
-    }
-
-    private void startLocalTomcat()
-    {
-        project.tomcat.validateCatalinaHome()
-
-        // we need to create the logs directory if it doesn't exist because Tomcat won't start without it,
-        // and, annoyingly, this is not seen as an error for this action.
-        if (!project.file("${project.tomcat.catalinaHome}/logs").exists())
-            project.mkdir("${project.tomcat.catalinaHome}/logs")
-        if (SystemUtils.IS_OS_UNIX)
-        {
-            project.ant.chmod(dir: "${project.tomcat.catalinaHome}/bin", includes: "**/*.sh", perm: "ug+rx")
-        }
-        project.ant.exec(
-                spawn: true,
-                dir: SystemUtils.IS_OS_WINDOWS ? "${project.tomcat.catalinaHome}/bin" : project.tomcat.catalinaHome,
-                executable: SystemUtils.IS_OS_WINDOWS ? "cmd" : "bin/catalina.sh"
-        )
-                {
-                    env(
-                            key: "PATH",
-                            path: "${BuildUtils.getServerProject(project).serverDeploy.binDir}${File.pathSeparator}${System.getenv("PATH")}"
-                    )
-
-                    String catalinaOpts = getStartupOpts(project).join(" ").replaceAll("\\s+", " ")
-
-                    this.logger.debug("setting CATALINA_OPTS to ${catalinaOpts}")
-                    env(
-                            key: "CATALINA_OPTS",
-                            value: catalinaOpts
-                    )
-                    if (TeamCityExtension.isOnTeamCity(project))
-                    {
-                        env(
-                                key: "R_LIBS_USER",
-                                value: System.getenv("R_LIBS_USER") != null ? System.getenv("R_LIBS_USER") : project.rootProject.file("sampledata/rlabkey")
-                        )
-
-                        def javaHome = TeamCityExtension.getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
-                        env (
-                                key: "JAVA_HOME",
-                                value: javaHome
-                        )
-                        env (
-                                key: "JRE_HOME",
-                                value: javaHome
-                        )
-                    }
-
-                    if (SystemUtils.IS_OS_WINDOWS)
-                    {
-                        env(
-                                key: "CLOSE_WINDOW",
-                                value: true
-                        )
-                        arg(line: "/c start ")
-                        arg(value: "'Tomcat Server'")
-                        arg(value: "/B")
-                        arg(value: "${project.tomcat.catalinaHome}/bin/catalina.bat")
-                    }
-                    arg(value: "start")
-                }
-        println("Waiting 5 seconds for tomcat to start...")
-        project.ant.sleep(seconds: 5)
-        println("Tomcat started.")
     }
 
     static List<String> getStartupOpts(Project project)

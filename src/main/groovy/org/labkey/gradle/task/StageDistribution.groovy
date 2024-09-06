@@ -38,10 +38,6 @@ class StageDistribution extends DefaultTask
     @OutputDirectory
     File pipelineJarStagingDir = new File((String) project.staging.pipelineLibDir)
 
-    @OutputDirectory
-    File tomcatJarStagingDir = new File((String) project.staging.tomcatLibDir)
-
-
     @TaskAction
     void action()
     {

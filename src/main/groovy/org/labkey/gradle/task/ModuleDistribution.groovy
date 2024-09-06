@@ -21,23 +21,17 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.file.FileTree
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.labkey.gradle.plugin.ApplyLicenses
 import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.plugin.extension.LabKeyExtension
-import org.labkey.gradle.plugin.extension.StagingExtension
 import org.labkey.gradle.util.BuildUtils
 
 import java.nio.file.Files
 
 class ModuleDistribution extends DefaultTask
 {
-    // TODO: Remove this unused property
-    @Optional @Input
-    String embeddedArchiveType = null
-
     @Optional @Input
     String extraFileIdentifier = null
     @Optional @Input
@@ -205,16 +199,10 @@ class ModuleDistribution extends DefaultTask
 
     private makeEmbeddedTomcatJar()
     {
-        StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
-
         File embeddedJarFile = project.configurations.embedded.singleFile
         String modulesZipFile = getDistributionZipPath()
         File serverJarFile = new File(getEmbeddedTomcatJarPath())
         ant.zip(destFile: modulesZipFile) {
-            zipfileset(dir: staging.webappDir,
-                    prefix: "labkeywebapp") {
-                exclude(name: "WEB-INF/classes/distribution")
-            }
             zipfileset(dir: getModulesDir(),
                     prefix: "modules") {
                 include(name: "*.module")
@@ -275,13 +263,6 @@ class ModuleDistribution extends DefaultTask
     {
         writeDistributionFile()
         writeVersionFile()
-        FileTree zipFile = getDistributionResources(project)
-        project.copy({ CopySpec copy ->
-            copy.from(zipFile)
-            copy.exclude "*.xml"
-            copy.into(project.layout.buildDirectory)
-            copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-        })
         // Prefer files from 'server/configs/webapps' if they exist
         File serverConfigDir = project.rootProject.file("server/configs/webapps/")
         if (serverConfigDir.exists()) {
@@ -310,19 +291,6 @@ class ModuleDistribution extends DefaultTask
         // -bash: ./manual-upgrade.sh: /bin/sh^M: bad interpreter: No such file or directory
         // even though the original file has unix line endings. Dunno.
         project.ant.fixcrlf (srcdir: BuildUtils.getBuildDirPath(project), includes: "manual-upgrade.sh", eol: "unix")
-    }
-
-    static FileTree getDistributionResources(Project project) {
-        // This seems a very convoluted way to get to the zip file in the jar file.  Using the classLoader did not
-        // work as expected, however.  Following the example from here:
-        // https://discuss.gradle.org/t/gradle-plugin-copy-directory-tree-with-files-from-resources/12767/7
-        FileTree jarTree = project.zipTree(ModuleDistribution.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm())
-
-        def tree = project.zipTree(
-                jarTree.matching({
-                    include "distributionResources.zip"
-                }).singleFile)
-        return tree
     }
 
     private File getDistributionFile()

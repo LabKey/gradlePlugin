@@ -16,13 +16,10 @@
 package org.labkey.gradle.task
 
 import org.apache.commons.lang3.StringUtils
-import org.gradle.api.file.CopySpec
-import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Internal
 import org.labkey.gradle.plugin.TeamCity
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.DatabaseProperties
-import org.labkey.gradle.util.TaskUtils
 
 /**
  * Class that sets our test/Runner.class as the junit test suite and configures a bunch of system properties for
@@ -44,26 +41,10 @@ abstract class RunTestSuite extends RunUiTest
         dependsOn(project.tasks.writeSampleDataFile)
 
         dependsOn(project.tasks.ensurePassword)
-        if (project.findProject(":tools:Rpackages:install") != null)
-            dependsOn(project.project(':tools:Rpackages:install'))
-        if (!project.getPlugins().hasPlugin(TeamCity.class)) {
-            TaskUtils.addOptionalTaskDependency(project, this, 'packageChromeExtensions')
-        }
         if (project.getPlugins().hasPlugin(TeamCity.class))
         {
             dependsOn(project.tasks.killChrome)
-            dependsOn(project.tasks.ensurePassword)
-
-            if (project.tomcat.catalinaHome != null)
-            {
-                doLast( {
-                    project.copy({ CopySpec copy ->
-                        copy.from "${project.tomcat.catalinaHome}/logs"
-                        copy.into project.layout.buildDirectory.file("logs/test/tomcat")
-                        copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-                    })
-                })
-            }
+            dependsOn(project.tasks.killFirefox)
         }
     }
 
@@ -80,7 +61,6 @@ abstract class RunTestSuite extends RunUiTest
                 systemProperty "testRecentlyFailed", "${runRiskGroupTestsFirst.contains("recentlyFailed")}"
             }
             systemProperty "teamcity.buildType.id", project.teamcity['teamcity.buildType.id']
-            systemProperty "tomcat.home", System.getenv("CATALINA_HOME")
             systemProperty "tomcat.port", project.teamcity["tomcat.port"]
             systemProperty "tomcat.debug", project.teamcity["tomcat.debug"]
             systemProperty "labkey.port", project.teamcity['tomcat.port']

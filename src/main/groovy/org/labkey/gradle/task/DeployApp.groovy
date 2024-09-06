@@ -27,9 +27,6 @@ class DeployApp extends DeployAppBase
     File stagingModulesDir = new File((String) project.staging.modulesDir)
 
     @InputDirectory
-    File stagingWebappDir = new File((String) project.staging.webappDir)
-
-    @InputDirectory
     File stagingPipelineJarDir = new File((String) project.staging.pipelineLibDir)
     
     @OutputDirectory
@@ -47,23 +44,10 @@ class DeployApp extends DeployAppBase
     @TaskAction
     void action()
     {
-        deployWebappDir()
         deployModules()
         deployPipelineJars()
         deployNlpEngine(deployBinDir)
         deployPlatformBinaries(deployBinDir)
-    }
-
-
-    private void deployWebappDir()
-    {
-        ant.copy(
-                todir: deployWebappDir,
-                preserveLastModified: true
-        )
-                {
-                    fileset(dir: stagingWebappDir)
-                }
     }
 
     private void deployModules()

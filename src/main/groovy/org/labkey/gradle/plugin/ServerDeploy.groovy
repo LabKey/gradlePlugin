@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.tasks.Delete
@@ -47,9 +46,6 @@ import java.nio.file.Paths
  */
 class ServerDeploy implements Plugin<Project>
 {
-    public static final List<String> JDBC_JARS = ["jtds.jar", "mysql.jar", "postgresql.jar"]
-    public static final List<String> TOMCAT_LIB_UNVERSIONED_JARS = JDBC_JARS + ["ant.jar", "mail.jar", "javax.activation.jar"]
-
     private ServerDeployExtension serverDeploy
 
     @Override
@@ -74,8 +70,7 @@ class ServerDeploy implements Plugin<Project>
 
     private void addTasks(Project project)
     {
-        project.tasks.register(
-                "deployApp", DeployApp) {
+        project.tasks.register("deployApp", DeployApp) {
             DeployApp task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Deploy the application locally into ${serverDeploy.dir}"
@@ -125,19 +120,17 @@ class ServerDeploy implements Plugin<Project>
                     if (!localModules.isEmpty())
                     {
                         project.ant.copy(
-                                overwrite: true, // overwrite existing files even if the destination files are newer
-                                todir: staging.modulesDir,
-                                preserveLastModified: true // this is important so we don't re-explode modules that have not changed
+                            overwrite: true, // overwrite existing files even if the destination files are newer
+                            todir: staging.modulesDir,
+                            preserveLastModified: true // this is important so we don't re-explode modules that have not changed
                         )
-                                {
-                                    localModules.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-                                }
+                        {
+                            localModules.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
+                        }
                     }
-
                 })
         }
         project.tasks.named('stageModules').configure {dependsOn project.configurations.modules}
-
 
         project.tasks.register("checkModuleVersions", CheckForVersionConflicts) {
             CheckForVersionConflicts task ->
@@ -154,9 +147,7 @@ class ServerDeploy implements Plugin<Project>
                 })
             }
 
-
         project.tasks.named('stageModules').configure {dependsOn(project.tasks.checkModuleVersions)}
-
 
         project.tasks.register("checkVersionConflicts") {
             Task task ->
@@ -192,28 +183,25 @@ class ServerDeploy implements Plugin<Project>
             project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
         }
 
-
-        project.tasks.register(
-                "stageRemotePipelineJars") {
+        project.tasks.register("stageRemotePipelineJars") {
             Task task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Copy files needed for using remote pipeline jobs into ${staging.pipelineLibDir}"
-                task.doLast(
+                task.doLast({
+                    if (!project.configurations.remotePipelineJars.getFiles().isEmpty()) {
+                        project.ant.copy(
+                            todir: staging.pipelineLibDir,
+                            preserveLastModified: true
+                        )
                         {
-                            if (!project.configurations.remotePipelineJars.getFiles().isEmpty()) {
-                                project.ant.copy(
-                                        todir: staging.pipelineLibDir,
-                                        preserveLastModified: true
-                                )
-                                        {
-                                            project.configurations.remotePipelineJars { Configuration collection ->
-                                                collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-
-                                            }
-                                        }
+                            project.configurations.remotePipelineJars
+                            {
+                                Configuration collection ->
+                                    collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
                             }
                         }
-                )
+                    }
+                })
         }
 
         project.tasks.named('stageRemotePipelineJars').configure {dependsOn project.configurations.remotePipelineJars}
@@ -231,7 +219,7 @@ class ServerDeploy implements Plugin<Project>
                 "setup",  DoThenSetup) {
             DoThenSetup task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Installs labkey.xml and application.properties (for embedded tomcat) into the tomcat configuration directory.  Sets default database properties."
+                task.description = "Installs application.properties into the tomcat configuration directory. Sets default database properties."
                 // stage the application first to try to avoid multiple Tomcat restarts
                 task.mustRunAfter(project.tasks.stageApp)
         }
@@ -272,48 +260,27 @@ class ServerDeploy implements Plugin<Project>
 
         }
 
-        String log4jFile = 'log4j2.xml'
-        project.tasks.register('configureLog4j', ConfigureLog4J) {
-            ConfigureLog4J task ->
-                task.fileName = log4jFile
-                task.group = GroupNames.DEPLOY
-                task.description = "Edit and copy ${log4jFile} file"
-        }
-        project.tasks.named('stageApp').configure {dependsOn(project.tasks.configureLog4j)}
-
         project.tasks.register("stageDistribution", StageDistribution) {
             StageDistribution task ->
                 task.group = GroupNames.DISTRIBUTION
                 task.description = "Populate the staging directory using a LabKey distribution file from directory dist or directory specified with distDir property. Use property distType to specify zip or tar.gz (default)."
         }
 
-        if (BuildUtils.useEmbeddedTomcat(project))
-            project.tasks.register("deployDistribution", DeployEmbeddedDistribution) {
-                DeployEmbeddedDistribution task ->
-                    task.group = GroupNames.DISTRIBUTION
-                    task.description = "Extract the executable jar from a distribution and put it and the included binaries in the appropriate deploy directory"
-                    task.dependsOn(project.tasks.cleanEmbeddedDeploy, project.tasks.setup)
-            }
-        else
-            project.tasks.register("deployDistribution", DeployApp) {
-                DeployApp task ->
-                    task.group = GroupNames.DISTRIBUTION
-                    task.description = "Deploy a LabKey distribution file from directory dist or directory specified with distDir property.  Use property distType to specify zip or tar.gz (default)."
-                    task.dependsOn(project.tasks.stageDistribution, project.tasks.configureLog4j, project.tasks.setup)
-                    task.doFirst {deployTomcatJars(task)}
-            }
-
+        project.tasks.register("deployDistribution", DeployEmbeddedDistribution) {
+            DeployEmbeddedDistribution task ->
+                task.group = GroupNames.DISTRIBUTION
+                task.description = "Extract the executable jar from a distribution and put it and the included binaries in the appropriate deploy directory"
+                task.dependsOn(project.tasks.cleanEmbeddedDeploy, project.tasks.setup)
+        }
 
         // This may prevent multiple Tomcat restarts
         project.tasks.named('setup').configure {mustRunAfter(project.tasks.stageDistribution)}
-        project.tasks.named('configureLog4j').configure {mustRunAfter(project.tasks.stageDistribution)}
 
         project.tasks.register('undeployModules',UndeployModules) {
             UndeployModules task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Removes all module files and directories from the deploy and staging directories"
         }
-
 
         project.tasks.register(
                 'cleanStaging',Delete) {
@@ -337,16 +304,6 @@ class ServerDeploy implements Plugin<Project>
         }
         project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanDeploy)}
 
-        project.tasks.register("cleanTomcatLib") {
-            Task task ->
-                task.group = GroupNames.DEPLOY
-                task.description = "Remove the jar files deployed to the tomcat/lib directory"
-                task.doLast {
-                    deleteTomcatLibs(project)
-                }
-        }
-
-
         project.tasks.register("cleanAndDeploy", DeployApp) {
             DeployApp task ->
                 task.group = GroupNames.DEPLOY
@@ -363,32 +320,6 @@ class ServerDeploy implements Plugin<Project>
                 })
         }
         project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanBuild)}
-
-        Project serverProject = BuildUtils.getServerProject(project)
-        if (serverProject != null) {
-            project.tasks.register('stageTomcatJars', DefaultTask) {
-                DefaultTask task ->
-                    task.group = GroupNames.DEPLOY
-                    task.description = "Copy runtime Tomcat dependencies to ${staging.tomcatLibDir}"
-                    task.dependsOn(serverProject.configurations.tomcatJars)
-                    task.doLast({
-                        stageTomcatJars(task)
-                    })
-            }
-
-            project.tasks.register('deployTomcatJars', DefaultTask) {
-                DefaultTask task ->
-                    task.group = GroupNames.DEPLOY
-                    task.description = "Copying files from ${staging.tomcatLibDir} to \$CATALINA_HOME/lib"
-                    task.dependsOn(serverProject.tasks.stageTomcatJars)
-                    task.doLast({
-                        deployTomcatJars(task)
-                    })
-            }
-
-            project.tasks.named('stageApp').configure {dependsOn(project.tasks.stageTomcatJars)}
-            project.tasks.named('deployApp').configure {dependsOn(project.tasks.deployTomcatJars)}
-        }
 
         // TODO is this still useful?
         project.tasks.register(
@@ -410,112 +341,22 @@ class ServerDeploy implements Plugin<Project>
                     })
                     if (projectsMissingTasks.length > 0)
                         project.logger.quiet("Each of the following projects has a 'module.properties' file but no 'module' task. " +
-                                "These modules will not be included in the deployed server. " +
-                                "You should apply either the 'org.labkey.build.fileModule' or 'org.labkey.build.module' plugin in each project's 'build.gradle' file. " +
-                                "See https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules for more information.\n\t" +
-                                "${projectsMissingTasks.join("\n\t")}")
+                            "These modules will not be included in the deployed server. " +
+                            "You should apply either the 'org.labkey.build.fileModule' or 'org.labkey.build.module' plugin in each project's 'build.gradle' file. " +
+                            "See https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules for more information.\n\t" +
+                            "${projectsMissingTasks.join("\n\t")}")
 
                 })
                 task.notCompatibleWithConfigurationCache("Needs to walk the project tree")
         }
         project.tasks.named('deployApp').configure {dependsOn(project.tasks.named("checkModuleTasks"))}
         project.tasks.named('checkModuleTasks').configure {mustRunAfter(project.tasks.stageApp)} // do this so the message appears at the bottom of the output
-        if (project.plugins.hasPlugin(Tomcat)) {
-            if (project.tomcat.hasCatalinaHome()) {
-                project.tasks.named("cleanBuild").configure {
-                    it.dependsOn(project.tasks.stopTomcat)
-                }
-                project.tasks.named("cleanDeploy").configure {
-                    it.dependsOn(project.tasks.stopTomcat)
-                }
-            }
+        project.tasks.named("cleanBuild").configure {
+            it.dependsOn(project.tasks.stopTomcat)
         }
-    }
-
-    /**
-     * For consistency with a distribution deployment and the treatment of all other deployment artifacts,
-     * first copy the tomcat jars into the staging directory
-     * @param task
-     */
-    private void stageTomcatJars(Task task) {
-        Project project = task.project
-        Project serverProject = BuildUtils.getServerProject(project)
-        // Remove the staging tomcatLib directory before copying into it to avoid duplicates.
-        project.delete project.staging.tomcatLibDir
-
-        // We resolve the tomcatJars files outside of the ant copy because this seems to avoid
-        // an error we saw on TeamCity when running the pickMssql task on Windows when updating to Gradle 6.7
-        // The error in the gradle log was:
-        //       org.apache.tools.ant.BuildException: copy doesn't support the nested "exec" element.
-        // Theory is that when the files in the configuration have not been resolved, they get resolved
-        // inside the node being added to the ant task below and that is not supported.
-        FileTree tomcatJars = serverProject.configurations.tomcatJars.getAsFileTree()
-
-        if (tomcatJars.size() == 1 && tomcatJars.getAt(0).getName().endsWith(".zip")) {
-            // Crack open zipped published tomcat libs
-            tomcatJars = project.zipTree(tomcatJars.singleFile)
+        project.tasks.named("cleanDeploy").configure {
+            it.dependsOn(project.tasks.stopTomcat)
         }
-        task.logger.info("Copying to ${project.staging.tomcatLibDir}")
-        task.logger.info("tomcatFiles are ${tomcatJars.files}")
-        project.ant.copy(
-                todir: project.staging.tomcatLibDir,
-                preserveLastModified: true,
-                overwrite: true // Issue 33473: overwrite the existing jars to facilitate switching to older versions of labkey with older dependencies
-        )
-                {
-                    tomcatJars.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-
-                    // Put unversioned files into the tomcatLibDir.  These files are meant to be copied into
-                    // the tomcat/lib directory when deploying a build or a distribution.  When version numbers change,
-                    // you will end up with multiple versions of these jar files on the classpath, which will often
-                    // result in problems of compatibility.  Additionally, we want to maintain the (incorrect) names
-                    // of the files that have been used with the Ant build process.
-                    //
-                    // We may employ CATALINA_BASE in order to separate our libraries from the ones that come with
-                    // the tomcat distribution. This will require updating our instructions for installation by clients
-                    // but would allow us to use artifacts with more self-documenting names.
-                    chainedmapper()
-                            {
-                                flattenmapper()
-                                // get rid of the version numbers on the jar files
-                                // matches on: name-X.Y.Z-SNAPSHOT.jar, name-X.Y.Z_branch-SNAPSHOT.jar, name-X.Y.Z.jar
-                                //
-                                // N.B.  Attempts to use BuildUtils.VERSIONED_ARTIFACT_NAME_PATTERN here fail for the javax.mail-X.Y.Z.jar file.
-                                // The Ant regexpmapper chooses only javax as \\1, which is not what is wanted
-                                regexpmapper(from: "^(.*?)(-\\d+(\\.\\d+)*(_.+)?(-SNAPSHOT)?)?\\.jar", to: "\\1.jar")
-                                filtermapper()
-                                        {
-                                            replacestring(from: "mysql-connector-java", to: "mysql")
-                                            // the Ant build used mysql.jar
-                                            replacestring(from: "javax.mail", to: "mail") // the Ant build used mail.jar
-                                            replacestring(from: "jakarta.mail", to: "mail")
-                                            // the Ant build used mail.jar
-                                            replacestring(from: "jakarta.activation", to: "javax.activation")
-                                            // the Ant build used javax.activation.jar
-                                        }
-                            }
-                }
-    }
-
-    private void deployTomcatJars(Task task) {
-        Project project = task.project
-        if (BuildUtils.useEmbeddedTomcat(project)) {
-            task.logger.info("Not deploying tomcat jars for embedded deployment")
-            return
-        }
-
-        JDBC_JARS.each{String name -> new File("${project.tomcat.catalinaHome}/lib/${name}").delete()}
-
-        // Then copy them into the tomcat/lib directory
-        task.logger.info("Copying files from ${project.staging.tomcatLibDir} to ${project.tomcat.catalinaHome}/lib")
-        project.ant.copy(
-                todir: "${project.tomcat.catalinaHome}/lib",
-                preserveLastModified: true,
-                overwrite: true
-        )
-                {
-                    fileset(dir: project.staging.tomcatLibDir)
-                }
     }
 
     private static linkBinaries(Project project, String packageMgr, String version, workDirectory) {
@@ -558,29 +399,4 @@ class ServerDeploy implements Plugin<Project>
                 project.logger.warn("No file found with prefix ${nodeDir.path}/${nodeFilePrefix}.  Symbolic link in ${linkContainer.getPath()}/node not created.")
         }
     }
-
-    private static void deleteTomcatLibs(Project project)
-    {
-        project.tomcat.validateCatalinaHome()
-
-        Files.newDirectoryStream(Paths.get(project.tomcat.catalinaHome, "lib"), "${BuildUtils.BOOTSTRAP_JAR_BASE_NAME}*.jar").each { Path path ->
-            project.delete path.toString()
-        }
-
-        project.configurations.tomcatJars.files.each {File jarFile ->
-            File libFile = new File("${project.tomcat.catalinaHome}/lib/${jarFile.getName()}")
-            if (libFile.exists())
-                project.delete libFile.getAbsolutePath()
-        }
-
-        // Get rid of (un-versioned) jars that were deployed
-        TOMCAT_LIB_UNVERSIONED_JARS.each{String name ->
-            File libFile = new File("${project.tomcat.catalinaHome}/lib/${name}")
-            if (libFile.exists())
-                project.delete libFile.getAbsolutePath()
-        }
-    }
 }
-
-
-

@@ -116,12 +116,7 @@ class TeamCityExtension
     }
 
     File startupPropertiesDir() {
-        File startupDir
-        if (BuildUtils.useEmbeddedTomcat(project)) {
-            startupDir = new File(new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)), 'startup')
-        } else {
-            startupDir = new File(new File(ServerDeployExtension.getServerDeployDirectory(project)), 'startup')
-        }
+        File startupDir = new File(new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)), 'startup')
         FileUtils.forceMkdir(startupDir)
         return startupDir
     }

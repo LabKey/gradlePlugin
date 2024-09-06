@@ -30,7 +30,6 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
-import org.labkey.gradle.task.ModuleDistribution
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -45,7 +44,6 @@ import java.util.regex.Pattern
 class BuildUtils
 {
     public static final String BUILD_FROM_SOURCE_PROP = "buildFromSource"
-    public static final String USE_EMBEDDED_TOMCAT = "useEmbeddedTomcat"
     public static final String BUILD_CLIENT_LIBS_FROM_SOURCE_PROP = "buildClientLibsFromSource"
     public static final String SERVER_MODULES_DIR = "server/modules"
     public static final String PLATFORM_MODULES_DIR = "server/modules/platform"
@@ -547,7 +545,7 @@ class BuildUtils
             'tomcat-jsp-api',
             'tomcat-util',
             'tomcat-websocket-api',
-            'tomcat7-websocket'
+            'tomcat-websocket'
     ]
 
     static String getGitUrl(Project project)
@@ -570,10 +568,7 @@ class BuildUtils
 
     static void addTomcatBuildDependencies(Project project, String configuration)
     {
-        List<String> tomcatLibs = new ArrayList<>(TOMCAT_LIBS) // Don't modify list
-        if (!"${project.apacheTomcatVersion}".startsWith("7."))
-            tomcatLibs.replaceAll({it.replace('tomcat7-', 'tomcat-')})
-        for (String lib : tomcatLibs)
+        for (String lib : TOMCAT_LIBS)
             project.dependencies.add(configuration, "org.apache.tomcat:${lib}:${project.apacheTomcatVersion}")
     }
 
@@ -870,34 +865,9 @@ class BuildUtils
             return jarFiles[0]
     }
 
-    static File getWebappConfigFile(Project project, String fileName)
-    {
-        if (project.rootProject.file("webapps/" + fileName).exists())
-            return project.rootProject.fileTree("webapps/" + fileName).singleFile
-        else if (project.rootProject.file("server/configs/webapps/" + fileName).exists())
-            return project.rootProject.fileTree("server/configs/webapps/" + fileName).singleFile
-        else
-            return ModuleDistribution.getDistributionResources(project).matching {include fileName}.singleFile
-    }
-
     static boolean embeddedProjectExists(Project project)
     {
         return project.findProject(getEmbeddedProjectPath(project.gradle)) != null
-    }
-
-    static boolean useEmbeddedTomcat(Project project)
-    {
-        _useEmbeddedTomcat(project)
-    }
-
-    static boolean useEmbeddedTomcat(Settings settings)
-    {
-        _useEmbeddedTomcat(settings)
-    }
-
-    private static boolean _useEmbeddedTomcat(Object o)
-    {
-        o.hasProperty(USE_EMBEDDED_TOMCAT) && o[USE_EMBEDDED_TOMCAT] != "false"
     }
 
     /**
