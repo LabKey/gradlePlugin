@@ -21,7 +21,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.labkey.gradle.plugin.ApplyLicenses
 import org.labkey.gradle.plugin.extension.DistributionExtension
@@ -37,7 +36,7 @@ class ModuleDistribution extends DefaultTask
     @Optional @Input
     String versionPrefix = null
     @Optional @Input
-    final abstract Property<String> subDirName = project.objects.property(String).convention(project.name)
+    String subDirName = null
     @Optional @Input
     String archivePrefix = "LabKey"
     @Optional @Input
@@ -70,7 +69,7 @@ class ModuleDistribution extends DefaultTask
     File getDistributionDir()
     {
         if (distributionDir == null) {
-            distributionDir = project.file("${distExtension.dir}/" + subDirName.get())
+            distributionDir = project.file("${distExtension.dir}/" + getSubDir())
         }
         return distributionDir
     }
@@ -150,17 +149,28 @@ class ModuleDistribution extends DefaultTask
     @Input
     String getArtifactId()
     {
-        return subDirName.get()
+        return getSubDir()
     }
 
     String getArchiveName()
     {
         if (archiveName == null)
         {
-            var extraIdentifier = extraFileIdentifier != null ? extraFileIdentifier : "-" + project.name
+            var extraIdentifier = extraFileIdentifier != null ? extraFileIdentifier : "-" + getProjectName()
             archiveName = "${archivePrefix}${BuildUtils.getDistributionVersion(project)}" + extraIdentifier
         }
         return archiveName
+    }
+
+    private String getSubDir()
+    {
+        return subDirName == null ? getProjectName() : subDirName;
+    }
+
+    private String getProjectName()
+    {
+        int idx = project.name.indexOf("_dist")
+        return idx == -1 ? project.name : project.name.substring(0, idx);
     }
 
     private String getEmbeddedTomcatJarPath()
