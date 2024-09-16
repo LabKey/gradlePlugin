@@ -156,7 +156,7 @@ class ModuleDistribution extends DefaultTask
     {
         if (archiveName == null)
         {
-            var extraIdentifier = extraFileIdentifier != null ? extraFileIdentifier : "-" + getProjectName()
+            var extraIdentifier = extraFileIdentifier != null ? extraFileIdentifier : "-" + getDefaultName()
             archiveName = "${archivePrefix}${BuildUtils.getDistributionVersion(project)}" + extraIdentifier
         }
         return archiveName
@@ -164,10 +164,11 @@ class ModuleDistribution extends DefaultTask
 
     private String getSubDir()
     {
-        return subDirName == null ? getProjectName() : subDirName;
+        return subDirName == null ? getDefaultName() : subDirName;
     }
 
-    private String getProjectName()
+    // Standard name to use when extraFileIdentifier or subDirName properties aren't provided
+    private String getDefaultName()
     {
         int idx = project.name.indexOf("_dist")
         return idx == -1 ? project.name : project.name.substring(0, idx);
