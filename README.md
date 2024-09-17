@@ -13,9 +13,10 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### TBD
+### 4.1.0-SNAPSHOT
 *Released*: TBD
 (Earliest compatible LabKey version: 24.10)
+- Update default value handling for `subDirName` and `extraFileIdentifier` properties: strip `"_dist"` suffix from `project.name` if present
 
 ### 4.0.0
 *Released*: 5 September 2024
