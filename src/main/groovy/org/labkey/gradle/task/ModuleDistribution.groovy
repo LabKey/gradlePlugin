@@ -167,7 +167,7 @@ class ModuleDistribution extends DefaultTask
         return subDirName == null ? getDefaultName() : subDirName;
     }
 
-    // Standard name to use when extraFileIdentifier or subDirName properties aren't provided
+    // Standard name to use when extraFileIdentifier or subDirName property isn't provided
     private String getDefaultName()
     {
         int idx = project.name.indexOf("_dist")
