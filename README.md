@@ -18,6 +18,7 @@ on how to do that, including how to develop and test locally and the versioning 
 (Earliest compatible LabKey version: 24.10)
 - Update default value handling for `subDirName` and `extraFileIdentifier` properties: strip `"_dist"` suffix from `project.name` if present
 - Eliminate "-embedded" suffix from distribution filenames
+- Infer appropriate "default database" value based on JDBC driver name. Remove support for now unnecessary "databaseMaster" property. 
 
 ### 4.0.0
 *Released*: 5 September 2024
