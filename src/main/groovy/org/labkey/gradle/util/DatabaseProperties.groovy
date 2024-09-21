@@ -21,6 +21,7 @@ class DatabaseProperties
 {
     private static final String PICKED_DATABASE_CONFIG_FILE = "config.properties"
 
+    private static final String JDBC_DRIVER_CLASS_NAME_PROP = "jdbcDriverClassName"
     private static final String JDBC_URL_PROP = "jdbcURL"
     private static final String JDBC_PORT_PROP = "jdbcPort"
     private static final String JDBC_DATABASE_PROP = "jdbcDatabase"
@@ -82,6 +83,18 @@ class DatabaseProperties
     void setProject(Project project)
     {
         this._project = project
+    }
+
+    String getJdbcDriverClassName()
+    {
+        return this.configProperties.get(JDBC_DRIVER_CLASS_NAME_PROP)
+    }
+
+    // Standard built-in database that can be used for creating and dropping other databases
+    String getDefaultDatabase()
+    {
+        // Equivalent to SqlDialect.getDefaultDatabaseName()
+        return getJdbcDriverClassName().contains("postgresql") ? "template1" : "master"
     }
 
     void setJdbcURL(String jdbcURL)
