@@ -18,7 +18,6 @@ class DeployEmbeddedDistribution extends DeployAppBase {
     void action()
     {
         deployExecutableJar()
-        deployNlpEngine(deployBinDir)
         deployPlatformBinaries(deployBinDir)
     }
 
