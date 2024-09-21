@@ -1,6 +1,5 @@
 package org.labkey.gradle.task
 
-import org.apache.commons.io.FilenameUtils
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.OutputDirectory
@@ -24,16 +23,15 @@ class DeployEmbeddedDistribution extends DeployAppBase {
     }
 
     private void deployExecutableJar() {
-        File distributionFile = DistributionExtension.getDistributionFile(project, true)
-        boolean isTar = FilenameUtils.getExtension(distributionFile.getName()).equals("gz")
+        File distributionFile = DistributionExtension.getDistributionFile(project)
         project.copy({ CopySpec copy ->
-            copy.from isTar ? project.tarTree(distributionFile).files : project.zipTree(distributionFile).files
+            copy.from project.tarTree(distributionFile).files
             copy.into deployDir
             copy.include  "*.jar"
             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
         project.copy({ CopySpec copy ->
-            copy.from isTar ? project.tarTree(distributionFile).files : project.zipTree(distributionFile).files
+            copy.from project.tarTree(distributionFile).files
             copy.into deployBinDir
             copy.include   "*.exe", "*.dll"
             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)

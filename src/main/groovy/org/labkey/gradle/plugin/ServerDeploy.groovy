@@ -263,7 +263,7 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.register("stageDistribution", StageDistribution) {
             StageDistribution task ->
                 task.group = GroupNames.DISTRIBUTION
-                task.description = "Populate the staging directory using a LabKey distribution file from directory dist or directory specified with distDir property. Use property distType to specify zip or tar.gz (default)."
+                task.description = "Populate the staging directory using a LabKey distribution file from directory dist or directory specified with distDir property."
         }
 
         project.tasks.register("deployDistribution", DeployEmbeddedDistribution) {

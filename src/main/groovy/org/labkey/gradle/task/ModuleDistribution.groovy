@@ -186,7 +186,7 @@ class ModuleDistribution extends DefaultTask
 
     private String getEmbeddedTarArchivePath()
     {
-        return "${getDistributionDir()}/${getArchiveName()}${DistributionExtension.EMBEDDED_SUFFIX}.${DistributionExtension.TAR_ARCHIVE_EXTENSION}"
+        return "${getDistributionDir()}/${getArchiveName()}.${DistributionExtension.TAR_ARCHIVE_EXTENSION}"
     }
 
     private File getWindowsUtilDir()
@@ -307,7 +307,7 @@ class ModuleDistribution extends DefaultTask
     private File getDistributionFile()
     {
         File distExtraDir = BuildUtils.getBuildDirFile(project, DistributionExtension.DIST_FILE_DIR)
-        return new File(distExtraDir,  DistributionExtension.DIST_FILE_NAME)
+        return new File(distExtraDir, DistributionExtension.DIST_FILE_NAME)
     }
 
     private void writeDistributionFile()
