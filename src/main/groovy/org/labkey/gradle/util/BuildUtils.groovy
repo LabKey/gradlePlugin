@@ -414,7 +414,7 @@ class BuildUtils
     }
 
     /**
-     * Gets the versioning string to be inserted into distribution artifacts.  This string has a slightly different
+     * Gets the versioning string to be inserted into distribution artifacts. This string has a slightly different
      * format depending on the branch in which the distributions are created:
      *     Trunk/Develop - 20.11-SNAPSHOT-1500 (<Current labkeyVersion>[-<BuildCounter>])
      *     Beta - 20.11Beta-6 (<labkey release version>Beta[-<BuildCounter>])

@@ -27,6 +27,7 @@ class DistributionExtension
     public static final String DIST_FILE_DIR = "labkeywebapp/WEB-INF/classes"
     public static final String DIST_FILE_NAME = "distribution"
     public static final String VERSION_FILE_NAME = "VERSION"
+    public static final String DIST_PROPERTIES_FILE_NAME = "distribution.properties"
     public static final String TAR_ARCHIVE_EXTENSION = "tar.gz"
 
     String dir = "${project.rootProject.projectDir}/dist"

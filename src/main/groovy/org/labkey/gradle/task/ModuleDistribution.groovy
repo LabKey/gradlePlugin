@@ -26,6 +26,7 @@ import org.labkey.gradle.plugin.ApplyLicenses
 import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.util.GroupNames
 
 import java.nio.file.Files
 
@@ -43,6 +44,8 @@ class ModuleDistribution extends DefaultTask
     String archiveName = null
     @Input
     boolean simpleDistribution = false // Set to true to exclude pipeline tools and remote pipeline libraries
+    @Optional @Input
+    Map extraProperties = [:]
 
     private File distributionDir
 
@@ -53,6 +56,7 @@ class ModuleDistribution extends DefaultTask
     {
         description = "Make a LabKey modules distribution"
         distExtension = project.extensions.findByType(DistributionExtension.class)
+        group = GroupNames.DISTRIBUTION
 
         Project serverProject = BuildUtils.getServerProject(project)
         this.dependsOn(serverProject.tasks.named("stageApp"))
@@ -79,8 +83,8 @@ class ModuleDistribution extends DefaultTask
     {
         List<File> distFiles = new ArrayList<>()
 
-        distFiles.add(new File(getEmbeddedTomcatJarPath()))
-        distFiles.add(new File(getEmbeddedTarArchivePath()))
+        distFiles.add(new File(getLabKeyServerJarPath()))
+        distFiles.add(new File(getTarArchivePath()))
         distFiles.add(getDistributionFile())
         distFiles.add(getVersionFile())
 
@@ -156,25 +160,29 @@ class ModuleDistribution extends DefaultTask
     {
         if (archiveName == null)
         {
-            var extraIdentifier = extraFileIdentifier != null ? extraFileIdentifier : "-" + getDefaultName()
-            archiveName = "${archivePrefix}${BuildUtils.getDistributionVersion(project)}" + extraIdentifier
+            archiveName = "${archivePrefix}${BuildUtils.getDistributionVersion(project)}" + getFileIdentifier()
         }
         return archiveName
     }
 
+    private String getFileIdentifier()
+    {
+        return extraFileIdentifier != null ? extraFileIdentifier : "-" + getDefaultName()
+    }
+
     private String getSubDir()
     {
-        return subDirName == null ? getDefaultName() : subDirName;
+        return subDirName == null ? getDefaultName() : subDirName
     }
 
     // Standard name to use when extraFileIdentifier or subDirName property isn't provided
     private String getDefaultName()
     {
         int idx = project.name.indexOf("_dist")
-        return idx == -1 ? project.name : project.name.substring(0, idx);
+        return idx == -1 ? project.name : project.name.substring(0, idx)
     }
 
-    private String getEmbeddedTomcatJarPath()
+    private String getLabKeyServerJarPath()
     {
         return new File(getModulesDir(), "labkeyServer.jar").path
     }
@@ -184,7 +192,7 @@ class ModuleDistribution extends DefaultTask
         return new File(getModulesDir(), "labkey/distribution.zip").path
     }
 
-    private String getEmbeddedTarArchivePath()
+    private String getTarArchivePath()
     {
         return "${getDistributionDir()}/${getArchiveName()}.${DistributionExtension.TAR_ARCHIVE_EXTENSION}"
     }
@@ -212,7 +220,7 @@ class ModuleDistribution extends DefaultTask
     {
         File embeddedJarFile = project.configurations.embedded.singleFile
         String modulesZipFile = getDistributionZipPath()
-        File serverJarFile = new File(getEmbeddedTomcatJarPath())
+        File serverJarFile = new File(getLabKeyServerJarPath())
         ant.zip(destFile: modulesZipFile) {
             zipfileset(dir: getModulesDir(),
                     prefix: "modules") {
@@ -223,7 +231,11 @@ class ModuleDistribution extends DefaultTask
             }
             zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
                     prefix: "${DistributionExtension.DIST_FILE_DIR}") {
-                include(name: "VERSION")
+                include(name: DistributionExtension.VERSION_FILE_NAME)
+            }
+            zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
+                    prefix: "${DistributionExtension.DIST_FILE_DIR}") {
+                include(name: DistributionExtension.DIST_PROPERTIES_FILE_NAME)
             }
         }
 
@@ -246,14 +258,14 @@ class ModuleDistribution extends DefaultTask
 
     private void embeddedTomcatTarArchive()
     {
-        File serverJarFile = new File(getEmbeddedTomcatJarPath())
+        File serverJarFile = new File(getLabKeyServerJarPath())
         if (!serverJarFile.exists())
             makeEmbeddedTomcatJar()
 
         copyWindowsCoreUtilities()
         def utilsDir = getWindowsUtilDir()
 
-        ant.tar(tarfile: getEmbeddedTarArchivePath(),
+        ant.tar(tarfile: getTarArchivePath(),
                 longfile: "gnu",
                 compression: "gzip") {
             tarfileset(dir: BuildUtils.getBuildDir(project), prefix: archiveName) { include(name: serverJarFile.getName()) }
@@ -263,7 +275,7 @@ class ModuleDistribution extends DefaultTask
             }
 
             tarfileset(dir: BuildUtils.getBuildDir(project), prefix: archiveName) {
-                include(name: "VERSION")
+                include(name: DistributionExtension.VERSION_FILE_NAME)
             }
 
             tarfileset(dir: "${BuildUtils.getBuildDirPath(project)}/embedded", prefix: archiveName)
@@ -274,6 +286,7 @@ class ModuleDistribution extends DefaultTask
     {
         writeDistributionFile()
         writeVersionFile()
+        writeDistributionPropertiesFile()
         // Prefer files from 'server/configs/webapps' if they exist
         File serverConfigDir = project.rootProject.file("server/configs/webapps/")
         if (serverConfigDir.exists()) {
@@ -298,18 +311,20 @@ class ModuleDistribution extends DefaultTask
                 copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             })
         }
-        // This is necessary for reasons that are unclear.  Without it, you get:
+        // This is necessary for reasons that are unclear. Without it, you get:
         // -bash: ./manual-upgrade.sh: /bin/sh^M: bad interpreter: No such file or directory
         // even though the original file has unix line endings. Dunno.
         project.ant.fixcrlf (srcdir: BuildUtils.getBuildDirPath(project), includes: "manual-upgrade.sh", eol: "unix")
     }
 
+    @Deprecated(forRemoval = true) // Not needed: distribution name is now pushed into distribution.properties
     private File getDistributionFile()
     {
         File distExtraDir = BuildUtils.getBuildDirFile(project, DistributionExtension.DIST_FILE_DIR)
         return new File(distExtraDir, DistributionExtension.DIST_FILE_NAME)
     }
 
+    @Deprecated(forRemoval = true) // Not needed: distribution name is now pushed into distribution.properties
     private void writeDistributionFile()
     {
         Files.write(getDistributionFile().toPath(), project.name.getBytes())
@@ -326,5 +341,25 @@ class ModuleDistribution extends DefaultTask
         // Include TeamCity buildUrl, if present.
         def buildUrl = StringUtils.trimToEmpty(System.getenv("BUILD_URL"))
         Files.write(getVersionFile().toPath(), "${project.version}\n${buildUrl}".trim().getBytes())
+    }
+
+    @OutputFile
+    File getDistributionPropertiesFile()
+    {
+        return BuildUtils.getBuildDirFile(project, DistributionExtension.DIST_PROPERTIES_FILE_NAME)
+    }
+
+    // Write distribution build properties and (if provided) dist.extraProperties map into distribution.properties. This
+    // file is then copied into /WEB-INF/classes, making it available to the webapp.
+    private void writeDistributionPropertiesFile()
+    {
+        // Add standard properties from the distribution build
+        // Assume that fileIdentifier (usually '-' + project.name, but not guaranteed) is the canonical name
+        extraProperties.put("name", StringUtils.removeStart(getFileIdentifier(), '-'))
+        extraProperties.put("filename", getArchiveName())
+
+        getDistributionPropertiesFile().withWriter { out ->
+            extraProperties.each { k, v -> out.println "${k}: ${v}" }
+        }
     }
 }

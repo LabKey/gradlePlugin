@@ -6,7 +6,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.DistributionExtension
 
-class DeployEmbeddedDistribution extends DeployAppBase {
+class DeployDistribution extends DeployAppBase {
 
     @OutputDirectory
     File deployDir = new File((String) project.serverDeploy.embeddedDir)

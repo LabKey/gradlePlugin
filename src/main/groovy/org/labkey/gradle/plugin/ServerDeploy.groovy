@@ -266,8 +266,8 @@ class ServerDeploy implements Plugin<Project>
                 task.description = "Populate the staging directory using a LabKey distribution file from directory dist or directory specified with distDir property."
         }
 
-        project.tasks.register("deployDistribution", DeployEmbeddedDistribution) {
-            DeployEmbeddedDistribution task ->
+        project.tasks.register("deployDistribution", DeployDistribution) {
+            DeployDistribution task ->
                 task.group = GroupNames.DISTRIBUTION
                 task.description = "Extract the executable jar from a distribution and put it and the included binaries in the appropriate deploy directory"
                 task.dependsOn(project.tasks.cleanEmbeddedDeploy, project.tasks.setup)
