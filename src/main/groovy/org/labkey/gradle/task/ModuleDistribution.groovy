@@ -356,7 +356,7 @@ class ModuleDistribution extends DefaultTask
         // Add standard properties from the distribution build
         // Assume that fileIdentifier (usually '-' + project.name, but not guaranteed) is the canonical name
         extraProperties.put("name", StringUtils.removeStart(getFileIdentifier(), '-'))
-        extraProperties.put("filename", getArchiveName())
+        extraProperties.put("filename", getArchiveName() + "." + DistributionExtension.TAR_ARCHIVE_EXTENSION)
 
         getDistributionPropertiesFile().withWriter { out ->
             extraProperties.each { k, v -> out.println "${k}: ${v}" }
