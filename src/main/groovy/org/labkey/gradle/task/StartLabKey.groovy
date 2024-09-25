@@ -29,7 +29,7 @@ import org.labkey.gradle.util.BuildUtils
 
 import java.util.stream.Collectors
 
-class StartTomcat extends DefaultTask
+class StartLabKey extends DefaultTask
 {
     private static final String EMBEDDED_REFLECTION_PARAM = "embeddedReflectionArgs"
     private static final List<String> DEFAULT_EMBEDDED_REFLECTION_OPTS = [
@@ -75,7 +75,7 @@ class StartTomcat extends DefaultTask
             for (String key : envMap.keySet()) {
                 env += "${key}=${envMap.get(key)}"
             }
-            this.logger.info("Starting embedded tomcat with command ${commandParts} and env ${env} in directory ${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}")
+            this.logger.info("Starting LabKey with command ${commandParts} and env ${env} in directory ${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}")
             Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
             process.consumeProcessOutput(outputStream, outputStream)
         }

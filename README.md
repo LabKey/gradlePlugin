@@ -13,10 +13,20 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### 4.1.0-SNAPSHOT
+### 4.2.0-SNAPSHOT
 *Released*: TBD
 (Earliest compatible LabKey version: 24.10)
+
+### 4.1.0
+*Released*: 25 September 2024
+(Earliest compatible LabKey version: 24.10)
 - Update default value handling for `subDirName` and `extraFileIdentifier` properties: strip `"_dist"` suffix from `project.name` if present
+- Eliminate "-embedded" suffix from distribution filenames
+- Infer appropriate "default database" value based on JDBC driver name. Remove support for now unnecessary "databaseMaster" property.
+- Add support for `extraProperties` map, which gets written to `WEB-INF/classes/distribution.properties` along with
+  standard distribution build properties.
+- Assign `group` inside `ModuleDistribution` task so build files no longer need to
+- Add `startLabKey` and `stopLabKey` tasks that will eventually replace `startTomcat` and `stopTomcat`
 
 ### 4.0.0
 *Released*: 5 September 2024

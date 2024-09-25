@@ -20,9 +20,9 @@ import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.util.PropertiesUtils
 
 /**
- * Task for stopping a tomcat instance
+ * Task for stopping a running LabKey instance
  */
-class StopTomcat extends DefaultTask
+class StopLabKey extends DefaultTask
 {
     @TaskAction
     void action()

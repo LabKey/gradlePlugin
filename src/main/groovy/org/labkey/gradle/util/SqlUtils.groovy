@@ -30,7 +30,7 @@ class SqlUtils
         String url = params.getJdbcURL()
         String user = params.getJdbcUser()
         String password = params.getJdbcPassword()
-        String driverClassName = params.getConfigProperties().getProperty("jdbcDriverClassName")
+        String driverClassName = params.getJdbcDriverClassName()
         project.logger.info("in execSql: url ${url} user ${user} password ${password} driverClassName ${driverClassName}")
 
         //see http://gradle.1045684.n5.nabble.com/using-jdbc-driver-in-a-task-fails-td1435189.html
@@ -74,8 +74,8 @@ class SqlUtils
         else
         {
             DatabaseProperties dropProps = new DatabaseProperties(project, dbProperties)
-            // need to connect to the master database in order to drop the database
-            dropProps.setJdbcDatabase((String) properties.get('databaseMaster'))
+            // need to connect to the built-in default database in order to drop the database
+            dropProps.setJdbcDatabase(dbProperties.getDefaultDatabase())
             dropProps.setJdbcUrlParams("")
 
             project.logger.info("Attempting to drop database ${toDrop}")

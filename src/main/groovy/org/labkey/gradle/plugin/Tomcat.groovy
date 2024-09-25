@@ -23,8 +23,8 @@ import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
-import org.labkey.gradle.task.StartTomcat
-import org.labkey.gradle.task.StopTomcat
+import org.labkey.gradle.task.StartLabKey
+import org.labkey.gradle.task.StopLabKey
 import org.labkey.gradle.util.GroupNames
 
 /**
@@ -53,17 +53,28 @@ class Tomcat implements Plugin<Project>
 
     private static void addTasks(Project project)
     {
-        project.tasks.register("startTomcat", StartTomcat) {
-            StartTomcat task ->
+        project.tasks.register("startLabKey", StartLabKey) {
+            StartLabKey task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Start the embedded Tomcat instance"
+                task.description = "Start the LabKey web application"
         }
 
-        project.tasks.register(
-                "stopTomcat", StopTomcat) {
-            StopTomcat task ->
+        project.tasks.register("startTomcat", StartLabKey) {
+            StartLabKey task ->
                 task.group = GroupNames.WEB_APPLICATION
-                task.description = "Stop the embedded Tomcat instance"
+                task.description = "Start the LabKey web application (deprecated: use startLabKey)"
+        }
+
+        project.tasks.register("stopLabKey", StopLabKey) {
+            StopLabKey task ->
+                task.group = GroupNames.WEB_APPLICATION
+                task.description = "Stop the LabKey web application"
+        }
+
+        project.tasks.register("stopTomcat", StopLabKey) {
+            StopLabKey task ->
+                task.group = GroupNames.WEB_APPLICATION
+                task.description = "Stop the LabKey web application (deprecated: use stopLabKey)"
         }
 
         project.tasks.register("cleanLogs", Delete) {

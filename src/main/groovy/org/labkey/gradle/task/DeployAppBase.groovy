@@ -78,27 +78,4 @@ class DeployAppBase extends DefaultTask {
                     }
         }
     }
-
-
-    protected void deployNlpEngine(File deployBinDir)
-    {
-
-        File nlpSource = new File(_externalDir, "nlp")
-        if (nlpSource.exists())
-        {
-            File nlpDir = new File(deployBinDir, "nlp")
-            nlpDir.mkdirs()
-            ant.copy(
-                    toDir: nlpDir,
-                    preserveLastModified: true
-            )
-                    {
-                        fileset(dir: nlpSource)
-                                {
-                                    exclude(name: "**/*.py?")
-                                }
-                    }
-        }
-    }
-
 }

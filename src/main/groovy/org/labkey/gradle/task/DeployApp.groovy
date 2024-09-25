@@ -46,7 +46,6 @@ class DeployApp extends DeployAppBase
     {
         deployModules()
         deployPipelineJars()
-        deployNlpEngine(deployBinDir)
         deployPlatformBinaries(deployBinDir)
     }
 
