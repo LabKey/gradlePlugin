@@ -16,8 +16,8 @@ on how to do that, including how to develop and test locally and the versioning 
 ### 4.2.0-SNAPSHOT
 *Released*: TBD
 (Earliest compatible LabKey version: 24.11)
-- Stop add the standalone `distribution` file to distribution archives; the `distribution.properties` file now contains
-  the distribution name and other properties used by the webapp.
+- Stop adding the standalone `distribution` file to distribution archives; the `distribution.properties` file now
+  contains the distribution name and other properties used by the webapp.
 - Update all dependencies to the latest versions
 
 ### 4.1.0
