@@ -7,14 +7,14 @@ import org.ajoberstar.grgit.Grgit
 import org.ajoberstar.grgit.Status
 import org.ajoberstar.grgit.operation.BranchListOp
 import org.apache.commons.lang3.StringUtils
-import org.apache.http.client.ResponseHandler
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.entity.ContentType
-import org.apache.http.entity.StringEntity
-import org.apache.http.impl.client.BasicResponseHandler
-import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.impl.client.HttpClients
+import org.apache.hc.client5.http.classic.methods.HttpPost
+import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse
+import org.apache.hc.client5.http.impl.classic.HttpClients
+import org.apache.hc.core5.http.ContentType
+import org.apache.hc.core5.http.io.HttpClientResponseHandler
+import org.apache.hc.core5.http.io.entity.StringEntity
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -889,7 +889,7 @@ class MultiGit implements Plugin<Project>
                 CloseableHttpResponse response = httpClient.execute(httpPost)
                 try
                 {
-                    ResponseHandler<String> handler = new BasicResponseHandler()
+                    HttpClientResponseHandler<String> handler = new BasicHttpClientResponseHandler()
                     String contents = handler.handleResponse(response)
                     project.logger.info("Response contents ${contents}")
                     ObjectMapper mapper = new ObjectMapper()

@@ -1,19 +1,18 @@
 package org.labkey.gradle.task
 
 import org.apache.commons.lang3.StringUtils
-import org.apache.http.HttpStatus
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.client.methods.HttpDelete
-import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.impl.client.HttpClients
+import org.apache.hc.client5.http.classic.methods.HttpDelete
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse
+import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.Api
-import org.labkey.gradle.plugin.Module
 import org.labkey.gradle.plugin.FileModule
 import org.labkey.gradle.plugin.JavaModule
+import org.labkey.gradle.plugin.Module
 import org.labkey.gradle.util.BuildUtils
 
 class PurgeArtifacts extends DefaultTask
