@@ -85,7 +85,6 @@ class ModuleDistribution extends DefaultTask
 
         distFiles.add(new File(getLabKeyServerJarPath()))
         distFiles.add(new File(getTarArchivePath()))
-        distFiles.add(getDistributionFile())
         distFiles.add(getVersionFile())
 
         return distFiles
@@ -315,19 +314,6 @@ class ModuleDistribution extends DefaultTask
         // -bash: ./manual-upgrade.sh: /bin/sh^M: bad interpreter: No such file or directory
         // even though the original file has unix line endings. Dunno.
         project.ant.fixcrlf (srcdir: BuildUtils.getBuildDirPath(project), includes: "manual-upgrade.sh", eol: "unix")
-    }
-
-    @Deprecated(forRemoval = true) // Not needed: distribution name is now pushed into distribution.properties
-    private File getDistributionFile()
-    {
-        File distExtraDir = BuildUtils.getBuildDirFile(project, DistributionExtension.DIST_FILE_DIR)
-        return new File(distExtraDir, DistributionExtension.DIST_FILE_NAME)
-    }
-
-    @Deprecated(forRemoval = true) // Not needed: distribution name is now pushed into distribution.properties
-    private void writeDistributionFile()
-    {
-        Files.write(getDistributionFile().toPath(), project.name.getBytes())
     }
 
     @OutputFile
