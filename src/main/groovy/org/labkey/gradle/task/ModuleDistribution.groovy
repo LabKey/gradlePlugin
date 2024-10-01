@@ -283,7 +283,6 @@ class ModuleDistribution extends DefaultTask
 
     private void createDistributionFiles()
     {
-        writeDistributionFile()
         writeVersionFile()
         writeDistributionPropertiesFile()
         // Prefer files from 'server/configs/webapps' if they exist
