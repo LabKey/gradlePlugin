@@ -19,6 +19,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - Stop adding the standalone `distribution` file to distribution archives; the `distribution.properties` file now
   contains the distribution name and other properties used by the webapp.
 - Update all dependencies to the latest versions
+- Add `version` and `buildUrl` to `distribution.properties` file
 
 ### 4.1.0
 *Released*: 25 September 2024

@@ -315,12 +315,14 @@ class ModuleDistribution extends DefaultTask
         project.ant.fixcrlf (srcdir: BuildUtils.getBuildDirPath(project), includes: "manual-upgrade.sh", eol: "unix")
     }
 
+    @Deprecated
     @OutputFile
     File getVersionFile()
     {
         return BuildUtils.getBuildDirFile(project, DistributionExtension.VERSION_FILE_NAME)
     }
 
+    @Deprecated
     private void writeVersionFile()
     {
         // Include TeamCity buildUrl, if present.
@@ -342,6 +344,12 @@ class ModuleDistribution extends DefaultTask
         // Assume that fileIdentifier (usually '-' + project.name, but not guaranteed) is the canonical name
         extraProperties.put("name", StringUtils.removeStart(getFileIdentifier(), '-'))
         extraProperties.put("filename", getArchiveName() + "." + DistributionExtension.TAR_ARCHIVE_EXTENSION)
+        extraProperties.put("version", project.version)
+
+        // Include TeamCity buildUrl, if present.
+        def buildUrl = StringUtils.trimToNull(System.getenv("BUILD_URL"))
+        if (buildUrl != null)
+            extraProperties.put("buildUrl", buildUrl)
 
         getDistributionPropertiesFile().withWriter { out ->
             extraProperties.each { k, v -> out.println "${k}: ${v}" }
