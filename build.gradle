@@ -34,15 +34,15 @@ dependencies {
     api "org.apache.commons:commons-text:${commonsTextVersion}"
     api "commons-io:commons-io:${commonsIoVersion}"
     api "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
-    implementation "org.apache.httpcomponents:httpcore:${httpcoreVersion}"
-    api "org.apache.httpcomponents:httpclient:${httpclientVersion}"
+    implementation "org.apache.httpcomponents.core5:httpcore5:${httpcoreVersion}"
+    api "org.apache.httpcomponents.client5:httpclient5:${httpclientVersion}"
     api "org.json:json:${jsonVersion}"
     implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}"
     api "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
 }
 
 group 'org.labkey.build'
-project.version = "4.2.0-SNAPSHOT"
+project.version = "4.2.0-dependencies-SNAPSHOT"
 
 gradlePlugin {
     plugins {

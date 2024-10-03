@@ -85,7 +85,6 @@ class ModuleDistribution extends DefaultTask
 
         distFiles.add(new File(getLabKeyServerJarPath()))
         distFiles.add(new File(getTarArchivePath()))
-        distFiles.add(getDistributionFile())
         distFiles.add(getVersionFile())
 
         return distFiles
@@ -284,7 +283,6 @@ class ModuleDistribution extends DefaultTask
 
     private void createDistributionFiles()
     {
-        writeDistributionFile()
         writeVersionFile()
         writeDistributionPropertiesFile()
         // Prefer files from 'server/configs/webapps' if they exist
@@ -317,25 +315,14 @@ class ModuleDistribution extends DefaultTask
         project.ant.fixcrlf (srcdir: BuildUtils.getBuildDirPath(project), includes: "manual-upgrade.sh", eol: "unix")
     }
 
-    @Deprecated(forRemoval = true) // Not needed: distribution name is now pushed into distribution.properties
-    private File getDistributionFile()
-    {
-        File distExtraDir = BuildUtils.getBuildDirFile(project, DistributionExtension.DIST_FILE_DIR)
-        return new File(distExtraDir, DistributionExtension.DIST_FILE_NAME)
-    }
-
-    @Deprecated(forRemoval = true) // Not needed: distribution name is now pushed into distribution.properties
-    private void writeDistributionFile()
-    {
-        Files.write(getDistributionFile().toPath(), project.name.getBytes())
-    }
-
+    @Deprecated
     @OutputFile
     File getVersionFile()
     {
         return BuildUtils.getBuildDirFile(project, DistributionExtension.VERSION_FILE_NAME)
     }
 
+    @Deprecated
     private void writeVersionFile()
     {
         // Include TeamCity buildUrl, if present.
@@ -357,6 +344,12 @@ class ModuleDistribution extends DefaultTask
         // Assume that fileIdentifier (usually '-' + project.name, but not guaranteed) is the canonical name
         extraProperties.put("name", StringUtils.removeStart(getFileIdentifier(), '-'))
         extraProperties.put("filename", getArchiveName() + "." + DistributionExtension.TAR_ARCHIVE_EXTENSION)
+        extraProperties.put("version", project.version)
+
+        // Include TeamCity buildUrl, if present.
+        def buildUrl = StringUtils.trimToNull(System.getenv("BUILD_URL"))
+        if (buildUrl != null)
+            extraProperties.put("buildUrl", buildUrl)
 
         getDistributionPropertiesFile().withWriter { out ->
             extraProperties.each { k, v -> out.println "${k}: ${v}" }

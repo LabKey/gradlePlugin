@@ -22,12 +22,10 @@ import java.nio.file.Paths
 
 class DistributionExtension
 {
-    // the directory in which the file 'distribution' is placed, which contains the name of the distribution
-    // (used for mothership reporting and troubleshooting)
+    // directory that holds the 'distribution.properties' file
     public static final String DIST_FILE_DIR = "labkeywebapp/WEB-INF/classes"
-    public static final String DIST_FILE_NAME = "distribution"
-    public static final String VERSION_FILE_NAME = "VERSION"
     public static final String DIST_PROPERTIES_FILE_NAME = "distribution.properties"
+    public static final String VERSION_FILE_NAME = "VERSION"
     public static final String TAR_ARCHIVE_EXTENSION = "tar.gz"
 
     String dir = "${project.rootProject.projectDir}/dist"
@@ -46,7 +44,7 @@ class DistributionExtension
         if (project.hasProperty("distDir"))
         {
             if (Paths.get((String) project.property('distDir')).isAbsolute())
-                distDir = new File((String) project.property('distDir'));
+                distDir = new File((String) project.property('distDir'))
             else
                 distDir = new File(project.rootDir, (String) project.property("distDir"))
         }

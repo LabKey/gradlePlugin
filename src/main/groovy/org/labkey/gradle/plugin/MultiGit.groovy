@@ -7,14 +7,14 @@ import org.ajoberstar.grgit.Grgit
 import org.ajoberstar.grgit.Status
 import org.ajoberstar.grgit.operation.BranchListOp
 import org.apache.commons.lang3.StringUtils
-import org.apache.http.client.ResponseHandler
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.entity.ContentType
-import org.apache.http.entity.StringEntity
-import org.apache.http.impl.client.BasicResponseHandler
-import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.impl.client.HttpClients
+import org.apache.hc.client5.http.classic.methods.HttpPost
+import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse
+import org.apache.hc.client5.http.impl.classic.HttpClients
+import org.apache.hc.core5.http.ContentType
+import org.apache.hc.core5.http.io.HttpClientResponseHandler
+import org.apache.hc.core5.http.io.entity.StringEntity
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -30,20 +30,19 @@ import java.util.stream.Collectors
 import static org.labkey.gradle.plugin.MultiGit.RepositoryQuery.getAuthorizationToken
 
 /**
- * This is an incubating feature set.  Interfaces and functionality are likely to change, perhaps drastically,
+ * This is an incubating feature set. Interfaces and functionality are likely to change, perhaps drastically,
  * before it is released.
  *
  * This plugin can be used to get data about a gradle project that is comprised of multiple git repositories.
  * It uses the GitHub GraphQL API (https://developer.github.com/v4/) to query for a set of repositories. Using
- * the properties gitTopcis, requireAllTopics, and includeArchived, a user is able to filter to a certain set
- * of repositories.  See the task descriptions for more info.
+ * the properties gitTopics, requireAllTopics, and includeArchived, a user is able to filter to a certain set
+ * of repositories. See the task descriptions for more info.
  *
  * In order to use this plugin, you need to create an access token for GitHub
  * (https://developer.github.com/v4/guides/forming-calls/#authenticating-with-graphql)
  * Once generated, set the GIT_ACCESS_TOKEN environment variable to this value.
  *
  * Apply this plugin at the root of the enlistment.
- *
  */
 class MultiGit implements Plugin<Project>
 {
@@ -430,7 +429,7 @@ class MultiGit implements Plugin<Project>
                 }
                 else
                 {
-                    rootProject.logger.quiet("${this.getName()}: No branch '${branchName} found.  Leaving on default branch.")
+                    rootProject.logger.quiet("${this.getName()}: No branch '${branchName} found. Leaving on default branch.")
                 }
             }
         }
@@ -890,7 +889,7 @@ class MultiGit implements Plugin<Project>
                 CloseableHttpResponse response = httpClient.execute(httpPost)
                 try
                 {
-                    ResponseHandler<String> handler = new BasicResponseHandler()
+                    HttpClientResponseHandler<String> handler = new BasicHttpClientResponseHandler()
                     String contents = handler.handleResponse(response)
                     project.logger.info("Response contents ${contents}")
                     ObjectMapper mapper = new ObjectMapper()
@@ -982,11 +981,11 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitRepoList") {
             Task task ->
                 task.group = "VCS"
-                task.description = "List all Git repositories. Use -Pverbose to show more details. Use -P${RepositoryQuery.TOPICS_PROPERTY} to filter to modules with certain topics.  " +
-                        "This can be a comma-separated list of topics (e.g., labkey-module,labkey-client-api).  By default, all repositories with any of these topics will be listed.  " +
-                        "Use -P${RepositoryQuery.ALL_TOPICS_PROPERTY} to specify that all topics must be present.  " +
-                        "By default, only repositories that have not been archived are listed.  Use -P${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} to also include archived repositories." +
-                        "Use -P${RepositoryQuery.INCLUDE_PRS_PROPERTY} in conjunction with -Pverbose to include info on pull requests.  Use the properties as in the 'listPullRequests' tasks to filter the pull requests."
+                task.description = "List all Git repositories. Use -Pverbose to show more details. Use -P${RepositoryQuery.TOPICS_PROPERTY} to filter to modules with certain topics. " +
+                        "This can be a comma-separated list of topics (e.g., labkey-module,labkey-client-api). By default, all repositories with any of these topics will be listed. " +
+                        "Use -P${RepositoryQuery.ALL_TOPICS_PROPERTY} to specify that all topics must be present. " +
+                        "By default, only repositories that have not been archived are listed. Use -P${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} to also include archived repositories." +
+                        "Use -P${RepositoryQuery.INCLUDE_PRS_PROPERTY} in conjunction with -Pverbose to include info on pull requests. Use the properties as in the 'listPullRequests' tasks to filter the pull requests."
                 task.doLast({
                     RepositoryQuery query = new RepositoryQuery(project)
                     query.setIncludeLicenseInfo(true)
@@ -1043,8 +1042,8 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitCheckout") {
             Task task ->
                 task.group = "VCS"
-                task.description = "For all repositories with a current enlistment, perform a git checkout for the branch provided by the 'branch' property (e.g., -Pbranch=release18.3).  " +
-                        "If no such branch exists for a repository, leaves the enlistment as is.  " +
+                task.description = "For all repositories with a current enlistment, perform a git checkout for the branch provided by the 'branch' property (e.g., -Pbranch=release24.11). " +
+                        "If no such branch exists for a repository, leaves the enlistment as is. " +
                         "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering."
                 task.doLast({
                     if (!project.hasProperty('branch'))
@@ -1182,7 +1181,7 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitFetch") {
             Task task ->
                 task.group = "VCS"
-                task.description = "Perform a 'git fetch' for a collection of repositories.  " +
+                task.description = "Perform a 'git fetch' for a collection of repositories. " +
                         "Use -PgitPrune to remove any remote-tracking references that no longer exist on the remote." +
                         "By default, uses the projects specified in the settings.gradle file for which there is a current enlistment. " +
                         "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for " +
@@ -1233,7 +1232,7 @@ class MultiGit implements Plugin<Project>
         project.tasks.register("gitEnlist") {
             Task task ->
                 task.group = "VCS"
-                task.description = "Enlist in all of the git modules used for a running LabKey server.  " +
+                task.description = "Enlist in all of the git modules used for a running LabKey server. " +
                         "Use -Pbranch=<bname> to enlist in a particular branch (shortcut for using gitEnlist then gitCheckout -Pbranch=<name>)."
                         "Use the properties ${RepositoryQuery.TOPICS_PROPERTY}, ${RepositoryQuery.ALL_TOPICS_PROPERTY}, and ${RepositoryQuery.INCLUDE_ARCHIVED_PROPERTY} as for the 'gitRepoList' task for filtering the repository set. " +
                         "If a moduleSet property is specified, enlist in only the modules included by that module set. Using -PmoduleSet=all is the same as providing no module set property."
@@ -1316,7 +1315,7 @@ class MultiGit implements Plugin<Project>
             {
                 project.logger.quiet("Already have enlistment for ${repository.getName()} in directory ${repository.getEnlistmentDir()}")
             }
-            // Hmmm.  Can't get module dependencies when the project is not included in settings.gradle,
+            // Hmmm. Can't get module dependencies when the project is not included in settings.gradle,
             // So how do you bootstrap?  I want to start with a minimal enlistment and end up with an
             // enlistment that includes all the repos I need for a given distribution
             repository.getModuleDependencies().forEach({
@@ -1341,6 +1340,4 @@ class MultiGit implements Plugin<Project>
             })
         }
     }
-
-
 }

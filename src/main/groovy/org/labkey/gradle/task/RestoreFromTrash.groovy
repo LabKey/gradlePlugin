@@ -1,11 +1,11 @@
 package org.labkey.gradle.task
 
 import org.apache.commons.lang3.StringUtils
-import org.apache.http.HttpStatus
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.impl.client.HttpClients
+import org.apache.hc.client5.http.classic.methods.HttpPost
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse
+import org.apache.hc.client5.http.impl.classic.HttpClients
+import org.apache.hc.core5.http.HttpStatus
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -95,14 +95,14 @@ class RestoreFromTrash extends DefaultTask
             // N.B. Using Authorization Bearer with an API token does not currently work
             httpPost.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${project.property('artifactory_user')}:${project.property('artifactory_password')}".getBytes()))
             CloseableHttpResponse response = httpClient.execute(httpPost)
-            int statusCode = response.getStatusLine().getStatusCode()
+            int statusCode = response.getCode()
 
             if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 logger.info("No such file or directory: ${endpoint}")
                 responseStatus = Response.NOT_FOUND
             }
             else if (statusCode != HttpStatus.SC_OK && statusCode != HttpStatus.SC_NO_CONTENT && statusCode != HttpStatus.SC_ACCEPTED) {
-                logger.error("Unable to restore using ${endpoint}: ${response.getStatusLine()}")
+                logger.error("Unable to restore using ${endpoint}: ${statusCode} ${response.getReasonPhrase()}")
                 responseStatus = Response.ERROR
             }
             response.close()
