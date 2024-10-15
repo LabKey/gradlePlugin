@@ -4,8 +4,8 @@
 The gradlePlugin jar is a jar file containing plugins, tasks, extensions and utilities used for building the [LabKey](https://www.labkey.org)
 Server application and its modules.
 
-If building your own LabKey module, you may choose to use these plugins or not.  They bring in a lot of functionality 
-but also make certain assumptions that you may not want to impose on your module.  See the 
+If building your own LabKey module, you may choose to use these plugins or not. They bring in a lot of functionality 
+but also make certain assumptions that you may not want to impose on your module. See the 
 [LabKey documentation](https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules) for more information.
 
 If you are making changes to the plugins, please see the [internal docs](https://internal.labkey.com/Handbook/Dev/wiki-page.view?name=gradlePlugins) for more information
@@ -16,6 +16,8 @@ on how to do that, including how to develop and test locally and the versioning 
 ### 4.3.0-SNAPSHOT
 *Released*: TBD
 (Earliest compatible LabKey version: 24.11)
+- Stop adding the standalone `VERSION` file to distribution archives; the `distribution.properties` file now
+  contains the `version` and `buildUrl` properties that `EmbeddedExtractor.java` reads.
 
 ### 4.2.0
 *Released*: 11 October 2024
@@ -630,7 +632,7 @@ from npmRun now
 ### version 1.12.1
 *Released*: 20 May 2020
 (Earliest compatible LabKey version: 20.4)
-* [Issue 40472](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=40472) Revert change in getLabKeyArtifactName for determining the group.  
+* [Issue 40472](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=40472) Revert change in getLabKeyArtifactName for determining the group.
 We will always use a LabKey group here.
 
 ### version 1.12.0
@@ -702,7 +704,7 @@ that can be used to override this default (e.g., `PnpmInstallCommand=install`)
 (Earliest compatible LabKey version: 20.3)
 * Fix pom file generation for labkey-client-api inclusion
 * [Issue 39722](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39722) Make sure locally built modules aer 
-preferred over externally build modules by using two different copy tasks.  Two collections in one copy task seem to have
+preferred over externally build modules by using two different copy tasks. Two collections in one copy task seem to have
 some randomness in their ordering. 
 * Don't add npm tasks that rely on a package.json if there is no package.json file
 
@@ -710,7 +712,7 @@ some randomness in their ordering.
 *Released*: 15 February 2020
 (Earliest compatible LabKey version: 20.3)
 
-* Better fix for [Issue 39058](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39058).  Depend on api's jar task, not just schemaCompile
+* Better fix for [Issue 39058](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=39058). Depend on api's jar task, not just schemaCompile
 * Make sure we run npm clean before cleanNodeModules so we don't reinstall node_modules in order to do the cleaning
 * Add dedupe configuration for safe resolution of external configuration used for copying and deduplicating external jar dependencies
 * Promote most multiGit tasks as non-incubating
@@ -921,7 +923,7 @@ deprecated functionality.
 *Released*: 18 Oct 2018
 (Earliest compatible LabKey version: 18.2)
 
-* add ability to enable ldap sync configuration in labkey.xml with -PenableLdapSync.  This will uncomment a stanza in the labkey.xml
+* add ability to enable ldap sync configuration in labkey.xml with -PenableLdapSync. This will uncomment a stanza in the labkey.xml
 that is surrounded by &lt;`--@@ldapSyncConfig@@` and `@@ldapSyncConfig@@`--&gt;
 * [Issue 35442](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=35442) - throw exception if tomcat directory is not present or not writeable when copying jars there
 * add descriptions for our custom configurations (for use in task that shows all configurations)
@@ -953,24 +955,24 @@ linking to npm executables work when not building from source
 * [Issue 34523](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=34523) - Change configuration for NPM plugin to download
 specific versions of node and npm if appropriate properties are set
 * Added cleanNodeModules task that will remove a project's node_modules directory
-* Change JavaModule plugin to remove ```src``` as a resource directory by default.  Individual modules can declare it as a resource if needed.
+* Change JavaModule plugin to remove ```src``` as a resource directory by default. Individual modules can declare it as a resource if needed.
 * Parameterize gwt build so you can choose the target permutation browser in dev mode (using property gwtBrowser)
 * [Issue 33473](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=33473) - always overwrite tomcat
 lib jars to facilitate switching between newer and older versions of LabKey distributions
 * [Issue 34388](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=34388) - clean out directories
 created when compiling xsd's to jar file if a new jar is to be created.
 * Update tasks that check version conflicts for jars and modules (no longer incubating). By default, the build will fail if version conflicts
-are found.  See the documentation on [Version Conflicts in Local Builds](https://labkey.org/Documentation/wiki-page.view?name=gradleDepend) for more information. 
+are found. See the documentation on [Version Conflicts in Local Builds](https://labkey.org/Documentation/wiki-page.view?name=gradleDepend) for more information. 
 * [Issue 33858](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=33858) add checks for the 
-existence of ```internal/gwtsrc``` so we can move it to its proper home in api.  
-* Parameterize the location of some of the key, non-standard modules to make them easier to move around.  Parameter are ```apiProjectPath```,
-```bootstrapProjectPath```, ```internalProjectPath```, ```remoteapiProjectPath```, ```schemasProjectPath```, ```coreProjectPath```.  These parameters are attached to the Gradle extension in the ```settings.gradle``` file (via the ```gradle/settings/parameters.gradle``` file).
+existence of ```internal/gwtsrc``` so we can move it to its proper home in api.
+* Parameterize the location of some of the key, non-standard modules to make them easier to move around. Parameter are ```apiProjectPath```,
+```bootstrapProjectPath```, ```internalProjectPath```, ```remoteapiProjectPath```, ```schemasProjectPath```, ```coreProjectPath```. These parameters are attached to the Gradle extension in the ```settings.gradle``` file (via the ```gradle/settings/parameters.gradle``` file).
 * [Issue 33860](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=33860) - parameterization to 
-allow for moving or removing :schemas project.  Parameter is ```schemasProjectPath``` attached to the Gradle extension in the 
+allow for moving or removing :schemas project. Parameter is ```schemasProjectPath``` attached to the Gradle extension in the 
 ```settings.gradle``` file.
 * [Issue 30536](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=30536) - copy moduleTemplate into
 gradle plugins repository and modify build of plugins jar to include a zip of the moduleTemplate (that will include
-the empty directories that won't migrate to git).  Actual removal of moduleTemplate will not happen until LabKey 18.3.
+the empty directories that won't migrate to git). Actual removal of moduleTemplate will not happen until LabKey 18.3.
 
 ### version 1.2.8
 *Released*: 11 June 2018
@@ -1009,7 +1011,7 @@ don't read db properties from existing file when configuring UITest run as it ma
 by the TeamCity properties
 * [Issue 33793](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=33793) - (incubating feature)
 Add tasks to check for conflicting version numbers of jars created by the current build and those already in place in 
-destination directories.  See the issue for details on the tasks and the properties available to enable these tasks.
+destination directories. See the issue for details on the tasks and the properties available to enable these tasks.
 
 ### version 1.2.4
 *Released*: 8 Mar 2018
@@ -1109,5 +1111,5 @@ jar files due to including branch names in version numbers
 *Released*: 2 July 2017
 (Earliest compatible LabKey version: 17.2)
 
-The first official release of the plugin to support Labkey 17.2 release.  
+The first official release of the plugin to support Labkey 17.2 release.
 

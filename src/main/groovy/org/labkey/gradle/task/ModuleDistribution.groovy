@@ -28,8 +28,6 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
-import java.nio.file.Files
-
 class ModuleDistribution extends DefaultTask
 {
     @Optional @Input
@@ -85,7 +83,6 @@ class ModuleDistribution extends DefaultTask
 
         distFiles.add(new File(getLabKeyServerJarPath()))
         distFiles.add(new File(getTarArchivePath()))
-        distFiles.add(getVersionFile())
 
         return distFiles
     }
@@ -230,10 +227,6 @@ class ModuleDistribution extends DefaultTask
             }
             zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
                     prefix: "${DistributionExtension.DIST_FILE_DIR}") {
-                include(name: DistributionExtension.VERSION_FILE_NAME)
-            }
-            zipfileset(dir: "${BuildUtils.getBuildDirPath(project)}/",
-                    prefix: "${DistributionExtension.DIST_FILE_DIR}") {
                 include(name: DistributionExtension.DIST_PROPERTIES_FILE_NAME)
             }
         }
@@ -273,17 +266,12 @@ class ModuleDistribution extends DefaultTask
                 tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
             }
 
-            tarfileset(dir: BuildUtils.getBuildDir(project), prefix: archiveName) {
-                include(name: DistributionExtension.VERSION_FILE_NAME)
-            }
-
             tarfileset(dir: "${BuildUtils.getBuildDirPath(project)}/embedded", prefix: archiveName)
         }
     }
 
     private void createDistributionFiles()
     {
-        writeVersionFile()
         writeDistributionPropertiesFile()
         // Prefer files from 'server/configs/webapps' if they exist
         File serverConfigDir = project.rootProject.file("server/configs/webapps/")
@@ -313,21 +301,6 @@ class ModuleDistribution extends DefaultTask
         // -bash: ./manual-upgrade.sh: /bin/sh^M: bad interpreter: No such file or directory
         // even though the original file has unix line endings. Dunno.
         project.ant.fixcrlf (srcdir: BuildUtils.getBuildDirPath(project), includes: "manual-upgrade.sh", eol: "unix")
-    }
-
-    @Deprecated
-    @OutputFile
-    File getVersionFile()
-    {
-        return BuildUtils.getBuildDirFile(project, DistributionExtension.VERSION_FILE_NAME)
-    }
-
-    @Deprecated
-    private void writeVersionFile()
-    {
-        // Include TeamCity buildUrl, if present.
-        def buildUrl = StringUtils.trimToEmpty(System.getenv("BUILD_URL"))
-        Files.write(getVersionFile().toPath(), "${project.version}\n${buildUrl}".trim().getBytes())
     }
 
     @OutputFile
