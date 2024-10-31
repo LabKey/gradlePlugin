@@ -16,19 +16,15 @@
 package org.labkey.gradle.plugin
 
 import org.apache.commons.lang3.SystemUtils
-import org.gradle.api.UnknownTaskException
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.StagingExtension
@@ -66,6 +62,17 @@ class ServerDeploy implements Plugin<Project>
             project.evaluationDependsOn(BuildUtils.getEmbeddedProjectPath(project.gradle))
 
         addTasks(project)
+        addConfigurations(project)
+    }
+
+    private void addConfigurations(project)
+    {
+        project.configurations
+                {
+                    builtModules
+                    downloadedModules
+                }
+
     }
 
     private void addTasks(Project project)
@@ -81,9 +88,6 @@ class ServerDeploy implements Plugin<Project>
 
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
 
-        // The staging step complicates things, but it is currently needed for the following reasons:
-        // - We want to make sure tomcat doesn't restart multiple times when deploying the application.
-        //   (seems like it could be avoided as the copy being done here is just as atomic as the copy from deployModules)
         project.tasks.register("stageModules") {
             Task task ->
                 task.group = GroupNames.DEPLOY
@@ -94,17 +98,18 @@ class ServerDeploy implements Plugin<Project>
                 task.doLast( {
                     // copy over the module dependencies first (things not built from source that might bring in
                     // transitive dependencies)
-                    FileCollection remoteModules = project.configurations.modules.fileCollection ({
-                        Dependency dependency -> dependency instanceof DefaultExternalModuleDependency
-                    })
-                    if (!remoteModules.isEmpty())
+                    if (!project.configurations.downloadedModules.dependencies.isEmpty())
                     {
-                        project.ant.copy(
+                        task.ant.copy(
                                 todir: staging.modulesDir,
                                 preserveLastModified: true // this is important so we don't re-explode modules that have not changed
                         )
                                 {
-                                    remoteModules.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
+                                    project.configurations.downloadedModules
+                                            {
+                                                Configuration config ->
+                                                    config.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
+                                            }
                                 }
                     }
 
@@ -114,18 +119,20 @@ class ServerDeploy implements Plugin<Project>
                     // what it is designed for, but that allows substitution of a project for an ExternalModuleDependency
                     // and since a .module file is only one of the artifacts produced by our projects (e.g., :server:modules:platform:experiment)
                     // and is not the default artifact, DependencySubstitution does not seem to work.
-                    FileCollection localModules = project.configurations.modules.fileCollection ({
-                        Dependency dependency -> dependency instanceof DefaultProjectDependency
-                    })
-                    if (!localModules.isEmpty())
+                    // See BuildUtils.substituteModuleDependencies for an almost-working attempt at this.
+                    if (!project.configurations.builtModules.dependencies.isEmpty())
                     {
-                        project.ant.copy(
+                        task.ant.copy(
                             overwrite: true, // overwrite existing files even if the destination files are newer
                             todir: staging.modulesDir,
                             preserveLastModified: true // this is important so we don't re-explode modules that have not changed
                         )
                         {
-                            localModules.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
+                            project.configurations.builtModules
+                                    {
+                                        Configuration config ->
+                                            config.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
+                                    }
                         }
                     }
                 })
@@ -189,7 +196,7 @@ class ServerDeploy implements Plugin<Project>
                 task.description = "Copy files needed for using remote pipeline jobs into ${staging.pipelineLibDir}"
                 task.doLast({
                     if (!project.configurations.remotePipelineJars.getFiles().isEmpty()) {
-                        project.ant.copy(
+                        task.ant.copy(
                             todir: staging.pipelineLibDir,
                             preserveLastModified: true
                         )
@@ -321,36 +328,6 @@ class ServerDeploy implements Plugin<Project>
         }
         project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanBuild)}
 
-        // TODO is this still useful?
-        project.tasks.register(
-                'checkModuleTasks', DefaultTask) {
-            DefaultTask task ->
-                task.group = GroupNames.MODULE
-                task.description = "Verify that all modules with module.properties files have a module task"
-                task.doLast({
-                    String[] projectsMissingTasks = []
-                    project.subprojects({
-                        Project sub ->
-                            if (sub.file("module.properties").exists()) {
-                                try {
-                                    sub.tasks.named("module")
-                                } catch (UnknownTaskException ignore) {
-                                    projectsMissingTasks += sub.path
-                                }
-                            }
-                    })
-                    if (projectsMissingTasks.length > 0)
-                        project.logger.quiet("Each of the following projects has a 'module.properties' file but no 'module' task. " +
-                            "These modules will not be included in the deployed server. " +
-                            "You should apply either the 'org.labkey.build.fileModule' or 'org.labkey.build.module' plugin in each project's 'build.gradle' file. " +
-                            "See https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules for more information.\n\t" +
-                            "${projectsMissingTasks.join("\n\t")}")
-
-                })
-                task.notCompatibleWithConfigurationCache("Needs to walk the project tree")
-        }
-        project.tasks.named('deployApp').configure {dependsOn(project.tasks.named("checkModuleTasks"))}
-        project.tasks.named('checkModuleTasks').configure {mustRunAfter(project.tasks.stageApp)} // do this so the message appears at the bottom of the output
         project.tasks.named("cleanBuild").configure {
             it.dependsOn(project.tasks.stopTomcat)
         }

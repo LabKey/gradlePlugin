@@ -18,6 +18,8 @@ on how to do that, including how to develop and test locally and the versioning 
 (Earliest compatible LabKey version: 24.11)
 - Stop adding the standalone `VERSION` file to distribution archives; the `distribution.properties` file now
   contains the `version` and `buildUrl` properties that `EmbeddedExtractor.java` reads.
+- Remove `checkModuleTasks` tasks, added to get us through a transition from plugins being declared more centrally
+- Update `stageModules` to remove use of deprecated `fileCollection` method
 
 ### 4.2.0
 *Released*: 11 October 2024
