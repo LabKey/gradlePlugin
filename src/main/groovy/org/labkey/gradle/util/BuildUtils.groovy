@@ -941,6 +941,7 @@ class BuildUtils
         return project.rootProject.layout.buildDirectory.get().asFile.path
     }
 
+    // See Issue 49316: https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=49316
     static void substituteModuleDependencies(Project project, String configName)
     {
         try {
