@@ -19,7 +19,8 @@ on how to do that, including how to develop and test locally and the versioning 
 - Stop adding the standalone `VERSION` file to distribution archives; the `distribution.properties` file now
   contains the `version` and `buildUrl` properties that `EmbeddedExtractor.java` reads.
 - Remove `checkModuleTasks` tasks, added to get us through a transition from plugins being declared more centrally
-- Update `stageModules` to remove use of deprecated `fileCollection` method
+- Update `stageModules` to remove use of deprecated `fileCollection` method and make compatible with configuration cache
+- Make `jsp2Java` compatible with configuration cache
 
 ### 4.2.0
 *Released*: 11 October 2024

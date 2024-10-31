@@ -88,56 +88,13 @@ class ServerDeploy implements Plugin<Project>
 
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
 
-        project.tasks.register("stageModules") {
-            Task task ->
+        project.tasks.register("stageModules", StageModules) {
+            StageModules task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Stage the modules for the application into ${staging.dir}"
-                task.doFirst({
-                    project.delete staging.modulesDir
-                })
-                task.doLast( {
-                    // copy over the module dependencies first (things not built from source that might bring in
-                    // transitive dependencies)
-                    if (!project.configurations.downloadedModules.dependencies.isEmpty())
-                    {
-                        task.ant.copy(
-                                todir: staging.modulesDir,
-                                preserveLastModified: true // this is important so we don't re-explode modules that have not changed
-                        )
-                                {
-                                    project.configurations.downloadedModules
-                                            {
-                                                Configuration config ->
-                                                    config.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-                                            }
-                                }
-                    }
-
-                    // Then copy over the project dependencies (things built from source) so they will replace
-                    // any transitive dependencies that were brought in).
-                    // One might like to do this overriding/overwriting using DependencySubstitution, as that is very much
-                    // what it is designed for, but that allows substitution of a project for an ExternalModuleDependency
-                    // and since a .module file is only one of the artifacts produced by our projects (e.g., :server:modules:platform:experiment)
-                    // and is not the default artifact, DependencySubstitution does not seem to work.
-                    // See BuildUtils.substituteModuleDependencies for an almost-working attempt at this.
-                    if (!project.configurations.builtModules.dependencies.isEmpty())
-                    {
-                        task.ant.copy(
-                            overwrite: true, // overwrite existing files even if the destination files are newer
-                            todir: staging.modulesDir,
-                            preserveLastModified: true // this is important so we don't re-explode modules that have not changed
-                        )
-                        {
-                            project.configurations.builtModules
-                                    {
-                                        Configuration config ->
-                                            config.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-                                    }
-                        }
-                    }
-                })
+                task.downloadedModules.setFrom(project.configurations.downloadedModules)
+                task.builtModules.setFrom(project.configurations.builtModules)
         }
-        project.tasks.named('stageModules').configure {dependsOn project.configurations.modules}
 
         project.tasks.register("checkModuleVersions", CheckForVersionConflicts) {
             CheckForVersionConflicts task ->
