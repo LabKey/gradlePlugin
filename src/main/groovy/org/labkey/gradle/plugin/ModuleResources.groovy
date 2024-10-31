@@ -41,9 +41,12 @@ class ModuleResources
                             Provider<Set<ResolvedArtifactResult>> artifacts = config.getIncoming().getArtifacts().getResolvedArtifacts();
                             task.getArtifactIds().set(artifacts.map(new WriteDependenciesFile.IdExtractor()))
                     }
-                    task.externalDependencies.set(project.extensions.findByType(ModuleExtension.class).getExternalDependencies())
+                    def externals = project.extensions.findByType(ModuleExtension.class).getExternalDependencies()
+                    task.externalDependencies.set(externals)
+                    task.onlyIf {
+                        return !externals.isEmpty()
+                    }
                 } catch (UnknownDomainObjectException ignore) {
-
                 }
         }
 
