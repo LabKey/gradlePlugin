@@ -21,8 +21,16 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.tasks.*
-import org.labkey.gradle.util.BuildUtils
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.CompileClasspath
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
 
 import javax.inject.Inject
 
@@ -32,6 +40,12 @@ abstract class JspCompile2Java extends DefaultTask
     public static final String CLASSES_DIR = "jspTempDir/classes"
 
     private FileSystemOperations fileSystemOperations
+
+    @Input
+    final abstract Property<String> targetCompatibility = project.objects.property(String).convention((String) project.property('targetCompatibility'))
+
+    @Input
+    final abstract Property<String> sourceCompatibility = project.objects.property(String).convention((String) project.property('sourceCompatibility'))
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
@@ -51,11 +65,11 @@ abstract class JspCompile2Java extends DefaultTask
 
 
     @TaskAction
-    void compile() {
-
+    void compile()
+    {
         if (!webappDirectory.exists())
         {
-            project.logger.info("${webappDirectory.getAbsolutePath()}: no such file or directory.  Nothing to do here.")
+            logger.info("${webappDirectory.getAbsolutePath()}: no such file or directory.  Nothing to do here.")
             return
         }
 
@@ -85,8 +99,8 @@ abstract class JspCompile2Java extends DefaultTask
                 uriroot: "${webappDirectory.getAbsolutePath()}",
                 outputDir: getClassesDirectory().get(),
                 package: "org.labkey.jsp.compiled",
-                compilerTargetVM: project.targetCompatibility,
-                compilerSourceVM: project.sourceCompatibility,
+                compilerTargetVM: targetCompatibility.get(),
+                compilerSourceVM: sourceCompatibility.get(),
                 compile: false,
                 listErrors: true
         )
