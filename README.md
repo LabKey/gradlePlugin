@@ -24,6 +24,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - Update property in node plugin configuration for latest version
 - Mark `copyExternalLibs` task as not compatible with configuration cache for now
 - Update `ServerSideJS` task for configuraiton cache compatibility
+- Upgrade to Gradle 8.10.2
 
 ### 4.2.0
 *Released*: 11 October 2024
