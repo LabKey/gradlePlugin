@@ -23,7 +23,8 @@ on how to do that, including how to develop and test locally and the versioning 
 - Make `jsp2Java` compatible with configuration cache
 - Update property in node plugin configuration for latest version
 - Mark `copyExternalLibs` task as not compatible with configuration cache for now
-- Update `ServerSideJS` task for configuraiton cache compatibility
+- Update `ServerSideJS` task for configuration cache compatibility
+- Update `DeployApp` and relatives for better configuration cache compatibility
 - Upgrade to Gradle 8.10.2
 
 ### 4.2.0

@@ -42,19 +42,23 @@ import java.nio.file.Paths
  */
 class ServerDeploy implements Plugin<Project>
 {
+    public static final String DEPLOY_DIR = "deploy"
+    public static final String MODULES_DIR = "${DEPLOY_DIR}/modules"
+    public static final String WEBAPP_DIR = "${DEPLOY_DIR}/labkeyWebapp"
+    public static final String PIPELINE_DIR = "${DEPLOY_DIR}/pipelineLib"
+    public static final String BIN_DIR = "${DEPLOY_DIR}/bin"
+
     private ServerDeployExtension serverDeploy
+    String deployDir
+    String embeddedDir
 
     @Override
     void apply(Project project)
     {
         serverDeploy = project.extensions.create("serverDeploy", ServerDeployExtension)
 
-        serverDeploy.dir = ServerDeployExtension.getServerDeployDirectory(project)
-        serverDeploy.embeddedDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project)
-        serverDeploy.modulesDir = "${serverDeploy.dir}/modules"
-        serverDeploy.webappDir = "${serverDeploy.dir}/labkeyWebapp"
-        serverDeploy.binDir = "${serverDeploy.dir}/bin"
-        serverDeploy.pipelineLibDir = "${serverDeploy.dir}/pipelineLib"
+        deployDir = ServerDeployExtension.getServerDeployDirectory(project)
+        embeddedDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project)
 
         project.apply plugin: 'org.labkey.build.base'
         // we depend on the jar task from the embedded project, if available
@@ -80,10 +84,8 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.register("deployApp", DeployApp) {
             DeployApp task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Deploy the application locally into ${serverDeploy.dir}"
-                task.doLast( {
-                    BuildUtils.updateRestartTriggerFile(project)
-                } )
+                task.description = "Deploy the application locally into ${deployDir}"
+                task.binaries.setFrom(project.configurations.binaries)
         }
 
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
@@ -98,16 +100,17 @@ class ServerDeploy implements Plugin<Project>
 
         project.tasks.register("checkModuleVersions", CheckForVersionConflicts) {
             CheckForVersionConflicts task ->
-                task.directory = new File(serverDeploy.modulesDir)
+                String modulesDir = "${deployDir}/${MODULES_DIR}"
+                task.directory = new File(modulesDir)
                 task.extension = "module"
                 task.cleanTask = ":server:cleanDeploy"
                 task.collection = project.configurations.modules
                 task.group =  GroupNames.DEPLOY
                 task.description = "Check for conflicts in version numbers of module files to be deployed and files in the deploy directory. " +
                         "Default action on detecting a conflict is to fail.  Use -PversionConflictAction=[delete|fail|warn] to change this behavior.  The value 'delete' will cause the " +
-                        "conflicting version(s) in the ${serverDeploy.modulesDir} directory to be removed."
+                        "conflicting version(s) in the ${modulesDir} directory to be removed."
                 task.onlyIf({
-                    return new File(serverDeploy.modulesDir).exists()
+                    return new File(modulesDir).exists()
                 })
             }
 
@@ -144,6 +147,7 @@ class ServerDeploy implements Plugin<Project>
                             linkBinaries(project, "yarn", project.yarnVersion, project.yarnWorkDirectory)
                     })
             }
+            project.tasks.symlinkNode.notCompatibleWithConfigurationCache("References project properties. Need to add task class with input properties")
             project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
         }
 
@@ -168,7 +172,10 @@ class ServerDeploy implements Plugin<Project>
                 })
         }
 
-        project.tasks.named('stageRemotePipelineJars').configure {dependsOn project.configurations.remotePipelineJars}
+        project.tasks.named('stageRemotePipelineJars').configure {
+            dependsOn project.configurations.remotePipelineJars
+            notCompatibleWithConfigurationCache("TODO Needs dedicated task class with configuration as input")
+        }
 
         project.tasks.register(
                 "stageApp") {
@@ -191,6 +198,7 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.named('deployApp').configure {
             dependsOn(project.tasks.setup)
             dependsOn(project.tasks.stageApp)
+//            notCompatibleWithConfigurationCache("Uses project.zipTree")
         }
 
         if (BuildUtils.embeddedProjectExists(project)) {
@@ -199,9 +207,9 @@ class ServerDeploy implements Plugin<Project>
             project.tasks.register("cleanEmbeddedDeploy", DefaultTask) {
                 DefaultTask task ->
                     task.group = GroupNames.DEPLOY
-                    task.description = "Remove the ${project.serverDeploy.embeddedDir} directory"
+                    task.description = "Remove the ${embeddedDir} directory"
                     task.doLast {
-                        project.delete project.serverDeploy.embeddedDir
+                        project.delete embeddedDir
                     }
             }
             project.tasks.named('deployApp').configure {
@@ -210,7 +218,7 @@ class ServerDeploy implements Plugin<Project>
                     project.copy {
                         CopySpec copy ->
                             copy.from embeddedProject.tasks.bootJar
-                            copy.into project.serverDeploy.embeddedDir
+                            copy.into embeddedDir
                             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                     }
                 }
@@ -235,6 +243,7 @@ class ServerDeploy implements Plugin<Project>
                 task.group = GroupNames.DISTRIBUTION
                 task.description = "Extract the executable jar from a distribution and put it and the included binaries in the appropriate deploy directory"
                 task.dependsOn(project.tasks.cleanEmbeddedDeploy, project.tasks.setup)
+                task.binaries.setFrom(project.configurations.binaries)
         }
 
         // This may prevent multiple Tomcat restarts
@@ -260,10 +269,10 @@ class ServerDeploy implements Plugin<Project>
                 'cleanDeploy', Delete) {
             Delete task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Removes the deploy directory ${serverDeploy.dir}"
+                task.description = "Removes the deploy directory ${deployDir}"
                 task.dependsOn (project.tasks.cleanStaging)
                 task.configure({ DeleteSpec spec ->
-                    spec.delete serverDeploy.dir
+                    spec.delete deployDir
                 })
         }
         project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanDeploy)}
@@ -271,7 +280,8 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.register("cleanAndDeploy", DeployApp) {
             DeployApp task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Removes the deploy directory ${serverDeploy.dir} then deploys the application locally"
+                task.binaries.setFrom(project.configurations.binaries)
+                task.description = "Removes the deploy directory ${deployDir} then deploys the application locally"
                 task.dependsOn(project.tasks.cleanDeploy)
         }
 

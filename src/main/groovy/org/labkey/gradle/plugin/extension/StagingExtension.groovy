@@ -24,6 +24,7 @@ class StagingExtension
     public static final String STAGING_MODULES_DIR = "${STAGING_DIR}/modules/"
     public static final String STAGING_WEBAPP_DIR = "${STAGING_DIR}/labkeyWebapp"
     public static final String STAGING_WEBINF_DIR = "${STAGING_WEBAPP_DIR}/WEB-INF/"
+    public static final String STAGING_PIPELINE_DIR = "${STAGING_DIR}/pipelineLib"
 
     String dir
     String webappClassesDir
@@ -42,6 +43,6 @@ class StagingExtension
         webInfDir = "${buildDirPath}/${STAGING_WEBINF_DIR}"
         webappDir = "${buildDirPath}/${STAGING_WEBAPP_DIR}"
         modulesDir = "${buildDirPath}/${STAGING_MODULES_DIR}"
-        pipelineLibDir = "${dir}/pipelineLib"
+        pipelineLibDir = "${buildDirPath}/${STAGING_PIPELINE_DIR}"
     }
 }

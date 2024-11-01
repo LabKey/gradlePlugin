@@ -29,7 +29,7 @@ import org.labkey.gradle.util.PropertiesUtils
 
 import java.util.function.Function
 
-class DoThenSetup extends DefaultTask
+class DoThenSetup extends RestartTriggerTask
 {
     @Optional @Input
     protected DatabaseProperties databaseProperties
@@ -118,7 +118,7 @@ class DoThenSetup extends DefaultTask
                     return PropertiesUtils.replaceProps(line, configProperties, false)
                 })
             })
-            BuildUtils.updateRestartTriggerFile(project)
+            updateRestartTriggerFile()
         }
     }
 

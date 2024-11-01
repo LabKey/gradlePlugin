@@ -16,21 +16,16 @@
 package org.labkey.gradle.plugin.extension
 
 import org.gradle.api.Project
+import org.labkey.gradle.plugin.ServerDeploy
 import org.labkey.gradle.util.BuildUtils
 
 class ServerDeployExtension
 {
-    String dir
-    String embeddedDir
-    String modulesDir
-    String webappDir
-    String binDir
-    String pipelineLibDir
     Map<String, String> foundModules = new HashMap<>();
 
     static String getServerDeployDirectory(Project project)
     {
-        return BuildUtils.getRootBuildDirFile(project, "deploy").path
+        return BuildUtils.getRootBuildDirFile(project, ServerDeploy.DEPLOY_DIR).path
     }
 
     static String getEmbeddedServerDeployDirectory(Project project)
@@ -40,7 +35,7 @@ class ServerDeployExtension
 
     static String getModulesDeployDirectory(Project project)
     {
-        return "${getServerDeployDirectory(project)}/modules"
+        return "${getServerDeployDirectory(project)}/${ServerDeploy.MODULES_DIR}"
     }
 
     String getFoundModule(String key)

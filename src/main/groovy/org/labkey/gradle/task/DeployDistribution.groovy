@@ -6,7 +6,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.DistributionExtension
 
-class DeployDistribution extends DeployAppBase {
+abstract class DeployDistribution extends DeployAppBase {
 
     @OutputDirectory
     File deployDir = new File((String) project.serverDeploy.embeddedDir)
@@ -23,13 +23,13 @@ class DeployDistribution extends DeployAppBase {
 
     private void deployExecutableJar() {
         File distributionFile = DistributionExtension.getDistributionFile(project)
-        project.copy({ CopySpec copy ->
+        fs.copy({ CopySpec copy ->
             copy.from project.tarTree(distributionFile).files
             copy.into deployDir
             copy.include  "*.jar"
             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
-        project.copy({ CopySpec copy ->
+        fs.copy({ CopySpec copy ->
             copy.from project.tarTree(distributionFile).files
             copy.into deployBinDir
             copy.include   "*.exe", "*.dll"

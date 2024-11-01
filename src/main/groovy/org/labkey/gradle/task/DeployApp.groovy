@@ -16,55 +16,60 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.plugin.ServerDeploy
+import org.labkey.gradle.plugin.extension.StagingExtension
 
-class DeployApp extends DeployAppBase
+abstract class DeployApp extends DeployAppBase
 {
     @InputDirectory
-    File stagingModulesDir = new File((String) project.staging.modulesDir)
+    final abstract DirectoryProperty stagingModulesDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(StagingExtension.STAGING_MODULES_DIR))
 
     @InputDirectory
-    File stagingPipelineJarDir = new File((String) project.staging.pipelineLibDir)
+    final abstract DirectoryProperty stagingPipelineJarDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(StagingExtension.STAGING_PIPELINE_DIR))
     
     @OutputDirectory
-    File deployModulesDir = new File((String) project.serverDeploy.modulesDir)
+    final abstract DirectoryProperty deployModulesDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(ServerDeploy.MODULES_DIR))
+
+    // We declare this as an output so it will be created by this task, even though not actually populated here
+    @OutputDirectory
+    final abstract DirectoryProperty deployWebappDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(ServerDeploy.WEBAPP_DIR))
 
     @OutputDirectory
-    File deployWebappDir = new File((String) project.serverDeploy.webappDir)
+    final abstract DirectoryProperty deployPipelineLibDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(ServerDeploy.PIPELINE_DIR))
 
     @OutputDirectory
-    File deployPipelineLibDir = new File((String) project.serverDeploy.pipelineLibDir)
-
-    @OutputDirectory
-    File deployBinDir = new File((String) project.serverDeploy.binDir)
+    final abstract DirectoryProperty deployBinDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(ServerDeploy.BIN_DIR))
 
     @TaskAction
     void action()
     {
         deployModules()
         deployPipelineJars()
-        deployPlatformBinaries(deployBinDir)
+        deployPlatformBinaries(deployBinDir.get().asFile)
+        updateRestartTriggerFile()
     }
 
     private void deployModules()
     {
         ant.copy (
-                todir: deployModulesDir,
+                todir: deployModulesDir.get().asFile,
                 preserveLastModified: true,
         )
                 {
-                    fileset(dir: stagingModulesDir)
+                    fileset(dir: stagingModulesDir.get().asFile)
                 }
     }
 
     private void deployPipelineJars()
     {
-        project.copy( { CopySpec copy ->
-            copy.from stagingPipelineJarDir
-            copy.into deployPipelineLibDir
+        fs.copy( { CopySpec copy ->
+            copy.from stagingPipelineJarDir.get().asFile
+            copy.into deployPipelineLibDir.get().asFile
             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
     }
