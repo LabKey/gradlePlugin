@@ -845,12 +845,12 @@ class BuildUtils
 
     static String getEmbeddedConfigPath(Project project)
     {
-        return new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project), "config").absolutePath
+        return new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project), "config").absolutePath
     }
 
     static File getExecutableServerJar(Project project)
     {
-        File deployDir = new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project))
+        File deployDir = new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project))
         File[] jarFiles = deployDir.listFiles(new FilenameFilter() {
             @Override
             boolean accept(File dir, String name) {

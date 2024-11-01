@@ -60,8 +60,8 @@ class ServerDeploy implements Plugin<Project>
     {
         serverDeploy = project.extensions.create("serverDeploy", ServerDeployExtension)
 
-        deployDir = ServerDeployExtension.getServerDeployDirectory(project)
-        embeddedDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project)
+        deployDir = ServerDeployExtension.getServerDeployDirectoryPath(project)
+        embeddedDir = ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)
         stagingDir = BuildUtils.getRootBuildDirFile(project, STAGING_DIR)
 
         project.apply plugin: 'org.labkey.build.base'

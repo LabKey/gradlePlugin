@@ -85,10 +85,20 @@ class NpmRun implements Plugin<Project>
             // Base URL for fetching node distributions (change if you have a mirror).
             if (project.hasProperty('nodeRepo'))
                 distBaseUrl = project.nodeRepo
+//
+//            // The directory where Node.js is unpacked (when download is true)
+//            workDir = project.file("${project.rootProject.projectDir}/.gradle/nodejs")
+//
+//            // The directory where npm is installed (when a specific version is defined)
+//            npmWorkDir = project.file("${project.rootProject.projectDir}/.gradle/npm")
+//
+//            // The directory where yarn is installed (when a Yarn task is used)
+//            yarnWorkDir = project.file("${project.rootProject.projectDir}/.gradle/yarn")
 
             // If true, it will download node using above parameters.
             // If false, it will try to use globally installed node.
             download = project.hasProperty('nodeVersion') && project.hasProperty('npmVersion')
+//            download = project.path === project.rootProject.path && project.hasProperty('nodeVersion') && project.hasProperty('npmVersion')
 
             // Set the work directory where node_modules should be located
             nodeProjectDir = project.file("${project.projectDir}")

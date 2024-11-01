@@ -16,6 +16,7 @@
 package org.labkey.gradle.plugin.extension
 
 import org.gradle.api.Project
+import org.gradle.api.file.Directory
 import org.labkey.gradle.plugin.ServerDeploy
 import org.labkey.gradle.util.BuildUtils
 
@@ -23,19 +24,29 @@ class ServerDeployExtension
 {
     Map<String, String> foundModules = new HashMap<>();
 
-    static String getServerDeployDirectory(Project project)
+    static String getServerDeployDirectoryPath(Project project)
     {
         return BuildUtils.getRootBuildDirFile(project, ServerDeploy.DEPLOY_DIR).path
     }
 
-    static String getEmbeddedServerDeployDirectory(Project project)
+    static String getEmbeddedServerDeployDirectoryPath(Project project)
     {
-        return "${getServerDeployDirectory(project)}/embedded"
+        return "${getServerDeployDirectoryPath(project)}/embedded"
+    }
+
+    static Directory getEmbeddedDir(Project project)
+    {
+        return project.rootProject.layout.buildDirectory.dir(ServerDeploy.DEPLOY_DIR + "/embedded").get()
+    }
+
+    static Directory getEmbeddedBinDir(Project project)
+    {
+        return project.rootProject.layout.buildDirectory.dir(ServerDeploy.DEPLOY_DIR + "/embedded/bin").get()
     }
 
     static String getModulesDeployDirectory(Project project)
     {
-        return "${getServerDeployDirectory(project)}/${ServerDeploy.MODULES_DIR}"
+        return "${getServerDeployDirectoryPath(project)}/${ServerDeploy.MODULES_DIR}"
     }
 
     String getFoundModule(String key)

@@ -164,7 +164,7 @@ class TeamCity extends Tomcat
                     return newLine
                 }
                 )
-                task.destinationDir = new File("${ServerDeployExtension.getServerDeployDirectory(project)}/config")
+                task.destinationDir = new File("${ServerDeployExtension.getServerDeployDirectoryPath(project)}/config")
 
         }
 
