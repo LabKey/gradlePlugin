@@ -8,7 +8,7 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.labkey.gradle.plugin.extension.StagingExtension
+import org.labkey.gradle.plugin.ServerDeploy
 import org.labkey.gradle.util.BuildUtils
 
 import javax.inject.Inject
@@ -18,7 +18,7 @@ abstract class StageModules extends DefaultTask
     @Inject abstract FileSystemOperations getFs()
 
     @OutputDirectory
-    final abstract DirectoryProperty stagingModulesDir = project.objects.directoryProperty().convention(project.layout.projectDirectory.dir("${BuildUtils.getRootBuildDirPath(project)}/$StagingExtension.STAGING_MODULES_DIR"))
+    final abstract DirectoryProperty stagingModulesDir = project.objects.directoryProperty().convention(project.layout.projectDirectory.dir("${BuildUtils.getRootBuildDirPath(project)}/$ServerDeploy.STAGING_MODULES_DIR"))
 
     @InputFiles
     abstract ConfigurableFileCollection getDownloadedModules()

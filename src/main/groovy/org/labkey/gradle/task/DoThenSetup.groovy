@@ -15,7 +15,6 @@
  */
 package org.labkey.gradle.task
 
-import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy

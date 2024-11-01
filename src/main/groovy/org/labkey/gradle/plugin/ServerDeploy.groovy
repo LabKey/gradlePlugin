@@ -27,7 +27,6 @@ import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.plugin.extension.StagingExtension
 import org.labkey.gradle.task.*
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
@@ -47,10 +46,14 @@ class ServerDeploy implements Plugin<Project>
     public static final String WEBAPP_DIR = "${DEPLOY_DIR}/labkeyWebapp"
     public static final String PIPELINE_DIR = "${DEPLOY_DIR}/pipelineLib"
     public static final String BIN_DIR = "${DEPLOY_DIR}/bin"
+    public static final String STAGING_DIR = "staging"
+    public static final String STAGING_MODULES_DIR = "${STAGING_DIR}/modules/"
+    public static final String STAGING_PIPELINE_DIR = "${STAGING_DIR}/pipelineLib"
 
     private ServerDeployExtension serverDeploy
     String deployDir
     String embeddedDir
+    String stagingDir
 
     @Override
     void apply(Project project)
@@ -59,6 +62,7 @@ class ServerDeploy implements Plugin<Project>
 
         deployDir = ServerDeployExtension.getServerDeployDirectory(project)
         embeddedDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project)
+        stagingDir = BuildUtils.getRootBuildDirFile(project, STAGING_DIR)
 
         project.apply plugin: 'org.labkey.build.base'
         // we depend on the jar task from the embedded project, if available
@@ -89,12 +93,10 @@ class ServerDeploy implements Plugin<Project>
                 task.notCompatibleWithConfigurationCache("TODO 'cannot serialize project' error, but unclear where it comes from")
         }
 
-        StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
-
         project.tasks.register("stageModules", StageModules) {
             StageModules task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Stage the modules for the application into ${staging.dir}"
+                task.description = "Stage the modules for the application into ${stagingDir}"
                 task.downloadedModules.setFrom(project.configurations.downloadedModules)
                 task.builtModules.setFrom(project.configurations.builtModules)
         }
@@ -152,14 +154,16 @@ class ServerDeploy implements Plugin<Project>
             project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
         }
 
+        String stagingPipelineLibDir = BuildUtils.getRootBuildDirFile(project, STAGING_PIPELINE_DIR)
+
         project.tasks.register("stageRemotePipelineJars") {
             Task task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Copy files needed for using remote pipeline jobs into ${staging.pipelineLibDir}"
+                task.description = "Copy files needed for using remote pipeline jobs into ${stagingPipelineLibDir}"
                 task.doLast({
                     if (!project.configurations.remotePipelineJars.getFiles().isEmpty()) {
                         task.ant.copy(
-                            todir: staging.pipelineLibDir,
+                            todir: stagingPipelineLibDir,
                             preserveLastModified: true
                         )
                         {
@@ -182,7 +186,7 @@ class ServerDeploy implements Plugin<Project>
                 "stageApp") {
             Task task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Stage modules and jar files into ${staging.dir}"
+                task.description = "Stage modules and jar files into ${stagingDir}"
                 task.dependsOn project.tasks.stageModules
                 task.dependsOn project.tasks.stageRemotePipelineJars
         }
@@ -260,9 +264,9 @@ class ServerDeploy implements Plugin<Project>
                 'cleanStaging',Delete) {
             Delete task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Removes the staging directory ${staging.dir}"
+                task.description = "Removes the staging directory ${stagingDir}"
                 task.configure({ DeleteSpec spec ->
-                    spec.delete staging.dir
+                    spec.delete stagingDir
                 })
         }
 

@@ -22,15 +22,14 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.ServerDeploy
-import org.labkey.gradle.plugin.extension.StagingExtension
 
 abstract class DeployApp extends DeployAppBase
 {
     @InputDirectory
-    final abstract DirectoryProperty stagingModulesDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(StagingExtension.STAGING_MODULES_DIR))
+    final abstract DirectoryProperty stagingModulesDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(ServerDeploy.STAGING_MODULES_DIR))
 
     @InputDirectory
-    final abstract DirectoryProperty stagingPipelineJarDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(StagingExtension.STAGING_PIPELINE_DIR))
+    final abstract DirectoryProperty stagingPipelineJarDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(ServerDeploy.STAGING_PIPELINE_DIR))
     
     @OutputDirectory
     final abstract DirectoryProperty deployModulesDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(ServerDeploy.MODULES_DIR))

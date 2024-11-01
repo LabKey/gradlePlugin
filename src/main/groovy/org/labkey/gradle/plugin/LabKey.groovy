@@ -18,7 +18,6 @@ package org.labkey.gradle.plugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.labkey.gradle.plugin.extension.LabKeyExtension
-import org.labkey.gradle.plugin.extension.StagingExtension
 import org.labkey.gradle.util.ModuleFinder
 import org.labkey.gradle.util.BuildUtils
 
@@ -56,9 +55,6 @@ class LabKey implements Plugin<Project>
 
         LabKeyExtension labKeyExt = project.extensions.create("labkey", LabKeyExtension)
         labKeyExt.setDirectories(project)
-
-        StagingExtension stagingExt = project.extensions.create("staging", StagingExtension)
-        stagingExt.setDirectories(project)
     }
 
     // These configurations are used for deploying the app.  We declare them here
