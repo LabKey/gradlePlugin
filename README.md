@@ -21,6 +21,9 @@ on how to do that, including how to develop and test locally and the versioning 
 - Remove `checkModuleTasks` tasks, added to get us through a transition from plugins being declared more centrally
 - Update `stageModules` to remove use of deprecated `fileCollection` method and make compatible with configuration cache
 - Make `jsp2Java` compatible with configuration cache
+- Update property in node plugin configuration for latest version
+- Mark `copyExternalLibs` task as not compatible with configuration cache for now
+- Update `ServerSideJS` task for configuraiton cache compatibility
 
 ### 4.2.0
 *Released*: 11 October 2024

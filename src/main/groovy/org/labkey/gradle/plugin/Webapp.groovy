@@ -59,11 +59,11 @@ class Webapp implements Plugin<Project>
                             else
                             {
                                 // We should only redistribute the ExtJS resource files, not the full dev kit
-                                exclude "${project.labkey.ext3Dir}/src/**"
-                                exclude "${project.labkey.ext4Dir}/builds/**"
-                                exclude "${project.labkey.ext4Dir}/cmd/**"
-                                exclude "${project.labkey.ext4Dir}/locale/**"
-                                exclude "${project.labkey.ext4Dir}/src/**"
+                                exclude "${LabKeyExtension.ext3Dir}/src/**"
+                                exclude "${LabKeyExtension.ext4Dir}/builds/**"
+                                exclude "${LabKeyExtension.ext4Dir}/cmd/**"
+                                exclude "${LabKeyExtension.ext4Dir}/locale/**"
+                                exclude "${LabKeyExtension.ext4Dir}/src/**"
                                 exclude "d3/examples/**"
                                 exclude "d3/test/**"
                             }
