@@ -36,21 +36,6 @@ class DoThenSetup extends RestartTriggerTask
     @Input
     boolean dbPropertiesChanged = false
 
-    private static boolean canCreate(File file)
-    {
-        file = file.getParentFile()
-
-        while (file != null)
-        {
-            if (file.exists())
-            {
-                return file.canWrite() && file.canRead()
-            }
-            file = file.getParentFile()
-        }
-        return false
-    }
-
     protected void doDatabaseTask()
     {
         setDatabaseProperties()
