@@ -86,6 +86,7 @@ class ServerDeploy implements Plugin<Project>
                 task.group = GroupNames.DEPLOY
                 task.description = "Deploy the application locally into ${deployDir}"
                 task.binaries.setFrom(project.configurations.binaries)
+                task.notCompatibleWithConfigurationCache("TODO 'cannot serialize project' error, but unclear where it comes from")
         }
 
         StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
@@ -283,6 +284,7 @@ class ServerDeploy implements Plugin<Project>
                 task.binaries.setFrom(project.configurations.binaries)
                 task.description = "Removes the deploy directory ${deployDir} then deploys the application locally"
                 task.dependsOn(project.tasks.cleanDeploy)
+                task.notCompatibleWithConfigurationCache("TODO 'cannot serialize project' error, but unclear where it comes from")
         }
 
         project.tasks.register("cleanBuild", Delete) {
