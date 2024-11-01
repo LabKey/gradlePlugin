@@ -433,6 +433,7 @@ class FileModule implements Plugin<Project>
             // This is done after the project is evaluated otherwise the dependencies for the modules configuration will not have been added yet.
             project.afterEvaluate({
                 BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: project.path, depProjectConfig: 'published', depExtension: 'module')
+                BuildUtils.addLabKeyDependency(project: serverProject, config: 'builtModules', depProjectPath: project.path, depProjectConfig: 'published', depExtension: 'module')
                 try {
                     project.configurations.named("modules") {
                         Configuration config -> {
