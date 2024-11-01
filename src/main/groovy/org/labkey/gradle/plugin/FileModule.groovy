@@ -199,7 +199,7 @@ class FileModule implements Plugin<Project>
                     project.copy { CopySpec copy ->
                         copy.from moduleTask
                         copy.from project.configurations.modules
-                        copy.into project.staging.modulesDir
+                        copy.into "${BuildUtils.getRootBuildDirPath(project)}/$ServerDeploy.STAGING_MODULES_DIR"
                         copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                     }
                     project.copy { CopySpec copy ->
@@ -305,7 +305,8 @@ class FileModule implements Plugin<Project>
         // staging has only the .modules files
         if (includeStaging)
         {
-            File stagingDir = new File((String) project.staging.modulesDir)
+
+            File stagingDir = new File("${BuildUtils.getRootBuildDirPath(project)}/$ServerDeploy.STAGING_MODULES_DIR")
             if (stagingDir.isDirectory())
             {
                 files.addAll(stagingDir.listFiles(new FilenameFilter() {
