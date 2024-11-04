@@ -28,16 +28,10 @@ abstract class RestartTriggerTask extends DefaultTask
         if (!triggerFileDir.get().asFile.exists())
             return
 
-        OutputStreamWriter writer = null
-        try {
-            File triggerFile = new File(triggerFileDir.get().asFile, RESTART_FILE_NAME)
-            writer = new OutputStreamWriter(new FileOutputStream(triggerFile), StandardCharsets.UTF_8)
-            writer.write(SimpleDateFormat.getDateTimeInstance().format(new Date()))
-        }
-        finally
+        File triggerFile = new File(triggerFileDir.get().asFile, RESTART_FILE_NAME)
+        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(triggerFile), StandardCharsets.UTF_8))
         {
-            if (writer != null)
-                writer.close()
+            writer.write(SimpleDateFormat.getDateTimeInstance().format(new Date()))
         }
     }
 }
