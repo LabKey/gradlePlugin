@@ -203,7 +203,6 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.named('deployApp').configure {
             dependsOn(project.tasks.setup)
             dependsOn(project.tasks.stageApp)
-//            notCompatibleWithConfigurationCache("Uses project.zipTree")
         }
 
         if (BuildUtils.embeddedProjectExists(project)) {
