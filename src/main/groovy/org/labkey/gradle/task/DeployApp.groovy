@@ -22,27 +22,28 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.ServerDeploy
+import org.labkey.gradle.util.BuildUtils
 
 abstract class DeployApp extends DeployAppBase
 {
     @InputDirectory
-    final abstract DirectoryProperty stagingModulesDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(ServerDeploy.STAGING_MODULES_DIR))
+    final abstract DirectoryProperty stagingModulesDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_MODULES_DIR)
 
     @InputDirectory
-    final abstract DirectoryProperty stagingPipelineJarDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(ServerDeploy.STAGING_PIPELINE_DIR))
+    final abstract DirectoryProperty stagingPipelineJarDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_PIPELINE_DIR)
     
     @OutputDirectory
-    final abstract DirectoryProperty deployModulesDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(ServerDeploy.MODULES_DIR))
+    final abstract DirectoryProperty deployModulesDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.MODULES_DIR)
 
     // We declare this as an output so it will be created by this task, even though not actually populated here
     @OutputDirectory
-    final abstract DirectoryProperty deployWebappDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(ServerDeploy.WEBAPP_DIR))
+    final abstract DirectoryProperty deployWebappDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.WEBAPP_DIR)
 
     @OutputDirectory
-    final abstract DirectoryProperty deployPipelineLibDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(ServerDeploy.PIPELINE_DIR))
+    final abstract DirectoryProperty deployPipelineLibDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.PIPELINE_DIR)
 
     @OutputDirectory
-    final abstract DirectoryProperty deployBinDir = project.objects.directoryProperty().convention(project.rootProject.layout.buildDirectory.dir(ServerDeploy.BIN_DIR))
+    final abstract DirectoryProperty deployBinDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.BIN_DIR)
 
     @TaskAction
     void action()

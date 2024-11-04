@@ -38,13 +38,13 @@ abstract class StageDistribution extends DefaultTask
     protected File distributionFile = null
 
     @OutputDirectory
-    final abstract DirectoryProperty modulesStagingDir = project.objects.directoryProperty().convention(project.layout.projectDirectory.dir("${BuildUtils.getRootBuildDirPath(project)}/$ServerDeploy.STAGING_MODULES_DIR"))
+    final abstract DirectoryProperty modulesStagingDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_MODULES_DIR)
 
     @OutputDirectory
-    final abstract DirectoryProperty stagingDir = project.objects.directoryProperty().convention(project.layout.projectDirectory.dir("${BuildUtils.getRootBuildDirPath(project)}/$ServerDeploy.STAGING_DIR"))
+    final abstract DirectoryProperty stagingDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_DIR)
 
     @OutputDirectory
-    final abstract DirectoryProperty pipelineJarStagingDir = project.objects.directoryProperty().convention(project.layout.projectDirectory.dir("${BuildUtils.getRootBuildDirPath(project)}/$ServerDeploy.STAGING_PIPELINE_DIR"))
+    final abstract DirectoryProperty pipelineJarStagingDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_PIPELINE_DIR)
 
     @TaskAction
     void action()

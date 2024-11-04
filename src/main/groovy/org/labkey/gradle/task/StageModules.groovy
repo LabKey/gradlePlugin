@@ -18,7 +18,7 @@ abstract class StageModules extends DefaultTask
     @Inject abstract FileSystemOperations getFs()
 
     @OutputDirectory
-    final abstract DirectoryProperty stagingModulesDir = project.objects.directoryProperty().convention(project.layout.projectDirectory.dir("${BuildUtils.getRootBuildDirPath(project)}/$ServerDeploy.STAGING_MODULES_DIR"))
+    final abstract DirectoryProperty stagingModulesDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_MODULES_DIR)
 
     @InputFiles
     abstract ConfigurableFileCollection getDownloadedModules()

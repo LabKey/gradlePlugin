@@ -8,6 +8,7 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
+import org.labkey.gradle.util.BuildUtils
 
 import javax.inject.Inject
 
@@ -19,8 +20,7 @@ abstract class DeployAppBase extends RestartTriggerTask {
     abstract ConfigurableFileCollection getBinaries()
 
     @OutputDirectory
-    final abstract DirectoryProperty _externalDir = project.objects.directoryProperty()
-            .convention(project.rootProject.layout.projectDirectory.dir("external"))
+    final abstract DirectoryProperty _externalDir = BuildUtils.getRootBuildDirectoryProperty(project, "external")
 
     protected void deployPlatformBinaries(File deployBinDir)
     {

@@ -306,7 +306,7 @@ class FileModule implements Plugin<Project>
         if (includeStaging)
         {
 
-            File stagingDir = new File("${BuildUtils.getRootBuildDirPath(project)}/$ServerDeploy.STAGING_MODULES_DIR")
+            File stagingDir = BuildUtils.getRootBuildDirFile(project, ServerDeploy.STAGING_MODULES_DIR)
             if (stagingDir.isDirectory())
             {
                 files.addAll(stagingDir.listFiles(new FilenameFilter() {

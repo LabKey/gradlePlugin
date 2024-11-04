@@ -24,8 +24,11 @@ import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencySubstitutions
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.provider.Provider
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
@@ -941,6 +944,16 @@ class BuildUtils
     static String getRootBuildDirPath(Project project)
     {
         return project.rootProject.layout.buildDirectory.get().asFile.path
+    }
+
+    static Provider<Directory> getRootBuildDirectoryProvider(Project project, String directoryPath)
+    {
+        return project.rootProject.layout.buildDirectory.dir(directoryPath)
+    }
+
+    static DirectoryProperty getRootBuildDirectoryProperty(Project project, String defaultDirectoryPath)
+    {
+        return project.objects.directoryProperty().convention(getRootBuildDirectoryProvider(project, defaultDirectoryPath))
     }
 
     // See Issue 49316: https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=49316

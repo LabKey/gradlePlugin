@@ -5,6 +5,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
+import org.labkey.gradle.util.BuildUtils
 
 import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
@@ -16,8 +17,7 @@ abstract class RestartTriggerTask extends DefaultTask
     final abstract Property<String> useLocalBuild = project.objects.property(String).convention(project.hasProperty('useLocalBuild') ? (String) project.property('useLocalBuild') : null)
 
     @OutputDirectory
-    final abstract DirectoryProperty triggerFileDir = project.objects.directoryProperty()
-            .convention(project.rootProject.layout.buildDirectory.dir("deploy/modules"))
+    final abstract DirectoryProperty triggerFileDir = BuildUtils.getRootBuildDirectoryProperty(project, "deploy/modules")
 
     @Input
     void updateRestartTriggerFile()
