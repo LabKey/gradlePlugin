@@ -173,11 +173,8 @@ class ServerDeploy implements Plugin<Project>
                     task.group = GroupNames.DEPLOY
                     task.description = "Make a symbolic link to the npm directory for use in PATH environment variable"
                     task.doFirst({
-                        // we'll need to support both yarn and npm, so link them both if both are present.
                         if (project.hasProperty('npmVersion') && project.hasProperty('npmWorkDirectory'))
                             linkBinaries(project, "npm", project.npmVersion, project.npmWorkDirectory)
-                        if (project.hasProperty('yarnVersion') && project.hasProperty('yarnWorkDirectory'))
-                            linkBinaries(project, "yarn", project.yarnVersion, project.yarnWorkDirectory)
                     })
                     task.dependsOn(project.tasks.npmSetup)
             }
