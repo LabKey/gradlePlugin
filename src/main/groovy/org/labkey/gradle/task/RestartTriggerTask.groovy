@@ -13,13 +13,13 @@ import java.text.SimpleDateFormat
 abstract class RestartTriggerTask extends DefaultTask
 {
     public static final String RESTART_FILE_NAME = ".restartTrigger"
+
     @Input
     final abstract Property<String> useLocalBuild = project.objects.property(String).convention(project.hasProperty('useLocalBuild') ? (String) project.property('useLocalBuild') : null)
 
     @OutputDirectory
     final abstract DirectoryProperty triggerFileDir = BuildUtils.getRootBuildDirectoryProperty(project, "deploy/modules")
 
-    @Input
     void updateRestartTriggerFile()
     {
         if (useLocalBuild.get() == null || "false" == useLocalBuild.get())
