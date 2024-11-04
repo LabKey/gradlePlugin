@@ -18,6 +18,8 @@ on how to do that, including how to develop and test locally and the versioning 
 (Earliest compatible LabKey version: 24.11)
 - Stop adding the standalone `VERSION` file to distribution archives; the `distribution.properties` file now
   contains the `version` and `buildUrl` properties that `EmbeddedExtractor.java` reads.
+- Update Npm plugin configuration to download a single copy of node and npm for use by all modules
+
 
 ### 4.2.0
 *Released*: 11 October 2024

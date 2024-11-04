@@ -179,6 +179,7 @@ class ServerDeploy implements Plugin<Project>
                         if (project.hasProperty('yarnVersion') && project.hasProperty('yarnWorkDirectory'))
                             linkBinaries(project, "yarn", project.yarnVersion, project.yarnWorkDirectory)
                     })
+                    task.dependsOn(project.tasks.npmSetup)
             }
             project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
         }
@@ -370,7 +371,7 @@ class ServerDeploy implements Plugin<Project>
 
         Path pmLinkPath = Paths.get("${linkContainer.getPath()}/${packageMgr}")
         String pmDirName = "${packageMgr}-v${version}"
-        Path pmTargetPath = Paths.get(BuildUtils.getBuildDirFile(pmLinkProject, "${workDirectory}/${pmDirName}").getPath())
+        Path pmTargetPath = Paths.get(pmLinkProject.file( "${workDirectory}/${pmDirName}").getPath())
 
         if (!Files.isSymbolicLink(pmLinkPath) || !Files.readSymbolicLink(pmLinkPath).getFileName().toString().equals(pmDirName))
         {
@@ -385,7 +386,7 @@ class ServerDeploy implements Plugin<Project>
         Path nodeLinkPath = Paths.get("${linkContainer.getPath()}/node")
         if (!Files.isSymbolicLink(nodeLinkPath) || !Files.readSymbolicLink(nodeLinkPath).getFileName().toString().startsWith(nodeFilePrefix))
         {
-            File nodeDir = BuildUtils.getBuildDirFile(pmLinkProject, project.nodeWorkDirectory)
+            File nodeDir = pmLinkProject.file(project.nodeWorkDirectory)
             File[] nodeFiles = nodeDir.listFiles({ File file -> file.name.startsWith(nodeFilePrefix) } as FileFilter)
             if (nodeFiles != null && nodeFiles.length > 0)
             {

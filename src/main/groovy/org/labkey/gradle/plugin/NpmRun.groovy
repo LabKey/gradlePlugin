@@ -86,12 +86,18 @@ class NpmRun implements Plugin<Project>
             if (project.hasProperty('nodeRepo'))
                 distBaseUrl = project.nodeRepo
 
+            // The directory where Node.js is unpacked (when download is true)
+            workDir = project.file("${project.rootProject.projectDir}/.node")
+
+            // The directory where npm is installed (when a specific version is defined)
+            npmWorkDir = project.file("${project.rootProject.projectDir}/.node")
+
             // If true, it will download node using above parameters.
             // If false, it will try to use globally installed node.
-            download = project.hasProperty('nodeVersion') && project.hasProperty('npmVersion')
+            download = project.path.equals(BuildUtils.getServerProjectPath(project.gradle)) && project.hasProperty('nodeVersion') && project.hasProperty('npmVersion')
 
             // Set the work directory where node_modules should be located
-            nodeModulesDir = project.file("${project.projectDir}")
+            nodeProjectDir = project.file("${project.projectDir}")
 
             npmInstallCommand = project.hasProperty('npmInstallCommand') ? project.npmInstallCommand : 'ci'
         }
@@ -183,6 +189,7 @@ class NpmRun implements Plugin<Project>
                     // Specify legacy peer dependency mode for npm v7+
                     task.args = ["--legacy-peer-deps"]
                     task.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
+                    task.dependsOn(BuildUtils.getServerProject(project).tasks.npmSetup)
                 }
 
         def runCommand = LabKeyExtension.isDevMode(project) && !project.hasProperty('useNpmProd') ? npmRunBuild : npmRunBuildProd
