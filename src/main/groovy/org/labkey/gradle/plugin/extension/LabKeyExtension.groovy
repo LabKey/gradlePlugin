@@ -58,8 +58,8 @@ class LabKeyExtension
 
     String srcGenDir
     String externalDir
-    String ext3Dir = "ext-3.4.1"
-    String ext4Dir = "ext-4.2.1"
+    public static final String ext3Dir = "ext-3.4.1"
+    public static final String ext4Dir = "ext-4.2.1"
 
     static String getDeployModeName(Project project)
     {

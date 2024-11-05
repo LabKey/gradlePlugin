@@ -17,26 +17,34 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.plugin.ServerDeploy
 import org.labkey.gradle.plugin.extension.DistributionExtension
+import org.labkey.gradle.util.BuildUtils
 
-class StageDistribution extends DefaultTask
+import javax.inject.Inject
+
+abstract class StageDistribution extends DefaultTask
 {
+    @Inject abstract FileSystemOperations getFs()
+
     protected File distributionFile = null
 
     @OutputDirectory
-    File modulesStagingDir = new File((String) project.staging.modulesDir)
+    final abstract DirectoryProperty modulesStagingDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_MODULES_DIR)
 
     @OutputDirectory
-    File stagingDir = new File((String) project.staging.dir)
+    final abstract DirectoryProperty stagingDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_DIR)
 
     @OutputDirectory
-    File pipelineJarStagingDir = new File((String) project.staging.pipelineLibDir)
+    final abstract DirectoryProperty pipelineJarStagingDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_PIPELINE_DIR)
 
     @TaskAction
     void action()
@@ -46,20 +54,22 @@ class StageDistribution extends DefaultTask
         FileTree distArchiveTree = project.tarTree(distributionFile)
 
         // first clean out the staging directory so we don't pick up modules not in this distribution
-        project.delete modulesStagingDir
+        fs.delete {
+            it.delete(modulesStagingDir.get())
+        }
 
-        project.copy({ CopySpec spec ->
+        fs.copy({ CopySpec spec ->
             spec.from distArchiveTree.files
-            spec.into modulesStagingDir
+            spec.into modulesStagingDir.get()
             spec.include "**/*.module"
             spec.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
 
         String baseName = distributionFile.getName().substring(0, distributionFile.getName().length() - (extension.length() + 1))
 
-        project.copy({ CopySpec spec ->
+        fs.copy({ CopySpec spec ->
             spec.from distArchiveTree
-            spec.into stagingDir
+            spec.into stagingDir.get()
             spec.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             spec.eachFile {
                 FileCopyDetails fcp ->
@@ -79,9 +89,9 @@ class StageDistribution extends DefaultTask
             spec.includeEmptyDirs = false
         })
 
-        project.copy({ CopySpec spec ->
+        fs.copy({ CopySpec spec ->
             spec.from distArchiveTree
-            spec.into pipelineJarStagingDir
+            spec.into pipelineJarStagingDir.get()
             spec.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             spec.eachFile {
                 FileCopyDetails fcp ->

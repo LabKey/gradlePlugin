@@ -24,12 +24,16 @@ import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencySubstitutions
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.provider.Provider
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
+import org.labkey.gradle.task.RestartTriggerTask
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -49,7 +53,6 @@ class BuildUtils
     public static final String PLATFORM_MODULES_DIR = "server/modules/platform"
     public static final String COMMON_ASSAYS_MODULES_DIR = "server/modules/commonAssays"
     public static final String CUSTOM_MODULES_DIR = "server/modules/customModules"
-    private static final String RESTART_FILE_NAME = ".restartTrigger"
 
     public static final List<String> EHR_MODULE_NAMES = [
             "EHR_ComplianceDB",
@@ -845,12 +848,12 @@ class BuildUtils
 
     static String getEmbeddedConfigPath(Project project)
     {
-        return new File(project.serverDeploy.embeddedDir, "config").absolutePath
+        return new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project), "config").absolutePath
     }
 
     static File getExecutableServerJar(Project project)
     {
-        File deployDir = new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project))
+        File deployDir = new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project))
         File[] jarFiles = deployDir.listFiles(new FilenameFilter() {
             @Override
             boolean accept(File dir, String name) {
@@ -879,7 +882,9 @@ class BuildUtils
      * spring.devtools.restart.additional-paths
      *
      * @param project - for use in getting the rootProject's build directory
+     * @deprecated Use RestartTriggerTask as a base class for your task instead
      */
+    @Deprecated(forRemoval=true)
     static void updateRestartTriggerFile(Project project)
     {
         if (!project.hasProperty('useLocalBuild') || "false" == project.property("useLocalBuild"))
@@ -891,7 +896,7 @@ class BuildUtils
 
         OutputStreamWriter writer = null
         try {
-            File triggerFile = new File(triggerFileDir, RESTART_FILE_NAME)
+            File triggerFile = new File(triggerFileDir, RestartTriggerTask.RESTART_FILE_NAME)
             writer = new OutputStreamWriter(new FileOutputStream(triggerFile), StandardCharsets.UTF_8)
             writer.write(SimpleDateFormat.getDateTimeInstance().format(new Date()))
         }
@@ -941,6 +946,17 @@ class BuildUtils
         return project.rootProject.layout.buildDirectory.get().asFile.path
     }
 
+    static Provider<Directory> getRootBuildDirectoryProvider(Project project, String directoryPath)
+    {
+        return project.rootProject.layout.buildDirectory.dir(directoryPath)
+    }
+
+    static DirectoryProperty getRootBuildDirectoryProperty(Project project, String defaultDirectoryPath)
+    {
+        return project.objects.directoryProperty().convention(getRootBuildDirectoryProvider(project, defaultDirectoryPath))
+    }
+
+    // See Issue 49316: https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=49316
     static void substituteModuleDependencies(Project project, String configName)
     {
         try {

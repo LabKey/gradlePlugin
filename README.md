@@ -13,13 +13,27 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### 4.3.0-SNAPSHOT
+### 5.1.0-SNAPSHOT
 *Released*: TBD
+(Earliest compatible LabKey version: 24.11)
+- Update Npm plugin configuration to download a single copy of node and npm for use by all modules
+- Remove configuration of Yarn tasks and properties
+
+### 5.0.0
+*Released*: 5 November 2024
 (Earliest compatible LabKey version: 24.11)
 - Stop adding the standalone `VERSION` file to distribution archives; the `distribution.properties` file now
   contains the `version` and `buildUrl` properties that `EmbeddedExtractor.java` reads.
-- Update Npm plugin configuration to download a single copy of node and npm for use by all modules
-- Remove configuration of Yarn tasks and properties
+- Remove `checkModuleTasks` tasks, added to get us through a transition from plugins being declared more centrally
+- Update `stageModules` to remove use of deprecated `fileCollection` method and make compatible with configuration cache
+- Remove `StagingExtension`
+- Make `jsp2Java` compatible with configuration cache
+- Update property in node plugin configuration for latest version
+- Mark `copyExternalLibs` task as not compatible with configuration cache for now
+- Update `ServerSideJS` task for configuration cache compatibility
+- Update `DeployApp` and relatives for better configuration cache compatibility
+- Update `PickDb` task for better configuration cache compatibility
+- Upgrade to Gradle 8.10.2
 
 ### 4.2.0
 *Released*: 11 October 2024

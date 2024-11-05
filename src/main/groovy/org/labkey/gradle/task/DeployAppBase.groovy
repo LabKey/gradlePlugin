@@ -1,34 +1,47 @@
 package org.labkey.gradle.task
 
 import org.apache.commons.lang3.SystemUtils
-import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
+import org.labkey.gradle.util.BuildUtils
 
-class DeployAppBase extends DefaultTask {
+import javax.inject.Inject
 
-    private File _externalDir = new File((String) project.labkey.externalDir)
+abstract class DeployAppBase extends RestartTriggerTask {
+
+    @Inject abstract FileSystemOperations getFs()
+
+    @InputFiles
+    abstract ConfigurableFileCollection getBinaries()
+
+    @OutputDirectory
+    final abstract DirectoryProperty _externalDir = BuildUtils.getRootBuildDirectoryProperty(project, "external")
 
     protected void deployPlatformBinaries(File deployBinDir)
     {
         deployBinDir.mkdirs()
 
-        if (project.configurations.findByName("binaries") != null)
+        if (getBinaries() != null && !getBinaries().isEmpty())
         {
-            project.logger.debug("Copying from binaries configuration to ${deployBinDir}")
-            project.copy({
+            this.logger.debug("Copying from binaries configuration to ${deployBinDir}")
+            fs.copy({
                 CopySpec copy ->
                     copy.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-                    copy.from(project.configurations.binaries.collect { project.zipTree(it) })
+                    copy.from(getBinaries().collect { project.zipTree(it) })
                     copy.into deployBinDir.path
             })
-            project.logger.debug("Contents of ${deployBinDir}\n" + deployBinDir.listFiles())
+            this.logger.debug("Contents of ${deployBinDir}\n" + deployBinDir.listFiles())
         }
         // For TC builds, we deposit the artifacts of the Linux TPP Tools and Windows Proteomics Tools into
         // the external directory, so we want to copy those over as well.
         // TODO: package the output of these builds into the Artifactory artifact to simplify
-        if (project.file(_externalDir).exists()) {
-            project.logger.info("Copying from ${_externalDir} to ${project.serverDeploy.binDir}")
+        if (_externalDir.get().asFile.exists()) {
+            this.logger.info("Copying from ${_externalDir.get()} to ${deployBinDir}")
             if (SystemUtils.IS_OS_MAC)
                 deployBinariesViaProjectCopy("osx", deployBinDir)
             else if (SystemUtils.IS_OS_LINUX)
@@ -41,7 +54,7 @@ class DeployAppBase extends DefaultTask {
     // Use this method to preserve file permissions, since ant.copy does not, but this does not preserve last modified times
     private void deployBinariesViaProjectCopy(String osDirectory, File deployBinDir)
     {
-        File parentDir = new File(_externalDir, "${osDirectory}")
+        File parentDir = new File(_externalDir.get().asFile, "${osDirectory}")
         if (parentDir.exists())
         {
             List<File> subDirs = parentDir.listFiles new FileFilter() {
@@ -51,7 +64,7 @@ class DeployAppBase extends DefaultTask {
                 }
             }
             for (File dir : subDirs) {
-                project.copy { CopySpec copy ->
+                fs.copy { CopySpec copy ->
                     copy.from dir
                     copy.into deployBinDir.getPath()
                     copy.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
@@ -62,8 +75,8 @@ class DeployAppBase extends DefaultTask {
 
     private void deployBinariesViaAntCopy(String osDirectory, File deployBinDir)
     {
-        def fromDir = "${_externalDir}/${osDirectory}"
-        if (project.file(fromDir).exists())
+        File fromDir = _externalDir.get().file(osDirectory).asFile
+        if (fromDir.exists())
         {
             ant.copy(
                     todir: deployBinDir.getPath(),
@@ -71,7 +84,7 @@ class DeployAppBase extends DefaultTask {
             )
                     {
                         ant.cutdirsmapper(dirs: 1)
-                        fileset(dir: fromDir)
+                        fileset(dir: fromDir.path)
                                 {
                                     exclude(name: "**.*")
                                 }

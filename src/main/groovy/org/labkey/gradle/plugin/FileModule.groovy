@@ -19,6 +19,8 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.UnknownDomainObjectException
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.CopySpec
@@ -197,7 +199,7 @@ class FileModule implements Plugin<Project>
                     project.copy { CopySpec copy ->
                         copy.from moduleTask
                         copy.from project.configurations.modules
-                        copy.into project.staging.modulesDir
+                        copy.into "${BuildUtils.getRootBuildDirPath(project)}/$ServerDeploy.STAGING_MODULES_DIR"
                         copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                     }
                     project.copy { CopySpec copy ->
@@ -303,7 +305,8 @@ class FileModule implements Plugin<Project>
         // staging has only the .modules files
         if (includeStaging)
         {
-            File stagingDir = new File((String) project.staging.modulesDir)
+
+            File stagingDir = BuildUtils.getRootBuildDirFile(project, ServerDeploy.STAGING_MODULES_DIR)
             if (stagingDir.isDirectory())
             {
                 files.addAll(stagingDir.listFiles(new FilenameFilter() {
@@ -431,24 +434,30 @@ class FileModule implements Plugin<Project>
             // This is done after the project is evaluated otherwise the dependencies for the modules configuration will not have been added yet.
             project.afterEvaluate({
                 BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: project.path, depProjectConfig: 'published', depExtension: 'module')
-                if (project.configurations.findByName("modules") != null)
-                    project.configurations.modules.dependencies.each {
-                        Dependency dep ->
-                            if (dep instanceof ProjectDependency)
-                            {
-                                ProjectDependency projectDep = (ProjectDependency) dep
-                                if (shouldDoBuild(projectDep.dependencyProject, false)) {
-                                    BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: projectDep.dependencyProject.getPath(), depProjectConfig: 'published', depExtension: 'module')
-                                }
-                                else {
-                                    serverProject.dependencies.add("modules", BuildUtils.getLabKeyArtifactName(project, projectDep.dependencyProject.getPath(), projectDep.version, "module"))
-                                }
+                BuildUtils.addLabKeyDependency(project: serverProject, config: 'builtModules', depProjectPath: project.path, depProjectConfig: 'published', depExtension: 'module')
+                try {
+                    project.configurations.named("modules") {
+                        Configuration config -> {
+                            config.dependencies.each {
+                                Dependency dep ->
+                                    if (dep instanceof ProjectDependency) {
+                                        ProjectDependency projectDep = (ProjectDependency) dep
+                                        if (shouldDoBuild(projectDep.dependencyProject, false)) {
+                                            BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: projectDep.dependencyProject.getPath(), depProjectConfig: 'published', depExtension: 'module')
+                                            BuildUtils.addLabKeyDependency(project: serverProject, config: 'builtModules', depProjectPath: projectDep.dependencyProject.getPath(), depProjectConfig: 'published', depExtension: 'module')
+                                        } else {
+                                            serverProject.dependencies.add("modules", BuildUtils.getLabKeyArtifactName(project, projectDep.dependencyProject.getPath(), projectDep.version, "module"))
+                                            serverProject.dependencies.add("downloadedModules", BuildUtils.getLabKeyArtifactName(project, projectDep.dependencyProject.getPath(), projectDep.version, "module"))
+                                        }
+                                    } else {
+                                        serverProject.dependencies.add("modules", dep)
+                                        serverProject.dependencies.add("downloadedModules", dep)
+                                    }
                             }
-                            else
-                            {
-                                serverProject.dependencies.add("modules", dep)
-                            }
+                        }
                     }
+
+                } catch (UnknownDomainObjectException ignore) { }
             })
         }
 

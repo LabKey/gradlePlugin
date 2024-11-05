@@ -29,27 +29,17 @@ import org.labkey.gradle.util.PropertiesUtils
 
 import java.util.function.Function
 
+// TODO making this extend from RestartTriggerTask causes the following error on TeamCity:
+//  Cannot fingerprint input property 'databaseProperties': value 'org.labkey.gradle.util.DatabaseProperties@286cb41a' cannot be serialized.
+// Even though RestartTriggerTask has nothing to do with the `databaseProperties`
 class DoThenSetup extends DefaultTask
 {
+    // TODO rethink this input declaration. Dependence on a file makes more sense
     @Optional @Input
     protected DatabaseProperties databaseProperties
+
     @Input
     boolean dbPropertiesChanged = false
-
-    private static boolean canCreate(File file)
-    {
-        file = file.getParentFile()
-
-        while (file != null)
-        {
-            if (file.exists())
-            {
-                return file.canWrite() && file.canRead()
-            }
-            file = file.getParentFile()
-        }
-        return false
-    }
 
     protected void doDatabaseTask()
     {
