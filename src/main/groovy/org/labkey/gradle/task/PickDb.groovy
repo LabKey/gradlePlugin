@@ -17,12 +17,17 @@ package org.labkey.gradle.task
 
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.labkey.gradle.util.BuildUtils
 
-class PickDb extends DoThenSetup
+import javax.inject.Inject
+
+abstract class PickDb extends DoThenSetup
 {
+    @Inject abstract FileSystemOperations getFs()
+
     @Input
     String dbType
 
@@ -33,7 +38,7 @@ class PickDb extends DoThenSetup
     protected void doDatabaseTask()
     {
         //copies the correct config file.
-        project.copy({ CopySpec copy ->
+        fs.copy({ CopySpec copy ->
             copy.from configsDir
             copy.into configsDir.parent
             copy.include "${dbType}.properties"

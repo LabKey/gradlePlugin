@@ -79,7 +79,7 @@ class Tomcat implements Plugin<Project>
 
         project.tasks.register("cleanLogs", Delete) {
             Delete task ->
-                var logDir = "${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/logs"
+                var logDir = "${ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)}/logs"
                 task.group = GroupNames.WEB_APPLICATION
                 task.description = "Delete logs from ${logDir}"
                 task.configure { DeleteSpec spec -> spec.delete project.fileTree(logDir) }

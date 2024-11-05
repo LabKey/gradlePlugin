@@ -156,12 +156,9 @@ class JavaModule implements Plugin<Project>
                         copy.from task
                     })
         }
-        populateLib.configure {
-            it.doFirst {
-                File explodedLibDir = new File(project.labkey.explodedModuleLibDir)
-                if (explodedLibDir.exists())
-                    explodedLibDir.delete()
-            }
+
+        project.tasks.named('populateExplodedLib') {
+            notCompatibleWithConfigurationCache("Need to figure out how to make the inputs from the optional tasks work.")
         }
 
         project.tasks.named('module').configure {dependsOn(populateLib)}

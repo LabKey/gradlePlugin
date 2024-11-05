@@ -47,7 +47,7 @@ class StartLabKey extends DefaultTask
         File jarFile = BuildUtils.getExecutableServerJar(project)
         if (jarFile == null)
         {
-            throw new GradleException("No jar file found in ${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}.")
+            throw new GradleException("No jar file found in ${ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)}.")
         }
         else
         {
@@ -63,20 +63,20 @@ class StartLabKey extends DefaultTask
             commandParts += getStartupOpts(project)
             commandParts += ["-jar", jarFile.getName()]
 
-            File logFile = new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project), Tomcat.EMBEDDED_LOG_FILE_NAME)
+            File logFile = new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project), Tomcat.EMBEDDED_LOG_FILE_NAME)
             if (!logFile.getParentFile().exists())
                 logFile.getParentFile().mkdirs()
             if (!logFile.exists())
                 logFile.createNewFile()
             FileOutputStream outputStream = new FileOutputStream(logFile)
             def envMap = new HashMap<>(System.getenv())
-            envMap.put('PATH', "${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}/bin${File.pathSeparator}${System.getenv("PATH")}")
+            envMap.put('PATH', "${ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)}/bin${File.pathSeparator}${System.getenv("PATH")}")
             def env = []
             for (String key : envMap.keySet()) {
                 env += "${key}=${envMap.get(key)}"
             }
-            this.logger.info("Starting LabKey with command ${commandParts} and env ${env} in directory ${ServerDeployExtension.getEmbeddedServerDeployDirectory(project)}")
-            Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)))
+            this.logger.info("Starting LabKey with command ${commandParts} and env ${env} in directory ${ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)}")
+            Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)))
             process.consumeProcessOutput(outputStream, outputStream)
         }
     }

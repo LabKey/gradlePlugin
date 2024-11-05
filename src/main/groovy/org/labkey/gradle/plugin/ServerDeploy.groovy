@@ -16,22 +16,17 @@
 package org.labkey.gradle.plugin
 
 import org.apache.commons.lang3.SystemUtils
-import org.gradle.api.UnknownTaskException
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.plugin.extension.StagingExtension
 import org.labkey.gradle.task.*
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
@@ -46,19 +41,28 @@ import java.nio.file.Paths
  */
 class ServerDeploy implements Plugin<Project>
 {
+    public static final String DEPLOY_DIR = "deploy"
+    public static final String MODULES_DIR = "${DEPLOY_DIR}/modules"
+    public static final String WEBAPP_DIR = "${DEPLOY_DIR}/labkeyWebapp"
+    public static final String PIPELINE_DIR = "${DEPLOY_DIR}/pipelineLib"
+    public static final String BIN_DIR = "${DEPLOY_DIR}/bin"
+    public static final String STAGING_DIR = "staging"
+    public static final String STAGING_MODULES_DIR = "${STAGING_DIR}/modules/"
+    public static final String STAGING_PIPELINE_DIR = "${STAGING_DIR}/pipelineLib"
+
     private ServerDeployExtension serverDeploy
+    String deployDir
+    String embeddedDir
+    String stagingDir
 
     @Override
     void apply(Project project)
     {
         serverDeploy = project.extensions.create("serverDeploy", ServerDeployExtension)
 
-        serverDeploy.dir = ServerDeployExtension.getServerDeployDirectory(project)
-        serverDeploy.embeddedDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project)
-        serverDeploy.modulesDir = "${serverDeploy.dir}/modules"
-        serverDeploy.webappDir = "${serverDeploy.dir}/labkeyWebapp"
-        serverDeploy.binDir = "${serverDeploy.dir}/bin"
-        serverDeploy.pipelineLibDir = "${serverDeploy.dir}/pipelineLib"
+        deployDir = ServerDeployExtension.getServerDeployDirectoryPath(project)
+        embeddedDir = ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)
+        stagingDir = BuildUtils.getRootBuildDirFile(project, STAGING_DIR)
 
         project.apply plugin: 'org.labkey.build.base'
         // we depend on the jar task from the embedded project, if available
@@ -66,6 +70,17 @@ class ServerDeploy implements Plugin<Project>
             project.evaluationDependsOn(BuildUtils.getEmbeddedProjectPath(project.gradle))
 
         addTasks(project)
+        addConfigurations(project)
+    }
+
+    private void addConfigurations(project)
+    {
+        project.configurations
+                {
+                    builtModules
+                    downloadedModules
+                }
+
     }
 
     private void addTasks(Project project)
@@ -73,77 +88,32 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.register("deployApp", DeployApp) {
             DeployApp task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Deploy the application locally into ${serverDeploy.dir}"
-                task.doLast( {
-                    BuildUtils.updateRestartTriggerFile(project)
-                } )
+                task.description = "Deploy the application locally into ${deployDir}"
+                task.binaries.setFrom(project.configurations.binaries)
+                task.notCompatibleWithConfigurationCache("TODO 'cannot serialize project' error, but unclear where it comes from")
         }
 
-        StagingExtension staging = project.getExtensions().getByType(StagingExtension.class)
-
-        // The staging step complicates things, but it is currently needed for the following reasons:
-        // - We want to make sure tomcat doesn't restart multiple times when deploying the application.
-        //   (seems like it could be avoided as the copy being done here is just as atomic as the copy from deployModules)
-        project.tasks.register("stageModules") {
-            Task task ->
+        project.tasks.register("stageModules", StageModules) {
+            StageModules task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Stage the modules for the application into ${staging.dir}"
-                task.doFirst({
-                    project.delete staging.modulesDir
-                })
-                task.doLast( {
-                    // copy over the module dependencies first (things not built from source that might bring in
-                    // transitive dependencies)
-                    FileCollection remoteModules = project.configurations.modules.fileCollection ({
-                        Dependency dependency -> dependency instanceof DefaultExternalModuleDependency
-                    })
-                    if (!remoteModules.isEmpty())
-                    {
-                        project.ant.copy(
-                                todir: staging.modulesDir,
-                                preserveLastModified: true // this is important so we don't re-explode modules that have not changed
-                        )
-                                {
-                                    remoteModules.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-                                }
-                    }
-
-                    // Then copy over the project dependencies (things built from source) so they will replace
-                    // any transitive dependencies that were brought in).
-                    // One might like to do this overriding/overwriting using DependencySubstitution, as that is very much
-                    // what it is designed for, but that allows substitution of a project for an ExternalModuleDependency
-                    // and since a .module file is only one of the artifacts produced by our projects (e.g., :server:modules:platform:experiment)
-                    // and is not the default artifact, DependencySubstitution does not seem to work.
-                    FileCollection localModules = project.configurations.modules.fileCollection ({
-                        Dependency dependency -> dependency instanceof DefaultProjectDependency
-                    })
-                    if (!localModules.isEmpty())
-                    {
-                        project.ant.copy(
-                            overwrite: true, // overwrite existing files even if the destination files are newer
-                            todir: staging.modulesDir,
-                            preserveLastModified: true // this is important so we don't re-explode modules that have not changed
-                        )
-                        {
-                            localModules.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-                        }
-                    }
-                })
+                task.description = "Stage the modules for the application into ${stagingDir}"
+                task.downloadedModules.setFrom(project.configurations.downloadedModules)
+                task.builtModules.setFrom(project.configurations.builtModules)
         }
-        project.tasks.named('stageModules').configure {dependsOn project.configurations.modules}
 
         project.tasks.register("checkModuleVersions", CheckForVersionConflicts) {
             CheckForVersionConflicts task ->
-                task.directory = new File(serverDeploy.modulesDir)
+                String modulesDir = "${deployDir}/${MODULES_DIR}"
+                task.directory = new File(modulesDir)
                 task.extension = "module"
                 task.cleanTask = ":server:cleanDeploy"
                 task.collection = project.configurations.modules
                 task.group =  GroupNames.DEPLOY
                 task.description = "Check for conflicts in version numbers of module files to be deployed and files in the deploy directory. " +
                         "Default action on detecting a conflict is to fail.  Use -PversionConflictAction=[delete|fail|warn] to change this behavior.  The value 'delete' will cause the " +
-                        "conflicting version(s) in the ${serverDeploy.modulesDir} directory to be removed."
+                        "conflicting version(s) in the ${modulesDir} directory to be removed."
                 task.onlyIf({
-                    return new File(serverDeploy.modulesDir).exists()
+                    return new File(modulesDir).exists()
                 })
             }
 
@@ -180,17 +150,20 @@ class ServerDeploy implements Plugin<Project>
                             linkBinaries(project, "yarn", project.yarnVersion, project.yarnWorkDirectory)
                     })
             }
+            project.tasks.symlinkNode.notCompatibleWithConfigurationCache("References project properties. Need to add task class with input properties")
             project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
         }
+
+        String stagingPipelineLibDir = BuildUtils.getRootBuildDirFile(project, STAGING_PIPELINE_DIR)
 
         project.tasks.register("stageRemotePipelineJars") {
             Task task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Copy files needed for using remote pipeline jobs into ${staging.pipelineLibDir}"
+                task.description = "Copy files needed for using remote pipeline jobs into ${stagingPipelineLibDir}"
                 task.doLast({
                     if (!project.configurations.remotePipelineJars.getFiles().isEmpty()) {
-                        project.ant.copy(
-                            todir: staging.pipelineLibDir,
+                        task.ant.copy(
+                            todir: stagingPipelineLibDir,
                             preserveLastModified: true
                         )
                         {
@@ -204,13 +177,16 @@ class ServerDeploy implements Plugin<Project>
                 })
         }
 
-        project.tasks.named('stageRemotePipelineJars').configure {dependsOn project.configurations.remotePipelineJars}
+        project.tasks.named('stageRemotePipelineJars').configure {
+            dependsOn project.configurations.remotePipelineJars
+            notCompatibleWithConfigurationCache("TODO Needs dedicated task class with configuration as input")
+        }
 
         project.tasks.register(
                 "stageApp") {
             Task task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Stage modules and jar files into ${staging.dir}"
+                task.description = "Stage modules and jar files into ${stagingDir}"
                 task.dependsOn project.tasks.stageModules
                 task.dependsOn project.tasks.stageRemotePipelineJars
         }
@@ -235,9 +211,9 @@ class ServerDeploy implements Plugin<Project>
             project.tasks.register("cleanEmbeddedDeploy", DefaultTask) {
                 DefaultTask task ->
                     task.group = GroupNames.DEPLOY
-                    task.description = "Remove the ${project.serverDeploy.embeddedDir} directory"
+                    task.description = "Remove the ${embeddedDir} directory"
                     task.doLast {
-                        project.delete project.serverDeploy.embeddedDir
+                        project.delete embeddedDir
                     }
             }
             project.tasks.named('deployApp').configure {
@@ -246,7 +222,7 @@ class ServerDeploy implements Plugin<Project>
                     project.copy {
                         CopySpec copy ->
                             copy.from embeddedProject.tasks.bootJar
-                            copy.into project.serverDeploy.embeddedDir
+                            copy.into embeddedDir
                             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                     }
                 }
@@ -271,6 +247,7 @@ class ServerDeploy implements Plugin<Project>
                 task.group = GroupNames.DISTRIBUTION
                 task.description = "Extract the executable jar from a distribution and put it and the included binaries in the appropriate deploy directory"
                 task.dependsOn(project.tasks.cleanEmbeddedDeploy, project.tasks.setup)
+                task.binaries.setFrom(project.configurations.binaries)
         }
 
         // This may prevent multiple Tomcat restarts
@@ -286,9 +263,9 @@ class ServerDeploy implements Plugin<Project>
                 'cleanStaging',Delete) {
             Delete task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Removes the staging directory ${staging.dir}"
+                task.description = "Removes the staging directory ${stagingDir}"
                 task.configure({ DeleteSpec spec ->
-                    spec.delete staging.dir
+                    spec.delete stagingDir
                 })
         }
 
@@ -296,10 +273,10 @@ class ServerDeploy implements Plugin<Project>
                 'cleanDeploy', Delete) {
             Delete task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Removes the deploy directory ${serverDeploy.dir}"
+                task.description = "Removes the deploy directory ${deployDir}"
                 task.dependsOn (project.tasks.cleanStaging)
                 task.configure({ DeleteSpec spec ->
-                    spec.delete serverDeploy.dir
+                    spec.delete deployDir
                 })
         }
         project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanDeploy)}
@@ -307,8 +284,10 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.register("cleanAndDeploy", DeployApp) {
             DeployApp task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Removes the deploy directory ${serverDeploy.dir} then deploys the application locally"
+                task.binaries.setFrom(project.configurations.binaries)
+                task.description = "Removes the deploy directory ${deployDir} then deploys the application locally"
                 task.dependsOn(project.tasks.cleanDeploy)
+                task.notCompatibleWithConfigurationCache("TODO 'cannot serialize project' error, but unclear where it comes from")
         }
 
         project.tasks.register("cleanBuild", Delete) {
@@ -321,36 +300,6 @@ class ServerDeploy implements Plugin<Project>
         }
         project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanBuild)}
 
-        // TODO is this still useful?
-        project.tasks.register(
-                'checkModuleTasks', DefaultTask) {
-            DefaultTask task ->
-                task.group = GroupNames.MODULE
-                task.description = "Verify that all modules with module.properties files have a module task"
-                task.doLast({
-                    String[] projectsMissingTasks = []
-                    project.subprojects({
-                        Project sub ->
-                            if (sub.file("module.properties").exists()) {
-                                try {
-                                    sub.tasks.named("module")
-                                } catch (UnknownTaskException ignore) {
-                                    projectsMissingTasks += sub.path
-                                }
-                            }
-                    })
-                    if (projectsMissingTasks.length > 0)
-                        project.logger.quiet("Each of the following projects has a 'module.properties' file but no 'module' task. " +
-                            "These modules will not be included in the deployed server. " +
-                            "You should apply either the 'org.labkey.build.fileModule' or 'org.labkey.build.module' plugin in each project's 'build.gradle' file. " +
-                            "See https://www.labkey.org/Documentation/wiki-page.view?name=gradleModules for more information.\n\t" +
-                            "${projectsMissingTasks.join("\n\t")}")
-
-                })
-                task.notCompatibleWithConfigurationCache("Needs to walk the project tree")
-        }
-        project.tasks.named('deployApp').configure {dependsOn(project.tasks.named("checkModuleTasks"))}
-        project.tasks.named('checkModuleTasks').configure {mustRunAfter(project.tasks.stageApp)} // do this so the message appears at the bottom of the output
         project.tasks.named("cleanBuild").configure {
             it.dependsOn(project.tasks.stopTomcat)
         }

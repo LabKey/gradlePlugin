@@ -17,7 +17,6 @@ package org.labkey.gradle.plugin.extension
 
 import org.apache.commons.io.FileUtils
 import org.gradle.api.Project
-import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 
 import java.nio.charset.StandardCharsets
@@ -116,7 +115,7 @@ class TeamCityExtension
     }
 
     File startupPropertiesDir() {
-        File startupDir = new File(new File(ServerDeployExtension.getEmbeddedServerDeployDirectory(project)), 'startup')
+        File startupDir = new File(new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)), 'startup')
         FileUtils.forceMkdir(startupDir)
         return startupDir
     }

@@ -91,7 +91,7 @@ class NpmRun implements Plugin<Project>
             download = project.hasProperty('nodeVersion') && project.hasProperty('npmVersion')
 
             // Set the work directory where node_modules should be located
-            nodeModulesDir = project.file("${project.projectDir}")
+            nodeProjectDir = project.file("${project.projectDir}")
 
             npmInstallCommand = project.hasProperty('npmInstallCommand') ? project.npmInstallCommand : 'ci'
         }

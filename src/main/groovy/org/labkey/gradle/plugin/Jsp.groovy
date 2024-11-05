@@ -153,10 +153,6 @@ class Jsp implements Plugin<Project>
                task.dependsOn('jar')
         }
 
-        project.tasks.named('jsp2Java') {
-            notCompatibleWithConfigurationCache("ant.jasper doesn't seem completely compatible")
-        }
-
         project.tasks.named('compileJspJava').configure {
             Task task ->
                 task.dependsOn project.tasks.jsp2Java
