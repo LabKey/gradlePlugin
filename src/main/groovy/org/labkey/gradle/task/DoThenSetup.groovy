@@ -15,6 +15,7 @@
  */
 package org.labkey.gradle.task
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
@@ -28,10 +29,11 @@ import org.labkey.gradle.util.PropertiesUtils
 
 import java.util.function.Function
 
-class DoThenSetup extends RestartTriggerTask
+class DoThenSetup extends DefaultTask
 {
     @Optional @Input
     protected DatabaseProperties databaseProperties
+
     @Input
     boolean dbPropertiesChanged = false
 
@@ -102,7 +104,7 @@ class DoThenSetup extends RestartTriggerTask
                     return PropertiesUtils.replaceProps(line, configProperties, false)
                 })
             })
-            updateRestartTriggerFile()
+            BuildUtils.updateRestartTriggerFile(project)
         }
     }
 
