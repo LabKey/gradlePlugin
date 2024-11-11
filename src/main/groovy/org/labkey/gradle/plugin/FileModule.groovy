@@ -442,7 +442,7 @@ class FileModule implements Plugin<Project>
                                 Dependency dep ->
                                     if (dep instanceof ProjectDependency) {
                                         ProjectDependency projectDep = (ProjectDependency) dep
-                                        if (shouldDoBuild(projectDep.dependencyProject, false)) {
+                                        if (shouldDoBuild(project.project(projectDep.getPath()), false)) {
                                             BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: projectDep.dependencyProject.getPath(), depProjectConfig: 'published', depExtension: 'module')
                                             BuildUtils.addLabKeyDependency(project: serverProject, config: 'builtModules', depProjectPath: projectDep.dependencyProject.getPath(), depProjectConfig: 'published', depExtension: 'module')
                                         } else {

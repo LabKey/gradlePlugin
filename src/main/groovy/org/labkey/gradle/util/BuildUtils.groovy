@@ -629,13 +629,13 @@ class BuildUtils
             depProject.configurations.modules.dependencies.each { dep ->
                 if (dep instanceof ProjectDependency)
                 {
-                    if (!pathsAdded.contains(dep.getDependencyProject().getPath())) {
+                    if (!pathsAdded.contains(dep.getPath())) {
                         distributionProject.logger.info("${distributionProject.path}: Adding '${config}' dependency on project ${dep}")
                         distributionProject.dependencies.add(config, dep)
-                        distributionProject.evaluationDependsOn(dep.getDependencyProject().getPath())
-                        pathsAdded.add(dep.getDependencyProject().getPath())
-                        distributionProject.logger.debug("${distributionProject.path}: Adding recursive '${config}' dependenices from ${dep.dependencyProject}")
-                        addTransitiveModuleDependencies(distributionProject, dep.dependencyProject, config, pathsAdded)
+                        distributionProject.evaluationDependsOn(dep.getPath())
+                        pathsAdded.add(dep.getPath())
+                        distributionProject.logger.debug("${distributionProject.path}: Adding recursive '${config}' dependenices from ${dep.getPath()}")
+                        addTransitiveModuleDependencies(distributionProject, project.project(dep.getPath()), config, pathsAdded)
                     }
                 }
                 else
