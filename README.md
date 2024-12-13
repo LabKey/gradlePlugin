@@ -18,6 +18,8 @@ on how to do that, including how to develop and test locally and the versioning 
 (Earliest compatible LabKey version: 24.11)
 - Update Npm plugin configuration to download a single copy of node and npm for use by all modules
 - Remove configuration of Yarn tasks and properties
+- Fix directory for `deployModule` task
+- 
 
 ### 5.0.0
 *Released*: 5 November 2024

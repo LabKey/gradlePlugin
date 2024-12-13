@@ -42,7 +42,7 @@ import java.nio.file.Paths
 class ServerDeploy implements Plugin<Project>
 {
     public static final String DEPLOY_DIR = "deploy"
-    public static final String MODULES_DIR = "${DEPLOY_DIR}/modules"
+    public static final String MODULES_DIR = "modules"
     public static final String WEBAPP_DIR = "${DEPLOY_DIR}/labkeyWebapp"
     public static final String PIPELINE_DIR = "${DEPLOY_DIR}/pipelineLib"
     public static final String BIN_DIR = "${DEPLOY_DIR}/bin"
