@@ -907,6 +907,16 @@ class BuildUtils
         }
     }
 
+    static boolean useServerNpm(Project project) {
+        return project.hasProperty("useServerNpm")
+    }
+
+    static boolean useOwnNpm(Project project) {
+        if (project.hasProperty("useOwnNpm"))
+            return true
+        return !useServerNpm(project) // default to using own (for now)
+    }
+
     static void addExternalDependency(Project project, ExternalDependency dependency, Closure closure=null)
     {
         project.dependencies.add(dependency.configuration, dependency.coordinates, closure)

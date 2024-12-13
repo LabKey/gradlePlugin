@@ -27,6 +27,7 @@ import org.labkey.gradle.plugin.extension.NpmRunExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.TaskUtils
+import com.github.gradle.node.npm.task.NpmTask
 
 /**
  * Used to add tasks for running npm commands for a module.
@@ -82,15 +83,18 @@ class NpmRun implements Plugin<Project>
             if (project.hasProperty('nodeRepo'))
                 distBaseUrl = project.nodeRepo
 
-            // The directory where Node.js is unpacked (when download is true)
-            workDir = project.file("${project.rootProject.projectDir}/.node")
+            if (BuildUtils.useServerNpm(project)) {
+                // The directory where Node.js is unpacked (when download is true)
+                workDir =  project.file("${project.rootProject.projectDir}/.node")
 
-            // The directory where npm is installed (when a specific version is defined)
-            npmWorkDir = project.file("${project.rootProject.projectDir}/.node")
+                // The directory where npm is installed (when a specific version is defined)
+                npmWorkDir = project.file("${project.rootProject.projectDir}/.node")
+            }
 
             // If true, it will download node using above parameters.
             // If false, it will try to use globally installed node.
-            download = project.path.equals(BuildUtils.getServerProjectPath(project.gradle)) && project.hasProperty('nodeVersion') && project.hasProperty('npmVersion')
+            download = (BuildUtils.useOwnNpm(project) || project.path.equals(BuildUtils.getServerProjectPath(project.gradle)))
+                    && project.hasProperty('nodeVersion') && project.hasProperty('npmVersion')
 
             // Set the work directory where node_modules should be located
             nodeProjectDir = project.file("${project.projectDir}")
@@ -130,6 +134,13 @@ class NpmRun implements Plugin<Project>
 
         configureBuildTask(project.tasks.named('npmRunBuild'))
         configureBuildTask(project.tasks.named("npm_run_${project.npmRun.buildDev}"))
+        if (BuildUtils.useServerNpm(project) && project.path !== BuildUtils.getServerProject(project).path) {
+            project.tasks.named('npmSetup').configure
+                    {
+                        NpmTask task ->
+                            task.dependsOn(BuildUtils.getServerProject(project).tasks.npmSetup)
+                    }
+        }
 
         project.tasks.named('npmInstall').configure
                 {Task task ->
