@@ -179,8 +179,8 @@ class TeamCity extends Tomcat
                             if (!extension.isValidForTestRun())
                                 throw new GradleException("TeamCity configuration problem(s): ${extension.validationMessages.join('; ')}")
 
-                            project.logger.info("teamcity.build.branch.is_default: ${extension.getTeamCityProperty('teamcity.build.branch.is_default')}")
-                            project.logger.info("teamcity.build.branch: ${extension.getTeamCityProperty('teamcity.build.branch')}")
+                            task.logger.info("teamcity.build.branch.is_default: ${extension.getTeamCityProperty('teamcity.build.branch.is_default')}")
+                            task.logger.info("teamcity.build.branch: ${extension.getTeamCityProperty('teamcity.build.branch')}")
                         }
         }
 
