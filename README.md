@@ -16,6 +16,7 @@ on how to do that, including how to develop and test locally and the versioning 
 ### 5.1.0-SNAPSHOT
 *Released*: TBD
 (Earliest compatible LabKey version: 24.11)
+- Remove usage of deprecated `dependencyProject` 
 - Remove configuration of Yarn tasks and properties
 - Fix directory for `deployModule` task
 - Add optional properties `useServerNode` and `useOwnNode` for configuring `NpmRun` (incubating)
