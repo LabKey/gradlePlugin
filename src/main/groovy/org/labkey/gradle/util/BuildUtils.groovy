@@ -635,7 +635,7 @@ class BuildUtils
                         distributionProject.evaluationDependsOn(dep.getPath())
                         pathsAdded.add(dep.getPath())
                         distributionProject.logger.debug("${distributionProject.path}: Adding recursive '${config}' dependenices from ${dep.getPath()}")
-                        addTransitiveModuleDependencies(distributionProject, project.project(dep.getPath()), config, pathsAdded)
+                        addTransitiveModuleDependencies(distributionProject, depProject.project(dep.getPath()), config, pathsAdded)
                     }
                 }
                 else
@@ -907,14 +907,14 @@ class BuildUtils
         }
     }
 
-    static boolean useServerNpm(Project project) {
-        return project.hasProperty("useServerNpm")
+    static boolean useServerNode(Project project) {
+        return project.hasProperty("useServerNode")
     }
 
-    static boolean useOwnNpm(Project project) {
-        if (project.hasProperty("useOwnNpm"))
+    static boolean useOwnNode(Project project) {
+        if (project.hasProperty("useOwnNode"))
             return true
-        return !useServerNpm(project) // default to using own (for now)
+        return !useServerNode(project) // default to using own (for now)
     }
 
     static void addExternalDependency(Project project, ExternalDependency dependency, Closure closure=null)
