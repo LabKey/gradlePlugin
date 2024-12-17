@@ -138,7 +138,7 @@ class Distribution implements Plugin<Project>
                     if (it instanceof DefaultProjectDependency)
                     {
                         DefaultProjectDependency dep = (DefaultProjectDependency) it
-                        TaskUtils.addOptionalTaskDependency(project.project(dep.getPath), distTask, "module")
+                        TaskUtils.addOptionalTaskDependency(project.project(dep.getPath()), distTask, "module")
                     }
                 }
             }
