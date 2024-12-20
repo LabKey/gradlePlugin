@@ -24,6 +24,12 @@ class ServerDeployExtension
 {
     Map<String, String> foundModules = new HashMap<>();
 
+    @Deprecated(forRemoval=true)
+    static String getServerDeployDirectory(Project project)
+    {
+        return getServerDeployDirectoryPath(Project project)
+    }
+
     static String getServerDeployDirectoryPath(Project project)
     {
         return BuildUtils.getRootBuildDirFile(project, ServerDeploy.DEPLOY_DIR).path
