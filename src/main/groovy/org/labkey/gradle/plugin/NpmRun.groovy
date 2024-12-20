@@ -154,7 +154,9 @@ class NpmRun implements Plugin<Project>
                     // Specify legacy peer dependency mode for npm v7+
                     task.args = ["--legacy-peer-deps"]
                     task.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
-                    task.dependsOn(BuildUtils.getServerProject(project).tasks.npmSetup)
+                    if (BuildUtils.useServerNode(project)) {
+                        task.dependsOn(BuildUtils.getServerProject(project).tasks.npmSetup)
+                    }
                 }
 
         def runCommand = LabKeyExtension.isDevMode(project) && !project.hasProperty('useNpmProd') ? npmRunBuild : npmRunBuildProd
