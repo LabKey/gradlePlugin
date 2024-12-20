@@ -41,7 +41,7 @@ dependencies {
     api "org.ajoberstar.grgit:grgit-gradle:${grgitGradleVersion}"
 }
 
-group 'org.labkey.build'
+group = 'org.labkey.build'
 project.version = "5.1.0-npmSetupUpdates-SNAPSHOT"
 
 gradlePlugin {
@@ -169,7 +169,7 @@ if (hasProperty('artifactory_user') && hasProperty('artifactory_password'))
        repositories {
            if (project.version.contains("SNAPSHOT")) {
                maven {
-                   url "${artifactory_contextUrl}/plugins-snapshot-local"
+                   url = "${artifactory_contextUrl}/plugins-snapshot-local"
                    credentials {
                        username = artifactory_user
                        password = artifactory_password
@@ -182,7 +182,7 @@ if (hasProperty('artifactory_user') && hasProperty('artifactory_password'))
            }
            else {
                maven {
-                   url "${artifactory_contextUrl}/plugins-release"
+                   url = "${artifactory_contextUrl}/plugins-release"
                    credentials {
                        username = artifactory_user
                        password = artifactory_password
