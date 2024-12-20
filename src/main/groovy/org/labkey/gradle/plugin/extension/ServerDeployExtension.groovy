@@ -27,7 +27,7 @@ class ServerDeployExtension
     @Deprecated(forRemoval=true)
     static String getServerDeployDirectory(Project project)
     {
-        return getServerDeployDirectoryPath(Project project)
+        return getServerDeployDirectoryPath(project)
     }
 
     static String getServerDeployDirectoryPath(Project project)
