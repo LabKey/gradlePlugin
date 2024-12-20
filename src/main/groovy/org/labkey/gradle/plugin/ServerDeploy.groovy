@@ -43,9 +43,10 @@ class ServerDeploy implements Plugin<Project>
 {
     public static final String DEPLOY_DIR = "deploy"
     public static final String MODULES_DIR = "modules"
-    public static final String WEBAPP_DIR = "${DEPLOY_DIR}/labkeyWebapp"
-    public static final String PIPELINE_DIR = "${DEPLOY_DIR}/pipelineLib"
-    public static final String BIN_DIR = "${DEPLOY_DIR}/bin"
+    public static final String DEPLOY_MODULES_DIR = "${DEPLOY_DIR}/${MODULES_DIR}"
+    public static final String DEPLOY_WEBAPP_DIR = "${DEPLOY_DIR}/labkeyWebapp"
+    public static final String DEPLOY_PIPELINE_DIR = "${DEPLOY_DIR}/pipelineLib"
+    public static final String DEPLOY_BIN_DIR = "${DEPLOY_DIR}/bin"
     public static final String STAGING_DIR = "staging"
     public static final String STAGING_MODULES_DIR = "${STAGING_DIR}/modules/"
     public static final String STAGING_PIPELINE_DIR = "${STAGING_DIR}/pipelineLib"

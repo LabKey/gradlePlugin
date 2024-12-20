@@ -33,17 +33,17 @@ abstract class DeployApp extends DeployAppBase
     final abstract DirectoryProperty stagingPipelineJarDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_PIPELINE_DIR)
     
     @OutputDirectory
-    final abstract DirectoryProperty deployModulesDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.MODULES_DIR)
+    final abstract DirectoryProperty deployModulesDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.DEPLOY_MODULES_DIR)
 
     // We declare this as an output so it will be created by this task, even though not actually populated here
     @OutputDirectory
-    final abstract DirectoryProperty deployWebappDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.WEBAPP_DIR)
+    final abstract DirectoryProperty deployWebappDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.DEPLOY_WEBAPP_DIR)
 
     @OutputDirectory
-    final abstract DirectoryProperty deployPipelineLibDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.PIPELINE_DIR)
+    final abstract DirectoryProperty deployPipelineLibDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.DEPLOY_PIPELINE_DIR)
 
     @OutputDirectory
-    final abstract DirectoryProperty deployBinDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.BIN_DIR)
+    final abstract DirectoryProperty deployBinDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.DEPLOY_BIN_DIR)
 
     @TaskAction
     void action()
