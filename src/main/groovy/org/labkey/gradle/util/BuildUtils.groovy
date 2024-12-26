@@ -729,7 +729,7 @@ class BuildUtils
             // TODO I don't think this combinedClosure works. Change to just pass transitive through in the add
             // and then pass on the closure without evaluating it.
             def combinedClosure =  {
-                transitive isTransitive
+                transitive = isTransitive
                 if (closure != null)
                     closure()
             }
