@@ -29,6 +29,7 @@ on how to do that, including how to develop and test locally and the versioning 
    - If `useServerNode` is defined, the download directory is specified as `<enlistment root>/.node`
    - When `useServerNode` is defined, a module that defines `useOwnNode` will revert to the default behavior
    - This is an incubating feature that requires more testing and troubleshooting to determine if it is always a viable option
+- Remove `RestartTriggerTask` (for now). Its output declarations cause issues with the `DeployDistribution` task (at least)
 
 ### 5.0.0
 *Released*: 5 November 2024

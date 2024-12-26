@@ -33,7 +33,6 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
-import org.labkey.gradle.task.RestartTriggerTask
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -96,6 +95,7 @@ class BuildUtils
     public static final int ARTIFACT_CLASSIFIER_INDEX = 7
     public static final int ARTIFACT_EXTENSION_INDEX = 8
     public static final String BOOTSTRAP_JAR_BASE_NAME = "labkeyBootstrap"
+    public static final String RESTART_FILE_NAME = ".restartTrigger"
 
     // the set of modules required for minimal LabKey server functionality
     static List<String> getBaseModules(Gradle gradle)
@@ -882,9 +882,7 @@ class BuildUtils
      * spring.devtools.restart.additional-paths
      *
      * @param project - for use in getting the rootProject's build directory
-     * @deprecated Use RestartTriggerTask as a base class for your task instead
      */
-    @Deprecated(forRemoval=true)
     static void updateRestartTriggerFile(Project project)
     {
         if (!project.hasProperty('useLocalBuild') || "false" == project.property("useLocalBuild"))
@@ -896,7 +894,7 @@ class BuildUtils
 
         OutputStreamWriter writer = null
         try {
-            File triggerFile = new File(triggerFileDir, RestartTriggerTask.RESTART_FILE_NAME)
+            File triggerFile = new File(triggerFileDir, RESTART_FILE_NAME)
             writer = new OutputStreamWriter(new FileOutputStream(triggerFile), StandardCharsets.UTF_8)
             writer.write(SimpleDateFormat.getDateTimeInstance().format(new Date()))
         }
