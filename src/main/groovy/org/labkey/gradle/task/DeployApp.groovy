@@ -51,7 +51,7 @@ abstract class DeployApp extends DeployAppBase
         deployModules()
         deployPipelineJars()
         deployPlatformBinaries(deployBinDir.get().asFile)
-        updateRestartTriggerFile()
+        BuildUtils.updateRestartTriggerFile(project)
     }
 
     private void deployModules()
