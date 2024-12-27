@@ -13,9 +13,23 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### 5.1.0-SNAPSHOT
+### 6.1.0-SNAPSHOT
 *Released*: TBD
 (Earliest compatible LabKey version: 24.11)
+- 
+
+### 6.0.0
+*Released*: 27 December 2024
+(Earliest compatible LabKey version: 24.11)
+- Remove usage of deprecated `dependencyProject` 
+- Remove configuration of Yarn tasks and properties
+- Fix directory for `deployModule` task
+- Add optional properties `useServerNode` and `useOwnNode` for configuring `NpmRun` (incubating)
+   - If neither property is defined, each module using `npm` downloads its own copy of `node` and `npm` in the default `.gradle` directory for the module
+   - If `useServerNode` is defined, the download directory is specified as `<enlistment root>/.node`
+   - When `useServerNode` is defined, a module that defines `useOwnNode` will revert to the default behavior
+   - This is an incubating feature that requires more testing and troubleshooting to determine if it is always a viable option
+- Remove `RestartTriggerTask` (for now). Its output declarations cause issues with the `DeployDistribution` task (at least)
 
 ### 5.0.0
 *Released*: 5 November 2024

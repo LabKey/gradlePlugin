@@ -78,69 +78,28 @@ class NpmRun implements Plugin<Project>
                 // Version of npm to use.
                 npmVersion = project.npmVersion
 
-            if (project.hasProperty('yarnVersion'))
-                // Version of Yarn to use.
-                yarnVersion = project.yarnVersion
-
             // Base URL for fetching node distributions (change if you have a mirror).
             if (project.hasProperty('nodeRepo'))
                 distBaseUrl = project.nodeRepo
 
+            if (BuildUtils.useServerNode(project)) {
+                // The directory where Node.js is unpacked (when download is true)
+                workDir =  project.file("${project.rootProject.projectDir}/.node")
+
+                // The directory where npm is installed (when a specific version is defined)
+                npmWorkDir = project.file("${project.rootProject.projectDir}/.node")
+            }
+
             // If true, it will download node using above parameters.
             // If false, it will try to use globally installed node.
-            download = project.hasProperty('nodeVersion') && project.hasProperty('npmVersion')
+            download = (BuildUtils.useOwnNode(project) || project.path.equals(BuildUtils.getServerProjectPath(project.gradle)))
+                    && project.hasProperty('nodeVersion') && project.hasProperty('npmVersion')
 
             // Set the work directory where node_modules should be located
             nodeProjectDir = project.file("${project.projectDir}")
 
             npmInstallCommand = project.hasProperty('npmInstallCommand') ? project.npmInstallCommand : 'ci'
         }
-    }
-
-    private static void addYarnTasks(Project project)
-    {
-        project.tasks.register("yarnRunClean")
-                {Task task ->
-                    task.group = GroupNames.YARN
-                    task.description = "Runs 'yarn run ${project.npmRun.clean}'"
-                    task.dependsOn "yarn_run_${project.npmRun.clean}"
-                }
-        TaskUtils.configureTaskIfPresent(project, 'clean', { dependsOn(project.tasks.yarnRunClean) })
-
-        def yarnRunBuildProd = project.tasks.register("yarnRunBuildProd")
-                {Task task ->
-                    task.group = GroupNames.YARN
-                    task.description = "Runs 'yarn run ${project.npmRun.buildProd}'"
-                    task.dependsOn "yarn_install"
-                    task.dependsOn "yarn_run_${project.npmRun.buildProd}"
-                    task.mustRunAfter "yarn_install"
-                }
-        configureBuildTask(project.tasks.named('yarnRunBuildProd'))
-        configureBuildTask(project.tasks.named("yarn_run_${project.npmRun.buildProd}"))
-
-        def yarnRunBuild = project.tasks.register("yarnRunBuild")
-                {Task task ->
-                    task.group = GroupNames.YARN
-                    task.description ="Runs 'yarn run ${project.npmRun.buildDev}'"
-                    task.dependsOn "yarn_install"
-                    task.dependsOn "yarn_run_${project.npmRun.buildDev}"
-                    task.mustRunAfter "yarn_install"
-                }
-        configureBuildTask(project.tasks.named('yarnRunBuild'))
-        configureBuildTask(project.tasks.named("yarn_run_${project.npmRun.buildDev}"))
-
-        def runCommand = LabKeyExtension.isDevMode(project) ? yarnRunBuild : yarnRunBuildProd
-        TaskUtils.configureTaskIfPresent(project, "module", { dependsOn(runCommand) })
-        TaskUtils.configureTaskIfPresent(project, "processResources", { dependsOn(runCommand) })
-        TaskUtils.configureTaskIfPresent(project, "processModuleResources", { dependsOn(runCommand) })
-        TaskUtils.configureTaskIfPresent(project, "processWebappResources", { dependsOn(runCommand) })
-
-        project.tasks.named("yarn_install").configure {Task task ->
-            task.inputs.file project.file(NPM_PROJECT_FILE)
-            if (project.file(NPM_PROJECT_LOCK_FILE).exists())
-                task.inputs.file project.file(NPM_PROJECT_LOCK_FILE)
-        }
-        project.tasks.named("yarn_install").configure {outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() } }
     }
 
     private static void addNpmTasks(Project project)
@@ -170,10 +129,22 @@ class NpmRun implements Plugin<Project>
                     task.description ="Runs 'npm run ${project.npmRun.buildDev}'"
                     task.dependsOn "npm_run_${project.npmRun.buildDev}"
                     task.mustRunAfter "npmInstall"
+                    task.doFirst({
+                        task.logger.info("npmWorkDir ${project.node.npmWorkDir.get()}")
+                        task.logger.info("workDir ${project.node.workDir.get()}")
+                        task.logger.info("resolvedNodeDir ${project.node.resolvedNodeDir.get()}")
+                    })
                 }
 
         configureBuildTask(project.tasks.named('npmRunBuild'))
         configureBuildTask(project.tasks.named("npm_run_${project.npmRun.buildDev}"))
+        if (BuildUtils.useServerNode(project) && project.path !== BuildUtils.getServerProject(project).path) {
+            project.tasks.named('npmSetup').configure
+                    {
+                        Task task ->
+                            task.dependsOn(BuildUtils.getServerProject(project).tasks.npmSetup)
+                    }
+        }
 
         project.tasks.named('npmInstall').configure
                 {Task task ->
@@ -183,6 +154,9 @@ class NpmRun implements Plugin<Project>
                     // Specify legacy peer dependency mode for npm v7+
                     task.args = ["--legacy-peer-deps"]
                     task.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
+                    if (BuildUtils.useServerNode(project)) {
+                        task.dependsOn(BuildUtils.getServerProject(project).tasks.npmSetup)
+                    }
                 }
 
         def runCommand = LabKeyExtension.isDevMode(project) && !project.hasProperty('useNpmProd') ? npmRunBuild : npmRunBuildProd
@@ -192,19 +166,11 @@ class NpmRun implements Plugin<Project>
         TaskUtils.configureTaskIfPresent(project, "processWebappResources", { dependsOn(runCommand) })
     }
 
-    static boolean useYarn(Project project)
-    {
-        return project.hasProperty("yarnVersion") && !project.file(NPM_PROJECT_LOCK_FILE).exists()
-    }
-
     private static void addTasks(Project project)
     {
         if (project.file(NPM_PROJECT_FILE).exists())
         {
-            if (useYarn(project))
-                addYarnTasks(project)
-            else
-                addNpmTasks(project)
+            addNpmTasks(project)
 
             project.tasks.register("cleanNodeModules", Delete) {
                 Delete task ->
@@ -214,10 +180,7 @@ class NpmRun implements Plugin<Project>
                         if (project.file(NODE_MODULES_DIR).exists())
                             delete.delete(project.file(NODE_MODULES_DIR))
                     })
-                    if (useYarn(project))
-                        task.mustRunAfter(project.tasks.yarnRunClean)
-                    else
-                        task.mustRunAfter(project.tasks.npmRunClean)
+                    task.mustRunAfter(project.tasks.npmRunClean)
             }
         }
 
@@ -229,7 +192,7 @@ class NpmRun implements Plugin<Project>
                     List<String> nodeProjects = []
                     project.allprojects({Project p ->
                         if (p.getPlugins().hasPlugin(NpmRun.class))
-                            nodeProjects.add("${p.path} (${useYarn(p) ? 'yarn' : 'npm'})")
+                            nodeProjects.add(p.path)
                     })
                     if (nodeProjects.size() == 0)
                         println("No projects found containing ${NPM_PROJECT_FILE}")

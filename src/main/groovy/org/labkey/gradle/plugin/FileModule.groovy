@@ -442,12 +442,12 @@ class FileModule implements Plugin<Project>
                                 Dependency dep ->
                                     if (dep instanceof ProjectDependency) {
                                         ProjectDependency projectDep = (ProjectDependency) dep
-                                        if (shouldDoBuild(projectDep.dependencyProject, false)) {
-                                            BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: projectDep.dependencyProject.getPath(), depProjectConfig: 'published', depExtension: 'module')
-                                            BuildUtils.addLabKeyDependency(project: serverProject, config: 'builtModules', depProjectPath: projectDep.dependencyProject.getPath(), depProjectConfig: 'published', depExtension: 'module')
+                                        if (shouldDoBuild(project.project(projectDep.getPath()), false)) {
+                                            BuildUtils.addLabKeyDependency(project: serverProject, config: 'modules', depProjectPath: projectDep.getPath(), depProjectConfig: 'published', depExtension: 'module')
+                                            BuildUtils.addLabKeyDependency(project: serverProject, config: 'builtModules', depProjectPath: projectDep.getPath(), depProjectConfig: 'published', depExtension: 'module')
                                         } else {
-                                            serverProject.dependencies.add("modules", BuildUtils.getLabKeyArtifactName(project, projectDep.dependencyProject.getPath(), projectDep.version, "module"))
-                                            serverProject.dependencies.add("downloadedModules", BuildUtils.getLabKeyArtifactName(project, projectDep.dependencyProject.getPath(), projectDep.version, "module"))
+                                            serverProject.dependencies.add("modules", BuildUtils.getLabKeyArtifactName(project, projectDep.getPath(), projectDep.version, "module"))
+                                            serverProject.dependencies.add("downloadedModules", BuildUtils.getLabKeyArtifactName(project, projectDep.getPath(), projectDep.version, "module"))
                                         }
                                     } else {
                                         serverProject.dependencies.add("modules", dep)

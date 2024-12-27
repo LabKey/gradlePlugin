@@ -1,6 +1,7 @@
 package org.labkey.gradle.task
 
 import org.apache.commons.lang3.SystemUtils
+import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DirectoryProperty
@@ -12,7 +13,7 @@ import org.labkey.gradle.util.BuildUtils
 
 import javax.inject.Inject
 
-abstract class DeployAppBase extends RestartTriggerTask {
+abstract class DeployAppBase extends DefaultTask {
 
     @Inject abstract FileSystemOperations getFs()
 

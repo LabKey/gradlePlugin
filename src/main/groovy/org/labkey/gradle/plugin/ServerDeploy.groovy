@@ -42,10 +42,11 @@ import java.nio.file.Paths
 class ServerDeploy implements Plugin<Project>
 {
     public static final String DEPLOY_DIR = "deploy"
-    public static final String MODULES_DIR = "${DEPLOY_DIR}/modules"
-    public static final String WEBAPP_DIR = "${DEPLOY_DIR}/labkeyWebapp"
-    public static final String PIPELINE_DIR = "${DEPLOY_DIR}/pipelineLib"
-    public static final String BIN_DIR = "${DEPLOY_DIR}/bin"
+    public static final String MODULES_DIR = "modules"
+    public static final String DEPLOY_MODULES_DIR = "${DEPLOY_DIR}/${MODULES_DIR}"
+    public static final String DEPLOY_WEBAPP_DIR = "${DEPLOY_DIR}/labkeyWebapp"
+    public static final String DEPLOY_PIPELINE_DIR = "${DEPLOY_DIR}/pipelineLib"
+    public static final String DEPLOY_BIN_DIR = "${DEPLOY_DIR}/bin"
     public static final String STAGING_DIR = "staging"
     public static final String STAGING_MODULES_DIR = "${STAGING_DIR}/modules/"
     public static final String STAGING_PIPELINE_DIR = "${STAGING_DIR}/pipelineLib"
@@ -143,12 +144,10 @@ class ServerDeploy implements Plugin<Project>
                     task.group = GroupNames.DEPLOY
                     task.description = "Make a symbolic link to the npm directory for use in PATH environment variable"
                     task.doFirst({
-                        // we'll need to support both yarn and npm, so link them both if both are present.
                         if (project.hasProperty('npmVersion') && project.hasProperty('npmWorkDirectory'))
                             linkBinaries(project, "npm", project.npmVersion, project.npmWorkDirectory)
-                        if (project.hasProperty('yarnVersion') && project.hasProperty('yarnWorkDirectory'))
-                            linkBinaries(project, "yarn", project.yarnVersion, project.yarnWorkDirectory)
                     })
+                    task.dependsOn(project.tasks.npmSetup)
             }
             project.tasks.symlinkNode.notCompatibleWithConfigurationCache("References project properties. Need to add task class with input properties")
             project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
@@ -319,7 +318,7 @@ class ServerDeploy implements Plugin<Project>
 
         Path pmLinkPath = Paths.get("${linkContainer.getPath()}/${packageMgr}")
         String pmDirName = "${packageMgr}-v${version}"
-        Path pmTargetPath = Paths.get(BuildUtils.getBuildDirFile(pmLinkProject, "${workDirectory}/${pmDirName}").getPath())
+        Path pmTargetPath = Paths.get(pmLinkProject.file( "${workDirectory}/${pmDirName}").getPath())
 
         if (!Files.isSymbolicLink(pmLinkPath) || !Files.readSymbolicLink(pmLinkPath).getFileName().toString().equals(pmDirName))
         {
@@ -334,7 +333,7 @@ class ServerDeploy implements Plugin<Project>
         Path nodeLinkPath = Paths.get("${linkContainer.getPath()}/node")
         if (!Files.isSymbolicLink(nodeLinkPath) || !Files.readSymbolicLink(nodeLinkPath).getFileName().toString().startsWith(nodeFilePrefix))
         {
-            File nodeDir = BuildUtils.getBuildDirFile(pmLinkProject, project.nodeWorkDirectory)
+            File nodeDir = pmLinkProject.file(project.nodeWorkDirectory)
             File[] nodeFiles = nodeDir.listFiles({ File file -> file.name.startsWith(nodeFilePrefix) } as FileFilter)
             if (nodeFiles != null && nodeFiles.length > 0)
             {
