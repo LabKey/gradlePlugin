@@ -13,13 +13,13 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### 5.2.0-SNAPSHOT
+### 6.1.0-SNAPSHOT
 *Released*: TBD
 (Earliest compatible LabKey version: 24.11)
 - 
 
-### 5.1.0-SNAPSHOT
-*Released*: TBD
+### 6.0.0
+*Released*: 27 December 2024
 (Earliest compatible LabKey version: 24.11)
 - Remove usage of deprecated `dependencyProject` 
 - Remove configuration of Yarn tasks and properties
