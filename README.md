@@ -16,7 +16,8 @@ on how to do that, including how to develop and test locally and the versioning 
 ### 6.1.0-SNAPSHOT
 *Released*: TBD
 (Earliest compatible LabKey version: 24.11)
-- 
+- Module template: first script is now incremental, use three-digit version numbers, stop creating SQL Server scripts
+- Update dependency versions
 
 ### 6.0.0
 *Released*: 27 December 2024
