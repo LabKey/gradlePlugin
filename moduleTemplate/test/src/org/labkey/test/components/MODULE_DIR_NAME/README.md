@@ -1,0 +1,1 @@
+Additional component wrappers for this module should be placed here. They should be created using the custom `WebDriverTestComponent.java` file template in IntelliJ.

@@ -30,6 +30,10 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
+/**
+ * ~ Created from 'moduleTemplate' ~
+ * This test validates basic functionality of the @@MODULE_NAME@@ module
+ */
 @Category({InDevelopment.class})
 public class @@MODULE_NAME@@Test extends BaseWebDriverTest
 {
@@ -42,7 +46,7 @@ public class @@MODULE_NAME@@Test extends BaseWebDriverTest
     @BeforeClass
     public static void setupProject()
     {
-        @@MODULE_NAME@@Test init = (@@MODULE_NAME@@Test)getCurrentTest();
+        @@MODULE_NAME@@Test init = getCurrentTest();
 
         init.doSetup();
     }
