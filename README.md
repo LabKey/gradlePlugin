@@ -17,6 +17,7 @@ on how to do that, including how to develop and test locally and the versioning 
 *Released*: TBD
 (Earliest compatible LabKey version: 24.11)
 - Module template: first script is now incremental, use three-digit version numbers, stop creating SQL Server scripts
+- Module template: update test files to avoid IDE warnings
 - Update dependency versions
 
 ### 6.0.0

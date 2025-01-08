@@ -1,0 +1,1 @@
+Additional tests for this module should be placed here. They should be created using the custom `WebDriverTestClass.java` file template in IntelliJ.
