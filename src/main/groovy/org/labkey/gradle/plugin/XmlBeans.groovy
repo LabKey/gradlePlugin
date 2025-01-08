@@ -55,6 +55,7 @@ class XmlBeans implements Plugin<Project>
                     xmlbeans "org.apache.xmlbeans:xmlbeans:${project.xmlbeansVersion}"
                 }
 
+        project.logger.quiet("XMLBeans version: ${project.xmlbeansVersion}")
         String schemasProjectPath = BuildUtils.getSchemasProjectPath(project.gradle)
         if (!project.path.equals(schemasProjectPath))
         {
@@ -86,15 +87,15 @@ class XmlBeans implements Plugin<Project>
         }
 
         project.tasks.register("cleanSchemasCompile", Delete) {
-                Delete task ->
-                    task.group = GroupNames.XML_SCHEMA
-                    task.description = "remove source and class files generated from xsd files"
-                    task.configure (
-                {DeleteSpec del ->
-                            del.delete project.layout.buildDirectory.dir(CLASS_DIR),
-                                         "$project.labkey.srcGenDir/$CLASS_DIR"
-                        }
-                    )
+            Delete task ->
+                task.group = GroupNames.XML_SCHEMA
+                task.description = "remove source and class files generated from xsd files"
+                task.configure (
+            {DeleteSpec del ->
+                        del.delete project.layout.buildDirectory.dir(CLASS_DIR),
+                                     "$project.labkey.srcGenDir/$CLASS_DIR"
+                    }
+                )
         }
     }
 }
