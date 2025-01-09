@@ -42,7 +42,7 @@ dependencies {
 }
 
 group = 'org.labkey.build'
-project.version = "6.1.0-SNAPSHOT"
+project.version = "6.1.0-deprecated_props-SNAPSHOT"
 
 gradlePlugin {
     plugins {
