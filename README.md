@@ -15,9 +15,12 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ### 6.1.0-SNAPSHOT
 *Released*: TBD
-(Earliest compatible LabKey version: 24.11)
+(Earliest compatible LabKey version: 25.2)
 - Module template: first script is now incremental, use three-digit version numbers, stop creating SQL Server scripts
 - Module template: update test files to avoid IDE warnings
+- `module.properties`: change `ManageVersion` default value to `false` (to [exclude externally developed modules from
+  old schema version checks at upgrade time](https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=47369)),
+  set to `true` in module template, and throw if old, unsupported properties are detected. 
 - Update dependency versions
 
 ### 6.0.0

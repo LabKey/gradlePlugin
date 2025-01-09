@@ -84,6 +84,7 @@ class ModuleExtension
             if (logDeprecations) {
                 List<String> deprecationMsgs = []
 //          Follow this pattern to deprecate a property in module.properties
+                  // Remove check for OldProperty in mmm, yyyy (one year after deprecation)
 //                if (this.modProperties.get("OldProperty"))
 //                    deprecationMsgs += "The OldProperty property is no longer supported."
                 if (!deprecationMsgs.isEmpty())
@@ -93,6 +94,7 @@ class ModuleExtension
             }
 
             List<String> unsupportedMsgs = []
+            // Remove checks for ModuleDependencies, ConsolidateScripts, and Version properties in Jan, 2026 (one year after designated as unsupported)
             if (this.modProperties.get("ModuleDependencies"))
                 unsupportedMsgs += "The 'ModuleDependencies' property is no longer supported."
             if (this.modProperties.get("ConsolidateScripts"))
