@@ -36,10 +36,7 @@ import org.labkey.gradle.task.ModuleXmlFile
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PomFileHelper
-import org.labkey.gradle.util.PropertiesUtils
 import org.labkey.gradle.util.TaskUtils
-
-import java.util.regex.Matcher
 
 /**
  * This class is used for building a LabKey file-based module, which contains only client-side code.
@@ -133,7 +130,7 @@ class FileModule implements Plugin<Project>
                     Dependency dep -> moduleDependencies += dep.getName()
                 }
                 if (!moduleDependencies.isEmpty())
-                    project.lkModule.setPropertyValue(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY, moduleDependencies.join(", "))
+                    project.lkModule.setPropertyValue("ModuleDependencies", moduleDependencies.join(", "))
                 task.getModuleProperties().set(project.lkModule.getModProperties())
                 if (project.file("build.gradle").exists())
                     task.inputs.file(project.file("build.gradle"))

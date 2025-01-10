@@ -183,22 +183,13 @@ class MultiGit implements Plugin<Project>
         private Boolean isPrivate = false
         private Boolean isExternal = false
         private Boolean isArchived = false
-        private Boolean isSvn = false
         private Type type = Type.other
         private Project project
         private File enlistmentDir
         private Project rootProject
         private Properties moduleProperties
-        private String dependencies
         private String supportedDatabases = "mssql,pgsql"
         private List<PullRequest> pullRequests
-
-        Repository(Project rootProject, String name, Boolean isSvn)
-        {
-            this.name = name
-            this.isSvn = isSvn
-            setProject(rootProject)
-        }
 
         Repository(Project rootProject, String name, String url, Boolean isPrivate, Boolean isArchived, List<String> topics)
         {
@@ -233,7 +224,6 @@ class MultiGit implements Plugin<Project>
             }
             setProject(rootProject)
         }
-
 
         String getName()
         {
@@ -313,26 +303,6 @@ class MultiGit implements Plugin<Project>
         void setIsArchived(Boolean isArchived)
         {
             this.isArchived = isArchived
-        }
-
-        Boolean getIsSvn()
-        {
-            return isSvn
-        }
-
-        void setIsSvn(Boolean isSvn)
-        {
-            this.isSvn = isSvn
-        }
-
-        String getDependencies()
-        {
-            return dependencies
-        }
-
-        void setDependencies(String dependencies)
-        {
-            this.dependencies = dependencies
         }
 
         String getSupportedDatabases()
@@ -464,8 +434,6 @@ class MultiGit implements Plugin<Project>
                         this.setLicenseURL((String) this.moduleProperties.get("LicenseURL"))
                     if (this.moduleProperties.containsKey("Description") && !StringUtils.isEmpty(((String) this.moduleProperties.get("Description")).trim()))
                         this.setDescription((String) this.moduleProperties.get("Description"))
-                    if (this.moduleProperties.containsKey(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY))
-                        this.setDependencies((String) this.moduleProperties.get(ModuleExtension.MODULE_DEPENDENCIES_PROPERTY))
                     if (this.moduleProperties.containsKey("SupportedDatabases"))
                         this.setSupportedDatabases((String) this.moduleProperties.get("SupportedDatabases"))
                 }
@@ -566,8 +534,6 @@ class MultiGit implements Plugin<Project>
                 if (this.getLicenseURL() != null)
                     builder.append(" (${this.getLicenseURL()})")
                 builder.append("\n")
-                if (this.dependencies != null)
-                    builder.append("\tModule Dependencies: ${this.getDependencies()}\n")
                 builder.append("\tRepoURL: ${this.getUrl()}\n")
                 builder.append("\tSupported Databases: ${this.supportedDatabases}\n")
                 List<PullRequest> prs = this.getPullRequests()
@@ -1327,14 +1293,6 @@ class MultiGit implements Plugin<Project>
                         if (repositories.containsKey(name))
                         {
                             enlist(repositories, (Repository) repositories.get(name), enlisted, branch)
-                        }
-                        else
-                        {
-                            Repository svnRepo = new Repository(project, name, true)
-                            if (svnRepo.getEnlistmentDir().exists())
-                                project.logger.quiet("Already have svn enlistment for ${svnRepo.getName()} in ${svnRepo.getEnlistmentDir()}")
-                            else
-                                project.logger.warn("WARNING: No repository found for dependency '${svnRepo.getProjectPath()}'.")
                         }
                     }
             })

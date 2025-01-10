@@ -27,7 +27,6 @@ class ModuleExtension
 {
     private static final String ENLISTMENT_PROPERTIES = "enlistment.properties"
     public static final String MODULE_PROPERTIES_FILE = "module.properties"
-    public static final String MODULE_DEPENDENCIES_PROPERTY = "ModuleDependencies"
     private Map<Object, Object> modProperties = new HashMap<>()
     private Project project
     private Map<String, ExternalDependency> externalDependencies = new HashMap<>()
@@ -57,7 +56,6 @@ class ModuleExtension
     {
         String value = modProperties.get(propertyName)
         return value == null ? defaultValue : value
-
     }
 
     String getPropertyValue(String propertyName)
@@ -81,25 +79,32 @@ class ModuleExtension
         if (propertiesFile.exists()) {
             Properties props = new Properties()
             PropertiesUtils.readProperties(propertiesFile, props)
+
             this.modProperties.putAll(props)
             if (logDeprecations) {
                 List<String> deprecationMsgs = []
-                if (this.modProperties.get(MODULE_DEPENDENCIES_PROPERTY))
-                    deprecationMsgs += "The '" + MODULE_DEPENDENCIES_PROPERTY + "' property is no longer supported as of gradlePlugin version 1.25.0 (LabKey Server version 21.3.0)." +
-                            " Declare the dependency in the module's build.gradle file instead using the 'modules' configuration." +
-                            " See https://www.labkey.org/Documentation/wiki-page.view?name=gradleDepend for more information."
-
-                if (this.modProperties.get("ConsolidateScripts"))
-                    deprecationMsgs += "The 'ConsolidateScripts' property is no longer supported."
-                if (this.modProperties.get("Version"))
-                    deprecationMsgs += "The 'Version' property is no longer supported."
+//          Follow this pattern to deprecate a property in module.properties
+                  // Remove check for OldProperty in mmm, yyyy (one year after deprecation)
+//                if (this.modProperties.get("OldProperty"))
+//                    deprecationMsgs += "The OldProperty property is no longer supported."
                 if (!deprecationMsgs.isEmpty())
                     project.logger.quiet("${propertiesFile.absolutePath}: Deprecated or unsupported properties detected.\n\t"
-                            + deprecationMsgs.join("\n\t")
-                            + "\nRefer to https://www.labkey.org/Documentation/wiki-page.view?name=includeModulePropertiesFile for the current set of supported properties.")
+                        + deprecationMsgs.join("\n\t")
+                        + "\nRefer to https://www.labkey.org/Documentation/wiki-page.view?name=includeModulePropertiesFile for the current set of supported properties.")
             }
-            if (this.modProperties.get(MODULE_DEPENDENCIES_PROPERTY))
-                this.modProperties.remove(MODULE_DEPENDENCIES_PROPERTY)
+
+            List<String> unsupportedMsgs = []
+            // Remove checks for ModuleDependencies, ConsolidateScripts, and Version properties in Jan, 2026 (one year after designated as unsupported)
+            if (this.modProperties.get("ModuleDependencies"))
+                unsupportedMsgs += "The 'ModuleDependencies' property is no longer supported."
+            if (this.modProperties.get("ConsolidateScripts"))
+                unsupportedMsgs += "The 'ConsolidateScripts' property is no longer supported."
+            if (this.modProperties.get("Version"))
+                unsupportedMsgs += "The 'Version' property is no longer supported."
+            if (!unsupportedMsgs.isEmpty())
+                throw new GradleException("${propertiesFile.absolutePath}: Unsupported properties detected.\n\t"
+                    + unsupportedMsgs.join("\n\t")
+                    + "\nRefer to https://www.labkey.org/Documentation/wiki-page.view?name=includeModulePropertiesFile for the current set of supported properties.")
         }
         else
             project.logger.info("${project.path} - no ${MODULE_PROPERTIES_FILE} found")
@@ -146,14 +151,11 @@ class ModuleExtension
         modProperties.put("ReleaseVersion", (String) project.getProperty("labkeyVersion"))
         if (modProperties.get("ManageVersion") == null)
         {
-            modProperties.put("ManageVersion", "true")
+            modProperties.put("ManageVersion", "false") // Issue #47369
         }
         if (modProperties.get("SchemaVersion") == null)
         {
-            if (modProperties.get("Version") == null)
-                modProperties.put("SchemaVersion", "")  // Spring binds this as setSchemaVersion(null), which is what we want
-            else
-                modProperties.put("SchemaVersion", modProperties.get("Version"))  // For backward compatibility with old modules TODO: Remove
+            modProperties.put("SchemaVersion", "")  // Spring binds this as setSchemaVersion(null), which is what we want
         }
     }
 
