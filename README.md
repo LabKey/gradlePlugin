@@ -13,8 +13,12 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### 6.1.0-SNAPSHOT
+### 6.2.0-SNAPSHOT
 *Released*: TBD
+(Earliest compatible LabKey version: 25.2)
+
+### 6.1.0
+*Released*: 10 January, 2025
 (Earliest compatible LabKey version: 25.2)
 - Module template: first script is now incremental, use three-digit version numbers, stop creating SQL Server scripts
 - Module template: update test files to avoid IDE warnings
