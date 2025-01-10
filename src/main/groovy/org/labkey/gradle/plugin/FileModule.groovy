@@ -130,7 +130,7 @@ class FileModule implements Plugin<Project>
                     Dependency dep -> moduleDependencies += dep.getName()
                 }
                 if (!moduleDependencies.isEmpty())
-                    project.lkModule.setPropertyValue("moduleDependencies", moduleDependencies.join(", "))
+                    project.lkModule.setPropertyValue("ModuleDependencies", moduleDependencies.join(", "))
                 task.getModuleProperties().set(project.lkModule.getModProperties())
                 if (project.file("build.gradle").exists())
                     task.inputs.file(project.file("build.gradle"))
