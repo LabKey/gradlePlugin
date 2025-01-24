@@ -55,7 +55,7 @@ class XmlBeans implements Plugin<Project>
                     xmlbeans "org.apache.xmlbeans:xmlbeans:${project.xmlbeansVersion}"
                 }
 
-        project.logger.quiet("XMLBeans version: ${project.xmlbeansVersion}")
+        project.logger.debug("XMLBeans version: ${project.xmlbeansVersion}")
         String schemasProjectPath = BuildUtils.getSchemasProjectPath(project.gradle)
         if (!project.path.equals(schemasProjectPath))
         {
