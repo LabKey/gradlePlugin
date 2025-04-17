@@ -22,6 +22,8 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
+import org.gradle.initialization.Environment
+import org.gradle.internal.component.external.model.ComponentVariant
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
@@ -50,7 +52,7 @@ class DoThenSetup extends DefaultTask
     void setup() {
         doDatabaseTask()
         if (!embeddedConfigUpToDate()) {
-            Properties configProperties = databaseProperties.getConfigProperties()
+            Environment.Properties configProperties = databaseProperties.getConfigProperties()
             configProperties.putAll(getExtraJdbcProperties())
             // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes, even on Windows
             configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
@@ -59,6 +61,11 @@ class DoThenSetup extends DefaultTask
                     TeamCityExtension::getLabKeyServerPort,
                     "serverPort",
                     project.hasProperty("useSsl") ? "8443" : "8080"))
+
+            configProperties.setProperty("contextPath", tcPropOrDefault(project,
+                    TeamCityExtension::getLabKeyContextPath,
+                    "contextPath",
+                    ""))
 
             configProperties.setProperty("shutdownPort", tcPropOrDefault(project,
                     TeamCityExtension::getLabKeyServerShutdownPort,
@@ -78,7 +85,7 @@ class DoThenSetup extends DefaultTask
             }
 
             String embeddedDir = BuildUtils.getEmbeddedConfigPath(project)
-            File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
+            ComponentVariant.File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
             project.copy({ CopySpec copy ->
                 copy.from configsDir
                 copy.into embeddedDir
@@ -99,6 +106,10 @@ class DoThenSetup extends DefaultTask
                         line = line.replace("#useLocalBuild#", "#")
                     }
                     if (configProperties.containsKey("extraJdbcDataSource") && line.contains("=@@extraJdbc"))
+                    {
+                        line = line.replace("#context.", "context.")
+                    }
+                    if (configProperties.containsKey("contextPath") && line.contains("=@@contextPath"))
                     {
                         line = line.replace("#context.", "context.")
                     }
