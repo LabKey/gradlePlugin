@@ -42,7 +42,7 @@ dependencies {
 }
 
 group = 'org.labkey.build'
-project.version = "6.2.0_fb_serverContext_SNAPSHOT"
+project.version = "6.2.0_fb_serverContext-SNAPSHOT"
 
 gradlePlugin {
     plugins {
