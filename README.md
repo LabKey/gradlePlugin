@@ -13,9 +13,14 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### 6.2.0-SNAPSHOT
+### 6.3.0-SNAPSHOT
 *Released*: TBD
 (Earliest compatible LabKey version: 25.2)
+
+### 6.2.0
+*Released*: 23 April, 2025
+(Earliest compatible LabKey version: 25.2)
+- Allow `PickDb` task to set server context path via `labkey.contextpath` property
 
 ### 6.1.0
 *Released*: 10 January, 2025

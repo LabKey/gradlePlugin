@@ -60,6 +60,11 @@ class DoThenSetup extends DefaultTask
                     "serverPort",
                     project.hasProperty("useSsl") ? "8443" : "8080"))
 
+            configProperties.setProperty("contextPath", tcPropOrDefault(project,
+                    TeamCityExtension::getLabKeyContextPath,
+                    "contextPath",
+                    ""))
+
             configProperties.setProperty("shutdownPort", tcPropOrDefault(project,
                     TeamCityExtension::getLabKeyServerShutdownPort,
                     "shutdownPort",
@@ -99,6 +104,10 @@ class DoThenSetup extends DefaultTask
                         line = line.replace("#useLocalBuild#", "#")
                     }
                     if (configProperties.containsKey("extraJdbcDataSource") && line.contains("=@@extraJdbc"))
+                    {
+                        line = line.replace("#context.", "context.")
+                    }
+                    if (configProperties.containsKey("contextPath") && line.contains("=@@contextPath"))
                     {
                         line = line.replace("#context.", "context.")
                     }

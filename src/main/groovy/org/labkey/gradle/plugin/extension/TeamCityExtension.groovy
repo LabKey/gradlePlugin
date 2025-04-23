@@ -178,6 +178,11 @@ class TeamCityExtension
         return getTeamCityProperty(project, "labkey.server", "http://localhost")
     }
 
+    static String getLabKeyContextPath(Project project)
+    {
+        return getTeamCityProperty(project, "labkey.contextpath", null)
+    }
+
     static String getLabKeyServerPort(Project project)
     {
         return getTeamCityProperty(project, 'tomcat.port', null)
