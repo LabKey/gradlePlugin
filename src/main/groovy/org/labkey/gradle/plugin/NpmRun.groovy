@@ -120,7 +120,6 @@ class NpmRun implements Plugin<Project>
                     task.mustRunAfter "npmInstall"
 
                 }
-        configureBuildTask(project.tasks.named('npmRunBuildProd'))
         configureBuildTask(project.tasks.named("npm_run_${project.npmRun.buildProd}"))
 
         def npmRunBuild = project.tasks.register("npmRunBuild")
@@ -136,7 +135,6 @@ class NpmRun implements Plugin<Project>
                     })
                 }
 
-        configureBuildTask(project.tasks.named('npmRunBuild'))
         configureBuildTask(project.tasks.named("npm_run_${project.npmRun.buildDev}"))
         if (BuildUtils.useServerNode(project) && project.path !== BuildUtils.getServerProject(project).path) {
             project.tasks.named('npmSetup').configure

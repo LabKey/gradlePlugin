@@ -16,6 +16,7 @@ on how to do that, including how to develop and test locally and the versioning 
 ### 6.3.0-SNAPSHOT
 *Released*: TBD
 (Earliest compatible LabKey version: 25.2)
+- Issue 53067: Update `npmRunBuild` and `npmRunBuildProd` tasks to not declare outputs as they duplicate the wrapped tasks causing caching to be disabled
 
 ### 6.2.0
 *Released*: 23 April, 2025
