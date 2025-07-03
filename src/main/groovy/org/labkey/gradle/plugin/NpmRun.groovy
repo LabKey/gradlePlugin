@@ -120,7 +120,6 @@ class NpmRun implements Plugin<Project>
                     task.mustRunAfter "npmInstall"
 
                 }
-        configureBuildTask(project.tasks.named('npmRunBuildProd'))
         configureBuildTask(project.tasks.named("npm_run_${project.npmRun.buildProd}"))
 
         def npmRunBuild = project.tasks.register("npmRunBuild")
@@ -129,14 +128,8 @@ class NpmRun implements Plugin<Project>
                     task.description ="Runs 'npm run ${project.npmRun.buildDev}'"
                     task.dependsOn "npm_run_${project.npmRun.buildDev}"
                     task.mustRunAfter "npmInstall"
-                    task.doFirst({
-                        task.logger.info("npmWorkDir ${project.node.npmWorkDir.get()}")
-                        task.logger.info("workDir ${project.node.workDir.get()}")
-                        task.logger.info("resolvedNodeDir ${project.node.resolvedNodeDir.get()}")
-                    })
                 }
 
-        configureBuildTask(project.tasks.named('npmRunBuild'))
         configureBuildTask(project.tasks.named("npm_run_${project.npmRun.buildDev}"))
         if (BuildUtils.useServerNode(project) && project.path !== BuildUtils.getServerProject(project).path) {
             project.tasks.named('npmSetup').configure
@@ -148,15 +141,8 @@ class NpmRun implements Plugin<Project>
 
         project.tasks.named('npmInstall').configure
                 {Task task ->
-                    task.inputs.file project.file(NPM_PROJECT_FILE)
-                    if (project.file(NPM_PROJECT_LOCK_FILE).exists())
-                        task.inputs.file project.file(NPM_PROJECT_LOCK_FILE)
                     // Specify legacy peer dependency mode for npm v7+
                     task.args = ["--legacy-peer-deps"]
-                    task.outputs.upToDateWhen { project.file(NODE_MODULES_DIR).exists() }
-                    if (BuildUtils.useServerNode(project)) {
-                        task.dependsOn(BuildUtils.getServerProject(project).tasks.npmSetup)
-                    }
                 }
 
         def runCommand = LabKeyExtension.isDevMode(project) && !project.hasProperty('useNpmProd') ? npmRunBuild : npmRunBuildProd

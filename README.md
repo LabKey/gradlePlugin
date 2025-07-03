@@ -13,9 +13,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### 6.3.0-SNAPSHOT
-*Released*: TBD
+### 6.3.0
+*Released*: 3 July 2025
 (Earliest compatible LabKey version: 25.2)
+- Issue 53067: Update `npmRunBuild` and `npmRunBuildProd` tasks to not declare outputs as they duplicate the wrapped tasks causing caching to be disabled
+- Remove extra configurations for `npmInstall` that are no longer required and not compatible with configuration cache
 
 ### 6.2.0
 *Released*: 23 April, 2025
