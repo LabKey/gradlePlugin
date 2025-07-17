@@ -54,7 +54,12 @@ class PurgeArtifacts extends DefaultTask
     void purgeVersions()
     {
         String version = purgeVersion.get()
+        String purgeModulesFileName = purgeListFile.get()
+        if (StringUtils.isEmpty(purgeModulesFileName))
+            throw new GradleException("Use -P${PURGE_LIST_FILE_PROPERTY}=<moduleNames.txt> to provide a list of modules to work with.")
         List<String> moduleNames = readInputFile(purgeListFile.get(), "modules")
+        if (moduleNames.isEmpty())
+            throw new GradleException("No module names found in file ${purgeListFile.get()}")
         if (!StringUtils.isEmpty(version))
             purgeVersion(version, moduleNames)
         else
@@ -64,9 +69,9 @@ class PurgeArtifacts extends DefaultTask
             overallStats.put(NUM_DELETED, 0)
             String purgeVersionsFileName = purgeVersions.get()
             if (StringUtils.isEmpty(purgeVersionsFileName))
-                throw new GradleException("Either -P${VERSION_PROPERTY}=<versionToPurge> or -P${VERSIONS_FILE_PROPERTY}=versionsFile.txt must be provided")
+                throw new GradleException("Either -P${VERSION_PROPERTY}=<versionToPurge> or -P${VERSIONS_FILE_PROPERTY}=<versionsFile.txt> must be provided")
             List<String> versions = readInputFile(purgeVersionsFileName, "versions")
-            if (versions == null)
+            if (versions.isEmpty())
                 throw new GradleException("No versions found for file ${purgeVersionsFileName}.")
             if (versions.size() > 1) {
                 for (String moduleName : moduleNames) {
@@ -104,8 +109,9 @@ class PurgeArtifacts extends DefaultTask
             } else {
                 throw new GradleException("No such file or directory: ${fileName}")
             }
+        } else {
+            throw new GradleException("No file name provided for ${type} input")
         }
-        return Collections.emptyList()
     }
 
     Map<String, Object> purgeModuleVersions(String moduleName, List<String> versions)
