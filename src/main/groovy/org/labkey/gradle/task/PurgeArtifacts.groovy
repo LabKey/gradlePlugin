@@ -1,5 +1,6 @@
 package org.labkey.gradle.task
 
+import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.hc.client5.http.classic.methods.HttpDelete
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
@@ -8,70 +9,164 @@ import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.core5.http.HttpStatus
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.Project
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
-import org.labkey.gradle.plugin.Api
-import org.labkey.gradle.plugin.FileModule
-import org.labkey.gradle.plugin.JavaModule
-import org.labkey.gradle.plugin.Module
-import org.labkey.gradle.util.BuildUtils
+
+import java.nio.file.Paths
 
 class PurgeArtifacts extends DefaultTask
 {
     public static final String SNAPSHOT_REPOSITORY_NAME = 'libs-snapshot-local'
     public static final String RELEASE_REPOSITORY_NAME = 'libs-release-local'
     public static final String VERSION_PROPERTY = 'purgeVersion'
+    public static final String VERSIONS_FILE_PROPERTY = 'purgeVersions'
+    public static final String PURGE_LIST_FILE_PROPERTY = 'purgeList';
+    public static final String DRY_RUN_PROPERTY = 'dryRun';
 
-    static boolean isPreSplitVersion(String version)
-    {
-        return BuildUtils.compareVersions( version, "19.3") < 0
-    }
+    @Input @Optional
+    final abstract Property<String> purgeVersion = project.objects.property(String).convention(project.hasProperty(VERSION_PROPERTY) ? (String) project.property(VERSION_PROPERTY) : "")
+    @Input @Optional
+    final abstract Property<String> purgeVersions = project.objects.property(String).convention(project.hasProperty(VERSIONS_FILE_PROPERTY) ? (String) project.property(VERSIONS_FILE_PROPERTY) : "")
+    @Input @Optional
+    final abstract Property<String> purgeListFile = project.objects.property(String).convention(project.hasProperty(PURGE_LIST_FILE_PROPERTY) ? (String) project.property(PURGE_LIST_FILE_PROPERTY) : "")
+    @Input
+    final abstract Property<Boolean> isDryRun = project.objects.property(Boolean).convention(project.hasProperty(DRY_RUN_PROPERTY))
+
+    @Input
+    final abstract Property<String> artifactoryUrl = project.objects.property(String).convention((String) project.property('artifactory_contextUrl'))
+    @Input
+    final abstract Property<String> artifactoryUser = project.objects.property(String).convention((String) project.property('artifactory_user'))
+    @Input
+    final abstract Property<String> artifactoryPassword = project.objects.property(String).convention((String) project.property('artifactory_password'))
 
     enum Response {
         SUCCESS,
         NOT_FOUND,
         ERROR
     }
+    private static final String NUM_NOT_FOUND = "numNotFound"
+    private static final String NUM_DELETED = "numDeleted"
+    private static final String UNDELETED_VERSIONS = "undeletedVersions"
 
     @TaskAction
     void purgeVersions()
     {
-        String purgeVersion
-        if (!project.hasProperty(VERSION_PROPERTY))
-            throw new GradleException("No value provided for ${VERSION_PROPERTY}.")
-        purgeVersion = project.property(VERSION_PROPERTY)
-        boolean isPreSplitVersion = isPreSplitVersion(purgeVersion)
-        String[] undeletedVersions = []
-        int numDeleted = 0
-        int numNotFound = 0
-        project.allprojects({ Project p ->
-            def plugins = p.getPlugins()
-            if (plugins.hasPlugin(Module.class) || plugins.hasPlugin(JavaModule.class) || plugins.hasPlugin(FileModule.class)) {
-                logger.quiet("Considering ${p.path}...")
-                Response response = makeDeleteRequest(p.name, purgeVersion, "module")
-                if (response == Response.NOT_FOUND)
-                    numNotFound++
-                else if (response == Response.ERROR) {
-                    undeletedVersions += "${p.path} - module: ${purgeVersion}"
+        String version = purgeVersion.get()
+        List<String> moduleNames = readInputFile(purgeListFile.get(), "modules")
+        if (!StringUtils.isEmpty(version))
+            purgeVersion(version, moduleNames)
+        else
+        {
+            Map<String, Integer> overallStats = new HashMap<>()
+            overallStats.put(NUM_NOT_FOUND, 0)
+            overallStats.put(NUM_DELETED, 0)
+            String purgeVersionsFileName = purgeVersions.get()
+            if (StringUtils.isEmpty(purgeVersionsFileName))
+                throw new GradleException("Either -P${VERSION_PROPERTY}=<versionToPurge> or -P${VERSIONS_FILE_PROPERTY}=versionsFile.txt must be provided")
+            List<String> versions = readInputFile(purgeVersionsFileName, "versions")
+            if (versions == null)
+                throw new GradleException("No versions found for file ${purgeVersionsFileName}.")
+            if (versions.size() > 1) {
+                for (String moduleName : moduleNames) {
+                    Map<String, Object> deleteStats = purgeModuleVersions(moduleName, versions)
+                    overallStats.put(NUM_NOT_FOUND, overallStats.get(NUM_NOT_FOUND) + (Integer) deleteStats.get(NUM_NOT_FOUND))
+                    overallStats.put(NUM_DELETED, overallStats.get(NUM_DELETED) + (Integer) deleteStats.get(NUM_DELETED))
                 }
-                else
-                    numDeleted++
-                if (!isPreSplitVersion && (plugins.hasPlugin(Api.class) || project.path == BuildUtils.getApiProjectPath(project.gradle))) {
-                    response = makeDeleteRequest(p.name, purgeVersion, "api")
-                    if (response == Response.NOT_FOUND)
-                        numNotFound++
-                    else if (response == Response.ERROR) {
-                        undeletedVersions += "${p.path} - api: ${purgeVersion}"
-                    }
-                    else
-                        numDeleted++
-                }
+                if (moduleNames.size() > 1)
+                    logger.quiet("\nSummary:\n\tDeleted ${overallStats.get(NUM_DELETED)} artifacts.\n\t${overallStats.get(NUM_NOT_FOUND)} artifacts not found.")
             }
-        })
+            else {
+                for (String v : versions) {
+                    Map<String, Object> deleteStats = purgeVersion(v, moduleNames)
+                    overallStats.put(NUM_NOT_FOUND, overallStats.get(NUM_NOT_FOUND) + (Integer) deleteStats.get(NUM_NOT_FOUND))
+                    overallStats.put(NUM_DELETED, overallStats.get(NUM_DELETED) + (Integer) deleteStats.get(NUM_DELETED))
+                }
+                if (versions.size() > 1)
+                    logger.quiet("\nSummary\n\tDeleted ${overallStats.get(NUM_DELETED)} artifacts.\n\t${overallStats.get(NUM_NOT_FOUND)} artifacts not found.")
+            }
+        }
 
-        logger.quiet("Deleted ${numDeleted} artifacts; ${numNotFound} artifacts not found.")
-        if (undeletedVersions.size() > 0 && !project.hasProperty("dryRun"))
-            throw new GradleException("The following ${undeletedVersions.size()} versions were not deleted.\n${StringUtils.join(undeletedVersions, "\n")}\nCheck the log for more information.")
+    }
+
+    List<String> readInputFile(String fileName, String type)
+    {
+        if (!StringUtils.isEmpty(fileName)) {
+            File listing = Paths.get(fileName).toFile();
+            if (listing.exists()) {
+                logger.quiet("Reading ${type} purge list from file ${listing.getAbsolutePath()}.")
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(listing)))) {
+                    List<String> lines = IOUtils.readLines(reader).stream().filter(line -> !line.startsWith("#")).toList()
+                    logger.quiet("... found ${lines.size()} uncommented lines for purging")
+                    return lines
+                }
+            } else {
+                throw new GradleException("No such file or directory: ${fileName}")
+            }
+        }
+        return Collections.emptyList()
+    }
+
+    Map<String, Object> purgeModuleVersions(String moduleName, List<String> versions)
+    {
+        Map<String, Object> deleteStats = new HashMap();
+        deleteStats.put(NUM_DELETED, 0)
+        deleteStats.put(NUM_NOT_FOUND, 0)
+        deleteStats.put(UNDELETED_VERSIONS, new ArrayList<>())
+
+        logger.quiet("### Begin purge for module ${moduleName} for ${versions.size()} versions\n")
+
+        for (String version: versions) {
+            makeRequests(moduleName, moduleName, version, deleteStats, true)
+        }
+
+        logger.quiet("Deleted ${deleteStats.get(NUM_DELETED)} artifacts; ${deleteStats.get(NUM_NOT_FOUND)} artifacts not found.")
+        if (((List<String>) deleteStats.get(UNDELETED_VERSIONS)).size() > 0 && !isDryRun.get())
+            throw new GradleException("The following ${((List<String>) deleteStats.get(UNDELETED_VERSIONS)).size()} versions were not deleted.\n${StringUtils.join(deleteStats.get(UNDELETED_VERSIONS), "\n")}\nCheck the log for more information.")
+        logger.quiet("\n### End purge for module ${moduleName}\n")
+        return deleteStats
+    }
+
+    Map<String, Object> purgeVersion(String version, List<String> moduleNames)
+    {
+        Map<String, Object> deleteStats = new HashMap();
+        deleteStats.put(NUM_DELETED, 0)
+        deleteStats.put(NUM_NOT_FOUND, 0)
+        deleteStats.put(UNDELETED_VERSIONS, new ArrayList<>())
+
+        logger.quiet("### Begin purge of version ${version} for ${moduleNames.size()} modules\n")
+
+        for (String moduleName : moduleNames) {
+            makeRequests(moduleName, moduleName, version, deleteStats, true)
+        }
+
+        logger.quiet("Deleted ${deleteStats.get(NUM_DELETED)} artifacts; ${deleteStats.get(NUM_NOT_FOUND)} artifacts not found.")
+        if (((List<String>) deleteStats.get(UNDELETED_VERSIONS)).size() > 0 && !isDryRun.get())
+            throw new GradleException("The following ${((List<String>) deleteStats.get(UNDELETED_VERSIONS)).size()} versions were not deleted.\n${StringUtils.join(deleteStats.get(UNDELETED_VERSIONS), "\n")}\nCheck the log for more information.")
+        logger.quiet("\n### End purge for version ${version}\n")
+        return deleteStats
+    }
+
+    void makeRequests(String moduleName, String loggingName, String purgeVersion, Map<String, Object> statsMap, boolean tryApi)
+    {
+        logger.quiet("Considering ${loggingName} ${purgeVersion}...")
+        Response response = makeDeleteRequest(moduleName, purgeVersion, "module")
+        if (response == Response.NOT_FOUND)
+            statsMap.put(NUM_NOT_FOUND, statsMap.get(NUM_NOT_FOUND)+1);
+        else if (response == Response.ERROR)
+            statsMap.get(UNDELETED_VERSIONS).add("${loggingName} - module: ${purgeVersion}")
+        else
+            statsMap.put(NUM_DELETED, statsMap.get(NUM_DELETED)+1)
+        if (tryApi) {
+            response = makeDeleteRequest(moduleName, purgeVersion, "api")
+            if (response == Response.NOT_FOUND)
+                statsMap.put(NUM_NOT_FOUND, statsMap.get(NUM_NOT_FOUND)+1)
+            else if (response == Response.ERROR)
+                statsMap.get(UNDELETED_VERSIONS).add("${loggingName} - api: ${purgeVersion}")
+            else
+                statsMap.put(NUM_DELETED, statsMap.get(NUM_DELETED)+1)
+        }
     }
 
     /**
@@ -85,29 +180,26 @@ class PurgeArtifacts extends DefaultTask
      */
     Response makeDeleteRequest(String artifactName, String version, String type)
     {
-        if (project.hasProperty("dryRun")) {
+        if (isDryRun.get()) {
             logger.quiet("\tRemoving version ${version} of ${artifactName} ${type} -- Skipped for dry run")
             return
         }
 
         CloseableHttpClient httpClient = HttpClients.createDefault()
-        String endpoint = project.property('artifactory_contextUrl')
+        String endpoint = artifactoryUrl.get()
         Response responseStatus = Response.SUCCESS
         if (!endpoint.endsWith("/"))
             endpoint += "/"
 
         String repo = version.contains("SNAPSHOT") ? SNAPSHOT_REPOSITORY_NAME : RELEASE_REPOSITORY_NAME
-        if (isPreSplitVersion(version))
-            endpoint += repo + "/org/labkey/" + artifactName + "/" + version
-        else
-            endpoint += repo + "/org/labkey/" + type + "/" + artifactName + "/" + version
+        endpoint += repo + "/org/labkey/" + type + "/" + artifactName + "/" + version
         logger.quiet("\tMaking delete request for ${type} artifact ${artifactName} and version ${version} via endpoint ${endpoint}")
 
         try
         {
             HttpDelete httpDelete = new HttpDelete(endpoint)
             // N.B. Using Authorization Bearer with an API token does not currently work
-            httpDelete.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${project.property('artifactory_user')}:${project.property('artifactory_password')}".getBytes()))
+            httpDelete.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${artifactoryUser.get()}:${artifactoryPassword.get()}".getBytes()))
             CloseableHttpResponse response = httpClient.execute(httpDelete)
             int statusCode = response.getCode()
 
