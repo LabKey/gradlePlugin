@@ -96,8 +96,9 @@ class ApplyLicenses implements Plugin<Project>
             }
 
             project.tasks.register('verifyLicensePatch') {
-                dependsOn(patchApiTask)
-                doLast {
+                it.group = GroupNames.TEST
+                it.dependsOn(patchApiTask)
+                it.doLast {
                     [project.configurations.extJs3Commercial, project.configurations.extJs4Commercial].forEach {
                         def commercialLicense = project.zipTree(it.singleFile).matching {
                             include '*/license.txt'
