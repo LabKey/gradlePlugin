@@ -195,6 +195,7 @@ class ServerDeploy implements Plugin<Project>
             DoThenSetup task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Installs application.properties into the tomcat configuration directory. Sets default database properties."
+                task.driverFiles.setFrom(project.configurations.driver)
                 // stage the application first to try to avoid multiple Tomcat restarts
                 task.mustRunAfter(project.tasks.stageApp)
         }

@@ -15,9 +15,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ### TBD
 *Released*: TBD
-(Earliest compatible LabKeyversion: 25.2)
+(Earliest compatible LabKey version: TBD)
 - Update `PurgeArtifacts` task to be compatible with configuration cache and to work with input files so archived projects can be kept up to date
 - Update dependency versions
+- Update DoThenSetup and its relatives to be compatible with configuration cache
+- Update DeployApp for better configuration cache compatibility
 
 ### 6.3.0
 *Released*: 3 July 2025

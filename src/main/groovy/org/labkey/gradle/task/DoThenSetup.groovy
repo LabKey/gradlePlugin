@@ -15,31 +15,68 @@
  */
 package org.labkey.gradle.task
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.Project
+import groovy.sql.Sql
+import org.gradle.api.GradleException
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
-import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.PropertiesUtils
 
-import java.util.function.Function
+import javax.inject.Inject
+import java.sql.Driver
+import java.sql.DriverManager
 
 // TODO making this extend from RestartTriggerTask causes the following error on TeamCity:
 //  Cannot fingerprint input property 'databaseProperties': value 'org.labkey.gradle.util.DatabaseProperties@286cb41a' cannot be serialized.
 // Even though RestartTriggerTask has nothing to do with the `databaseProperties`
-class DoThenSetup extends DefaultTask
+abstract class DoThenSetup extends TeamCityPropertiesTask
 {
     // TODO rethink this input declaration. Dependence on a file makes more sense
     @Optional @Input
     protected DatabaseProperties databaseProperties
 
+    @InputFiles
+    abstract ConfigurableFileCollection getDriverFiles()
+
     @Input
     boolean dbPropertiesChanged = false
+
+    @InputFile
+    final abstract RegularFileProperty chosenPropsFile =  project.objects.fileProperty().fileValue(DatabaseProperties.getPickedConfigFile(project))
+
+    @InputFile
+    final abstract RegularFileProperty applicationPropsFile = project.objects.fileProperty().fileValue(new File(BuildUtils.getEmbeddedConfigPath(project), "application.properties"))
+
+    @Input
+    final abstract Property<Boolean> useSsl = project.objects.property(Boolean).convention(project.hasProperty("useSsl"))
+    @Input
+    final abstract Property<String> portNumber = project.objects.property(String).convention(project.hasProperty("useSsl") ? "8443" : "8080")
+    @Input
+    final abstract Property<Boolean> useLocalBuild = project.objects.property(Boolean).convention(project.hasProperty("useLocalBuild") && "false" != project.property("useLocalBuild"))
+
+    @Input // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes, even on Windows
+    final abstract Property<String> pathToServer = project.objects.property(String).convention(project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
+
+    @Input
+    final abstract Property<String> embeddedDir = project.objects.property(String).convention(BuildUtils.getEmbeddedConfigPath(project))
+    @InputDirectory
+    File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
+
+    @InputDirectory
+    File restartTriggerFileDir = BuildUtils.getTriggerFileDir(project)
+
+    @Inject abstract FileSystemOperations getFs()
 
     protected void doDatabaseTask()
     {
@@ -52,50 +89,27 @@ class DoThenSetup extends DefaultTask
         if (!embeddedConfigUpToDate()) {
             Properties configProperties = databaseProperties.getConfigProperties()
             configProperties.putAll(getExtraJdbcProperties())
-            // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes, even on Windows
-            configProperties.setProperty("pathToServer", project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
-
-            configProperties.setProperty("serverPort", tcPropOrDefault(project,
-                    TeamCityExtension::getLabKeyServerPort,
-                    "serverPort",
-                    project.hasProperty("useSsl") ? "8443" : "8080"))
-
-            configProperties.setProperty("contextPath", tcPropOrDefault(project,
-                    TeamCityExtension::getLabKeyContextPath,
-                    "contextPath",
-                    ""))
-
-            configProperties.setProperty("shutdownPort", tcPropOrDefault(project,
-                    TeamCityExtension::getLabKeyServerShutdownPort,
-                    "shutdownPort",
-                    "8081"))
-
-            if (project.hasProperty("useSsl")) {
-                configProperties.setProperty("keyStore", tcPropOrDefault(project,
-                        TeamCityExtension::getLabKeyServerKeystore,
-                        "keyStore",
-                        "/opt/teamcity-agent/localhost.keystore"))
-
-                configProperties.setProperty("keyStorePassword", tcPropOrDefault(project,
-                        TeamCityExtension::getLabKeyServerKeystorePassword,
-                        "keyStorePassword",
-                        "changeit"))
+            configProperties.setProperty("pathToServer", pathToServer.get())
+            configProperties.setProperty("serverPort", labKeyServerPort.get())
+            configProperties.setProperty("contextPath", contextPath.get())
+            configProperties.setProperty("shutdownPort", shutdownPort.get())
+            if (useSsl.get()) {
+                configProperties.setProperty("keyStore", keyStore.get())
+                configProperties.setProperty("keyStorePassword", keyStorePassword.get())
             }
 
-            String embeddedDir = BuildUtils.getEmbeddedConfigPath(project)
-            File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
-            project.copy({ CopySpec copy ->
+            fs.copy({ CopySpec copy ->
                 copy.from configsDir
-                copy.into embeddedDir
+                copy.into embeddedDir.get()
                 copy.include "application.properties"
                 copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                 copy.filter({ String line ->
                     // Always uncomment properties prepended by '#setupTask#'
                     line = line.replace("#setupTask#", "")
-                    if (project.hasProperty("useSsl")) {
+                    if (useSsl.get()) {
                         line = line.replace("#server.ssl", "server.ssl")
                     }
-                    if (project.hasProperty("useLocalBuild") && "false" != project.property("useLocalBuild")) {
+                    if (useLocalBuild.get()) {
                         // Enable properties that require 'useLocalBuild' (e.g. 'context.webAppLocation' and 'spring.devtools.restart.additional-paths')
                         line = line.replace("#useLocalBuild#", "")
                     }
@@ -117,7 +131,7 @@ class DoThenSetup extends DefaultTask
                     return PropertiesUtils.replaceProps(line, configProperties, false)
                 })
             })
-            BuildUtils.updateRestartTriggerFile(project)
+            BuildUtils.updateRestartTriggerFile(useLocalBuild.get(), restartTriggerFileDir)
         }
     }
 
@@ -125,10 +139,11 @@ class DoThenSetup extends DefaultTask
      * Get 'extraJdbc*' properties from TeamCity.
      * Used as string replacements when deploying 'labkey.xml' and 'application.properties'
      */
-    private Properties getExtraJdbcProperties()
+    @Input
+    Properties getExtraJdbcProperties()
     {
         def extraJdbcProperties = new Properties()
-        def tcProperties = TeamCityExtension.getTeamCityProperties(project)
+        def tcProperties = isOnTeamCity.get() ? getTeamCityProperties(project) : new Properties()
         for (Map.Entry entry : tcProperties.entrySet())
         {
             if (entry.getKey().startsWith("extraJdbc"))
@@ -144,11 +159,11 @@ class DoThenSetup extends DefaultTask
         if (this.dbPropertiesChanged)
             return false
 
-        File dbPropFile = DatabaseProperties.getPickedConfigFile(project)
-        File applicationPropsFile = new File(BuildUtils.getEmbeddedConfigPath(project), "application.properties")
-        if (!dbPropFile.exists() || !applicationPropsFile.exists())
+        File dbPropFile = chosenPropsFile.get().getAsFile()
+        File _applicationPropsFile = applicationPropsFile.get().getAsFile()
+        if (!dbPropFile.exists() || !_applicationPropsFile.exists())
             return false
-        if (dbPropFile.lastModified() < applicationPropsFile.lastModified())
+        if (dbPropFile.lastModified() < _applicationPropsFile.lastModified())
         {
             return true
         }
@@ -157,7 +172,7 @@ class DoThenSetup extends DefaultTask
 
     protected void setDatabaseProperties()
     {
-        databaseProperties = new DatabaseProperties(project, false)
+        databaseProperties = new DatabaseProperties(getPath(), chosenPropsFile.get().asFile, false)
     }
 
     void setDatabaseProperties(DatabaseProperties dbProperties)
@@ -170,15 +185,71 @@ class DoThenSetup extends DefaultTask
         return databaseProperties
     }
 
-    private static String tcPropOrDefault(Project project, Function<Project, String> tcPropertyFunc, String projectPropertyName, String defaultValue)
+
+
+    void execSql(DatabaseProperties params, String sql)
     {
-        String value = tcPropertyFunc.apply(project)
-        if (value == null) {
-            if (project.hasProperty(projectPropertyName))
-                value = (String) project.property(projectPropertyName)
-            else
-                value = defaultValue
+        params.interpolateCompositeProperties()
+        String url = params.getJdbcURL()
+        String user = params.getJdbcUser()
+        String password = params.getJdbcPassword()
+        String driverClassName = params.getJdbcDriverClassName()
+        logger.info("in execSql: url ${url} driverClassName ${driverClassName}")
+        logger.debug(" user ${user} password ${password}")
+
+        var loader = GroovyObject.class.classLoader
+        // N.B. It seems like this modification of the loader classpath should not be necessary (or possible) and we
+        // should be able to declare the dependencies on the driver jars in the buildscript { dependencies { } } block,
+        // but see this (admittedly old) post https://discuss.gradle.org/t/class-pathes-in-gradle-script/16655, which
+        // has a response that explains that "the caller to Sql isn't actually the build script, it is Groovy. So,
+        // you need to load the driver in the same classloader as Groovy." Maybe we'd have a different story if we
+        // were using Java instead of Groovy. Someday.
+        getDriverFiles().each {File file ->
+            logger.info("adding classLoader URL " + file.toURI().toURL())
+            loader.addURL(file.toURI().toURL())
         }
-        return value
+        Class driverClass = loader.loadClass(driverClassName)
+        logger.info("driverClass is ${driverClass}")
+
+        Driver driverInstance = (Driver) driverClass.newInstance()
+        DriverManager.registerDriver(driverInstance)
+
+        Sql db = null
+        try
+        {
+            db = Sql.newInstance(url, user, password)
+            db.execute(sql)
+        }
+        catch (Exception e)
+        {
+            logger.error(e.toString())
+        }
+        finally
+        {
+            if (db != null)
+                db.close()
+        }
     }
+
+    void dropDatabase(String projectPath, DatabaseProperties dbProperties)
+    {
+        Properties properties = dbProperties.getConfigProperties()
+        logger.info("in dropDatabase for ${projectPath}, properties are ${properties}")
+        String toDrop = dbProperties.getJdbcDatabase()
+        if (toDrop == null || toDrop.equals("labkey"))
+        {
+            throw new GradleException("Must specify a database that is not 'labkey'")
+        }
+        else
+        {
+            DatabaseProperties dropProps = new DatabaseProperties(projectPath, dbProperties)
+            // need to connect to the built-in default database in order to drop the database
+            dropProps.setJdbcDatabase(dbProperties.getDefaultDatabase())
+            dropProps.setJdbcUrlParams("")
+
+            logger.info("Attempting to drop database ${toDrop}")
+            execSql(dropProps, "DROP DATABASE \"${toDrop}\";")
+        }
+    }
+
 }

@@ -33,6 +33,7 @@ import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.PickDb
 import org.labkey.gradle.task.RunTestSuite
 import org.labkey.gradle.task.TeamCityDbSetup
+import org.labkey.gradle.task.TeamCityPropertiesTask
 import org.labkey.gradle.task.UndeployModules
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
@@ -93,8 +94,8 @@ class TeamCity extends Tomcat
                         spec.classpath {
                             [project.configurations.uiTestRuntimeClasspath, project.tasks.jar]
                         }
-                        spec.systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
-                        spec.args = ["set", TeamCityExtension.getLabKeyUsername(project), TeamCityExtension.getLabKeyPassword(project)]
+                        spec.systemProperties["labkey.server"] = TeamCityPropertiesTask.getLabKeyServer(project)
+                        spec.args = ["set", TeamCityPropertiesTask.getLabKeyUsername(project), TeamCityPropertiesTask.getLabKeyPassword(project)]
                     })
                 }
         }
@@ -201,6 +202,7 @@ class TeamCity extends Tomcat
                         task.description = "Copy properties file for running tests for ${shortType}"
                         task.dbType = "${shortType}"
                         task.dbPropertiesChanged = true
+                        task.driverFiles.setFrom(project.configurations.driver)
                 }
                 pickDbTask = project.tasks.named(pickDbTaskName)
             }
@@ -268,7 +270,7 @@ class TeamCity extends Tomcat
                     task.group = GroupNames.TEST_SERVER
                     task.description = "Generate server properties file to run with modules from a specified distribution"
                     task.doLast {
-                        project.logger.info("inheriting from distribution ${inheritedDistPath}")
+                        task.logger.info("inheriting from distribution ${inheritedDistPath}")
                         Set<String> includeModules = new HashSet<>()
                         project.project(inheritedDistPath).configurations.distribution.dependencies.each {
                             includeModules.add(it.getName())

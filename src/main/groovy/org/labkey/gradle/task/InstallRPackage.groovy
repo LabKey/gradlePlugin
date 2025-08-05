@@ -22,7 +22,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.labkey.gradle.plugin.extension.TeamCityExtension
 
 class InstallRPackage extends DefaultTask
 {
@@ -138,7 +137,7 @@ class InstallRPackage extends DefaultTask
 
     static String getRLibsUserPath(Project project)
     {
-        return TeamCityExtension.getTeamCityProperty(project, "R_LIBS_USER", System.getenv("R_LIBS_USER"))
+        return TeamCityPropertiesTask.getTeamCityProperty(project, "R_LIBS_USER", System.getenv("R_LIBS_USER"))
     }
 
     void installRPackage(String scriptName)

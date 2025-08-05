@@ -18,6 +18,8 @@ package org.labkey.gradle.task
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -45,13 +47,19 @@ abstract class DeployApp extends DeployAppBase
     @OutputDirectory
     final abstract DirectoryProperty deployBinDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.DEPLOY_BIN_DIR)
 
+    @Input
+    final abstract Property<Boolean> useLocalBuild = project.objects.property(Boolean).convention(project.hasProperty("useLocalBuild") && "false" != project.property("useLocalBuild"))
+
+    @InputDirectory
+    File restartTriggerFileDir = BuildUtils.getTriggerFileDir(project)
+
     @TaskAction
     void action()
     {
         deployModules()
         deployPipelineJars()
         deployPlatformBinaries(deployBinDir.get().asFile)
-        BuildUtils.updateRestartTriggerFile(project)
+        BuildUtils.updateRestartTriggerFile(useLocalBuild.get(), restartTriggerFileDir)
     }
 
     private void deployModules()

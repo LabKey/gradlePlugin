@@ -17,6 +17,7 @@ package org.labkey.gradle.util
 
 import org.apache.commons.text.StringEscapeUtils
 import org.gradle.api.Project
+import org.slf4j.Logger
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -37,12 +38,20 @@ class PropertiesUtils
         return props
     }
 
-    static String parseCompositeProp(Project project, Properties props, String prop)
+    static Properties readFileProperties(File propFile)
+    {
+        Properties props = new Properties()
+        if (propFile.exists())
+            props.load(new FileInputStream(propFile))
+        return props
+    }
+
+    static String parseCompositeProp(String projectPath, Properties props, String prop, Logger logger)
     {
         if (props == null)
-            project.logger.error("${project.path} Properties is null")
+            logger.error("${projectPath} Properties is null")
         else if (prop == null)
-            project.logger.error("${project.path} Property is null; no parsing possible")
+            logger.error("${projectPath} Property is null; no parsing possible")
         else
         {
             Matcher valMatcher = VALUE_PATTERN.matcher(prop)
@@ -52,7 +61,7 @@ class PropertiesUtils
                 if (props.getProperty(p) != null)
                     prop = prop.replace(valMatcher.group(1), (String) (props.getProperty(p)))
                 else
-                    project.logger.error("Unable to find value for ${p} in ${props}")
+                    logger.error("Unable to find value for ${p} in ${props}")
             }
         }
         return prop
@@ -107,10 +116,10 @@ class PropertiesUtils
         }
     }
 
-    static Properties getApplicationProperties(Project project)
+    static Properties getApplicationProperties(File propertiesFile)
     {
         def applicationProperties = new Properties()
-        readProperties(new File(BuildUtils.getEmbeddedConfigPath(project), "application.properties"), applicationProperties)
+        readProperties(propertiesFile, applicationProperties)
         return applicationProperties
     }
 }

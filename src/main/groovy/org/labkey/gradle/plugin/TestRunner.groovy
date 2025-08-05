@@ -17,8 +17,8 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.RunTestSuite
+import org.labkey.gradle.task.TeamCityPropertiesTask
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
@@ -88,7 +88,7 @@ class TestRunner extends UiTest
                         classpath {
                             [project.configurations.uiTestRuntimeClasspath, project.tasks.jar]
                         }
-                        systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
+                        systemProperties["labkey.server"] = TeamCityPropertiesTask.getLabKeyServer(project)
                         args = ["set"]
                         standardInput = System.in
                     })
@@ -107,7 +107,7 @@ class TestRunner extends UiTest
                         classpath {
                             [project.configurations.uiTestRuntimeClasspath, project.tasks.jar]
                         }
-                        systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
+                        systemProperties["labkey.server"] = TeamCityPropertiesTask.getLabKeyServer(project)
                         args = ["ensure"]
                         standardInput = System.in
                     })

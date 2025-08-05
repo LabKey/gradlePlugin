@@ -16,9 +16,8 @@
 package org.labkey.gradle.task
 
 import org.labkey.gradle.util.DatabaseProperties
-import org.labkey.gradle.util.SqlUtils
 
-class Bootstrap extends DoThenSetup
+abstract class Bootstrap extends DoThenSetup
 {
     boolean dbPropertiesChanged = true
 
@@ -27,13 +26,13 @@ class Bootstrap extends DoThenSetup
     {
         setDatabaseProperties()
 
-        SqlUtils.dropDatabase(this.project, databaseProperties)
+        dropDatabase(getPath(), databaseProperties)
         databaseProperties.interpolateCompositeProperties()
     }
 
     @Override
     protected void setDatabaseProperties()
     {
-        databaseProperties = new DatabaseProperties(project, true)
+        databaseProperties = new DatabaseProperties(getPath(), chosenPropsFile.get().asFile, true)
     }
 }

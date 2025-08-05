@@ -18,7 +18,6 @@ package org.labkey.gradle.task
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.tasks.Internal
 import org.labkey.gradle.plugin.TeamCity
-import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.DatabaseProperties
 
 /**
@@ -50,7 +49,7 @@ abstract class RunTestSuite extends RunUiTest
 
     protected void setTeamCityProperties()
     {
-        if (TeamCityExtension.isOnTeamCity(project))
+        if (TeamCityPropertiesTask.isOnTeamCity(project))
         {
             systemProperty "teamcity.tests.recentlyFailedTests.file", project.teamcity['teamcity.tests.recentlyFailedTests.file']
             systemProperty "teamcity.build.changedFiles.file", project.teamcity['teamcity.build.changedFiles.file']

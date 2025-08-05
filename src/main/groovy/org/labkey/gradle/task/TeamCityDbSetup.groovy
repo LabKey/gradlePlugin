@@ -16,9 +16,8 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.tasks.Input
-import org.labkey.gradle.util.SqlUtils
 
-class TeamCityDbSetup extends DoThenSetup
+abstract class TeamCityDbSetup extends DoThenSetup
 {
     boolean dbPropertiesChanged = true
     @Input
@@ -35,7 +34,7 @@ class TeamCityDbSetup extends DoThenSetup
                 logger.info("The 'testValidationOnly' flag is true, not going to drop the database.")
             }
             else {
-                SqlUtils.dropDatabase(project, databaseProperties)
+                dropDatabase(getPath(), databaseProperties)
             }
         }
         databaseProperties.interpolateCompositeProperties()

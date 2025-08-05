@@ -29,6 +29,7 @@ import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.ModuleDistribution
+import org.labkey.gradle.task.TeamCityPropertiesTask
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PomFileHelper
@@ -46,7 +47,7 @@ class Distribution implements Plugin<Project>
         // We add the TeamCity extension here if it doesn't exist because we will use the build
         // number property from TeamCity in the distribution artifact names, if present.
         TeamCityExtension teamCityExt  = project.getExtensions().findByType(TeamCityExtension.class)
-        if (TeamCityExtension.isOnTeamCity(project) && teamCityExt == null)
+        if (TeamCityPropertiesTask.isOnTeamCity(project) && teamCityExt == null)
             project.extensions.create("teamCity", TeamCityExtension, project)
 
         if (BuildUtils.getServerProject(project) != null) {

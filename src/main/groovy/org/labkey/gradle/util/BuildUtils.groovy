@@ -33,6 +33,7 @@ import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
+import org.labkey.gradle.task.TeamCityPropertiesTask
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -261,7 +262,7 @@ class BuildUtils
         if (!project.projectDir.exists() && project.hasProperty("downloadLabKeyModules"))
             reasons.add("Project directory ${project.projectDir} does not exist.")
         String propValue = project.hasProperty(property) ? project.property(property) : null
-        String value = TeamCityExtension.getTeamCityProperty(project, property, propValue)
+        String value = TeamCityPropertiesTask.getTeamCityProperty(project, property, propValue)
         if (value == null)
         {
             reasons.add("Project does not have ${property} property")
@@ -491,8 +492,8 @@ class BuildUtils
     static Properties getStandardVCSProperties(project)
     {
         String buildNumber =
-                (String) TeamCityExtension.getTeamCityProperty(project, "system.teamcity.agent.dotnet.build_id", // Unique build ID
-                        TeamCityExtension.getTeamCityProperty(project,"build.number", null))
+                (String) TeamCityPropertiesTask.getTeamCityProperty(project, "system.teamcity.agent.dotnet.build_id", // Unique build ID
+                        TeamCityPropertiesTask.getTeamCityProperty(project,"build.number", null))
         Properties ret = new Properties()
         if (project.plugins.hasPlugin("org.labkey.versioning"))
         {
@@ -885,10 +886,19 @@ class BuildUtils
      */
     static void updateRestartTriggerFile(Project project)
     {
-        if (!project.hasProperty('useLocalBuild') || "false" == project.property("useLocalBuild"))
+        updateRestartTriggerFile(project.hasProperty('useLocalBuild') && "false" != project.property("useLocalBuild"), getTriggerFileDir(project))
+    }
+
+    static File getTriggerFileDir(Project project)
+    {
+        return project.rootProject.layout.buildDirectory.file("deploy/modules").get().getAsFile()
+    }
+
+    static void updateRestartTriggerFile(boolean useLocalBuild, File triggerFileDir)
+    {
+        if (!useLocalBuild)
             return
 
-        File triggerFileDir = project.rootProject.layout.buildDirectory.file("deploy/modules").get().getAsFile()
         if (!triggerFileDir.exists())
             return
 
@@ -952,6 +962,11 @@ class BuildUtils
     static String getRootBuildDirPath(Project project)
     {
         return project.rootProject.layout.buildDirectory.get().asFile.path
+    }
+
+    static File getApplicationPropertiesFile(Project project)
+    {
+        return new File(getEmbeddedConfigPath(project), "application.properties")
     }
 
     static Provider<Directory> getRootBuildDirectoryProvider(Project project, String directoryPath)

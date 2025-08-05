@@ -24,7 +24,6 @@ import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.Tomcat
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
 
 import java.util.stream.Collectors
@@ -51,7 +50,7 @@ class StartLabKey extends DefaultTask
         }
         else
         {
-            String javaHome = TeamCityExtension.getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
+            String javaHome = TeamCityPropertiesTask.getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
             if (StringUtils.isEmpty(javaHome))
                 throw new GradleException("JAVA_HOME must be set in order to start your embedded tomcat server.")
             File javaBin = new File(javaHome, "bin")
@@ -87,7 +86,7 @@ class StartLabKey extends DefaultTask
         optsList.add(project.tomcat.assertionFlag)
         optsList.add("-Ddevmode=${LabKeyExtension.isDevMode(project)}".toString())
         optsList.addAll(project.tomcat.catalinaOpts.split(" "))
-        optsList.add("-Xmx${TeamCityExtension.getTeamCityProperty(project, "Xmx", project.tomcat.maxMemory)}".toString())
+        optsList.add("-Xmx${TeamCityPropertiesTask.getTeamCityProperty(project, "Xmx", project.tomcat.maxMemory)}".toString())
         if (project.tomcat.disableRecompileJsp)
             optsList.add("-Dlabkey.disableRecompileJsp=true")
         if (project.tomcat.ignoreModuleSource)
@@ -95,9 +94,9 @@ class StartLabKey extends DefaultTask
         optsList.add(project.tomcat.trustStore)
         optsList.add(project.tomcat.trustStorePassword)
 
-        if (TeamCityExtension.isOnTeamCity(project) && SystemUtils.IS_OS_UNIX)
+        if (TeamCityPropertiesTask.isOnTeamCity(project) && SystemUtils.IS_OS_UNIX)
         {
-            optsList.add("-DsequencePipelineEnabled=${TeamCityExtension.getTeamCityProperty(project, "sequencePipelineEnabled", false)}".toString())
+            optsList.add("-DsequencePipelineEnabled=${TeamCityPropertiesTask.getTeamCityProperty(project, "sequencePipelineEnabled", false)}".toString())
         }
 
         if (project.hasProperty("extraCatalinaOpts"))
