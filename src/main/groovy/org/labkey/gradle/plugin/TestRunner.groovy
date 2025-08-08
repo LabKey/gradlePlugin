@@ -17,6 +17,7 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.JavaExec
 import org.labkey.gradle.task.RunTestSuite
 import org.labkey.gradle.task.TeamCityPropertiesTask
 import org.labkey.gradle.util.BuildUtils
@@ -73,45 +74,30 @@ class TestRunner extends UiTest
 
     }
 
-
-    private void addPasswordTasks(Project project)
+    private static void addPasswordTasks(Project project)
     {
-
-        project.tasks.register("setPassword") {
-            Task task ->
+        project.tasks.register("setPassword", JavaExec) {
+            JavaExec task ->
                 task.group = GroupNames.TEST
                 task.description = "Set the password for use in running tests"
-                task.dependsOn(project.tasks.jar)
-                task.doFirst({
-                    project.javaexec({
-                        mainClass = "org.labkey.test.util.PasswordUtil"
-                        classpath {
-                            [project.configurations.uiTestRuntimeClasspath, project.tasks.jar]
-                        }
-                        systemProperties["labkey.server"] = TeamCityPropertiesTask.getLabKeyServer(project)
-                        args = ["set"]
-                        standardInput = System.in
-                    })
-                })
+                task.classpath = project.files(project.configurations.uiTestRuntimeClasspath, project.tasks.jar)
+                task.mainClass.set("org.labkey.test.util.PasswordUtil")
+                task.systemProperty("labkey.server", TeamCityPropertiesTask.getLabKeyServer(project))
+                task.args("set")
+                task.standardInput = System.in
         }
 
 
-        project.tasks.register("ensurePassword") {
-            Task task ->
+        project.tasks.register("ensurePassword", JavaExec) {
+            JavaExec task ->
                 task.group = GroupNames.TEST
                 task.description = "Ensure that the password property used for running tests has been set"
                 task.dependsOn(project.tasks.jar)
-                task.doFirst({
-                    project.javaexec({
-                        mainClass = "org.labkey.test.util.PasswordUtil"
-                        classpath {
-                            [project.configurations.uiTestRuntimeClasspath, project.tasks.jar]
-                        }
-                        systemProperties["labkey.server"] = TeamCityPropertiesTask.getLabKeyServer(project)
-                        args = ["ensure"]
-                        standardInput = System.in
-                    })
-                })
+                task.mainClass.set("org.labkey.test.util.PasswordUtil")
+                task.classpath(project.configurations.uiTestRuntimeClasspath, project.tasks.jar)
+                task.systemProperty("labkey.server", TeamCityPropertiesTask.getLabKeyServer(project))
+                task.args("ensure")
+                task.standardInput = System.in
         }
     }
 
@@ -127,6 +113,9 @@ class TestRunner extends UiTest
             }
         })
 
+        directories.add(new File("${project.rootDir}/sampledata"))
+        directories.add(new File("${project.rootDir}/${BuildUtils.convertPathToRelativeDir(BuildUtils.getTestProjectPath(project.gradle))}/data"))
+
         File sampleDataFile = BuildUtils.getBuildDirFile(project,"sampledata.dirs")
 
         project.tasks.register("writeSampleDataFile") {
@@ -135,7 +124,7 @@ class TestRunner extends UiTest
                 task.description = "Produce the file with all sampledata directories for use in running tests"
                 task.inputs.files directories
                 task.outputs.file sampleDataFile
-                task..doLast({
+                task.doLast({
                     List<String> dirNames = new ArrayList<>()
 
                     directories.each({File file ->
@@ -147,8 +136,6 @@ class TestRunner extends UiTest
                     try
                     {
                         writer = new OutputStreamWriter(outputStream)
-                        dirNames.add("${project.rootDir}/sampledata")
-                        dirNames.add("${project.rootDir}/${BuildUtils.convertPathToRelativeDir(BuildUtils.getTestProjectPath(project.gradle))}/data")
                         writer.write(String.join(";", dirNames))
                     }
                     finally
@@ -163,8 +150,6 @@ class TestRunner extends UiTest
     private void addTestSuiteTask(Project project)
     {
         project.logger.debug("TestRunner: addTestSuiteTask for ${project.path}")
-        // Using project.tasks.register here cause an error:
-        // Cannot add task 'uiTests' as a task with that name already exists
         project.tasks.register("uiTests", RunTestSuite) {
             RunTestSuite task ->
                 task.group = GroupNames.VERIFICATION
