@@ -61,7 +61,8 @@ class ClientLibsCompress extends DefaultTask
      * extract the css and javascript files that are referenced.
      * @return map between the file and the importer
      */
-    private Map<File, XmlImporter> getImporterMap()
+    @Internal
+    Map<File, XmlImporter> getImporterMap()
     {
         Map<File, XmlImporter> importerMap = new HashMap<>()
         xmlFiles.files.each() {
