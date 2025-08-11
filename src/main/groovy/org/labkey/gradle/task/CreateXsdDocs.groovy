@@ -16,8 +16,11 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
@@ -37,19 +40,26 @@ abstract class CreateXsdDocs extends DefaultTask
     @OutputDirectory
     final abstract DirectoryProperty outputDir = project.objects.directoryProperty().convention(XsdDoc.getXsdDocDirectory(project).dir( "docs"))
 
+    @Input
+    final abstract Property<String> templatePath = project.objects.property(String).convention("${project.rootDir}/tools/docflex-xml-re-${project.docflexXmlReVersion}/templates/XSDDoc/FramedDoc.tpl")
+
+    @InputFiles
+    @Classpath
+    abstract ConfigurableFileCollection getXsdDocClasspath()
+
     @TaskAction
     void createDocs()
     {
         exec.javaexec {exec ->
             exec.mainClass = "com.docflex.xml.Generator"
 
-            exec.classpath project.configurations.xsdDoc
+            exec.classpath getXsdDocClasspath()
 
             exec.args = [
-                    "-template", "${project.rootDir}/tools/docflex-xml-re-${project.docflexXmlReVersion}/templates/XSDDoc/FramedDoc.tpl",
+                    "-template", templatePath.get(),
                     "-p:docTitle", "LabKey XML Schema Reference",
                     "-format", "HTML", // output format
-                    "-d", outputDir.get().asFile.getAbsolutePath(), // output directory
+                    "-d", outputDir.get().asFile.getAbsolutePath(),
                     "-nodialog", // do not launch the generator GUI
                     "-launchviewer=false", //  do not launch the default viewer for the output file
             ]
