@@ -89,7 +89,7 @@ class TeamCityExtension
         }
         DatabaseProperties props = new DatabaseProperties(typeAndVersion, typeName, null)
 
-        props.setProject(project)
+        props.setProjectPath(project.path)
         props.jdbcDatabase = getDatabaseName()
         if (!getTeamCityProperty("database.${typeAndVersion}.jdbcURL").isEmpty())
         {
