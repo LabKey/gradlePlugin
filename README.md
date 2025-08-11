@@ -23,6 +23,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - Replace usages of project.javaexc with JavaExc task types or injected ExecOperations
 - Update CompressClientLibs, StopLabKey to work better with configuration cache
 - Remove `listNodeModules` task defined by `NpmRun` plugin
+- Remove `cleanOut` task defined by `FileModule` plugin
 
 ### 6.3.0
 *Released*: 3 July 2025
