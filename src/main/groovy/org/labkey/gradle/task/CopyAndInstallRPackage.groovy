@@ -2,12 +2,17 @@ package org.labkey.gradle.task
 
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskExecutionException
 
-class CopyAndInstallRPackage extends InstallRPackage
+import javax.inject.Inject
+
+abstract class CopyAndInstallRPackage extends InstallRPackage
 {
+    @Inject abstract FileSystemOperations getFs()
+
     @InputDirectory
     File packageLocation
 
@@ -22,7 +27,7 @@ class CopyAndInstallRPackage extends InstallRPackage
 
         super.doInstall() // Install dependencies
         File rLibsUserDir = getInstallDir()
-        project.copy {
+        fs.copy {
             CopySpec copy ->
                 copy.from packageLocation
                 copy.into(rLibsUserDir)
