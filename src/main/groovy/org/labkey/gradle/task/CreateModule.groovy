@@ -47,7 +47,7 @@ class CreateModule extends DefaultTask
             moduleName =  project.moduleName
         }
         else {
-            project.ant.input(
+            ant.input(
                     message: "\nEnter the (Java) name for your new module: ",
                     addProperty: "new_moduleName"
             )
@@ -65,7 +65,7 @@ class CreateModule extends DefaultTask
             moduleDestination =  project.moduleDestination
         }
         else {
-            project.ant.input(
+            ant.input(
                     message: "\nEnter the location for the new module (absolute or relative to '" + project.projectDir.getAbsolutePath() + "'): ",
                     addProperty: "new_moduleDestination"
             )
@@ -93,19 +93,19 @@ class CreateModule extends DefaultTask
             createApiFiles = ((String)project.createFiles).contains('api')
         }
         else {
-            project.ant.input(
+            ant.input(
                     message: "\nWill this module create and manage a database schema? (Y/n)",
                     addProperty: "new_hasManagedSchema"
             )
             hasManagedSchema = !(ant.new_hasManagedSchema.trim().equalsIgnoreCase("n"))
 
-            project.ant.input(
+            ant.input(
                     message: "\nCreate test stubs (y/N)",
                     addProperty: "new_createTestFiles"
             )
             createTestFiles = ant.new_createTestFiles.trim().equalsIgnoreCase("y")
 
-            project.ant.input(
+            ant.input(
                     message: "\nCreate API stubs (y/N)",
                     addProperty: "new_createApiFiles"
             )
