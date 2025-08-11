@@ -33,9 +33,11 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
+import org.gradle.api.file.DeleteSpec
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskProvider
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
@@ -104,13 +106,13 @@ class TeamCity extends Tomcat
                 task.args("set", TeamCityPropertiesTask.getLabKeyUsername(project), TeamCityPropertiesTask.getLabKeyPassword(project))
         }
 
-        project.tasks.register("cleanTestLogs") {
-            Task task ->
+        project.tasks.register("cleanTestLogs", Delete) {
+            Delete task ->
                 task.group = GroupNames.TEST_SERVER
                 task.description = "Removes log files from Tomcat and TeamCity"
                 task.dependsOn project.tasks.cleanLogs
-                task.doLast {
-                    project.delete "${project.projectDir}/${TEAMCITY_INFO_FILE}"
+                task.configure { DeleteSpec delete ->
+                    delete.delete "${project.projectDir}/${TEAMCITY_INFO_FILE}"
                 }
         }
 
