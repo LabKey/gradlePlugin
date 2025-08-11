@@ -24,6 +24,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - Update CompressClientLibs, StopLabKey to work better with configuration cache
 - Remove `listNodeModules` task defined by `NpmRun` plugin
 - Remove `cleanOut` task defined by `FileModule` plugin
+- Revemo `cleanAndDeploy` task from `ServerDeploy` plugin
 
 ### 6.3.0
 *Released*: 3 July 2025

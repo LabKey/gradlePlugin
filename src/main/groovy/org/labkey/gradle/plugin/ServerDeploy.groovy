@@ -281,15 +281,6 @@ class ServerDeploy implements Plugin<Project>
         }
         project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanDeploy)}
 
-        project.tasks.register("cleanAndDeploy", DeployApp) {
-            DeployApp task ->
-                task.group = GroupNames.DEPLOY
-                task.binaries.setFrom(project.configurations.binaries)
-                task.description = "Removes the deploy directory ${deployDir} then deploys the application locally"
-                task.dependsOn(project.tasks.cleanDeploy)
-                task.notCompatibleWithConfigurationCache("TODO 'cannot serialize project' error, but unclear where it comes from")
-        }
-
         project.tasks.register("cleanBuild", Delete) {
             Delete task ->
                 task.group = GroupNames.DEPLOY
