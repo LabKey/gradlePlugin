@@ -21,7 +21,8 @@ on how to do that, including how to develop and test locally and the versioning 
 - Update DoThenSetup and its relatives to be compatible with configuration cache
 - Update DeployApp for better configuration cache compatibility
 - Replace usages of project.javaexc with JavaExc task types or injected ExecOperations
-- Update CompressClientLibs to work better with configuration cache
+- Update CompressClientLibs, StopLabKey to work better with configuration cache
+- Remove `listNodeModules` task defined by `NpmRun` plugin
 
 ### 6.3.0
 *Released*: 3 July 2025
