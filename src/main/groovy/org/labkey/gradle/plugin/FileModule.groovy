@@ -137,19 +137,6 @@ class FileModule implements Plugin<Project>
                 task.outputs.cacheIf { false } // disable build caching. Has too many undeclared inputs.
         }
 
-        // This is added because Intellij started creating this "out" directory when you build through IntelliJ.
-        // It copies files there that are actually input files to the build, which causes some problems when later
-        // builds attempt to find their input files.
-        project.tasks.register("cleanOut", Delete) {
-            Delete task ->
-                task.group = GroupNames.BUILD
-                task.description = "removes the ${project.file('out')} directory created by Intellij builds"
-                task.configure({ Delete delete ->
-                    if (project.file("out").isDirectory())
-                        project.delete project.file("out")
-                })
-        }
-
         var moduleTask = project.tasks.register("module", Jar) {
             Jar jar ->
                 jar.group = GroupNames.MODULE
@@ -209,6 +196,12 @@ class FileModule implements Plugin<Project>
                 }
             }
 
+        project.tasks.named('deployModule')
+            {
+                notCompatibleWithConfigurationCache("Needs its own class to do the two copies (one to staging and one to deploy.")
+            }
+
+
         project.tasks.register('undeployModule', Delete) {
             Delete task ->
                 task.group = GroupNames.MODULE
@@ -232,6 +225,10 @@ class FileModule implements Plugin<Project>
                 }
         }
 
+        project.tasks.named('undeployModule')
+                {
+                    notCompatibleWithConfigurationCache("Need a good way to pick up all the module files and directories. Will likely required its own class with various task outputs as inputs.")
+                }
 
         project.tasks.register("reallyClean") {
             Task task ->
