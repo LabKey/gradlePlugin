@@ -19,7 +19,9 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.DeleteSpec
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.JsDocExtension
 import org.labkey.gradle.task.CreateJsDocs
@@ -91,14 +93,14 @@ class JsDoc implements Plugin<Project>
                 task.destinationDirectory.set(CreateJsDocs.getJsDocDirectory(project))
         }
 
-        project.tasks.register('cleanJsDoc', DefaultTask) {
-            Task task ->
+        project.tasks.register('cleanJsDoc', Delete) {
+            Delete task ->
                 task.group = GroupNames.DOCUMENTATION
                 task.description = "Remove files created by jsdoc and jsDocZip tasks"
-                task.doFirst( {
-                    project.delete(project.tasks.jsDocZip.outputs)
-                    project.delete(project.tasks.jsdoc.outputs)
-                })
+                task.configure { DeleteSpec delete ->
+                    delete.delete(project.tasks.jsDocZip.outputs)
+                    delete.delete(project.tasks.jsdoc.outputs)
+                }
         }
     }
 }
