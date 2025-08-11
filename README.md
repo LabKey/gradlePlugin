@@ -26,6 +26,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - Remove `cleanOut` task defined by `FileModule` plugin
 - Remove `cleanAndDeploy` task from `ServerDeploy` plugin
 - Update `CopyAndInstallRPackage` Task class to use injected FileSystem instead of `project.copy`
+- Update `GzipAction` task to use task logger and ant builder objects
 
 ### 6.3.0
 *Released*: 3 July 2025
