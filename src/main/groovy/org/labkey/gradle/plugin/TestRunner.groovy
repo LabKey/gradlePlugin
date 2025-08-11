@@ -80,7 +80,7 @@ class TestRunner extends UiTest
             JavaExec task ->
                 task.group = GroupNames.TEST
                 task.description = "Set the password for use in running tests"
-                task.classpath = project.files(project.configurations.uiTestRuntimeClasspath, project.tasks.jar)
+                task.classpath(project.configurations.uiTestRuntimeClasspath, project.tasks.jar)
                 task.mainClass.set("org.labkey.test.util.PasswordUtil")
                 task.systemProperty("labkey.server", TeamCityPropertiesTask.getLabKeyServer(project))
                 task.args("set")

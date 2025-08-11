@@ -19,8 +19,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.file.CopySpec
-import org.gradle.api.file.Directory
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.JsDocExtension
@@ -29,6 +27,7 @@ import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PropertiesUtils
 
 import java.util.regex.Matcher
+
 /**
  * Plugin that provides tasks for created JavaScript documentation using jsDoc tools
  */
@@ -39,43 +38,46 @@ class JsDoc implements Plugin<Project>
     {
         project.extensions.create("jsDoc", JsDocExtension)
         project.jsDoc.root = "${project.rootDir}/tools/jsdoc-toolkit/"
-        project.jsDoc.outputDir = getJsDocDirectory(project).file( "docs").asFile
         addTasks(project)
     }
 
-    static Directory getJsDocDirectory(Project project)
+    public static List<File> getJsFilesToProcess(Project project)
     {
-        return XsdDoc.getClientDocsBuildDir(project).get().dir("javascript")
+        List<File> files = []
+        project.jsDoc.paths.each{ String path ->
+            files += project.file(path)
+        }
+        return files
     }
 
     private static void addTasks(Project project)
     {
         project.tasks.register('jsdocTemplate', Copy) {
-            Copy task ->
-                task.description = "insert the proper version number into the JavaScript documentation"
-                task.configure
-                        { CopySpec copy ->
-                            copy.from project.file("${project.jsDoc.root}/templates/jsdoc")
-                            copy.filter( { String line ->
-                                Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
-                                String newLine = line;
-                                while (matcher.find())
-                                {
-                                    if (matcher.group(1).equals("product.version"))
-                                        newLine = newLine.replace(matcher.group(), (String) project.version)
-                                }
-                                return newLine;
+            Copy copy ->
+                copy.description = "insert the proper version number into the JavaScript documentation"
+                copy.from project.file("${project.jsDoc.root}/templates/jsdoc")
+                copy.inputs.property("version", project.version)
+                copy.filter( { String line ->
+                    Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
+                    String newLine = line;
+                    while (matcher.find())
+                    {
+                        if (matcher.group(1).equals("product.version"))
+                            newLine = newLine.replace(matcher.group(), (String) copy.inputs.properties.get("version"))
+                    }
+                    return newLine;
 
-                            })
-                            copy.destinationDir = new File((String) "${project.jsDoc.root}/templates/jsdoc_substituted")
-                        }
+                })
+                copy.destinationDir = new File((String) "${project.jsDoc.root}/templates/jsdoc_substituted")
+
         }
 
          project.tasks.register("jsdoc", CreateJsDocs) {
              CreateJsDocs task ->
                  task.group = GroupNames.DOCUMENTATION
                  task.description = 'Generating Client API docs'
-                 task.dependsOn(project.tasks.jsdocTemplate)
+                 task.inputs.files project.tasks.jsdocTemplate.outputs.files
+                 task.getFilesToProcess().set(getJsFilesToProcess(project))
          }
 
         project.tasks.register("jsDocZip", Zip) {
@@ -86,7 +88,7 @@ class JsDoc implements Plugin<Project>
                 task.archiveVersion.set(project.getVersion().toString())
                 task.archiveExtension.set("zip")
                 task.from project.tasks.jsdoc
-                task.destinationDirectory.set(getJsDocDirectory(project))
+                task.destinationDirectory.set(CreateJsDocs.getJsDocDirectory(project))
         }
 
         project.tasks.register('cleanJsDoc', DefaultTask) {

@@ -15,19 +15,29 @@
  */
 package org.labkey.gradle.plugin
 
-import com.sun.jdi.*
+
+import com.sun.jdi.AbsentInformationException
+import com.sun.jdi.Bootstrap
+import com.sun.jdi.IncompatibleThreadStateException
+import com.sun.jdi.ObjectReference
+import com.sun.jdi.StackFrame
+import com.sun.jdi.ThreadReference
+import com.sun.jdi.VMDisconnectedException
+import com.sun.jdi.VirtualMachine
 import com.sun.jdi.connect.AttachingConnector
 import com.sun.jdi.connect.Connector
 import com.sun.jdi.connect.IllegalConnectorArgumentsException
 import org.apache.commons.lang3.SystemUtils
+import org.gradle.api.AntBuilder
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
+import org.gradle.api.logging.Logger
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.process.JavaExecSpec
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.PickDb
@@ -83,21 +93,15 @@ class TeamCity extends Tomcat
 
     private void addTasks(Project project)
     {
-        project.tasks.register("setTeamCityAgentPassword") {
-            Task task ->
+        project.tasks.register("setTeamCityAgentPassword", JavaExec) {
+            JavaExec task ->
                 task.group = GroupNames.TEST_SERVER
                 task.description = "Set the password for use in running tests"
                 task.dependsOn(project.tasks.jar)
-                task.doLast {
-                    project.javaexec({ JavaExecSpec spec ->
-                        spec.mainClass = "org.labkey.test.util.PasswordUtil"
-                        spec.classpath {
-                            [project.configurations.uiTestRuntimeClasspath, project.tasks.jar]
-                        }
-                        spec.systemProperties["labkey.server"] = TeamCityPropertiesTask.getLabKeyServer(project)
-                        spec.args = ["set", TeamCityPropertiesTask.getLabKeyUsername(project), TeamCityPropertiesTask.getLabKeyPassword(project)]
-                    })
-                }
+                task.mainClass.set("org.labkey.test.util.PasswordUtil")
+                task.classpath(project.configurations.uiTestRuntimeClasspath, project.tasks.jar)
+                task.systemProperty("labkey.server", TeamCityPropertiesTask.getLabKeyServer(project))
+                task.args("set", TeamCityPropertiesTask.getLabKeyUsername(project), TeamCityPropertiesTask.getLabKeyPassword(project))
         }
 
         project.tasks.register("cleanTestLogs") {
@@ -111,8 +115,8 @@ class TeamCity extends Tomcat
         }
 
         project.tasks.named("stopTomcat").configure {
-            doLast {
-                ensureShutdown(project)
+            it.doLast {
+                ensureShutdown(it.logger)
             }
         }
 
@@ -121,7 +125,7 @@ class TeamCity extends Tomcat
                 task.group = GroupNames.TEST_SERVER
                 task.description = "Kill Chrome processes"
                 task.doLast {
-                    killChrome(project)
+                    killChrome(it.ant)
                 }
         }
 
@@ -130,7 +134,7 @@ class TeamCity extends Tomcat
                 task.group = GroupNames.TEST_SERVER
                 task.description = "Kill Firefox processes"
                 task.doLast {
-                    killFirefox(project)
+                    killFirefox(it.ant)
                 }
         }
 
@@ -154,13 +158,14 @@ class TeamCity extends Tomcat
                 task.description = "Create NLP engine configs for the test server"
                 task.from BuildUtils.getServerProject(project).file(TEST_CONFIGS_DIR)
                 task.include NLP_CONFIG_FILE
+                task.inputs.property("directoryPath", new File((String) project.labkey.externalDir, "nlp/nlp_engine.py").getAbsolutePath())
                 task.filter({ String line ->
                     Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
                     String newLine = line
                     while (matcher.find())
                     {
                         if (matcher.group(1).equals("enginePath"))
-                            newLine = newLine.replace(matcher.group(), new File((String) project.labkey.externalDir, "nlp/nlp_engine.py").getAbsolutePath())
+                            newLine = newLine.replace(matcher.group(), (String) task.inputs.properties.get("directoryPath"))
                     }
                     return newLine
                 }
@@ -296,7 +301,7 @@ class TeamCity extends Tomcat
                 task.description = "Run a test suite on the TeamCity server"
                 task.doLast(
              {
-                        killFirefox(project)
+                        killFirefox(task.ant)
                     }
                 )
         }
@@ -305,60 +310,60 @@ class TeamCity extends Tomcat
         }
     }
 
-    private static void killChrome(Project project)
+    private static void killChrome(AntBuilder ant)
     {
         if (SystemUtils.IS_OS_WINDOWS)
         {
-            project.ant.exec(executable: "taskkill")
+            ant.exec(executable: "taskkill")
                     {
                         arg(line:"/F /IM chromedriver.exe" )
                     }
-            project.ant.exec(executable: "taskkill")
+            ant.exec(executable: "taskkill")
                     {
                         arg(line:"/F /IM chrome.exe" )
                     }
         }
         else if (SystemUtils.IS_OS_UNIX)
         {
-            project.ant.exec(executable: "killall")
+            ant.exec(executable: "killall")
                     {
                         arg(line:  "-q -KILL chromedriver")
                     }
-            project.ant.exec(executable: "killall")
+            ant.exec(executable: "killall")
                     {
                         arg(line: "-q -KILL chrome")
                     }
-            project.ant.exec(executable: "killall")
+            ant.exec(executable: "killall")
                     {
                         arg(line: "-q KILL BrowserBlocking")
                     }
         }
     }
 
-    private static void killFirefox(Project project)
+    private static void killFirefox(AntBuilder ant)
     {
         if (SystemUtils.IS_OS_WINDOWS)
         {
-            project.ant.exec(executable: "taskkill")
+            ant.exec(executable: "taskkill")
                     {
                         arg(line: "/F /IM firefox.exe")
                     }
-            project.ant.exec(executable: "taskkill")
+            ant.exec(executable: "taskkill")
                     {
                         arg(line: "/F /IM geckodriver.exe")
                     }
         }
         else if (SystemUtils.IS_OS_UNIX)
         {
-            project.ant.exec(executable: "killall")
+            ant.exec(executable: "killall")
                     {
                         arg(line: "-q firefox")
                     }
-            project.ant.exec(executable: "killall")
+            ant.exec(executable: "killall")
                     {
                         arg(line: "-q firefox-bin")
                     }
-            project.ant.exec(executable: "killall")
+            ant.exec(executable: "killall")
                     {
                         arg(line: "-q geckodriver")
                     }
@@ -406,7 +411,6 @@ class TeamCity extends Tomcat
         catch (VMDisconnectedException ignore)
         {
             println("VM at localhost:" + port + " exited normally")
-            return
         }
     }
 
@@ -475,18 +479,18 @@ class TeamCity extends Tomcat
         }
     }
 
-    private void ensureShutdown(Project project)
+    private void ensureShutdown(Logger logger)
     {
         String debugPort = extension.getTeamCityProperty("tomcat.debug")
         if (!debugPort.isEmpty())
         {
-            project.logger.debug("Ensuring shutdown using port ${debugPort}")
+            logger.debug("Ensuring shutdown using port ${debugPort}")
             try
             {
                 AttachingConnector socketConnector = null
                 for (AttachingConnector connector : Bootstrap.virtualMachineManager().attachingConnectors())
                 {
-                    project.logger.debug("Found connector ${connector.name()} with class ${connector.getClass().getName()}")
+                    logger.debug("Found connector ${connector.name()} with class ${connector.getClass().getName()}")
                     if ("com.sun.jdi.SocketAttach".equals(connector.name()))
                     {
                         socketConnector = connector

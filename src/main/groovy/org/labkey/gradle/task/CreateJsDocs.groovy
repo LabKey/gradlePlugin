@@ -16,40 +16,57 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.InputFiles
+import org.gradle.api.Project
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecOperations
+import org.labkey.gradle.plugin.XsdDoc
 
-class CreateJsDocs extends DefaultTask
+import javax.inject.Inject
+
+abstract class CreateJsDocs extends DefaultTask
 {
-    @InputFiles
-    List<File> getInputFiles()
-    {
-        List<File> files = []
-        project.jsDoc.paths.each{ String path ->
-            files += project.file(path)
-        }
-        return files
-    }
+    @Inject abstract ExecOperations getExec()
+
+    @InputDirectory
+    final abstract DirectoryProperty templateDir = project.objects.directoryProperty().convention(
+            project.rootProject.layout.projectDirectory.dir("tools/jsdoc-toolkit/templates/jsdoc_substituted")
+    )
+
+    @Input
+    final abstract Property<String> jarPath = project.objects.property(String).convention("${project.jsDoc.root}/jsrun.jar")
+
+    @Input
+    final abstract Property<String> jsPath = project.objects.property(String).convention("${project.jsDoc.root}/app/run.js")
 
     @OutputDirectory
-    File getOutputDirectory()
+    final abstract DirectoryProperty outputDir = project.objects.directoryProperty().convention(getJsDocDirectory(project).dir( "docs"))
+
+    @Input
+    abstract ListProperty<File> getFilesToProcess()
+
+    static Directory getJsDocDirectory(Project project)
     {
-        return project.jsDoc.outputDir
+        return XsdDoc.getClientDocsBuildDir(project).get().dir("javascript")
     }
 
     @TaskAction
     void createDocs()
     {
-        List<File> inputPaths = getInputFiles()
-        project.javaexec { exec ->
+        exec.javaexec { exec ->
             exec.mainClass = "-jar"
-            exec.args = ["${project.jsDoc.root}/jsrun.jar",
-                         "${project.jsDoc.root}/app/run.js",
-                         "--template=${project.tasks.jsdocTemplate.destinationDir}",
-                         "--directory=${getOutputDirectory()}",
+            exec.args = [jarPath.get(),
+                         jsPath.get(),
+                         "--template=${templateDir.get()}",
+                         "--directory=${outputDir.get()}",
                          "--verbose"]
-            inputPaths.each { File file ->
+            filesToProcess.get().each { File file ->
                 exec.args += file.path
             }
         }

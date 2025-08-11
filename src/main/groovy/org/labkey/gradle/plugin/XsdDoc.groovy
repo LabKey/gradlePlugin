@@ -59,6 +59,7 @@ class XsdDoc implements Plugin<Project>
            CreateXsdDocs task ->
                task.group = GroupNames.DOCUMENTATION
                task.description = 'Generating documentation for classes generated from XSD files'
+               task.getFilesToProcess().set(Arrays.asList(project.xsdDoc.xsdFiles))
        }
 
         project.tasks.register("xsdDocZip", Zip) {
