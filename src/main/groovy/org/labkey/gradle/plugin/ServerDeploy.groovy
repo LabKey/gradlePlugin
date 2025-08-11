@@ -208,12 +208,12 @@ class ServerDeploy implements Plugin<Project>
         if (BuildUtils.embeddedProjectExists(project)) {
             def embeddedProject = project.project(BuildUtils.getEmbeddedProjectPath())
 
-            project.tasks.register("cleanEmbeddedDeploy", DefaultTask) {
-                DefaultTask task ->
+            project.tasks.register("cleanEmbeddedDeploy", Delete) {
+                Delete task ->
                     task.group = GroupNames.DEPLOY
                     task.description = "Remove the ${embeddedDir} directory"
-                    task.doLast {
-                        project.delete embeddedDir
+                    task.configure { DeleteSpec delete ->
+                        delete.delete embeddedDir
                     }
             }
             project.tasks.named('deployApp').configure {
@@ -253,14 +253,14 @@ class ServerDeploy implements Plugin<Project>
         // This may prevent multiple Tomcat restarts
         project.tasks.named('setup').configure {mustRunAfter(project.tasks.stageDistribution)}
 
-        project.tasks.register('undeployModules',UndeployModules) {
+        project.tasks.register('undeployModules', UndeployModules) {
             UndeployModules task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Removes all module files and directories from the deploy and staging directories"
         }
 
         project.tasks.register(
-                'cleanStaging',Delete) {
+                'cleanStaging', Delete) {
             Delete task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Removes the staging directory ${stagingDir}"
