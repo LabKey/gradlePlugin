@@ -15,12 +15,13 @@
  */
 package org.labkey.gradle.plugin
 
-import org.gradle.api.DefaultTask
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
+import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Zip
 import org.labkey.gradle.plugin.extension.XsdDocExtension
 import org.labkey.gradle.task.CreateXsdDocs
@@ -59,6 +60,7 @@ class XsdDoc implements Plugin<Project>
            CreateXsdDocs task ->
                task.group = GroupNames.DOCUMENTATION
                task.description = 'Generating documentation for classes generated from XSD files'
+               task.xsdDocClasspath.setFrom(project.configurations.xsdDoc)
                task.getFilesToProcess().set(Arrays.asList(project.xsdDoc.xsdFiles))
        }
 
@@ -74,13 +76,13 @@ class XsdDoc implements Plugin<Project>
                 task.dependsOn(project.tasks.xsddoc)
         }
 
-        project.tasks.register("cleanXsdDoc", DefaultTask) {
-            Task task ->
+        project.tasks.register("cleanXsdDoc", Delete) {
+            Delete task ->
                 task.group = GroupNames.DOCUMENTATION
                 task.description = "Remove files created by xsddoc and xsdDocZip tasks"
-                task.doFirst({
-                    project.delete(project.tasks.xsdDocZip.outputs)
-                    project.delete(project.tasks.xsddoc.outputs)
+                task.configure({ DeleteSpec delete ->
+                    delete.delete(project.tasks.xsdDocZip.outputs)
+                    delete.delete(project.tasks.xsddoc.outputs)
                 })
         }
     }
