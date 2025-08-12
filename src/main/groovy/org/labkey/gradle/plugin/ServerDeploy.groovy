@@ -62,7 +62,7 @@ class ServerDeploy implements Plugin<Project>
         serverDeploy = project.extensions.create("serverDeploy", ServerDeployExtension)
 
         deployDir = ServerDeployExtension.getServerDeployDirectoryPath(project)
-        embeddedDir = ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)
+        embeddedDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project).getAsFile().getAbsolutePath()
         stagingDir = BuildUtils.getRootBuildDirFile(project, STAGING_DIR)
 
         project.apply plugin: 'org.labkey.build.base'
@@ -91,7 +91,7 @@ class ServerDeploy implements Plugin<Project>
                 task.group = GroupNames.DEPLOY
                 task.description = "Deploy the application locally into ${deployDir}"
                 task.binaries.setFrom(project.configurations.binaries)
-                task.notCompatibleWithConfigurationCache("TODO 'cannot serialize project' error, but unclear where it comes from")
+                task.bootJar.setFrom(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.bootJar)
         }
 
         project.tasks.register("stageModules", StageModules) {
@@ -148,6 +148,7 @@ class ServerDeploy implements Plugin<Project>
                             linkBinaries(project, "npm", project.npmVersion, project.npmWorkDirectory)
                     })
                     task.dependsOn(project.tasks.npmSetup)
+                    task.notCompatibleWithConfigurationCache("Needs its own class to declare proper input and output properties")
             }
             project.tasks.symlinkNode.notCompatibleWithConfigurationCache("References project properties. Need to add task class with input properties")
             project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
@@ -216,16 +217,8 @@ class ServerDeploy implements Plugin<Project>
                         delete.delete embeddedDir
                     }
             }
-            project.tasks.named('deployApp').configure {
-                mustRunAfter(project.tasks.cleanEmbeddedDeploy)
-                doLast {
-                    project.copy {
-                        CopySpec copy ->
-                            copy.from embeddedProject.tasks.bootJar
-                            copy.into embeddedDir
-                            copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-                    }
-                }
+            project.tasks.named('deployApp').configure {Task task ->
+                task.mustRunAfter(project.tasks.cleanEmbeddedDeploy)
             }
             TaskUtils.getOptionalTask(embeddedProject, 'checkVersionConflicts').ifPresent(task -> {
                 project.tasks.named('deployApp').configure {dependsOn(task)}
@@ -292,10 +285,10 @@ class ServerDeploy implements Plugin<Project>
         project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanBuild)}
 
         project.tasks.named("cleanBuild").configure {
-            it.dependsOn(project.tasks.stopTomcat)
+            it.dependsOn(project.tasks.stopLabKey)
         }
         project.tasks.named("cleanDeploy").configure {
-            it.dependsOn(project.tasks.stopTomcat)
+            it.dependsOn(project.tasks.stopLabKey)
         }
     }
 

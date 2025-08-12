@@ -116,7 +116,7 @@ class TeamCity extends Tomcat
                 }
         }
 
-        project.tasks.named("stopTomcat").configure {
+        project.tasks.named("stopLabKey").configure {
             it.doLast {
                 ensureShutdown(it.logger)
             }

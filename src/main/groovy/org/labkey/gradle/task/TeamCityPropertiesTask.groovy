@@ -52,7 +52,14 @@ abstract class TeamCityPropertiesTask extends DefaultTask
     @Optional @Input
     final abstract Property<String> labKeyServer = project.objects.property(String).convention(getLabKeyServer(project))
 
-
+    @Optional @Input
+    final abstract Property<String> tomcatJavaHome = project.objects.property(String).convention(
+            tcPropOrDefault(project,
+                TeamCityPropertiesTask::getTomcatJavaHome,
+                    "tomcatJavaHome",
+                    System.getenv("JAVA_HOME")
+            )
+    )
 
     protected static String tcPropOrDefault(Project project, Function<Project, String> tcPropertyFunc, String projectPropertyName, String defaultValue)
     {
@@ -131,5 +138,10 @@ abstract class TeamCityPropertiesTask extends DefaultTask
     static String getLabKeyPassword(Project project)
     {
         return getTeamCityProperty(project, "labkey.server.password", "We'reSo\$tr0ng@yekbal1!")
+    }
+
+    static String getTomcatJavaHome(Project project)
+    {
+        return getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
     }
 }

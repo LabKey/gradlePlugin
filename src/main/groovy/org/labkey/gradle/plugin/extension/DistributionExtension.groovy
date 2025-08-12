@@ -28,8 +28,7 @@ class DistributionExtension
     public static final String TAR_ARCHIVE_EXTENSION = "tar.gz"
 
     String dir = "${project.rootProject.projectDir}/dist"
-    String artifactId
-    String description
+    String description // TODO this is set in various distribution build.gradle files but doesn't seem to be used. Remove?
 
     private Project project
 

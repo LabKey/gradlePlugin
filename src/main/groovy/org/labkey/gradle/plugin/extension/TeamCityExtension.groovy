@@ -116,7 +116,7 @@ class TeamCityExtension
     }
 
     File startupPropertiesDir() {
-        File startupDir = new File(new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)), 'startup')
+        File startupDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project).dir('startup').asFile
         FileUtils.forceMkdir(startupDir)
         return startupDir
     }

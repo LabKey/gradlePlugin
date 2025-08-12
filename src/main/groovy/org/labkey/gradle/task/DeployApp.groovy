@@ -15,15 +15,20 @@
  */
 package org.labkey.gradle.task
 
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.ServerDeploy
+import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.util.BuildUtils
 
 abstract class DeployApp extends DeployAppBase
@@ -50,8 +55,14 @@ abstract class DeployApp extends DeployAppBase
     @Input
     final abstract Property<Boolean> useLocalBuild = project.objects.property(Boolean).convention(project.hasProperty("useLocalBuild") && "false" != project.property("useLocalBuild"))
 
-    @InputDirectory
-    File restartTriggerFileDir = BuildUtils.getTriggerFileDir(project)
+    @OutputFile
+    final abstract RegularFileProperty restartTriggerFile = project.objects.fileProperty().fileValue(BuildUtils.getRestartTriggerFile(project))
+
+    @OutputDirectory
+    final abstract DirectoryProperty embeddedDir = project.objects.directoryProperty().convention(ServerDeployExtension.getEmbeddedServerDeployDirectory(project))
+
+    @InputFiles
+    abstract ConfigurableFileCollection getBootJar()
 
     @TaskAction
     void action()
@@ -59,7 +70,8 @@ abstract class DeployApp extends DeployAppBase
         deployModules()
         deployPipelineJars()
         deployPlatformBinaries(deployBinDir.get().asFile)
-        BuildUtils.updateRestartTriggerFile(useLocalBuild.get(), restartTriggerFileDir)
+        deployEmbeddedBootJar()
+        BuildUtils.updateRestartTriggerFile(useLocalBuild.get(), restartTriggerFile.get().asFile)
     }
 
     private void deployModules()
@@ -80,5 +92,15 @@ abstract class DeployApp extends DeployAppBase
             copy.into deployPipelineLibDir.get().asFile
             copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
         })
+    }
+
+    private void deployEmbeddedBootJar()
+    {
+        fs.copy {
+            CopySpec copy ->
+                copy.from bootJar
+                copy.into embeddedDir.get()
+                copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
+        }
     }
 }

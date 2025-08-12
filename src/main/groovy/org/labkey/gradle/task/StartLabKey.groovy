@@ -17,9 +17,12 @@ package org.labkey.gradle.task
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.SystemUtils
-import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.Tomcat
 import org.labkey.gradle.plugin.extension.LabKeyExtension
@@ -28,7 +31,7 @@ import org.labkey.gradle.util.BuildUtils
 
 import java.util.stream.Collectors
 
-class StartLabKey extends DefaultTask
+abstract class StartLabKey extends TeamCityPropertiesTask
 {
     private static final String EMBEDDED_REFLECTION_PARAM = "embeddedReflectionArgs"
     private static final List<String> DEFAULT_EMBEDDED_REFLECTION_OPTS = [
@@ -40,17 +43,23 @@ class StartLabKey extends DefaultTask
             "--add-opens=java.base/java.text=ALL-UNNAMED"
     ]
 
+    @InputDirectory
+    final abstract DirectoryProperty deployDir = project.objects.directoryProperty().convention(ServerDeployExtension.getEmbeddedServerDeployDirectory(project))
+
+    @OutputFile
+    final abstract RegularFileProperty logFileProp = project.objects.fileProperty().convention(ServerDeployExtension.getEmbeddedServerDeployDirectory(project).file(Tomcat.EMBEDDED_LOG_FILE_NAME))
+
     @TaskAction
     void action()
     {
-        File jarFile = BuildUtils.getExecutableServerJar(project)
+        File jarFile = BuildUtils.getExecutableServerJar(deployDir.get().asFile)
         if (jarFile == null)
         {
-            throw new GradleException("No jar file found in ${ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)}.")
+            throw new GradleException("No jar file found in ${deployDir.get().asFile}.")
         }
         else
         {
-            String javaHome = TeamCityPropertiesTask.getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
+            String javaHome = tomcatJavaHome.get()
             if (StringUtils.isEmpty(javaHome))
                 throw new GradleException("JAVA_HOME must be set in order to start your embedded tomcat server.")
             File javaBin = new File(javaHome, "bin")
@@ -62,20 +71,21 @@ class StartLabKey extends DefaultTask
             commandParts += getStartupOpts(project)
             commandParts += ["-jar", jarFile.getName()]
 
-            File logFile = new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project), Tomcat.EMBEDDED_LOG_FILE_NAME)
+            File logFile = logFileProp.get().asFile
             if (!logFile.getParentFile().exists())
                 logFile.getParentFile().mkdirs()
             if (!logFile.exists())
                 logFile.createNewFile()
             FileOutputStream outputStream = new FileOutputStream(logFile)
             def envMap = new HashMap<>(System.getenv())
-            envMap.put('PATH', "${ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)}/bin${File.pathSeparator}${System.getenv("PATH")}")
+            String deployDirPath = deployDir.get().asFile.getAbsolutePath()
+            envMap.put('PATH', "${deployDirPath}/bin${File.pathSeparator}${System.getenv("PATH")}")
             def env = []
             for (String key : envMap.keySet()) {
                 env += "${key}=${envMap.get(key)}"
             }
-            this.logger.info("Starting LabKey with command ${commandParts} and env ${env} in directory ${ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)}")
-            Process process = commandParts.execute(env, new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)))
+            this.logger.info("Starting LabKey with command ${commandParts} and env ${env} in directory ${deployDirPath}")
+            Process process = commandParts.execute(env, deployDir.get().asFile)
             process.consumeProcessOutput(outputStream, outputStream)
         }
     }
@@ -86,7 +96,7 @@ class StartLabKey extends DefaultTask
         optsList.add(project.tomcat.assertionFlag)
         optsList.add("-Ddevmode=${LabKeyExtension.isDevMode(project)}".toString())
         optsList.addAll(project.tomcat.catalinaOpts.split(" "))
-        optsList.add("-Xmx${TeamCityPropertiesTask.getTeamCityProperty(project, "Xmx", project.tomcat.maxMemory)}".toString())
+        optsList.add("-Xmx${getTeamCityProperty(project, "Xmx", project.tomcat.maxMemory)}".toString())
         if (project.tomcat.disableRecompileJsp)
             optsList.add("-Dlabkey.disableRecompileJsp=true")
         if (project.tomcat.ignoreModuleSource)
@@ -94,9 +104,9 @@ class StartLabKey extends DefaultTask
         optsList.add(project.tomcat.trustStore)
         optsList.add(project.tomcat.trustStorePassword)
 
-        if (TeamCityPropertiesTask.isOnTeamCity(project) && SystemUtils.IS_OS_UNIX)
+        if (isOnTeamCity(project) && SystemUtils.IS_OS_UNIX)
         {
-            optsList.add("-DsequencePipelineEnabled=${TeamCityPropertiesTask.getTeamCityProperty(project, "sequencePipelineEnabled", false)}".toString())
+            optsList.add("-DsequencePipelineEnabled=${getTeamCityProperty(project, "sequencePipelineEnabled", false)}".toString())
         }
 
         if (project.hasProperty("extraCatalinaOpts"))

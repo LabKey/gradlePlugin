@@ -849,12 +849,16 @@ class BuildUtils
 
     static String getEmbeddedConfigPath(Project project)
     {
-        return new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project), "config").absolutePath
+        return getEmbeddedConfigDirectory(project).asFile.absolutePath
     }
 
-    static File getExecutableServerJar(Project project)
+    static Directory getEmbeddedConfigDirectory(Project project)
     {
-        File deployDir = new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project))
+        return ServerDeployExtension.getEmbeddedServerDeployDirectory(project).dir("config")
+    }
+
+    static File getExecutableServerJar(File deployDir)
+    {
         File[] jarFiles = deployDir.listFiles(new FilenameFilter() {
             @Override
             boolean accept(File dir, String name) {
@@ -886,25 +890,24 @@ class BuildUtils
      */
     static void updateRestartTriggerFile(Project project)
     {
-        updateRestartTriggerFile(project.hasProperty('useLocalBuild') && "false" != project.property("useLocalBuild"), getTriggerFileDir(project))
+        updateRestartTriggerFile(project.hasProperty('useLocalBuild') && "false" != project.property("useLocalBuild"), getRestartTriggerFile(project))
     }
 
-    static File getTriggerFileDir(Project project)
+    static File getRestartTriggerFile(Project project)
     {
-        return project.rootProject.layout.buildDirectory.file("deploy/modules").get().getAsFile()
+        return project.rootProject.layout.buildDirectory.file("deploy/modules/" + RESTART_FILE_NAME).get().getAsFile()
     }
 
-    static void updateRestartTriggerFile(boolean useLocalBuild, File triggerFileDir)
+    static void updateRestartTriggerFile(boolean useLocalBuild, File triggerFile)
     {
         if (!useLocalBuild)
             return
 
-        if (!triggerFileDir.exists())
-            return
+        if (!triggerFile.getParentFile().exists())
+            triggerFile.getParentFile().mkdirs()
 
         OutputStreamWriter writer = null
         try {
-            File triggerFile = new File(triggerFileDir, RESTART_FILE_NAME)
             writer = new OutputStreamWriter(new FileOutputStream(triggerFile), StandardCharsets.UTF_8)
             writer.write(SimpleDateFormat.getDateTimeInstance().format(new Date()))
         }

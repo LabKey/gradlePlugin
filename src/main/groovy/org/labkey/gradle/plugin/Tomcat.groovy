@@ -25,6 +25,7 @@ import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
 import org.labkey.gradle.task.StartLabKey
 import org.labkey.gradle.task.StopLabKey
+import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
 /**
@@ -59,27 +60,16 @@ class Tomcat implements Plugin<Project>
                 task.description = "Start the LabKey web application"
         }
 
-        project.tasks.register("startTomcat", StartLabKey) {
-            StartLabKey task ->
-                task.group = GroupNames.WEB_APPLICATION
-                task.description = "Start the LabKey web application (deprecated: use startLabKey)"
-        }
-
         project.tasks.register("stopLabKey", StopLabKey) {
             StopLabKey task ->
                 task.group = GroupNames.WEB_APPLICATION
                 task.description = "Stop the LabKey web application"
-        }
-
-        project.tasks.register("stopTomcat", StopLabKey) {
-            StopLabKey task ->
-                task.group = GroupNames.WEB_APPLICATION
-                task.description = "Stop the LabKey web application (deprecated: use stopLabKey)"
+                task.onlyIf{ BuildUtils.getApplicationPropertiesFile(project).exists() }
         }
 
         project.tasks.register("cleanLogs", Delete) {
             Delete task ->
-                var logDir = "${ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)}/logs"
+                var logDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project).dir("logs")
                 task.group = GroupNames.WEB_APPLICATION
                 task.description = "Delete logs from ${logDir}"
                 task.configure { DeleteSpec spec -> spec.delete project.fileTree(logDir) }

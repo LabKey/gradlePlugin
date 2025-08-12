@@ -28,6 +28,7 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
@@ -37,9 +38,6 @@ import javax.inject.Inject
 import java.sql.Driver
 import java.sql.DriverManager
 
-// TODO making this extend from RestartTriggerTask causes the following error on TeamCity:
-//  Cannot fingerprint input property 'databaseProperties': value 'org.labkey.gradle.util.DatabaseProperties@286cb41a' cannot be serialized.
-// Even though RestartTriggerTask has nothing to do with the `databaseProperties`
 abstract class DoThenSetup extends TeamCityPropertiesTask
 {
     // TODO rethink this input declaration. Dependence on a file makes more sense
@@ -73,8 +71,8 @@ abstract class DoThenSetup extends TeamCityPropertiesTask
     @InputDirectory
     File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
 
-    @InputDirectory
-    File restartTriggerFileDir = BuildUtils.getTriggerFileDir(project)
+    @OutputFile
+    final abstract RegularFileProperty restartTriggerFile = project.objects.fileProperty().fileValue(BuildUtils.getRestartTriggerFile(project))
 
     @Inject abstract FileSystemOperations getFs()
 
@@ -131,7 +129,7 @@ abstract class DoThenSetup extends TeamCityPropertiesTask
                     return PropertiesUtils.replaceProps(line, configProperties, false)
                 })
             })
-            BuildUtils.updateRestartTriggerFile(useLocalBuild.get(), restartTriggerFileDir)
+            BuildUtils.updateRestartTriggerFile(useLocalBuild.get(), restartTriggerFile.get().asFile)
         }
     }
 
