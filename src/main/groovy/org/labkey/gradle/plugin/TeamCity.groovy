@@ -150,7 +150,7 @@ class TeamCity extends Tomcat
             }
         }
 
-        project.tasks.named("startTomcat").configure {
+        project.tasks.named("startLabKey").configure {
             dependsOn(project.tasks.createStartupPropertyFile)
         }
 
@@ -176,7 +176,7 @@ class TeamCity extends Tomcat
 
         }
 
-        project.tasks.named("startTomcat").configure {
+        project.tasks.named("startLabKey").configure {
             dependsOn(project.tasks.createNlpConfig)
         }
 
@@ -247,11 +247,11 @@ class TeamCity extends Tomcat
                 }
             }
             undeployTask = project.tasks.named(undeployTaskName)
-            project.tasks.named("startTomcat").configure {
+            project.tasks.named("startLabKey").configure {
                 mustRunAfter(undeployTask)
             }
 
-            project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startTomcat.mustRunAfter(setUpDbTask)
+            project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startLabKey.mustRunAfter(setUpDbTask)
             String ciTestTaskName = "ciTests" + properties.dbTypeAndVersion.capitalize()
             project.tasks.register(ciTestTaskName, RunTestSuite) {
                 RunTestSuite task ->
@@ -261,7 +261,7 @@ class TeamCity extends Tomcat
                     task.dbProperties = properties
                     task.mustRunAfter(project.tasks.validateConfiguration)
                     task.mustRunAfter(project.tasks.cleanTestLogs)
-                    task.mustRunAfter(project.tasks.startTomcat)
+                    task.mustRunAfter(project.tasks.startLabKey)
             }
 
             ciTests.add(project.tasks.named(ciTestTaskName))
@@ -290,7 +290,7 @@ class TeamCity extends Tomcat
                     }
             }
 
-            project.tasks.named("startTomcat").configure {
+            project.tasks.named("startLabKey").configure {
                 dependsOn(includeDistModulesTask)
             }
         }
@@ -299,7 +299,7 @@ class TeamCity extends Tomcat
             Task task ->
                 task.group = GroupNames.TEST_SERVER
                 task.dependsOn( ciTests )
-                task.dependsOn( project.tasks.validateConfiguration, project.tasks.startTomcat, project.tasks.cleanTestLogs)
+                task.dependsOn( project.tasks.validateConfiguration, project.tasks.startLabKey, project.tasks.cleanTestLogs)
                 task.description = "Run a test suite on the TeamCity server"
                 task.doLast(
              {
@@ -307,7 +307,7 @@ class TeamCity extends Tomcat
                     }
                 )
         }
-        project.tasks.named("startTomcat").configure {
+        project.tasks.named("startLabKey").configure {
             mustRunAfter(project.tasks.cleanTestLogs)
         }
     }
