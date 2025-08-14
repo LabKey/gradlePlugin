@@ -35,9 +35,11 @@ import org.gradle.api.UnknownTaskException
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskProvider
+import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.PickDb
 import org.labkey.gradle.task.RunTestSuite
@@ -47,8 +49,10 @@ import org.labkey.gradle.task.UndeployModules
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
+import org.labkey.gradle.util.PropertiesUtils
 
 import java.time.Duration
+import java.util.regex.Matcher
 
 /**
  * Creates tasks for TeamCity to run its tests suites based on properties set in a build configuration (particularly for
@@ -57,7 +61,8 @@ import java.time.Duration
 class TeamCity extends Tomcat
 {
     private static final String TEAMCITY_INFO_FILE = "teamcity-info.xml"
-    private static final String TEST_CONFIGS_DIR = "configs/config-test"
+    private static final String TEST_CONFIGS_DIR = "configs/config-test" // TODO remove once NLP is not conifgured on TC
+    private static final String NLP_CONFIG_FILE = "nlpConfig.xml" // TODO remove once NLP is not configured on TC
     private static final String PIPELINE_CONFIG_FILE =  "pipelineConfig.xml"
     private static final Duration TOMCAT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(15)
 
@@ -156,6 +161,29 @@ class TeamCity extends Tomcat
 
         project.tasks.named("startTomcat").configure {
             dependsOn(project.tasks.createStartupPropertyFile)
+        }
+
+        // TODO remove once no longer referenced in TeamCity
+        project.tasks.register("createNlpConfig", Copy) {
+            Copy task ->
+                task.group = GroupNames.TEST_SERVER
+                task.description = "Create NLP engine configs for the test server"
+                task.from BuildUtils.getServerProject(project).file(TEST_CONFIGS_DIR)
+                task.include NLP_CONFIG_FILE
+                task.inputs.property("directoryPath", new File((String) project.labkey.externalDir, "nlp/nlp_engine.py").getAbsolutePath())
+                task.filter({ String line ->
+                    Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
+                    String newLine = line
+                    while (matcher.find())
+                    {
+                        if (matcher.group(1).equals("enginePath"))
+                            newLine = newLine.replace(matcher.group(), (String) task.inputs.properties.get("directoryPath"))
+                    }
+                    return newLine
+                }
+                )
+                task.destinationDir = new File("${ServerDeployExtension.getServerDeployDirectoryPath(project)}/config")
+
         }
 
         project.tasks.register("validateConfiguration") {
