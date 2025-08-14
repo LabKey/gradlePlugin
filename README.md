@@ -31,6 +31,8 @@ on how to do that, including how to develop and test locally and the versioning 
 - Remove deprecated `getServerDeployDirectory` from `ServerDeployExtension`
 - TODO Remove `createNlpConfig` task from `TeamCity` plugin since that module is no longer in use
 - Remove `setup` task from `ServerDeploy` plugin.
+- Update `DeployDistribution` and `StageDistribution` for configuration cache compatibility
+- Some updates for `ModuleDistribution` for better configuration cache compatibility
 
 ### 6.3.0
 *Released*: 3 July 2025

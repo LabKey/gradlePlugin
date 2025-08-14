@@ -21,15 +21,26 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.tasks.*
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.ApplyLicenses
 import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
-class ModuleDistribution extends DefaultTask
+import javax.inject.Inject
+
+abstract class ModuleDistribution extends DefaultTask
 {
+    @Inject abstract FileSystemOperations getFs()
+
     @Optional @Input
     String extraFileIdentifier = null
     @Optional @Input
@@ -44,6 +55,12 @@ class ModuleDistribution extends DefaultTask
     boolean simpleDistribution = false // Set to true to exclude pipeline tools and remote pipeline libraries
     @Optional @Input
     Map extraProperties = [:]
+
+    @Input
+    final abstract Property<Boolean> isDevMode = project.objects.property(Boolean).convention(LabKeyExtension.isDevMode(project))
+
+    @Input
+    final abstract Property<Boolean> isDevDist = project.objects.property(Boolean).convention(project.hasProperty("devDistribution"))
 
     private File distributionDir
 
@@ -90,7 +107,7 @@ class ModuleDistribution extends DefaultTask
     @TaskAction
     void doAction()
     {
-        if (LabKeyExtension.isDevMode(project) && !project.hasProperty("devDistribution"))
+        if (isDevMode.get() && !isDevDist.get())
             throw new GradleException("Distributions should never be created with deployMode=dev as dev modules are not portable. " +
                     "Use -PdevDistribution if you need to override this exception for debugging.")
 
@@ -126,7 +143,7 @@ class ModuleDistribution extends DefaultTask
     {
         File modulesDir = getModulesDir()
         modulesDir.deleteDir()
-        project.copy {
+        fs.copy {
             CopySpec copy ->
                 copy.from { project.configurations.distribution }
                 copy.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
@@ -134,7 +151,7 @@ class ModuleDistribution extends DefaultTask
         }
         if (!BuildUtils.isOpenSource(project))
         {
-            project.copy {
+            fs.copy {
                 CopySpec copy ->
                     copy.from(findLicensingProject().tasks.patchApiModule.outputs.files.singleFile)
                     copy.rename { String fileName ->
@@ -203,7 +220,7 @@ class ModuleDistribution extends DefaultTask
         File utilsDir = getWindowsUtilDir()
         if (project.configurations.findByName("utilities") != null && !utilsDir.exists())
         {
-            project.copy({
+            fs.copy({
                 CopySpec copy ->
                     copy.from(project.configurations.utilities.collect { project.zipTree(it) })
                     copy.into utilsDir
@@ -231,7 +248,7 @@ class ModuleDistribution extends DefaultTask
             }
         }
 
-        project.copy {
+        fs.copy {
             CopySpec copy ->
                 copy.from(embeddedJarFile)
                 copy.into(project.layout.buildDirectory)
@@ -276,7 +293,7 @@ class ModuleDistribution extends DefaultTask
         // Prefer files from 'server/configs/webapps' if they exist
         File serverConfigDir = project.rootProject.file("server/configs/webapps/")
         if (serverConfigDir.exists()) {
-            project.copy({ CopySpec copy ->
+            fs.copy({ CopySpec copy ->
                 copy.from(serverConfigDir)
                 copy.exclude "*.xml"
                 copy.into(project.layout.buildDirectory)
@@ -286,12 +303,12 @@ class ModuleDistribution extends DefaultTask
         // Allow distributions to include custom README
         File resources = project.file("resources")
         if (resources.isDirectory()) {
-            project.copy({ CopySpec copy ->
+            fs.copy({ CopySpec copy ->
                 copy.from(resources)
                 copy.into(project.layout.buildDirectory)
                 copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
             })
-            project.copy({ CopySpec copy ->
+            fs.copy({ CopySpec copy ->
                 copy.from(resources)
                 copy.into(project.layout.buildDirectory.file("embedded"))
                 copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
@@ -300,7 +317,7 @@ class ModuleDistribution extends DefaultTask
         // This is necessary for reasons that are unclear. Without it, you get:
         // -bash: ./manual-upgrade.sh: /bin/sh^M: bad interpreter: No such file or directory
         // even though the original file has unix line endings. Dunno.
-        project.ant.fixcrlf (srcdir: BuildUtils.getBuildDirPath(project), includes: "manual-upgrade.sh", eol: "unix")
+        this.ant.fixcrlf (srcdir: BuildUtils.getBuildDirPath(project), includes: "manual-upgrade.sh", eol: "unix")
     }
 
     @OutputFile
