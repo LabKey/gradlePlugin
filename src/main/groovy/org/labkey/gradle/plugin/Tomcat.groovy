@@ -67,6 +67,19 @@ class Tomcat implements Plugin<Project>
                 task.onlyIf{ BuildUtils.getApplicationPropertiesFile(project).exists() }
         }
 
+        project.tasks.register("startTomcat", StartLabKey) {
+            StartLabKey task ->
+                task.group = GroupNames.WEB_APPLICATION
+                task.description = "Start the LabKey web application (deprecated: use startLabKey)"
+        }
+
+        project.tasks.register("stopTomcat", StopLabKey) {
+            StopLabKey task ->
+                task.group = GroupNames.WEB_APPLICATION
+                task.description = "Stop the LabKey web application (deprecated: use stopLabKey)"
+                task.onlyIf{ BuildUtils.getApplicationPropertiesFile(project).exists() }
+        }
+
         project.tasks.register("cleanLogs", Delete) {
             Delete task ->
                 var logDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project).dir("logs")
