@@ -52,7 +52,7 @@ abstract class SetUpProperties extends TeamCityPropertiesTask
     @InputFile
     final abstract RegularFileProperty chosenPropsFile =  project.objects.fileProperty().fileValue(DatabaseProperties.getPickedConfigFile(project))
 
-    @InputFile
+    @OutputFile
     final abstract RegularFileProperty applicationPropsFile = project.objects.fileProperty().fileValue(new File(BuildUtils.getEmbeddedConfigPath(project), "application.properties"))
 
     @Input
