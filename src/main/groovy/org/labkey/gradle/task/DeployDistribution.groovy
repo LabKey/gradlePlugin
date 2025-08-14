@@ -22,6 +22,7 @@ abstract class DeployDistribution extends DeployAppBase {
     {
         deployExecutableJar()
         deployPlatformBinaries(deployBinDir.get().asFile)
+        setUpProperties()
     }
 
     private void deployExecutableJar() {

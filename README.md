@@ -27,8 +27,10 @@ on how to do that, including how to develop and test locally and the versioning 
 - Remove `cleanAndDeploy` task from `ServerDeploy` plugin
 - Update `CopyAndInstallRPackage` Task class to use injected FileSystem instead of `project.copy`
 - Update `GzipAction` task to use task logger and ant builder objects
-- Remove deprecated `StopTomcat` and `StartTomcat` in favor of `StopLabKey` and `StartLabKey`, repsectively
+- Update `StopLabKey` and `StartLabKey` with appropriate dependencies to mirror the deprecated `StopTomcat` and `StartTomcat`
 - Remove deprecated `getServerDeployDirectory` from `ServerDeployExtension`
+- TODO Remove `createNlpConfig` task from `TeamCity` plugin since that module is no longer in use
+- Remove `setup` task from `ServerDeploy` plugin.
 
 ### 6.3.0
 *Released*: 3 July 2025

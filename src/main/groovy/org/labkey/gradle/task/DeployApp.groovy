@@ -71,18 +71,19 @@ abstract class DeployApp extends DeployAppBase
         deployPipelineJars()
         deployPlatformBinaries(deployBinDir.get().asFile)
         deployEmbeddedBootJar()
+        setUpProperties()
         BuildUtils.updateRestartTriggerFile(useLocalBuild.get(), restartTriggerFile.get().asFile)
     }
 
     private void deployModules()
     {
         ant.copy (
-                todir: deployModulesDir.get().asFile,
-                preserveLastModified: true,
+            todir: deployModulesDir.get().asFile,
+            preserveLastModified: true,
         )
-                {
-                    fileset(dir: stagingModulesDir.get().asFile)
-                }
+        {
+            fileset(dir: stagingModulesDir.get().asFile)
+        }
     }
 
     private void deployPipelineJars()

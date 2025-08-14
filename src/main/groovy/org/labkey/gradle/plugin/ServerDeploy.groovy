@@ -86,13 +86,7 @@ class ServerDeploy implements Plugin<Project>
 
     private void addTasks(Project project)
     {
-        project.tasks.register("deployApp", DeployApp) {
-            DeployApp task ->
-                task.group = GroupNames.DEPLOY
-                task.description = "Deploy the application locally into ${deployDir}"
-                task.binaries.setFrom(project.configurations.binaries)
-                task.bootJar.setFrom(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.bootJar)
-        }
+
 
         project.tasks.register("stageModules", StageModules) {
             StageModules task ->
@@ -127,32 +121,6 @@ class ServerDeploy implements Plugin<Project>
                 task.dependsOn(project.tasks.checkModuleVersions)
         }
 
-        // Creating symbolic links on Windows requires elevated permissions.  Even with these permissions, the createSymbolicLink method fails
-        // with a message "required privilege is not held by the client".  Using the ant.symlink task "succeeds", but it causes .sys files to be created in the
-        // .node directory, which are not symbolic links and will cause failures with a message "java.nio.file.NotLinkException: The file or directory is not a reparse point."
-        // the next time the command is run.
-        //
-        // So, for now, for Windows users, the symbolic links can be created manually using the following command when running as an administrator
-        //   MKLINK /D <npmLinkPath> <npmTargetPath>
-        // or users can skip the link creation and put the target of the link in their path instead.
-        //
-        // At a later date, we can possibly make this task execute the mklink command (and its counterpart to remove the link).
-        // This would require that the gradle tasks be run as an administrator, and that is possibly not ideal.
-        if (!SystemUtils.IS_OS_WINDOWS &&  project.hasProperty('nodeVersion')) {
-            project.tasks.register("symlinkNode") {
-                Task task ->
-                    task.group = GroupNames.DEPLOY
-                    task.description = "Make a symbolic link to the npm directory for use in PATH environment variable"
-                    task.doFirst({
-                        if (project.hasProperty('npmVersion') && project.hasProperty('npmWorkDirectory'))
-                            linkBinaries(project, "npm", project.npmVersion, project.npmWorkDirectory)
-                    })
-                    task.dependsOn(project.tasks.npmSetup)
-                    task.notCompatibleWithConfigurationCache("Needs its own class to declare proper input and output properties")
-            }
-            project.tasks.symlinkNode.notCompatibleWithConfigurationCache("References project properties. Need to add task class with input properties")
-            project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
-        }
 
         String stagingPipelineLibDir = BuildUtils.getRootBuildDirFile(project, STAGING_PIPELINE_DIR)
 
@@ -191,20 +159,44 @@ class ServerDeploy implements Plugin<Project>
                 task.dependsOn project.tasks.stageRemotePipelineJars
         }
 
-        project.tasks.register(
-                "setup",  DoThenSetup) {
-            DoThenSetup task ->
+        project.tasks.register("deployApp", DeployApp) {
+            DeployApp task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Installs application.properties into the tomcat configuration directory. Sets default database properties."
+                task.description = "Deploy the application locally into ${deployDir}"
+                task.binaries.setFrom(project.configurations.binaries)
+                task.bootJar.setFrom(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.bootJar)
                 task.driverFiles.setFrom(project.configurations.driver)
                 // stage the application first to try to avoid multiple Tomcat restarts
-                task.mustRunAfter(project.tasks.stageApp)
+                task.dependsOn(project.tasks.stageApp)
         }
 
-        project.tasks.named('deployApp').configure {
-            dependsOn(project.tasks.setup)
-            dependsOn(project.tasks.stageApp)
+        // Creating symbolic links on Windows requires elevated permissions.  Even with these permissions, the createSymbolicLink method fails
+        // with a message "required privilege is not held by the client".  Using the ant.symlink task "succeeds", but it causes .sys files to be created in the
+        // .node directory, which are not symbolic links and will cause failures with a message "java.nio.file.NotLinkException: The file or directory is not a reparse point."
+        // the next time the command is run.
+        //
+        // So, for now, for Windows users, the symbolic links can be created manually using the following command when running as an administrator
+        //   MKLINK /D <npmLinkPath> <npmTargetPath>
+        // or users can skip the link creation and put the target of the link in their path instead.
+        //
+        // At a later date, we can possibly make this task execute the mklink command (and its counterpart to remove the link).
+        // This would require that the gradle tasks be run as an administrator, and that is possibly not ideal.
+        if (!SystemUtils.IS_OS_WINDOWS &&  project.hasProperty('nodeVersion')) {
+            project.tasks.register("symlinkNode") {
+                Task task ->
+                    task.group = GroupNames.DEPLOY
+                    task.description = "Make a symbolic link to the npm directory for use in PATH environment variable"
+                    task.doFirst({
+                        if (project.hasProperty('npmVersion') && project.hasProperty('npmWorkDirectory'))
+                            linkBinaries(project, "npm", project.npmVersion, project.npmWorkDirectory)
+                    })
+                    task.dependsOn(project.tasks.npmSetup)
+                    task.notCompatibleWithConfigurationCache("Needs its own class to declare proper input and output properties")
+            }
+            project.tasks.symlinkNode.notCompatibleWithConfigurationCache("References project properties. Need to add task class with input properties")
+            project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
         }
+
 
         if (BuildUtils.embeddedProjectExists(project)) {
             def embeddedProject = project.project(BuildUtils.getEmbeddedProjectPath())
@@ -221,11 +213,10 @@ class ServerDeploy implements Plugin<Project>
                 task.mustRunAfter(project.tasks.cleanEmbeddedDeploy)
             }
             TaskUtils.getOptionalTask(embeddedProject, 'checkVersionConflicts').ifPresent(task -> {
-                project.tasks.named('deployApp').configure {dependsOn(task)}
+                project.tasks.named('deployApp').configure {it.dependsOn(task)}
             })
 
-            project.tasks.named('stageApp').configure {dependsOn(embeddedProject.tasks.build)}
-            project.tasks.named('setup').configure {mustRunAfter(project.tasks.cleanEmbeddedDeploy)}
+            project.tasks.named('stageApp').configure {it.dependsOn(embeddedProject.tasks.build)}
 
         }
 
@@ -239,12 +230,9 @@ class ServerDeploy implements Plugin<Project>
             DeployDistribution task ->
                 task.group = GroupNames.DISTRIBUTION
                 task.description = "Extract the executable jar from a distribution and put it and the included binaries in the appropriate deploy directory"
-                task.dependsOn(project.tasks.cleanEmbeddedDeploy, project.tasks.setup)
+                task.dependsOn(project.tasks.cleanEmbeddedDeploy)
                 task.binaries.setFrom(project.configurations.binaries)
         }
-
-        // This may prevent multiple Tomcat restarts
-        project.tasks.named('setup').configure {mustRunAfter(project.tasks.stageDistribution)}
 
         project.tasks.register('undeployModules', UndeployModules) {
             UndeployModules task ->
@@ -282,7 +270,7 @@ class ServerDeploy implements Plugin<Project>
                     spec.delete project.rootProject.layout.buildDirectory
                 })
         }
-        project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanBuild)}
+        project.tasks.named('deployApp').configure {it.mustRunAfter(project.tasks.cleanBuild)}
 
         project.tasks.named("cleanBuild").configure {
             it.dependsOn(project.tasks.stopLabKey)
