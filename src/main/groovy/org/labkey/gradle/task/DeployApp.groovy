@@ -71,6 +71,7 @@ abstract class DeployApp extends DeployAppBase
         deployPipelineJars()
         deployPlatformBinaries(deployBinDir.get().asFile)
         deployEmbeddedBootJar()
+        setDatabaseProperties()
         setUpProperties()
         BuildUtils.updateRestartTriggerFile(useLocalBuild.get(), restartTriggerFile.get().asFile)
     }
