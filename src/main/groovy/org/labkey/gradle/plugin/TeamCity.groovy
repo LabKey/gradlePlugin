@@ -228,6 +228,7 @@ class TeamCity extends Tomcat
                     task.description = "Get database properties set up for running tests for ${suffix}"
                     task.setDatabaseProperties(properties)
                     task.dropDatabase = extension.dropDatabase
+                    task.driverFiles.setFrom(project.configurations.driver)
                     task.testValidationOnly = Boolean.parseBoolean( extension.getTeamCityProperty("testValidationOnly"))
                     task.dependsOn (pickDbTask)
             }
@@ -250,14 +251,20 @@ class TeamCity extends Tomcat
                         task.dbType = properties.shortType
                         task.mustRunAfter(BuildUtils.getServerProject(project).tasks.pickMSSQL)
                         task.mustRunAfter(BuildUtils.getServerProject(project).tasks.pickPg)
+                        task.notCompatibleWithConfigurationCache("Walks the project tree")
                 }
             }
             undeployTask = project.tasks.named(undeployTaskName)
             project.tasks.named("startLabKey").configure {
-                mustRunAfter(undeployTask)
+                it.mustRunAfter(undeployTask)
+            }
+
+            project.tasks.named("startTomcat").configure {
+                it.mustRunAfter(undeployTask)
             }
 
             project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startLabKey.mustRunAfter(setUpDbTask)
+            project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startTomcat.mustRunAfter(setUpDbTask)
             String ciTestTaskName = "ciTests" + properties.dbTypeAndVersion.capitalize()
             project.tasks.register(ciTestTaskName, RunTestSuite) {
                 RunTestSuite task ->
@@ -268,6 +275,7 @@ class TeamCity extends Tomcat
                     task.mustRunAfter(project.tasks.validateConfiguration)
                     task.mustRunAfter(project.tasks.cleanTestLogs)
                     task.mustRunAfter(project.tasks.startLabKey)
+                    task.mustRunAfter(project.tasks.startTomcat)
             }
 
             ciTests.add(project.tasks.named(ciTestTaskName))
