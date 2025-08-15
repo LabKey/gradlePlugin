@@ -25,10 +25,8 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
@@ -49,7 +47,7 @@ abstract class SetUpProperties extends TeamCityPropertiesTask
     @Input
     boolean dbPropertiesChanged = false
 
-    @InputFile
+    @OutputFile
     final abstract RegularFileProperty chosenPropsFile =  project.objects.fileProperty().fileValue(DatabaseProperties.getPickedConfigFile(project))
 
     @OutputFile

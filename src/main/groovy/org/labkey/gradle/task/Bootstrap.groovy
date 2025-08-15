@@ -15,10 +15,15 @@
  */
 package org.labkey.gradle.task
 
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.InputFile
 import org.labkey.gradle.util.DatabaseProperties
 
 abstract class Bootstrap extends DoThenSetup
 {
+    @InputFile
+    final abstract RegularFileProperty chosenPropsFile =  project.objects.fileProperty().fileValue(DatabaseProperties.getPickedConfigFile(project))
+
     boolean dbPropertiesChanged = true
 
     @Override

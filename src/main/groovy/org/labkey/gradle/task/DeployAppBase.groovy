@@ -6,21 +6,15 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
 import org.labkey.gradle.util.BuildUtils
-import org.labkey.gradle.util.DatabaseProperties
 
 import javax.inject.Inject
 
 abstract class DeployAppBase extends SetUpProperties {
 
     @Inject abstract FileSystemOperations getFs()
-
-    @OutputFile
-    final abstract RegularFileProperty chosenPropsFile =  project.objects.fileProperty().fileValue(DatabaseProperties.getPickedConfigFile(project))
 
     @InputFiles
     abstract ConfigurableFileCollection getBinaries()
