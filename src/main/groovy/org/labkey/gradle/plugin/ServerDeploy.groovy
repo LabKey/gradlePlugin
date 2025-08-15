@@ -238,6 +238,7 @@ class ServerDeploy implements Plugin<Project>
             UndeployModules task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Removes all module files and directories from the deploy and staging directories"
+                task.notCompatibleWithConfigurationCache("Walks the project tree")
         }
 
         project.tasks.register(
