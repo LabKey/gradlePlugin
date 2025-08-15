@@ -222,7 +222,7 @@ class TeamCity extends Tomcat
 
             String suffix = properties.dbTypeAndVersion.capitalize()
             String setUpTaskName = "setUp${suffix}"
-            project.tasks.register(setUpTaskName,TeamCityDbSetup) {
+            project.tasks.register(setUpTaskName, TeamCityDbSetup) {
                 TeamCityDbSetup task ->
                     task.group = GroupNames.TEST_SERVER
                     task.description = "Get database properties set up for running tests for ${suffix}"

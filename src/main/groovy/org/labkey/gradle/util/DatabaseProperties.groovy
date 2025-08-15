@@ -198,9 +198,9 @@ class DatabaseProperties
         this.configProperties.setProperty(JDBC_URL_PROP, PropertiesUtils.parseCompositeProp(projectPath, this.configProperties, this.configProperties.getProperty(JDBC_URL_PROP), logger))
     }
 
-    void mergePropertiesFromFile()
+    void mergePropertiesFromFile(File chosenPropsFile)
     {
-        Properties fileProperties = readDatabaseProperties(BuildUtils.getConfigsProject(project).file(PICKED_DATABASE_CONFIG_FILE), logger)
+        Properties fileProperties = readDatabaseProperties(chosenPropsFile, logger)
         for (String name : fileProperties.propertyNames())
         {
             if (this.configProperties.getProperty(name) == null)
