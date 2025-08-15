@@ -15,7 +15,6 @@
  */
 package org.labkey.gradle.task
 
-
 import org.gradle.api.tasks.TaskAction
 
 abstract class DoThenSetup extends SetUpProperties

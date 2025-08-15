@@ -15,10 +15,8 @@
  */
 package org.labkey.gradle.plugin
 
-import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete

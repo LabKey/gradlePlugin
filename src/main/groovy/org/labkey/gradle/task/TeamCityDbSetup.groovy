@@ -16,6 +16,7 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.tasks.Input
+import org.labkey.gradle.util.DatabaseProperties
 
 abstract class TeamCityDbSetup extends DoThenSetup
 {
@@ -38,7 +39,23 @@ abstract class TeamCityDbSetup extends DoThenSetup
             }
         }
         databaseProperties.interpolateCompositeProperties()
-        databaseProperties.writeDbProps()
+        writeDbProps()
     }
 
+    void writeDbProps()
+    {
+        writeDatabaseProperty(DatabaseProperties.JDBC_URL_PROP, databaseProperties.getJdbcURL())
+        writeDatabaseProperty(DatabaseProperties.JDBC_USER_PROP, databaseProperties.getJdbcUser())
+        writeDatabaseProperty(DatabaseProperties.JDBC_PASSWORD_PROP, databaseProperties.getJdbcPassword())
+    }
+
+    private void writeDatabaseProperty(String name, String value)
+    {
+        this.ant.propertyfile(
+                file: chosenPropsFile.get().asFile
+        )
+                {
+                    entry( key: name, value: value)
+                }
+    }
 }

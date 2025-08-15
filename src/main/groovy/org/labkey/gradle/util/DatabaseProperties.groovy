@@ -25,13 +25,13 @@ class DatabaseProperties
     private static final String PICKED_DATABASE_CONFIG_FILE = "config.properties"
 
     private static final String JDBC_DRIVER_CLASS_NAME_PROP = "jdbcDriverClassName"
-    private static final String JDBC_URL_PROP = "jdbcURL"
+    public static final String JDBC_URL_PROP = "jdbcURL"
     private static final String JDBC_PORT_PROP = "jdbcPort"
     private static final String JDBC_DATABASE_PROP = "jdbcDatabase"
     private static final String JDBC_HOST_PROP = "jdbcHost"
     private static final String JDBC_URL_PARAMS_PROP = "jdbcURLParameters"
-    private static final String JDBC_USER_PROP = "jdbcUser"
-    private static final String JDBC_PASSWORD_PROP = "jdbcPassword"
+    public static final String JDBC_USER_PROP = "jdbcUser"
+    public static final String JDBC_PASSWORD_PROP = "jdbcPassword"
     private static final String BOOTSTRAP_DB_PROP = "databaseBootstrap"
     private static final String DEFAULT_DB_PROP = "databaseDefault"
     private static final String DEFAULT_HOST_PROP = "databaseDefaultHost"
@@ -224,13 +224,6 @@ class DatabaseProperties
         setDefaultJdbcProperties(false)
     }
 
-    void writeDbProps()
-    {
-        writeDatabaseProperty(_project, JDBC_URL_PROP, PropertiesUtils.parseCompositeProp(projectPath, this.configProperties, this.configProperties.getProperty(JDBC_URL_PROP), logger))
-        writeDatabaseProperty(_project, JDBC_USER_PROP, getJdbcUser())
-        writeDatabaseProperty(_project, JDBC_PASSWORD_PROP, getJdbcPassword())
-    }
-
     static Properties readDatabaseProperties(File configFile, Logger logger)
     {
         if (configFile.exists())
@@ -243,15 +236,5 @@ class DatabaseProperties
             logger.info("No file ${configFile} found.  Returning empty properties.")
             return new Properties()
         }
-    }
-
-    private void writeDatabaseProperty(Project project, String name, String value)
-    {
-        project.ant.propertyfile(
-                file: getPickedConfigFile(project)
-        )
-                {
-                    entry( key: name, value: value)
-                }
     }
 }
