@@ -188,8 +188,7 @@ abstract class SetUpProperties extends TeamCityPropertiesTask
         // should be able to declare the dependencies on the driver jars in the buildscript { dependencies { } } block,
         // but see this (admittedly old) post https://discuss.gradle.org/t/class-pathes-in-gradle-script/16655, which
         // has a response that explains that "the caller to Sql isn't actually the build script, it is Groovy. So,
-        // you need to load the driver in the same classloader as Groovy." Maybe we'd have a different story if we
-        // were using Java instead of Groovy. Someday.
+        // you need to load the driver in the same classloader as Groovy."
         getDriverFiles().each {File file ->
             logger.info("adding classLoader URL " + file.toURI().toURL())
             loader.addURL(file.toURI().toURL())
