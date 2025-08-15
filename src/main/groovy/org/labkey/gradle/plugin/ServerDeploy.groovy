@@ -128,26 +128,23 @@ class ServerDeploy implements Plugin<Project>
             Task task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Copy files needed for using remote pipeline jobs into ${stagingPipelineLibDir}"
+                task.inputs.files(project.configurations.remotePipelineJars.getFiles())
+                task.outputs.dir(BuildUtils.getRootBuildDirFile(project, STAGING_PIPELINE_DIR))
                 task.doLast({
-                    if (!project.configurations.remotePipelineJars.getFiles().isEmpty()) {
-                        task.ant.copy(
-                            todir: stagingPipelineLibDir,
+                    if (!inputs.files.isEmpty()) {
+                        ant.copy(
+                            todir: outputs.files.singleFile,
                             preserveLastModified: true
                         )
                         {
-                            project.configurations.remotePipelineJars
-                            {
-                                Configuration collection ->
-                                    collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-                            }
+                            inputs.files.addToAntBuilder(ant, "fileset", FileCollection.AntType.FileSet)
                         }
                     }
                 })
         }
 
         project.tasks.named('stageRemotePipelineJars').configure {
-            dependsOn project.configurations.remotePipelineJars
-            notCompatibleWithConfigurationCache("TODO Needs dedicated task class with configuration as input")
+            it.dependsOn project.configurations.remotePipelineJars
         }
 
         project.tasks.register(
@@ -275,9 +272,11 @@ class ServerDeploy implements Plugin<Project>
 
         project.tasks.named("cleanBuild").configure {
             it.dependsOn(project.tasks.stopLabKey)
+            it.mustRunAfter(project.tasks.stopTomcat)
         }
         project.tasks.named("cleanDeploy").configure {
             it.dependsOn(project.tasks.stopLabKey)
+            it.mustRunAfter(project.tasks.stopTomcat)
         }
     }
 
