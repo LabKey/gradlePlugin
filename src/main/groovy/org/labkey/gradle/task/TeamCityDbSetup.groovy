@@ -30,7 +30,7 @@ abstract class TeamCityDbSetup extends DoThenSetup
     {
         databaseProperties.mergePropertiesFromFile()
         if (dropDatabase) {
-            if (testValidationOnly){
+            if (testValidationOnly) {
                 logger.info("The 'testValidationOnly' flag is true, not going to drop the database.")
             }
             else {
