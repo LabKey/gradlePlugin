@@ -116,7 +116,7 @@ abstract class SetUpProperties extends TeamCityPropertiesTask
                     if (line.startsWith("#")) {
                         return line // Don't apply replacements to comments
                     }
-                    return PropertiesUtils.replaceProps(line, configProperties, false)
+                    return PropertiesUtils.replaceProps(line, configProperties)
                 })
             })
             BuildUtils.updateRestartTriggerFile(useLocalBuild.get(), restartTriggerFile.get().asFile)
@@ -125,7 +125,7 @@ abstract class SetUpProperties extends TeamCityPropertiesTask
 
     /**
      * Get 'extraJdbc*' properties from TeamCity.
-     * Used as string replacements when deploying 'labkey.xml' and 'application.properties'
+     * Used as string replacements when deploying 'application.properties'
      */
     @Input
     Properties getExtraJdbcProperties()

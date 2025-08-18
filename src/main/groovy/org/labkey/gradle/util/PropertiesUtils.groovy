@@ -15,7 +15,6 @@
  */
 package org.labkey.gradle.util
 
-import org.apache.commons.text.StringEscapeUtils
 import org.gradle.api.Project
 import org.slf4j.Logger
 
@@ -67,33 +66,24 @@ class PropertiesUtils
         return prop
     }
 
-    static String replacePropInLine(String line, String propName, Object val, Boolean xmlEncode)
+    static String replacePropInLine(String line, String propName, Object val)
     {
         if (val != null)
         {
             String stringVal = val.toString()
-            if (xmlEncode)
-                stringVal = StringEscapeUtils.escapeXml10(stringVal)
             return line.replace("@@" + propName + "@@", stringVal)
         }
         return line
     }
 
-    static String replaceProps(String line, Properties props, Boolean xmlEncode = false)
+    static String replaceProps(String line, Properties props)
     {
         Matcher matcher = PROPERTY_PATTERN.matcher(line)
         while (matcher.find())
         {
             String propName = matcher.group(1)
             if (props.containsKey(propName))
-                line = replacePropInLine(line, propName, props.get(propName), xmlEncode)
-            // backward compatibility for labkey.xml having new prop name and config.properties having old one
-            // TODO remove these cases once we move to a plugin version that doesn't need to support backward compatibility
-            else if (propName.equals(ENCRYPTION_KEY_PROP_NAME) && props.containsKey(DEPRECATED_ENCRYPTION_KEY_PROP_NAME))
-                line = replacePropInLine(line, propName, props.get(DEPRECATED_ENCRYPTION_KEY_PROP_NAME), xmlEncode)
-            // backward compatibility for labkey.xml having old prop name and config.properties having new one
-            else if (propName.equals(DEPRECATED_ENCRYPTION_KEY_PROP_NAME) && props.containsKey(ENCRYPTION_KEY_PROP_NAME))
-                line = replacePropInLine(line, propName, props.get(ENCRYPTION_KEY_PROP_NAME), xmlEncode)
+                line = replacePropInLine(line, propName, props.get(propName))
         }
         return line
     }
