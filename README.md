@@ -18,6 +18,8 @@ on how to do that, including how to develop and test locally and the versioning 
 (Earliest compatible LabKeyversion: 25.2)
 - Update `PurgeArtifacts` task to be compatible with configuration cache and to work with input files so archived projects can be kept up to date
 - Update dependency versions
+- [Issue 53244](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=53244): Update `stopLabKey` task to work without Spring's shutdown endpoint
+- [Issue 53792](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=53792): Conditionally enable Java heap dumps in `StartLabKey` task
 
 ### 6.3.0
 *Released*: 3 July 2025

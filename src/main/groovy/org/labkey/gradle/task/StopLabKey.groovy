@@ -17,7 +17,10 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-import org.labkey.gradle.util.PropertiesUtils
+import org.labkey.gradle.plugin.extension.ServerDeployExtension
+
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 
 /**
  * Task for stopping a running LabKey instance
@@ -27,16 +30,38 @@ class StopLabKey extends DefaultTask
     @TaskAction
     void action()
     {
-        def applicationProperties = PropertiesUtils.getApplicationProperties(project)
-        def port = applicationProperties.getProperty("management.server.port", applicationProperties.getProperty("server.port"))
-        def endpoint =  "${project.hasProperty("useSsl") ? "https" : "http"}://localhost:$port/actuator/shutdown"
-        def command = "curl -X POST $endpoint"
-        this.logger.info("Sending command to $endpoint")
-        def proc = command.execute()
-        proc.waitFor()
-        if (proc.exitValue() != 0)
-            this.logger.warn("Shutdown command exited with non-zero status ${proc.exitValue()}.")
-        else
-            this.logger.quiet("Shutdown successful")
+        def pidFile = new File(ServerDeployExtension.getLabKeyPidFile(project), "labkey.pid")
+
+        if (pidFile.exists())
+        {
+            String pidStr = new String(Files.readAllBytes(pidFile.toPath()), StandardCharsets.UTF_8).trim()
+            Integer pid = Integer.parseInt(pidStr)
+            stopLabKeyByPid(pid)
+        }
+
     }
+
+    private static void stopLabKeyByPid(long pid)
+    {
+        ProcessHandle.of(pid).ifPresent {processHandle ->
+            processHandle.onExit().thenRun {
+                this.logger.quiet("LabKey gracefully terminated. pid: " + pid)
+            }
+
+            boolean terminated = processHandle.destroy()
+            if (terminated) {
+                this.logger.info("LabKey shutdown triggered.")
+                try {
+                    processHandle.onExit().wait(10_000)
+                }
+                catch (InterruptedException ie) {
+                    this.logger.error("Failed to shutdown LabKey", ie)
+                }
+            }
+            else {
+                this.logger.error("Unable to shutdown LabKey")
+            }
+        }
+    }
+
 }
