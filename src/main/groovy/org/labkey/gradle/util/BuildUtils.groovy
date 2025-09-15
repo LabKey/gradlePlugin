@@ -895,7 +895,7 @@ class BuildUtils
 
     static File getRestartTriggerFile(Project project)
     {
-        return project.rootProject.layout.buildDirectory.file("deploy/modules/" + RESTART_FILE_NAME).get().getAsFile()
+        return project.rootProject.layout.buildDirectory.file("deploy/" + RESTART_FILE_NAME).get().getAsFile()
     }
 
     static void updateRestartTriggerFile(boolean useLocalBuild, File triggerFile)
