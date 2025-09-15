@@ -15,7 +15,7 @@
  */
 package org.labkey.gradle.plugin.extension
 
-import org.gradle.api.GradleException
+
 import org.gradle.api.Project
 
 import java.nio.file.Paths
@@ -37,27 +37,25 @@ class DistributionExtension
         this.project = project
     }
 
-    static File getDistributionFile(Project project) {
-        File distDir = new File(project.rootDir, "dist")
-        if (project.hasProperty("distDir"))
-        {
-            if (Paths.get((String) project.property('distDir')).isAbsolute())
-                distDir = new File((String) project.property('distDir'))
-            else
-                distDir = new File(project.rootDir, (String) project.property("distDir"))
+    static File getDistributionFile(Project project, String distDirName) {
+        File distDir
+        if (Paths.get(distDirName).isAbsolute())
+            distDir = new File((String) project.property('distDir'))
+        else
+            distDir = new File(project.rootDir, distDirName)
+        if (distDir.exists()) {
+            File[] distFiles = distDir.listFiles(new FilenameFilter() {
+                @Override
+                boolean accept(File dir, String name)
+                {
+                    return name.endsWith(TAR_ARCHIVE_EXTENSION)
+                }
+            })
+            if (distFiles == null || distFiles.length == 0 || distFiles.length > 1)
+                return null
+
+            return distFiles[0]
         }
-        if (!distDir.exists())
-            throw new GradleException("Distribution directory ${distDir} not found")
-        File[] distFiles = distDir.listFiles(new FilenameFilter() {
-            @Override
-            boolean accept(File dir, String name) {
-                return name.endsWith(TAR_ARCHIVE_EXTENSION)
-            }
-        })
-        if (distFiles == null || distFiles.length == 0)
-            throw new GradleException("No distribution found in directory ${distDir} with extension ${TAR_ARCHIVE_EXTENSION}")
-        else if (distFiles.length > 1)
-            throw new GradleException("${distDir} contains ${distFiles.length} files with extension ${TAR_ARCHIVE_EXTENSION}. Only one is allowed.")
-        return distFiles[0]
+        return null
     }
 }

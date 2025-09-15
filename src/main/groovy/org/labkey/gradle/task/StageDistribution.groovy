@@ -25,6 +25,8 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.file.RelativePath
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -39,6 +41,9 @@ abstract class StageDistribution extends DefaultTask
     @Inject abstract FileSystemOperations getFs()
     @Inject abstract ArchiveOperations getArchiveOps()
 
+    @Input
+    final abstract Property<String> distDir = project.objects.property(String).convention(project.hasProperty("distDir") ? (String) project.property("distDir") : "dist")
+
     @OutputDirectory
     final abstract DirectoryProperty modulesStagingDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_MODULES_DIR)
 
@@ -49,7 +54,7 @@ abstract class StageDistribution extends DefaultTask
     final abstract DirectoryProperty pipelineJarStagingDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_PIPELINE_DIR)
 
     @InputFile
-    final abstract RegularFileProperty distributionFileProp = project.objects.fileProperty().fileValue(DistributionExtension.getDistributionFile(project))
+    final abstract RegularFileProperty distributionFileProp = project.objects.fileProperty().fileValue(DistributionExtension.getDistributionFile(project, distDir.get()))
 
     @TaskAction
     void action()
