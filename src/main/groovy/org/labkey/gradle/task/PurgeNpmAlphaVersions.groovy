@@ -33,7 +33,7 @@ abstract class PurgeNpmAlphaVersions extends DefaultTask
     ]
 
     @Input
-    final abstract Property<String> alphaPrefixProp = project.objects.property(String).convention((String) project.property(ALPHA_PREFIX_PROPERTY))
+    final abstract Property<String> alphaPrefixProp = project.objects.property(String).convention((project.hasProperty(ALPHA_PREFIX_PROPERTY) ? (String) project.property(ALPHA_PREFIX_PROPERTY) : null))
     @Input
     final abstract Property<Boolean> isDryRun = project.objects.property(Boolean).convention(project.hasProperty(DRY_RUN_PROPERTY))
     @Input
@@ -46,6 +46,8 @@ abstract class PurgeNpmAlphaVersions extends DefaultTask
     @TaskAction
     void purgeVersions()
     {
+        if (!alphaPrefixProp.isPresent() || StringUtils.isEmpty(alphaPrefixProp.get().trim()))
+            throw new GradleException("No value provided for alphaPrefix.")
         String alphaPrefix = alphaPrefixProp.get()
         String[] undeletedVersions = []
         for (String packageName : PACKAGE_NAMES)
