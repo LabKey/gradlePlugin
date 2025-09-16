@@ -163,29 +163,6 @@ class TeamCity extends Tomcat
             dependsOn(project.tasks.createStartupPropertyFile)
         }
 
-        // TODO remove once no longer referenced in TeamCity
-        project.tasks.register("createNlpConfig", Copy) {
-            Copy task ->
-                task.group = GroupNames.TEST_SERVER
-                task.description = "Create NLP engine configs for the test server"
-                task.from BuildUtils.getServerProject(project).file(TEST_CONFIGS_DIR)
-                task.include NLP_CONFIG_FILE
-                task.inputs.property("directoryPath", new File((String) project.labkey.externalDir, "nlp/nlp_engine.py").getAbsolutePath())
-                task.filter({ String line ->
-                    Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
-                    String newLine = line
-                    while (matcher.find())
-                    {
-                        if (matcher.group(1).equals("enginePath"))
-                            newLine = newLine.replace(matcher.group(), (String) task.inputs.properties.get("directoryPath"))
-                    }
-                    return newLine
-                }
-                )
-                task.destinationDir = new File("${ServerDeployExtension.getServerDeployDirectoryPath(project)}/config")
-
-        }
-
         project.tasks.register("validateConfiguration") {
             Task task ->
                 task.doFirst

@@ -29,7 +29,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - Update `GzipAction` task to use task logger and ant builder objects
 - Update `StopLabKey` and `StartLabKey` with appropriate dependencies to mirror the deprecated `StopTomcat` and `StartTomcat`
 - Remove deprecated `getServerDeployDirectory` from `ServerDeployExtension`
-- TODO Remove `createNlpConfig` task from `TeamCity` plugin since that module is no longer in use
+- Remove `createNlpConfig` task from `TeamCity` plugin since that module is no longer in use
 - Remove `setup` task from `ServerDeploy` plugin.
 - Update `DeployDistribution` and `StageDistribution` for configuration cache compatibility
 - Some updates for `ModuleDistribution` for better configuration cache compatibility
