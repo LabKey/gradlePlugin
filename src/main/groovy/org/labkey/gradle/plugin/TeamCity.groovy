@@ -228,6 +228,7 @@ class TeamCity extends Tomcat
                     task.description = "Get database properties set up for running tests for ${suffix}"
                     task.setDatabaseProperties(properties)
                     task.dropDatabase = extension.dropDatabase
+                    task.dbPropertiesChanged = true
                     task.driverFiles.setFrom(project.configurations.driver)
                     task.testValidationOnly = Boolean.parseBoolean( extension.getTeamCityProperty("testValidationOnly"))
                     task.dependsOn (pickDbTask)

@@ -74,6 +74,8 @@ class Database implements Plugin<Project>
                 task.group = GroupNames.DATABASE
                 task.description = "Switch to bootstrap database properties as defined in current db.config file"
                 task.driverFiles.setFrom(project.configurations.driver)
+                task.dbPropertiesChanged = true
+                task.outputs.upToDateWhen({ return false })
         }
     }
 }

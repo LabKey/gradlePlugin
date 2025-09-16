@@ -183,36 +183,25 @@ abstract class SetUpProperties extends TeamCityPropertiesTask
         logger.info("in execSql: url ${url} driverClassName ${driverClassName}")
         logger.debug(" user ${user} password ${password}")
 
-        var loader = GroovyObject.class.classLoader
+        var sqlLoader = Sql.classLoader
         // N.B. It seems like this modification of the loader classpath should not be necessary (or possible) and we
         // should be able to declare the dependencies on the driver jars in the buildscript { dependencies { } } block,
-        // but see this (admittedly old) post https://discuss.gradle.org/t/class-pathes-in-gradle-script/16655, which
-        // has a response that explains that "the caller to Sql isn't actually the build script, it is Groovy. So,
-        // you need to load the driver in the same classloader as Groovy."
+        // but see this (admittedly old) post about how the classloader is behaving and the suggested solution (pre Gradle 9, but still)
+        // https://stackoverflow.com/questions/44740416/drivermanager-doesnt-see-dependency-in-gradle-custom-plugins-task
         getDriverFiles().each {File file ->
             logger.info("adding classLoader URL " + file.toURI().toURL())
-            loader.addURL(file.toURI().toURL())
+            sqlLoader.addURL(file.toURI().toURL())
         }
-        Class driverClass = loader.loadClass(driverClassName)
-        logger.info("driverClass is ${driverClass}")
 
-        Driver driverInstance = (Driver) driverClass.newInstance()
-        DriverManager.registerDriver(driverInstance)
-
-        Sql db = null
         try
         {
-            db = Sql.newInstance(url, user, password)
-            db.execute(sql)
+            Sql.withInstance(url, user, password, driverClassName) {
+                it.execute sql
+            }
         }
         catch (Exception e)
         {
             logger.error(e.toString())
-        }
-        finally
-        {
-            if (db != null)
-                db.close()
         }
     }
 

@@ -20,7 +20,6 @@ import org.labkey.gradle.util.DatabaseProperties
 
 abstract class TeamCityDbSetup extends DoThenSetup
 {
-    boolean dbPropertiesChanged = true
     @Input
     boolean dropDatabase = false
     @Input

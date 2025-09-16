@@ -34,6 +34,8 @@ on how to do that, including how to develop and test locally and the versioning 
 - Update `DeployDistribution` and `StageDistribution` for configuration cache compatibility
 - Some updates for `ModuleDistribution` for better configuration cache compatibility
 - Update `PropertiesUtils` to remove code for supporting `labkey.xml`
+- Relocate the `.restartTriggerFile` to prevent creation of empty `build/deploy/modules` directory for embedded distribution deployment
+- Fix `bootstrap` task so it will update `application.properties`
 
 ### 6.3.0
 *Released*: 3 July 2025
