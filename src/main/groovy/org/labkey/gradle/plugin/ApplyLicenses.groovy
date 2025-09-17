@@ -111,6 +111,7 @@ class ApplyLicenses implements Plugin<Project>
                         }
                     }
                 }
+                it.notCompatibleWithConfigurationCache("Needs to inject ArtifactOperations for zipTree usage")
             }
         }
     }

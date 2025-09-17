@@ -159,22 +159,25 @@ class TestRunner extends UiTest
 
     private void addAspectJ(Project project)
     {
-        project.tasks.named('compileUiTestJava').configure {doLast {
-            ant.taskdef(
-                resource: "org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties",
-                classpath: project.configurations.aspectj.asPath
-            )
-            ant.iajc(
-                destdir: BuildUtils.getBuildDirFile(project,"classes/java/uiTest/").getPath(),
-                source: project.sourceCompatibility,
-                target: project.targetCompatibility,
-                classpath: project.configurations.uiTestRuntimeClasspath.asPath,
-                {
-                    project.sourceSets.uiTest.java.srcDirs.each {
-                        src(path: it)
+        project.tasks.named('compileUiTestJava').configure {it ->
+            it.doLast {
+                ant.taskdef(
+                    resource: "org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties",
+                    classpath: project.configurations.aspectj.asPath
+                )
+                ant.iajc(
+                    destdir: BuildUtils.getBuildDirFile(project,"classes/java/uiTest/").getPath(),
+                    source: project.sourceCompatibility,
+                    target: project.targetCompatibility,
+                    classpath: project.configurations.uiTestRuntimeClasspath.asPath,
+                    {
+                        project.sourceSets.uiTest.java.srcDirs.each {
+                            src(path: it)
+                        }
                     }
-                }
-            )
-        }}
+                )
+            }
+            it.notCompatibleWithConfigurationCache("Needs configurations adn sourceSets specified as ConfigurableFileCollection.")
+        }
     }
 }

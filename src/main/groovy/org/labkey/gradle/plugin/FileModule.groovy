@@ -223,12 +223,8 @@ class FileModule implements Plugin<Project>
                 task.doLast {
                     BuildUtils.updateRestartTriggerFile(project)
                 }
+                task.notCompatibleWithConfigurationCache("Does multiple deletes using project.delete. Should have its own class.")
         }
-
-        project.tasks.named('undeployModule')
-                {
-                    notCompatibleWithConfigurationCache("Need a good way to pick up all the module files and directories. Will likely required its own class with various task outputs as inputs.")
-                }
 
         project.tasks.register("reallyClean") {
             Task task ->

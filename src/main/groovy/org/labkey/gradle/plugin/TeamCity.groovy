@@ -280,6 +280,7 @@ class TeamCity extends Tomcat
                         extension.writeStartupProperties('00_modulesInclude.properties',
                                 'ModuleLoader.include;startup=' + String.join(',', includeModules))
                     }
+                    task.notCompatibleWithConfigurationCache("Needs the distribution configuration specified as an input ConfigurableFileCollection")
             }
 
             project.tasks.named("startLabKey").configure {

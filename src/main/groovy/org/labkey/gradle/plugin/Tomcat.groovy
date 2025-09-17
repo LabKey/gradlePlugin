@@ -58,6 +58,7 @@ class Tomcat implements Plugin<Project>
             StartLabKey task ->
                 task.group = GroupNames.WEB_APPLICATION
                 task.description = "Start the LabKey web application"
+                task.notCompatibleWithConfigurationCache("Needs some properties converted to inputs and outputs")
         }
 
         project.tasks.register("stopLabKey", StopLabKey) {
@@ -71,6 +72,7 @@ class Tomcat implements Plugin<Project>
             StartLabKey task ->
                 task.group = GroupNames.WEB_APPLICATION
                 task.description = "Start the LabKey web application (deprecated: use startLabKey)"
+                task.notCompatibleWithConfigurationCache("Needs some properties converted to inputs and outputs")
         }
 
         project.tasks.register("stopTomcat", StopLabKey) {
