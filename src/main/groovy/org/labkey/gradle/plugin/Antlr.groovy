@@ -26,6 +26,7 @@ import org.labkey.gradle.util.GroupNames
 
 /**
  * Used to compile antlr grammars into Java classes using the antlr executable.
+ * TODO: This could be converted to using the Antlr plugin https://docs.gradle.org/9.1.0/userguide/antlr_plugin.html
  */
 class Antlr implements Plugin<Project>
 {
