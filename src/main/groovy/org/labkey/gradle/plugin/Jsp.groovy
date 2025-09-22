@@ -109,17 +109,6 @@ class Jsp implements Plugin<Project>
 
     private static void addJspTasks(Project project)
     {
-        project.tasks.register('listJsps') {
-            Task task ->
-                task.group = GroupNames.JSP
-                task.doLast {
-                    getJspFileTree(project).each ({
-                        println it.absolutePath
-                    })
-                }
-        }
-
-
         project.tasks.register('copyJsp', CopyJsp) {
             CopyJsp task ->
                 task.group = GroupNames.JSP

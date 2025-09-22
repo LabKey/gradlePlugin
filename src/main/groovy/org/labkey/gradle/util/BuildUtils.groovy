@@ -848,12 +848,16 @@ class BuildUtils
 
     static String getEmbeddedConfigPath(Project project)
     {
-        return new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project), "config").absolutePath
+        return getEmbeddedConfigDirectory(project).asFile.absolutePath
     }
 
-    static File getExecutableServerJar(Project project)
+    static Directory getEmbeddedConfigDirectory(Project project)
     {
-        File deployDir = new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project))
+        return ServerDeployExtension.getEmbeddedServerDeployDirectory(project).dir("config")
+    }
+
+    static File getExecutableServerJar(File deployDir)
+    {
         File[] jarFiles = deployDir.listFiles(new FilenameFilter() {
             @Override
             boolean accept(File dir, String name) {
@@ -874,27 +878,35 @@ class BuildUtils
     }
 
     /**
-     * Writes a file in the build/deploy/modules directory that can be used as a trigger file for restarting
+     * Writes a file in the build/deploy directory that can be used as a trigger file for restarting
      * SpringBoot. Without this, restarts may happen before the full application deployment is done, resulting
      * in a failed start. See
      * https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using.devtools.restart.triggerfile
-     * We use build/deploy/modules because when using a local build it's added in the application.properties file as a
+     * We use build/deploy because when using a local build it's added in the application.properties file as a
      * spring.devtools.restart.additional-paths
      *
      * @param project - for use in getting the rootProject's build directory
      */
     static void updateRestartTriggerFile(Project project)
     {
-        if (!project.hasProperty('useLocalBuild') || "false" == project.property("useLocalBuild"))
+        updateRestartTriggerFile(project.hasProperty('useLocalBuild') && "false" != project.property("useLocalBuild"), getRestartTriggerFile(project))
+    }
+
+    static File getRestartTriggerFile(Project project)
+    {
+        return project.rootProject.layout.buildDirectory.file("deploy/" + RESTART_FILE_NAME).get().getAsFile()
+    }
+
+    static void updateRestartTriggerFile(boolean useLocalBuild, File triggerFile)
+    {
+        if (!useLocalBuild)
             return
 
-        File triggerFileDir = project.rootProject.layout.buildDirectory.file("deploy/modules").get().getAsFile()
-        if (!triggerFileDir.exists())
-            return
+        if (!triggerFile.getParentFile().exists())
+            triggerFile.getParentFile().mkdirs()
 
         OutputStreamWriter writer = null
         try {
-            File triggerFile = new File(triggerFileDir, RESTART_FILE_NAME)
             writer = new OutputStreamWriter(new FileOutputStream(triggerFile), StandardCharsets.UTF_8)
             writer.write(SimpleDateFormat.getDateTimeInstance().format(new Date()))
         }
@@ -952,6 +964,11 @@ class BuildUtils
     static String getRootBuildDirPath(Project project)
     {
         return project.rootProject.layout.buildDirectory.get().asFile.path
+    }
+
+    static File getApplicationPropertiesFile(Project project)
+    {
+        return new File(getEmbeddedConfigPath(project), "application.properties")
     }
 
     static Provider<Directory> getRootBuildDirectoryProvider(Project project, String directoryPath)

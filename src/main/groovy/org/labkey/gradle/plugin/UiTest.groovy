@@ -93,6 +93,7 @@ class UiTest implements Plugin<Project>
                     task.mustRunAfter(serverProject.tasks.pickPg)
                     task.mustRunAfter(serverProject.tasks.pickMSSQL)
                 }
+                task.notCompatibleWithConfigurationCache("Needs some properties set for various project references.")
         }
     }
 

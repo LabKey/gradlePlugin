@@ -17,22 +17,27 @@ package org.labkey.gradle.plugin.extension
 
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
+import org.gradle.api.provider.Provider
 import org.labkey.gradle.plugin.ServerDeploy
 import org.labkey.gradle.util.BuildUtils
 
 class ServerDeployExtension
 {
-    Map<String, String> foundModules = new HashMap<>();
-
-    @Deprecated(forRemoval=true)
-    static String getServerDeployDirectory(Project project)
-    {
-        return getServerDeployDirectoryPath(project)
-    }
+    Map<String, String> foundModules = new HashMap<>()
 
     static String getServerDeployDirectoryPath(Project project)
     {
         return BuildUtils.getRootBuildDirFile(project, ServerDeploy.DEPLOY_DIR).path
+    }
+
+    static Provider<Directory> getServerDeployDirectoryProvider(Project project)
+    {
+        return BuildUtils.getRootBuildDirectoryProvider(project, ServerDeploy.DEPLOY_DIR)
+    }
+
+    static Directory getEmbeddedServerDeployDirectory(Project project)
+    {
+        return getServerDeployDirectoryProvider(project).get().dir("embedded")
     }
 
     static String getEmbeddedServerDeployDirectoryPath(Project project)

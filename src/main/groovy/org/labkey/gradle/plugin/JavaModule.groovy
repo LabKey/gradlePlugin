@@ -157,10 +157,6 @@ class JavaModule implements Plugin<Project>
                     })
         }
 
-        project.tasks.named('populateExplodedLib') {
-            notCompatibleWithConfigurationCache("Need to figure out how to make the inputs from the optional tasks work.")
-        }
-
         project.tasks.named('module').configure {dependsOn(populateLib)}
         // We do this afterEvaluate to allow all dependencies to be declared before checking
         project.afterEvaluate({

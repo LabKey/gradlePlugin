@@ -30,6 +30,7 @@ repositories {
 dependencies {
     implementation gradleApi()
     implementation localGroovy()
+    implementation "org.apache.groovy:groovy-sql:${groovySqlVersion}"
     api "org.apache.commons:commons-lang3:${commonsLang3Version}"
     api "org.apache.commons:commons-text:${commonsTextVersion}"
     api "commons-io:commons-io:${commonsIoVersion}"
@@ -42,7 +43,7 @@ dependencies {
 }
 
 group = 'org.labkey.build'
-project.version = "6.4.0-SNAPSHOT"
+project.version = "7.1.0-SNAPSHOT"
 
 gradlePlugin {
     plugins {

@@ -51,6 +51,7 @@ class ClientLibraries
                     task.dependsOn(project.tasks.processResources)
                     task.dependsOn(project.project(minProjectPath).tasks.named("npmInstall"))
                     task.xmlFiles = getLibXmlFiles(project)
+                    task.notCompatibleWithConfigurationCache("Class ClientLibsCompress needs more input and output properties declared")
             }
 
             project.evaluationDependsOn(minProjectPath)

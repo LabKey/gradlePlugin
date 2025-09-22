@@ -13,11 +13,29 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### TBD
-*Released*: TBD
-(Earliest compatible LabKeyversion: 25.2)
+### 7.0.0
+*Released*: 22 September 2025
+(Earliest compatible LabKey version: 25.10)
 - Update `PurgeArtifacts` task to be compatible with configuration cache and to work with input files so archived projects can be kept up to date
 - Update dependency versions
+- Update DoThenSetup and its relatives to be compatible with configuration cache
+- Update DeployApp for better configuration cache compatibility
+- Replace usages of project.javaexc with JavaExc task types or injected ExecOperations
+- Update CompressClientLibs, StopLabKey to work better with configuration cache
+- Remove `listNodeModules` task defined by `NpmRun` plugin
+- Remove `cleanOut` task defined by `FileModule` plugin
+- Remove `cleanAndDeploy` task from `ServerDeploy` plugin
+- Update `CopyAndInstallRPackage` Task class to use injected FileSystem instead of `project.copy`
+- Update `GzipAction` task to use task logger and ant builder objects
+- Update `StopLabKey` and `StartLabKey` with appropriate dependencies to mirror the deprecated `StopTomcat` and `StartTomcat`
+- Remove deprecated `getServerDeployDirectory` from `ServerDeployExtension`
+- Remove `createNlpConfig` task from `TeamCity` plugin since that module is no longer in use
+- Remove `setup` task from `ServerDeploy` plugin.
+- Update `DeployDistribution` and `StageDistribution` for configuration cache compatibility
+- Some updates for `ModuleDistribution` for better configuration cache compatibility
+- Update `PropertiesUtils` to remove code for supporting `labkey.xml`
+- Relocate the `.restartTriggerFile` to prevent creation of empty `build/deploy/modules` directory for embedded distribution deployment
+- Fix `bootstrap` task so it will update `application.properties`
 
 ### 6.3.0
 *Released*: 3 July 2025

@@ -36,119 +36,9 @@ class TeamCityExtension
         setValidationMessages()
     }
 
-    Boolean isValidForTestRun()
-    {
-        return validationMessages.isEmpty()
-    }
-
-    void setValidationMessages()
-    {
-        if (getTeamCityProperty("suite").isEmpty())
-            validationMessages.add("'suite' property not specified")
-        if (this.databaseTypes.isEmpty())
-            validationMessages.add("'database.types' property not specified or does not specify a supported database.")
-        if (getTeamCityProperty('agent.name').isEmpty())
-            validationMessages.add("'agent.name' property not specified")
-        if (getTeamCityProperty('teamcity.projectName').isEmpty())
-            validationMessages.add("'teamcity.projectName' property not specified")
-        if (getTeamCityProperty('tomcat.debug').isEmpty())
-            validationMessages.add("'tomcat.debug' property (for debug port) not specified")
-        if (getTeamCityProperty('tomcat.port').isEmpty())
-            validationMessages.add("'tomcat.port' property not specified")
-        if (getTeamCityProperty('tomcat.shutdown').isEmpty())
-            validationMessages.add("'tomcat.shutdown' property not specified")
-    }
-
-    private void setDatabaseProperties()
-    {
-        if (!getTeamCityProperty('database.name').isEmpty())
-        {
-            this.databaseName = getTeamCityProperty('database.name')
-            this.dropDatabase = getTeamCityProperty('drop.database', true)
-        }
-        else if ((Boolean) getTeamCityProperty("build.is.personal", false))
-        {
-            this.databaseName = "LabKey_PersonalBuild"
-            this.dropDatabase = true
-        }
-        else
-        {
-            String name = getTeamCityProperty("teamcity.buildType.id")
-            if (!isBuildBranchDefault())
-                name = "${getBuildBranch()}_${name}"
-            this.databaseName = name.replaceAll("[/\\.\\s-]", "_")
-            String dropProperty = getTeamCityProperty('drop.database')
-            this.dropDatabase = dropProperty.equals("1") || dropProperty.equalsIgnoreCase("true")
-        }
-        String typeAndVersion = getTeamCityProperty("database.types") // despite the naming here, there is only one type specified
-        String typeName = getTeamCityProperty("database.${typeAndVersion}.type")
-        if (typeName.isEmpty())
-        {
-            validationMessages.add("database.${typeAndVersion}.type not specified. Needed to customize database props")
-        }
-        DatabaseProperties props = new DatabaseProperties(typeAndVersion, typeName, null)
-
-        props.setProject(project)
-        props.jdbcDatabase = getDatabaseName()
-        if (!getTeamCityProperty("database.${typeAndVersion}.jdbcURL").isEmpty())
-        {
-            props.setJdbcURL(getTeamCityProperty("database.${typeAndVersion}.jdbcURL"))
-            if (getTeamCityProperty("database.${typeAndVersion}.port").isEmpty() && this.dropDatabase)
-                validationMessages.add("'database.${typeAndVersion}.port' not specified. Unable to drop database.")
-        }
-        else if (getTeamCityProperty("database.${typeAndVersion}.port").isEmpty())
-            validationMessages.add("database.${typeAndVersion}.jdbcURL and database.${typeAndVersion}.port not specified. Connection not possible.")
-
-        if (!getTeamCityProperty("database.${typeAndVersion}.port").isEmpty())
-            props.setJdbcPort(getTeamCityProperty("database.${typeAndVersion}.port"))
-
-        if (!getTeamCityProperty("database.${typeAndVersion}.host").isEmpty())
-            props.setJdbcHost(getTeamCityProperty("database.${typeAndVersion}.host"))
-
-        if (!getTeamCityProperty("database.${typeAndVersion}.user").isEmpty())
-            props.setJdbcUser(getTeamCityProperty("database.${typeAndVersion}.user"))
-
-        if (!getTeamCityProperty("database.${typeAndVersion}.password").isEmpty())
-            props.setJdbcPassword(getTeamCityProperty("database.${typeAndVersion}.password"))
-
-        this.databaseTypes.add(props)
-    }
-
-    File startupPropertiesDir() {
-        File startupDir = new File(new File(ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)), 'startup')
-        FileUtils.forceMkdir(startupDir)
-        return startupDir
-    }
-
-    void writeStartupProperties(String fileName, String properties) {
-        File propFile = new File(startupPropertiesDir(), fileName)
-
-        FileUtils.write(propFile, properties, StandardCharsets.UTF_8)
-    }
-
-    String getBuildBranch()
-    {
-        getTeamCityProperty('teamcity.build.branch')
-    }
-
-    boolean isBuildBranchDefault()
-    {
-        (Boolean) getTeamCityProperty("teamcity.build.branch.is_default", true)
-    }
-
     static boolean isOnTeamCity(Project project)
     {
         return project.hasProperty('teamcity')
-    }
-
-    String getTeamCityProperty(String name)
-    {
-        return getTeamCityProperty(name, "")
-    }
-
-    Object getTeamCityProperty(String name, Object defaultValue)
-    {
-        getTeamCityProperty(project, name, defaultValue)
     }
 
     static Object getTeamCityProperty(Project project, String name, Object defaultValue)
@@ -212,4 +102,122 @@ class TeamCityExtension
     {
         return getTeamCityProperty(project, "labkey.server.password", "We'reSo\$tr0ng@yekbal1!")
     }
+
+    static String getTomcatJavaHome(Project project)
+    {
+        return getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
+    }
+
+    Boolean isValidForTestRun()
+    {
+        return validationMessages.isEmpty()
+    }
+
+    void setValidationMessages()
+    {
+        if (getTeamCityProperty("suite").isEmpty())
+            validationMessages.add("'suite' property not specified")
+        if (this.databaseTypes.isEmpty())
+            validationMessages.add("'database.types' property not specified or does not specify a supported database.")
+        if (getTeamCityProperty('agent.name').isEmpty())
+            validationMessages.add("'agent.name' property not specified")
+        if (getTeamCityProperty('teamcity.projectName').isEmpty())
+            validationMessages.add("'teamcity.projectName' property not specified")
+        if (getTeamCityProperty('tomcat.debug').isEmpty())
+            validationMessages.add("'tomcat.debug' property (for debug port) not specified")
+        if (getTeamCityProperty('tomcat.port').isEmpty())
+            validationMessages.add("'tomcat.port' property not specified")
+        if (getTeamCityProperty('tomcat.shutdown').isEmpty())
+            validationMessages.add("'tomcat.shutdown' property not specified")
+    }
+
+    private void setDatabaseProperties()
+    {
+        if (!getTeamCityProperty('database.name').isEmpty())
+        {
+            this.databaseName = getTeamCityProperty('database.name')
+            this.dropDatabase = getTeamCityProperty('drop.database', true)
+        }
+        else if ((Boolean) getTeamCityProperty("build.is.personal", false))
+        {
+            this.databaseName = "LabKey_PersonalBuild"
+            this.dropDatabase = true
+        }
+        else
+        {
+            String name = getTeamCityProperty("teamcity.buildType.id")
+            if (!isBuildBranchDefault())
+                name = "${getBuildBranch()}_${name}"
+            this.databaseName = name.replaceAll("[/\\.\\s-]", "_")
+            String dropProperty = getTeamCityProperty('drop.database')
+            this.dropDatabase = dropProperty.equals("1") || dropProperty.equalsIgnoreCase("true")
+        }
+        String typeAndVersion = getTeamCityProperty("database.types") // despite the naming here, there is only one type specified
+        String typeName = getTeamCityProperty("database.${typeAndVersion}.type")
+        if (typeName.isEmpty())
+        {
+            validationMessages.add("database.${typeAndVersion}.type not specified. Needed to customize database props")
+        }
+        DatabaseProperties props = new DatabaseProperties(typeAndVersion, typeName, null)
+
+        props.setProjectPath(project.path)
+        props.jdbcDatabase = getDatabaseName()
+        if (!getTeamCityProperty("database.${typeAndVersion}.jdbcURL").isEmpty())
+        {
+            props.setJdbcURL(getTeamCityProperty("database.${typeAndVersion}.jdbcURL"))
+            if (getTeamCityProperty("database.${typeAndVersion}.port").isEmpty() && this.dropDatabase)
+                validationMessages.add("'database.${typeAndVersion}.port' not specified. Unable to drop database.")
+        }
+        else if (getTeamCityProperty("database.${typeAndVersion}.port").isEmpty())
+            validationMessages.add("database.${typeAndVersion}.jdbcURL and database.${typeAndVersion}.port not specified. Connection not possible.")
+
+        if (!getTeamCityProperty("database.${typeAndVersion}.port").isEmpty())
+            props.setJdbcPort(getTeamCityProperty("database.${typeAndVersion}.port"))
+
+        if (!getTeamCityProperty("database.${typeAndVersion}.host").isEmpty())
+            props.setJdbcHost(getTeamCityProperty("database.${typeAndVersion}.host"))
+
+        if (!getTeamCityProperty("database.${typeAndVersion}.user").isEmpty())
+            props.setJdbcUser(getTeamCityProperty("database.${typeAndVersion}.user"))
+
+        if (!getTeamCityProperty("database.${typeAndVersion}.password").isEmpty())
+            props.setJdbcPassword(getTeamCityProperty("database.${typeAndVersion}.password"))
+
+        this.databaseTypes.add(props)
+    }
+
+    File startupPropertiesDir() {
+        File startupDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project).dir('startup').asFile
+        FileUtils.forceMkdir(startupDir)
+        return startupDir
+    }
+
+    void writeStartupProperties(String fileName, String properties) {
+        File propFile = new File(startupPropertiesDir(), fileName)
+
+        FileUtils.write(propFile, properties, StandardCharsets.UTF_8)
+    }
+
+    String getBuildBranch()
+    {
+        getTeamCityProperty('teamcity.build.branch')
+    }
+
+    boolean isBuildBranchDefault()
+    {
+        (Boolean) getTeamCityProperty("teamcity.build.branch.is_default", true)
+    }
+
+
+    String getTeamCityProperty(String name)
+    {
+        return getTeamCityProperty(name, "")
+    }
+
+    Object getTeamCityProperty(String name, Object defaultValue)
+    {
+        getTeamCityProperty(project, name, defaultValue)
+    }
+
+
 }

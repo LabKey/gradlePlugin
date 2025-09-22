@@ -40,11 +40,11 @@ class GzipAction implements Action<Task>
         }
 
         tree.each { File file ->
-            task.project.ant.gzip(
+            task.ant.gzip(
                     src: file,
                     destfile: "${file.toString()}.gz"
             )
-            task.project.logger.info("zipping file " + file + " to ${file.toString()}.gz")
+            task.logger.info("zipping file " + file + " to ${file.toString()}.gz")
         }
     }
 }

@@ -72,7 +72,7 @@ class UiTestExtension
         else if (DatabaseProperties.getPickedConfigFile(project).exists())
         {
             project.logger.info("Found config file ${DatabaseProperties.getPickedConfigFile(project).getAbsolutePath()} to get db properties from")
-            DatabaseProperties dbProperties = new DatabaseProperties(project, false)
+            DatabaseProperties dbProperties = new DatabaseProperties(project.path, DatabaseProperties.getPickedConfigFile(project), false)
             // read database configuration, but don't include jdbcUrl and other non-"database"
             // properties because they "cause problems" (quote from the test/build.xml file)
             for (String name : dbProperties.getConfigProperties().stringPropertyNames())

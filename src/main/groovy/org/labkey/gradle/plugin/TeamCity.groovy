@@ -15,20 +15,29 @@
  */
 package org.labkey.gradle.plugin
 
-import com.sun.jdi.*
+import com.sun.jdi.AbsentInformationException
+import com.sun.jdi.Bootstrap
+import com.sun.jdi.IncompatibleThreadStateException
+import com.sun.jdi.ObjectReference
+import com.sun.jdi.StackFrame
+import com.sun.jdi.ThreadReference
+import com.sun.jdi.VMDisconnectedException
+import com.sun.jdi.VirtualMachine
 import com.sun.jdi.connect.AttachingConnector
 import com.sun.jdi.connect.Connector
 import com.sun.jdi.connect.IllegalConnectorArgumentsException
 import org.apache.commons.lang3.SystemUtils
+import org.gradle.api.AntBuilder
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
+import org.gradle.api.file.DeleteSpec
+import org.gradle.api.logging.Logger
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.process.JavaExecSpec
-import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.PickDb
 import org.labkey.gradle.task.RunTestSuite
@@ -37,10 +46,8 @@ import org.labkey.gradle.task.UndeployModules
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
-import org.labkey.gradle.util.PropertiesUtils
 
 import java.time.Duration
-import java.util.regex.Matcher
 
 /**
  * Creates tasks for TeamCity to run its tests suites based on properties set in a build configuration (particularly for
@@ -49,8 +56,8 @@ import java.util.regex.Matcher
 class TeamCity extends Tomcat
 {
     private static final String TEAMCITY_INFO_FILE = "teamcity-info.xml"
-    private static final String TEST_CONFIGS_DIR = "configs/config-test"
-    private static final String NLP_CONFIG_FILE = "nlpConfig.xml"
+    private static final String TEST_CONFIGS_DIR = "configs/config-test" // TODO remove once NLP is not conifgured on TC
+    private static final String NLP_CONFIG_FILE = "nlpConfig.xml" // TODO remove once NLP is not configured on TC
     private static final String PIPELINE_CONFIG_FILE =  "pipelineConfig.xml"
     private static final Duration TOMCAT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(15)
 
@@ -82,36 +89,36 @@ class TeamCity extends Tomcat
 
     private void addTasks(Project project)
     {
-        project.tasks.register("setTeamCityAgentPassword") {
-            Task task ->
+        project.tasks.register("setTeamCityAgentPassword", JavaExec) {
+            JavaExec task ->
                 task.group = GroupNames.TEST_SERVER
                 task.description = "Set the password for use in running tests"
                 task.dependsOn(project.tasks.jar)
-                task.doLast {
-                    project.javaexec({ JavaExecSpec spec ->
-                        spec.mainClass = "org.labkey.test.util.PasswordUtil"
-                        spec.classpath {
-                            [project.configurations.uiTestRuntimeClasspath, project.tasks.jar]
-                        }
-                        spec.systemProperties["labkey.server"] = TeamCityExtension.getLabKeyServer(project)
-                        spec.args = ["set", TeamCityExtension.getLabKeyUsername(project), TeamCityExtension.getLabKeyPassword(project)]
-                    })
-                }
+                task.mainClass.set("org.labkey.test.util.PasswordUtil")
+                task.classpath(project.configurations.uiTestRuntimeClasspath, project.tasks.jar)
+                task.systemProperty("labkey.server", TeamCityExtension.getLabKeyServer(project))
+                task.args("set", TeamCityExtension.getLabKeyUsername(project), TeamCityExtension.getLabKeyPassword(project))
         }
 
-        project.tasks.register("cleanTestLogs") {
-            Task task ->
+        project.tasks.register("cleanTestLogs", Delete) {
+            Delete task ->
                 task.group = GroupNames.TEST_SERVER
                 task.description = "Removes log files from Tomcat and TeamCity"
                 task.dependsOn project.tasks.cleanLogs
-                task.doLast {
-                    project.delete "${project.projectDir}/${TEAMCITY_INFO_FILE}"
+                task.configure { DeleteSpec delete ->
+                    delete.delete "${project.projectDir}/${TEAMCITY_INFO_FILE}"
                 }
         }
 
+        project.tasks.named("stopLabKey").configure {
+            it.doLast {
+                ensureShutdown(it.logger)
+            }
+        }
+
         project.tasks.named("stopTomcat").configure {
-            doLast {
-                ensureShutdown(project)
+            it.doLast {
+                ensureShutdown(it.logger)
             }
         }
 
@@ -120,7 +127,7 @@ class TeamCity extends Tomcat
                 task.group = GroupNames.TEST_SERVER
                 task.description = "Kill Chrome processes"
                 task.doLast {
-                    killChrome(project)
+                    killChrome(it.ant)
                 }
         }
 
@@ -129,7 +136,7 @@ class TeamCity extends Tomcat
                 task.group = GroupNames.TEST_SERVER
                 task.description = "Kill Firefox processes"
                 task.doLast {
-                    killFirefox(project)
+                    killFirefox(it.ant)
                 }
         }
 
@@ -143,33 +150,12 @@ class TeamCity extends Tomcat
             }
         }
 
-        project.tasks.named("startTomcat").configure {
+        project.tasks.named("startLabKey").configure {
             dependsOn(project.tasks.createStartupPropertyFile)
         }
 
-        project.tasks.register("createNlpConfig", Copy) {
-            Copy task ->
-                task.group = GroupNames.TEST_SERVER
-                task.description = "Create NLP engine configs for the test server"
-                task.from BuildUtils.getServerProject(project).file(TEST_CONFIGS_DIR)
-                task.include NLP_CONFIG_FILE
-                task.filter({ String line ->
-                    Matcher matcher = PropertiesUtils.PROPERTY_PATTERN.matcher(line)
-                    String newLine = line
-                    while (matcher.find())
-                    {
-                        if (matcher.group(1).equals("enginePath"))
-                            newLine = newLine.replace(matcher.group(), new File((String) project.labkey.externalDir, "nlp/nlp_engine.py").getAbsolutePath())
-                    }
-                    return newLine
-                }
-                )
-                task.destinationDir = new File("${ServerDeployExtension.getServerDeployDirectoryPath(project)}/config")
-
-        }
-
         project.tasks.named("startTomcat").configure {
-            dependsOn(project.tasks.createNlpConfig)
+            dependsOn(project.tasks.createStartupPropertyFile)
         }
 
         project.tasks.register("validateConfiguration") {
@@ -201,18 +187,21 @@ class TeamCity extends Tomcat
                         task.description = "Copy properties file for running tests for ${shortType}"
                         task.dbType = "${shortType}"
                         task.dbPropertiesChanged = true
+                        task.driverFiles.setFrom(project.configurations.driver)
                 }
                 pickDbTask = project.tasks.named(pickDbTaskName)
             }
 
             String suffix = properties.dbTypeAndVersion.capitalize()
             String setUpTaskName = "setUp${suffix}"
-            project.tasks.register(setUpTaskName,TeamCityDbSetup) {
+            project.tasks.register(setUpTaskName, TeamCityDbSetup) {
                 TeamCityDbSetup task ->
                     task.group = GroupNames.TEST_SERVER
                     task.description = "Get database properties set up for running tests for ${suffix}"
                     task.setDatabaseProperties(properties)
                     task.dropDatabase = extension.dropDatabase
+                    task.dbPropertiesChanged = true
+                    task.driverFiles.setFrom(project.configurations.driver)
                     task.testValidationOnly = Boolean.parseBoolean( extension.getTeamCityProperty("testValidationOnly"))
                     task.dependsOn (pickDbTask)
             }
@@ -235,13 +224,19 @@ class TeamCity extends Tomcat
                         task.dbType = properties.shortType
                         task.mustRunAfter(BuildUtils.getServerProject(project).tasks.pickMSSQL)
                         task.mustRunAfter(BuildUtils.getServerProject(project).tasks.pickPg)
+                        task.notCompatibleWithConfigurationCache("Walks the project tree")
                 }
             }
             undeployTask = project.tasks.named(undeployTaskName)
-            project.tasks.named("startTomcat").configure {
-                mustRunAfter(undeployTask)
+            project.tasks.named("startLabKey").configure {
+                it.mustRunAfter(undeployTask)
             }
 
+            project.tasks.named("startTomcat").configure {
+                it.mustRunAfter(undeployTask)
+            }
+
+            project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startLabKey.mustRunAfter(setUpDbTask)
             project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startTomcat.mustRunAfter(setUpDbTask)
             String ciTestTaskName = "ciTests" + properties.dbTypeAndVersion.capitalize()
             project.tasks.register(ciTestTaskName, RunTestSuite) {
@@ -252,6 +247,7 @@ class TeamCity extends Tomcat
                     task.dbProperties = properties
                     task.mustRunAfter(project.tasks.validateConfiguration)
                     task.mustRunAfter(project.tasks.cleanTestLogs)
+                    task.mustRunAfter(project.tasks.startLabKey)
                     task.mustRunAfter(project.tasks.startTomcat)
             }
 
@@ -268,7 +264,7 @@ class TeamCity extends Tomcat
                     task.group = GroupNames.TEST_SERVER
                     task.description = "Generate server properties file to run with modules from a specified distribution"
                     task.doLast {
-                        project.logger.info("inheriting from distribution ${inheritedDistPath}")
+                        task.logger.info("inheriting from distribution ${inheritedDistPath}")
                         Set<String> includeModules = new HashSet<>()
                         project.project(inheritedDistPath).configurations.distribution.dependencies.each {
                             includeModules.add(it.getName())
@@ -279,10 +275,14 @@ class TeamCity extends Tomcat
                         extension.writeStartupProperties('00_modulesInclude.properties',
                                 'ModuleLoader.include;startup=' + String.join(',', includeModules))
                     }
+                    task.notCompatibleWithConfigurationCache("Needs the distribution configuration specified as an input ConfigurableFileCollection")
             }
 
+            project.tasks.named("startLabKey").configure {
+                it.dependsOn(includeDistModulesTask)
+            }
             project.tasks.named("startTomcat").configure {
-                dependsOn(includeDistModulesTask)
+                it.dependsOn(includeDistModulesTask)
             }
         }
 
@@ -290,73 +290,76 @@ class TeamCity extends Tomcat
             Task task ->
                 task.group = GroupNames.TEST_SERVER
                 task.dependsOn( ciTests )
-                task.dependsOn( project.tasks.validateConfiguration, project.tasks.startTomcat, project.tasks.cleanTestLogs)
+                task.dependsOn( project.tasks.validateConfiguration, project.tasks.startLabKey, project.tasks.cleanTestLogs)
                 task.description = "Run a test suite on the TeamCity server"
                 task.doLast(
              {
-                        killFirefox(project)
+                        killFirefox(task.ant)
                     }
                 )
         }
+        project.tasks.named("startLabKey").configure {
+            it.mustRunAfter(project.tasks.cleanTestLogs)
+        }
         project.tasks.named("startTomcat").configure {
-            mustRunAfter(project.tasks.cleanTestLogs)
+            it.mustRunAfter(project.tasks.cleanTestLogs)
         }
     }
 
-    private static void killChrome(Project project)
+    private static void killChrome(AntBuilder ant)
     {
         if (SystemUtils.IS_OS_WINDOWS)
         {
-            project.ant.exec(executable: "taskkill")
+            ant.exec(executable: "taskkill")
                     {
                         arg(line:"/F /IM chromedriver.exe" )
                     }
-            project.ant.exec(executable: "taskkill")
+            ant.exec(executable: "taskkill")
                     {
                         arg(line:"/F /IM chrome.exe" )
                     }
         }
         else if (SystemUtils.IS_OS_UNIX)
         {
-            project.ant.exec(executable: "killall")
+            ant.exec(executable: "killall")
                     {
                         arg(line:  "-q -KILL chromedriver")
                     }
-            project.ant.exec(executable: "killall")
+            ant.exec(executable: "killall")
                     {
                         arg(line: "-q -KILL chrome")
                     }
-            project.ant.exec(executable: "killall")
+            ant.exec(executable: "killall")
                     {
                         arg(line: "-q KILL BrowserBlocking")
                     }
         }
     }
 
-    private static void killFirefox(Project project)
+    private static void killFirefox(AntBuilder ant)
     {
         if (SystemUtils.IS_OS_WINDOWS)
         {
-            project.ant.exec(executable: "taskkill")
+            ant.exec(executable: "taskkill")
                     {
                         arg(line: "/F /IM firefox.exe")
                     }
-            project.ant.exec(executable: "taskkill")
+            ant.exec(executable: "taskkill")
                     {
                         arg(line: "/F /IM geckodriver.exe")
                     }
         }
         else if (SystemUtils.IS_OS_UNIX)
         {
-            project.ant.exec(executable: "killall")
+            ant.exec(executable: "killall")
                     {
                         arg(line: "-q firefox")
                     }
-            project.ant.exec(executable: "killall")
+            ant.exec(executable: "killall")
                     {
                         arg(line: "-q firefox-bin")
                     }
-            project.ant.exec(executable: "killall")
+            ant.exec(executable: "killall")
                     {
                         arg(line: "-q geckodriver")
                     }
@@ -404,7 +407,6 @@ class TeamCity extends Tomcat
         catch (VMDisconnectedException ignore)
         {
             println("VM at localhost:" + port + " exited normally")
-            return
         }
     }
 
@@ -473,18 +475,18 @@ class TeamCity extends Tomcat
         }
     }
 
-    private void ensureShutdown(Project project)
+    private void ensureShutdown(Logger logger)
     {
         String debugPort = extension.getTeamCityProperty("tomcat.debug")
         if (!debugPort.isEmpty())
         {
-            project.logger.debug("Ensuring shutdown using port ${debugPort}")
+            logger.debug("Ensuring shutdown using port ${debugPort}")
             try
             {
                 AttachingConnector socketConnector = null
                 for (AttachingConnector connector : Bootstrap.virtualMachineManager().attachingConnectors())
                 {
-                    project.logger.debug("Found connector ${connector.name()} with class ${connector.getClass().getName()}")
+                    logger.debug("Found connector ${connector.name()} with class ${connector.getClass().getName()}")
                     if ("com.sun.jdi.SocketAttach".equals(connector.name()))
                     {
                         socketConnector = connector

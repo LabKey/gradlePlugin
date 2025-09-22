@@ -16,20 +16,33 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.util.PropertiesUtils
+import org.labkey.gradle.util.BuildUtils
 
 /**
  * Task for stopping a running LabKey instance
  */
 class StopLabKey extends DefaultTask
 {
+    @InputFile
+    final abstract RegularFileProperty propertiesFile = project.objects.fileProperty().fileValue(
+            BuildUtils.getApplicationPropertiesFile(project)
+    )
+
+    @Input
+    final abstract Property<Boolean> useSsl = project.objects.property(Boolean).convention(project.hasProperty("useSsl"))
+
     @TaskAction
     void action()
     {
-        def applicationProperties = PropertiesUtils.getApplicationProperties(project)
+        def applicationProperties = PropertiesUtils.getApplicationProperties(propertiesFile.get().asFile)
         def port = applicationProperties.getProperty("management.server.port", applicationProperties.getProperty("server.port"))
-        def endpoint =  "${project.hasProperty("useSsl") ? "https" : "http"}://localhost:$port/actuator/shutdown"
+        def endpoint = "${useSsl.get() ? "https" : "http"}://localhost:$port/actuator/shutdown"
         def command = "curl -X POST $endpoint"
         this.logger.info("Sending command to $endpoint")
         def proc = command.execute()
