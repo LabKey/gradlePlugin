@@ -13,9 +13,9 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### TBD
-*Released*: TBD
-(Earliest compatible LabKey version: TBD)
+### 7.0.0
+*Released*: 22 September 2025
+(Earliest compatible LabKey version: 25.10)
 - Update `PurgeArtifacts` task to be compatible with configuration cache and to work with input files so archived projects can be kept up to date
 - Update dependency versions
 - Update DoThenSetup and its relatives to be compatible with configuration cache
