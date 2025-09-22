@@ -35,24 +35,19 @@ import org.gradle.api.UnknownTaskException
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskProvider
-import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.PickDb
 import org.labkey.gradle.task.RunTestSuite
 import org.labkey.gradle.task.TeamCityDbSetup
-import org.labkey.gradle.task.TeamCityPropertiesTask
 import org.labkey.gradle.task.UndeployModules
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
-import org.labkey.gradle.util.PropertiesUtils
 
 import java.time.Duration
-import java.util.regex.Matcher
 
 /**
  * Creates tasks for TeamCity to run its tests suites based on properties set in a build configuration (particularly for
@@ -101,8 +96,8 @@ class TeamCity extends Tomcat
                 task.dependsOn(project.tasks.jar)
                 task.mainClass.set("org.labkey.test.util.PasswordUtil")
                 task.classpath(project.configurations.uiTestRuntimeClasspath, project.tasks.jar)
-                task.systemProperty("labkey.server", TeamCityPropertiesTask.getLabKeyServer(project))
-                task.args("set", TeamCityPropertiesTask.getLabKeyUsername(project), TeamCityPropertiesTask.getLabKeyPassword(project))
+                task.systemProperty("labkey.server", TeamCityExtension.getLabKeyServer(project))
+                task.args("set", TeamCityExtension.getLabKeyUsername(project), TeamCityExtension.getLabKeyPassword(project))
         }
 
         project.tasks.register("cleanTestLogs", Delete) {

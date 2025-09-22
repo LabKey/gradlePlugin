@@ -28,13 +28,12 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
+import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.PropertiesUtils
 
 import javax.inject.Inject
-import java.sql.Driver
-import java.sql.DriverManager
 
 abstract class SetUpProperties extends TeamCityPropertiesTask
 {
@@ -131,7 +130,7 @@ abstract class SetUpProperties extends TeamCityPropertiesTask
     Properties getExtraJdbcProperties()
     {
         def extraJdbcProperties = new Properties()
-        def tcProperties = isOnTeamCity.get() ? getTeamCityProperties(project) : new Properties()
+        def tcProperties = isOnTeamCity.get() ? TeamCityExtension.getTeamCityProperties(project) : new Properties()
         for (Map.Entry entry : tcProperties.entrySet())
         {
             if (entry.getKey().startsWith("extraJdbc"))

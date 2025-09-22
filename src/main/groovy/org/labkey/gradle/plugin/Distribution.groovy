@@ -23,16 +23,11 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
-import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.DistributionExtension
-import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
-import org.labkey.gradle.task.ModuleDistribution
-import org.labkey.gradle.task.TeamCityPropertiesTask
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
-import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.TaskUtils
 
 class Distribution implements Plugin<Project>
@@ -47,7 +42,7 @@ class Distribution implements Plugin<Project>
         // We add the TeamCity extension here if it doesn't exist because we will use the build
         // number property from TeamCity in the distribution artifact names, if present.
         TeamCityExtension teamCityExt  = project.getExtensions().findByType(TeamCityExtension.class)
-        if (TeamCityPropertiesTask.isOnTeamCity(project) && teamCityExt == null)
+        if (TeamCityExtension.isOnTeamCity(project) && teamCityExt == null)
             project.extensions.create("teamCity", TeamCityExtension, project)
 
         if (BuildUtils.getServerProject(project) != null) {

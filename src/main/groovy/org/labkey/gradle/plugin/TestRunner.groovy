@@ -18,8 +18,8 @@ package org.labkey.gradle.plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.JavaExec
+import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.RunTestSuite
-import org.labkey.gradle.task.TeamCityPropertiesTask
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
@@ -82,7 +82,7 @@ class TestRunner extends UiTest
                 task.description = "Set the password for use in running tests"
                 task.classpath(project.configurations.uiTestRuntimeClasspath, project.tasks.jar)
                 task.mainClass.set("org.labkey.test.util.PasswordUtil")
-                task.systemProperty("labkey.server", TeamCityPropertiesTask.getLabKeyServer(project))
+                task.systemProperty("labkey.server", TeamCityExtension.getLabKeyServer(project))
                 task.args("set")
                 task.standardInput = System.in
         }
@@ -95,7 +95,7 @@ class TestRunner extends UiTest
                 task.dependsOn(project.tasks.jar)
                 task.mainClass.set("org.labkey.test.util.PasswordUtil")
                 task.classpath(project.configurations.uiTestRuntimeClasspath, project.tasks.jar)
-                task.systemProperty("labkey.server", TeamCityPropertiesTask.getLabKeyServer(project))
+                task.systemProperty("labkey.server", TeamCityExtension.getLabKeyServer(project))
                 task.args("ensure")
                 task.standardInput = System.in
         }

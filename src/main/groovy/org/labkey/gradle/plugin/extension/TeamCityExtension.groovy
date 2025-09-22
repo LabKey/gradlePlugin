@@ -17,7 +17,6 @@ package org.labkey.gradle.plugin.extension
 
 import org.apache.commons.io.FileUtils
 import org.gradle.api.Project
-import org.labkey.gradle.task.TeamCityPropertiesTask
 import org.labkey.gradle.util.DatabaseProperties
 
 import java.nio.charset.StandardCharsets
@@ -35,6 +34,78 @@ class TeamCityExtension
         this.project = project
         setDatabaseProperties()
         setValidationMessages()
+    }
+
+    static boolean isOnTeamCity(Project project)
+    {
+        return project.hasProperty('teamcity')
+    }
+
+    static Object getTeamCityProperty(Project project, String name, Object defaultValue)
+    {
+        if (isOnTeamCity(project))
+            return project.teamcity[name] != null ? project.teamcity[name] : defaultValue
+        else if (project.hasProperty(name))
+            return project.property(name)
+        else
+            return defaultValue
+    }
+
+    static Properties getTeamCityProperties(Project project)
+    {
+        if (isOnTeamCity(project))
+        {
+            def tcProps = new Properties()
+            tcProps.putAll(project.teamcity)
+            return tcProps
+        }
+        else
+            return new Properties()
+    }
+
+    static String getLabKeyServer(Project project)
+    {
+        return getTeamCityProperty(project, "labkey.server", "http://localhost")
+    }
+
+    static String getLabKeyContextPath(Project project)
+    {
+        return getTeamCityProperty(project, "labkey.contextpath", null)
+    }
+
+    static String getLabKeyServerPort(Project project)
+    {
+        return getTeamCityProperty(project, 'tomcat.port', null)
+    }
+
+    static String getLabKeyServerShutdownPort(Project project)
+    {
+        return getTeamCityProperty(project, 'tomcat.shutdown', null)
+    }
+
+    static String getLabKeyServerKeystore(Project project)
+    {
+        return getTeamCityProperty(project, 'labkey.keystore', null)
+    }
+
+    static String getLabKeyServerKeystorePassword(Project project)
+    {
+        return getTeamCityProperty(project, 'labkey.keystore.password', null)
+    }
+
+    static String getLabKeyUsername(Project project)
+    {
+        return getTeamCityProperty(project, "labkey.server.email", "teamcity@labkey.test")
+    }
+
+    static String getLabKeyPassword(Project project)
+    {
+        return getTeamCityProperty(project, "labkey.server.password", "We'reSo\$tr0ng@yekbal1!")
+    }
+
+    static String getTomcatJavaHome(Project project)
+    {
+        return getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
     }
 
     Boolean isValidForTestRun()
@@ -145,7 +216,7 @@ class TeamCityExtension
 
     Object getTeamCityProperty(String name, Object defaultValue)
     {
-        TeamCityPropertiesTask.getTeamCityProperty(project, name, defaultValue)
+        getTeamCityProperty(project, name, defaultValue)
     }
 
 

@@ -27,6 +27,7 @@ import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.Tomcat
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
+import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
 
 import java.util.stream.Collectors
@@ -96,7 +97,7 @@ abstract class StartLabKey extends TeamCityPropertiesTask
         optsList.add(project.tomcat.assertionFlag)
         optsList.add("-Ddevmode=${LabKeyExtension.isDevMode(project)}".toString())
         optsList.addAll(project.tomcat.catalinaOpts.split(" "))
-        optsList.add("-Xmx${getTeamCityProperty(project, "Xmx", project.tomcat.maxMemory)}".toString())
+        optsList.add("-Xmx${TeamCityExtension.getTeamCityProperty(project, "Xmx", project.tomcat.maxMemory)}".toString())
         if (project.tomcat.disableRecompileJsp)
             optsList.add("-Dlabkey.disableRecompileJsp=true")
         if (project.tomcat.ignoreModuleSource)
@@ -104,9 +105,9 @@ abstract class StartLabKey extends TeamCityPropertiesTask
         optsList.add(project.tomcat.trustStore)
         optsList.add(project.tomcat.trustStorePassword)
 
-        if (isOnTeamCity(project) && SystemUtils.IS_OS_UNIX)
+        if (TeamCityExtension.isOnTeamCity(project) && SystemUtils.IS_OS_UNIX)
         {
-            optsList.add("-DsequencePipelineEnabled=${getTeamCityProperty(project, "sequencePipelineEnabled", false)}".toString())
+            optsList.add("-DsequencePipelineEnabled=${TeamCityExtension.getTeamCityProperty(project, "sequencePipelineEnabled", false)}".toString())
         }
 
         if (project.hasProperty("extraCatalinaOpts"))

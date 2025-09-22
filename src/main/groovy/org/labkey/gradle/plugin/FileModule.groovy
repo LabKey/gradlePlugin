@@ -194,12 +194,9 @@ class FileModule implements Plugin<Project>
                     }
                     BuildUtils.updateRestartTriggerFile(project)
                 }
+                task.notCompatibleWithConfigurationCache("Needs its own class to do the two copies (one to staging and one to deploy or possibly two Copy tasks chained together.")
             }
 
-        project.tasks.named('deployModule')
-            {
-                notCompatibleWithConfigurationCache("Needs its own class to do the two copies (one to staging and one to deploy or possibly two Copy tasks chained together.")
-            }
 
 
         project.tasks.register('undeployModule', Delete) {
