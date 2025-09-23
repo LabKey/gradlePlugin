@@ -52,6 +52,7 @@ class Database implements Plugin<Project>
                 task.group = GroupNames.DATABASE
                 task.description = "Switch to SQL Server configuration"
                 task.dbType = "mssql"
+                task.driverFiles.setFrom(project.configurations.driver)
         }
     }
 
@@ -62,6 +63,7 @@ class Database implements Plugin<Project>
                 task.group = GroupNames.DATABASE
                 task.description = "Switch to SQL Server configuration using jTDS driver"
                 task.dbType = "jtds"
+                task.driverFiles.setFrom(project.configurations.driver)
         }
     }
 
@@ -71,6 +73,9 @@ class Database implements Plugin<Project>
             Bootstrap task ->
                 task.group = GroupNames.DATABASE
                 task.description = "Switch to bootstrap database properties as defined in current db.config file"
+                task.driverFiles.setFrom(project.configurations.driver)
+                task.dbPropertiesChanged = true
+                task.outputs.upToDateWhen({ return false })
         }
     }
 }

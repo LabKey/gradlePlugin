@@ -62,7 +62,7 @@ class ServerDeploy implements Plugin<Project>
         serverDeploy = project.extensions.create("serverDeploy", ServerDeployExtension)
 
         deployDir = ServerDeployExtension.getServerDeployDirectoryPath(project)
-        embeddedDir = ServerDeployExtension.getEmbeddedServerDeployDirectoryPath(project)
+        embeddedDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project).getAsFile().getAbsolutePath()
         stagingDir = BuildUtils.getRootBuildDirFile(project, STAGING_DIR)
 
         project.apply plugin: 'org.labkey.build.base'
@@ -86,13 +86,7 @@ class ServerDeploy implements Plugin<Project>
 
     private void addTasks(Project project)
     {
-        project.tasks.register("deployApp", DeployApp) {
-            DeployApp task ->
-                task.group = GroupNames.DEPLOY
-                task.description = "Deploy the application locally into ${deployDir}"
-                task.binaries.setFrom(project.configurations.binaries)
-                task.notCompatibleWithConfigurationCache("TODO 'cannot serialize project' error, but unclear where it comes from")
-        }
+
 
         project.tasks.register("stageModules", StageModules) {
             StageModules task ->
@@ -127,6 +121,52 @@ class ServerDeploy implements Plugin<Project>
                 task.dependsOn(project.tasks.checkModuleVersions)
         }
 
+
+        String stagingPipelineLibDir = BuildUtils.getRootBuildDirFile(project, STAGING_PIPELINE_DIR)
+
+        project.tasks.register("stageRemotePipelineJars") {
+            Task task ->
+                task.group = GroupNames.DEPLOY
+                task.description = "Copy files needed for using remote pipeline jobs into ${stagingPipelineLibDir}"
+                task.inputs.files(project.configurations.remotePipelineJars.getFiles())
+                task.outputs.dir(BuildUtils.getRootBuildDirFile(project, STAGING_PIPELINE_DIR))
+                task.doLast({
+                    if (!inputs.files.isEmpty()) {
+                        ant.copy(
+                            todir: outputs.files.singleFile,
+                            preserveLastModified: true
+                        )
+                        {
+                            inputs.files.addToAntBuilder(ant, "fileset", FileCollection.AntType.FileSet)
+                        }
+                    }
+                })
+        }
+
+        project.tasks.named('stageRemotePipelineJars').configure {
+            it.dependsOn project.configurations.remotePipelineJars
+        }
+
+        project.tasks.register(
+                "stageApp") {
+            Task task ->
+                task.group = GroupNames.DEPLOY
+                task.description = "Stage modules and jar files into ${stagingDir}"
+                task.dependsOn project.tasks.stageModules
+                task.dependsOn project.tasks.stageRemotePipelineJars
+        }
+
+        project.tasks.register("deployApp", DeployApp) {
+            DeployApp task ->
+                task.group = GroupNames.DEPLOY
+                task.description = "Deploy the application locally into ${deployDir}"
+                task.binaries.setFrom(project.configurations.binaries)
+                task.bootJar.setFrom(project.project(BuildUtils.getEmbeddedProjectPath()).tasks.bootJar)
+                task.driverFiles.setFrom(project.configurations.driver)
+                // stage the application first to try to avoid multiple Tomcat restarts
+                task.dependsOn(project.tasks.stageApp)
+        }
+
         // Creating symbolic links on Windows requires elevated permissions.  Even with these permissions, the createSymbolicLink method fails
         // with a message "required privilege is not held by the client".  Using the ant.symlink task "succeeds", but it causes .sys files to be created in the
         // .node directory, which are not symbolic links and will cause failures with a message "java.nio.file.NotLinkException: The file or directory is not a reparse point."
@@ -148,90 +188,32 @@ class ServerDeploy implements Plugin<Project>
                             linkBinaries(project, "npm", project.npmVersion, project.npmWorkDirectory)
                     })
                     task.dependsOn(project.tasks.npmSetup)
+                    task.notCompatibleWithConfigurationCache("Needs its own class to declare proper input and output properties")
             }
             project.tasks.symlinkNode.notCompatibleWithConfigurationCache("References project properties. Need to add task class with input properties")
             project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
         }
 
-        String stagingPipelineLibDir = BuildUtils.getRootBuildDirFile(project, STAGING_PIPELINE_DIR)
-
-        project.tasks.register("stageRemotePipelineJars") {
-            Task task ->
-                task.group = GroupNames.DEPLOY
-                task.description = "Copy files needed for using remote pipeline jobs into ${stagingPipelineLibDir}"
-                task.doLast({
-                    if (!project.configurations.remotePipelineJars.getFiles().isEmpty()) {
-                        task.ant.copy(
-                            todir: stagingPipelineLibDir,
-                            preserveLastModified: true
-                        )
-                        {
-                            project.configurations.remotePipelineJars
-                            {
-                                Configuration collection ->
-                                    collection.addToAntBuilder(project.ant, "fileset", FileCollection.AntType.FileSet)
-                            }
-                        }
-                    }
-                })
-        }
-
-        project.tasks.named('stageRemotePipelineJars').configure {
-            dependsOn project.configurations.remotePipelineJars
-            notCompatibleWithConfigurationCache("TODO Needs dedicated task class with configuration as input")
-        }
-
-        project.tasks.register(
-                "stageApp") {
-            Task task ->
-                task.group = GroupNames.DEPLOY
-                task.description = "Stage modules and jar files into ${stagingDir}"
-                task.dependsOn project.tasks.stageModules
-                task.dependsOn project.tasks.stageRemotePipelineJars
-        }
-
-        project.tasks.register(
-                "setup",  DoThenSetup) {
-            DoThenSetup task ->
-                task.group = GroupNames.DEPLOY
-                task.description = "Installs application.properties into the tomcat configuration directory. Sets default database properties."
-                // stage the application first to try to avoid multiple Tomcat restarts
-                task.mustRunAfter(project.tasks.stageApp)
-        }
-
-        project.tasks.named('deployApp').configure {
-            dependsOn(project.tasks.setup)
-            dependsOn(project.tasks.stageApp)
-        }
 
         if (BuildUtils.embeddedProjectExists(project)) {
             def embeddedProject = project.project(BuildUtils.getEmbeddedProjectPath())
 
-            project.tasks.register("cleanEmbeddedDeploy", DefaultTask) {
-                DefaultTask task ->
+            project.tasks.register("cleanEmbeddedDeploy", Delete) {
+                Delete task ->
                     task.group = GroupNames.DEPLOY
                     task.description = "Remove the ${embeddedDir} directory"
-                    task.doLast {
-                        project.delete embeddedDir
+                    task.configure { DeleteSpec delete ->
+                        delete.delete embeddedDir
                     }
             }
-            project.tasks.named('deployApp').configure {
-                mustRunAfter(project.tasks.cleanEmbeddedDeploy)
-                doLast {
-                    project.copy {
-                        CopySpec copy ->
-                            copy.from embeddedProject.tasks.bootJar
-                            copy.into embeddedDir
-                            copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-                    }
-                }
+            project.tasks.named('deployApp').configure {Task task ->
+                task.mustRunAfter(project.tasks.cleanEmbeddedDeploy)
             }
             TaskUtils.getOptionalTask(embeddedProject, 'checkVersionConflicts').ifPresent(task -> {
-                project.tasks.named('deployApp').configure {dependsOn(task)}
+                project.tasks.named('deployApp').configure {it.dependsOn(task)}
             })
 
-            project.tasks.named('stageApp').configure {dependsOn(embeddedProject.tasks.build)}
-            project.tasks.named('setup').configure {mustRunAfter(project.tasks.cleanEmbeddedDeploy)}
+            project.tasks.named('stageApp').configure {it.dependsOn(embeddedProject.tasks.build)}
 
         }
 
@@ -245,21 +227,19 @@ class ServerDeploy implements Plugin<Project>
             DeployDistribution task ->
                 task.group = GroupNames.DISTRIBUTION
                 task.description = "Extract the executable jar from a distribution and put it and the included binaries in the appropriate deploy directory"
-                task.dependsOn(project.tasks.cleanEmbeddedDeploy, project.tasks.setup)
+                task.dependsOn(project.tasks.cleanEmbeddedDeploy)
                 task.binaries.setFrom(project.configurations.binaries)
         }
 
-        // This may prevent multiple Tomcat restarts
-        project.tasks.named('setup').configure {mustRunAfter(project.tasks.stageDistribution)}
-
-        project.tasks.register('undeployModules',UndeployModules) {
+        project.tasks.register('undeployModules', UndeployModules) {
             UndeployModules task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Removes all module files and directories from the deploy and staging directories"
+                task.notCompatibleWithConfigurationCache("Walks the project tree")
         }
 
         project.tasks.register(
-                'cleanStaging',Delete) {
+                'cleanStaging', Delete) {
             Delete task ->
                 task.group = GroupNames.DEPLOY
                 task.description = "Removes the staging directory ${stagingDir}"
@@ -280,15 +260,6 @@ class ServerDeploy implements Plugin<Project>
         }
         project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanDeploy)}
 
-        project.tasks.register("cleanAndDeploy", DeployApp) {
-            DeployApp task ->
-                task.group = GroupNames.DEPLOY
-                task.binaries.setFrom(project.configurations.binaries)
-                task.description = "Removes the deploy directory ${deployDir} then deploys the application locally"
-                task.dependsOn(project.tasks.cleanDeploy)
-                task.notCompatibleWithConfigurationCache("TODO 'cannot serialize project' error, but unclear where it comes from")
-        }
-
         project.tasks.register("cleanBuild", Delete) {
             Delete task ->
                 task.group = GroupNames.DEPLOY
@@ -297,13 +268,15 @@ class ServerDeploy implements Plugin<Project>
                     spec.delete project.rootProject.layout.buildDirectory
                 })
         }
-        project.tasks.named('deployApp').configure {mustRunAfter(project.tasks.cleanBuild)}
+        project.tasks.named('deployApp').configure {it.mustRunAfter(project.tasks.cleanBuild)}
 
         project.tasks.named("cleanBuild").configure {
-            it.dependsOn(project.tasks.stopTomcat)
+            it.dependsOn(project.tasks.stopLabKey)
+            it.mustRunAfter(project.tasks.stopTomcat)
         }
         project.tasks.named("cleanDeploy").configure {
-            it.dependsOn(project.tasks.stopTomcat)
+            it.dependsOn(project.tasks.stopLabKey)
+            it.mustRunAfter(project.tasks.stopTomcat)
         }
     }
 

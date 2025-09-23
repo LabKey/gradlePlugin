@@ -9,15 +9,18 @@ import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.core5.http.HttpStatus
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.NpmRun
 
 import java.util.stream.Collectors
 
-class PurgeNpmAlphaVersions extends DefaultTask
+abstract class PurgeNpmAlphaVersions extends DefaultTask
 {
     private static final String REPOSITORY_NAME = 'libs-client-local'
     public static final String ALPHA_PREFIX_PROPERTY = 'alphaPrefix'
+    public static final String DRY_RUN_PROPERTY = 'dryRun'
     public static final String[] PACKAGE_NAMES = [
             '@labkey/api',
             '@labkey/assayreport',
@@ -29,13 +32,23 @@ class PurgeNpmAlphaVersions extends DefaultTask
             '@labkey/themes'
     ]
 
+    @Input
+    final abstract Property<String> alphaPrefixProp = project.objects.property(String).convention((project.hasProperty(ALPHA_PREFIX_PROPERTY) ? (String) project.property(ALPHA_PREFIX_PROPERTY) : null))
+    @Input
+    final abstract Property<Boolean> isDryRun = project.objects.property(Boolean).convention(project.hasProperty(DRY_RUN_PROPERTY))
+    @Input
+    final abstract Property<String> artifactoryUrl = project.objects.property(String).convention((String) project.property('artifactory_contextUrl'))
+    @Input
+    final abstract Property<String> artifactoryUser = project.objects.property(String).convention((String) project.property('artifactory_user'))
+    @Input
+    final abstract Property<String> artifactoryPassword = project.objects.property(String).convention((String) project.property('artifactory_password'))
+
     @TaskAction
     void purgeVersions()
     {
-        String alphaPrefix
-        if (!project.hasProperty(ALPHA_PREFIX_PROPERTY))
+        if (!alphaPrefixProp.isPresent() || StringUtils.isEmpty(alphaPrefixProp.get().trim()))
             throw new GradleException("No value provided for alphaPrefix.")
-        alphaPrefix = project.property(ALPHA_PREFIX_PROPERTY)
+        String alphaPrefix = alphaPrefixProp.get()
         String[] undeletedVersions = []
         for (String packageName : PACKAGE_NAMES)
         {
@@ -47,7 +60,7 @@ class PurgeNpmAlphaVersions extends DefaultTask
                 logger.quiet("Found ${alphaVersions.size()} versions with alpha prefix ${alphaPrefix} in package ${packageName}")
                 if (!alphaVersions.isEmpty()) {
                     alphaVersions.forEach(version -> {
-                        if (project.hasProperty("dryRun"))
+                        if (isDryRun.get())
                             logger.quiet("Removing version ${version} of package ${packageName} -- Skipped for dry run")
                         else {
                             logger.quiet("Removing version ${version} of package ${packageName}")
@@ -109,7 +122,7 @@ class PurgeNpmAlphaVersions extends DefaultTask
     boolean makeDeleteRequest(String packageName, String version)
     {
         CloseableHttpClient httpClient = HttpClients.createDefault()
-        String endpoint = project.property('artifactory_contextUrl')
+        String endpoint = artifactoryUrl.get()
         boolean success = true
         if (!endpoint.endsWith("/"))
             endpoint += "/"
@@ -121,7 +134,7 @@ class PurgeNpmAlphaVersions extends DefaultTask
         {
             HttpDelete httpDelete = new HttpDelete(endpoint)
             // N.B. Using Authorization Bearer with an API token does not currently work
-            httpDelete.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${project.property('artifactory_user')}:${project.property('artifactory_password')}".getBytes()))
+            httpDelete.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${artifactoryUser.get()}:${artifactoryPassword.get()}".getBytes()))
             CloseableHttpResponse response = httpClient.execute(httpDelete)
             int statusCode = response.getCode()
             if (statusCode != HttpStatus.SC_OK && statusCode != HttpStatus.SC_NO_CONTENT) {

@@ -19,5 +19,4 @@ class JsDocExtension
 {
     String root
     String[] paths = []
-    File outputDir
 }

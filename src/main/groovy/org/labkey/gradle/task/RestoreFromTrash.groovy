@@ -18,6 +18,8 @@ import org.labkey.gradle.util.BuildUtils
 
 import static org.labkey.gradle.task.PurgeArtifacts.Response
 
+// TODO for more flexibility and for configuration cache support, needs to be converted to read projects and versions
+// from a file, as for PurgeArtifacts
 class RestoreFromTrash extends DefaultTask
 {
     public static final String VERSION_PROPERTY = "restoreVersion"

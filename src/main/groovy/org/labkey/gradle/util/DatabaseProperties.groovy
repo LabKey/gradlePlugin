@@ -16,19 +16,22 @@
 package org.labkey.gradle.util
 
 import org.gradle.api.Project
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class DatabaseProperties
 {
+    Logger logger = LoggerFactory.getLogger(DatabaseProperties.class)
     private static final String PICKED_DATABASE_CONFIG_FILE = "config.properties"
 
     private static final String JDBC_DRIVER_CLASS_NAME_PROP = "jdbcDriverClassName"
-    private static final String JDBC_URL_PROP = "jdbcURL"
+    public static final String JDBC_URL_PROP = "jdbcURL"
     private static final String JDBC_PORT_PROP = "jdbcPort"
     private static final String JDBC_DATABASE_PROP = "jdbcDatabase"
     private static final String JDBC_HOST_PROP = "jdbcHost"
     private static final String JDBC_URL_PARAMS_PROP = "jdbcURLParameters"
-    private static final String JDBC_USER_PROP = "jdbcUser"
-    private static final String JDBC_PASSWORD_PROP = "jdbcPassword"
+    public static final String JDBC_USER_PROP = "jdbcUser"
+    public static final String JDBC_PASSWORD_PROP = "jdbcPassword"
     private static final String BOOTSTRAP_DB_PROP = "databaseBootstrap"
     private static final String DEFAULT_DB_PROP = "databaseDefault"
     private static final String DEFAULT_HOST_PROP = "databaseDefaultHost"
@@ -39,7 +42,7 @@ class DatabaseProperties
     String version // database version, e.g. 9.2
 
     Properties configProperties
-    transient private Project _project
+    String projectPath
 
     DatabaseProperties(String dbTypeAndVersion, String shortType, version)
     {
@@ -49,10 +52,10 @@ class DatabaseProperties
         this.configProperties = new Properties()
     }
 
-    DatabaseProperties(Project project, Boolean useBootstrap)
+    DatabaseProperties(String projectPath, File configFile, Boolean useBootstrap)
     {
-        this._project = project
-        this.configProperties = readDatabaseProperties(project)
+        this.projectPath = projectPath
+        this.configProperties = readDatabaseProperties(configFile, logger)
         if (!this.configProperties.isEmpty())
         {
             setDefaultJdbcProperties(useBootstrap)
@@ -61,9 +64,9 @@ class DatabaseProperties
         }
     }
 
-    DatabaseProperties(Project project, DatabaseProperties copyProperties)
+    DatabaseProperties(String projectPath, DatabaseProperties copyProperties)
     {
-        this._project = project
+        this.projectPath = projectPath
         this.configProperties = (Properties) copyProperties.configProperties.clone()
         this.dbTypeAndVersion = copyProperties.dbTypeAndVersion
         this.shortType = copyProperties.shortType
@@ -78,11 +81,6 @@ class DatabaseProperties
     private static File getConfigFile(Project project, String dbConfigFile)
     {
         return BuildUtils.getConfigsProject(project).file(dbConfigFile)
-    }
-
-    void setProject(Project project)
-    {
-        this._project = project
     }
 
     String getJdbcDriverClassName()
@@ -190,19 +188,19 @@ class DatabaseProperties
             return (String) this.configProperties.get(property)
         else
         {
-            _project.logger.info("Default database config property ${property} not defined; returning '${defaultValue}'.")
+            logger.info("Default database config property ${property} not defined; returning '${defaultValue}'.")
             return defaultValue
         }
     }
 
     void interpolateCompositeProperties()
     {
-        this.configProperties.setProperty(JDBC_URL_PROP, PropertiesUtils.parseCompositeProp(_project, this.configProperties, this.configProperties.getProperty(JDBC_URL_PROP)))
+        this.configProperties.setProperty(JDBC_URL_PROP, PropertiesUtils.parseCompositeProp(projectPath, this.configProperties, this.configProperties.getProperty(JDBC_URL_PROP), logger))
     }
 
-    void mergePropertiesFromFile()
+    void mergePropertiesFromFile(File chosenPropsFile)
     {
-        Properties fileProperties = readDatabaseProperties(_project)
+        Properties fileProperties = readDatabaseProperties(chosenPropsFile, logger)
         for (String name : fileProperties.propertyNames())
         {
             if (this.configProperties.getProperty(name) == null)
@@ -213,39 +211,30 @@ class DatabaseProperties
         setDefaultJdbcProperties(false)
     }
 
-    void writeDbProps()
+    void mergePropertiesFromFile(File file, Logger logger)
     {
-        writeDatabaseProperty(_project, JDBC_URL_PROP, PropertiesUtils.parseCompositeProp(_project, this.configProperties, this.configProperties.getProperty(JDBC_URL_PROP)))
-        writeDatabaseProperty(_project, JDBC_USER_PROP, getJdbcUser())
-        writeDatabaseProperty(_project, JDBC_PASSWORD_PROP, getJdbcPassword())
-    }
-
-    static Properties readDatabaseProperties(Project project)
-    {
-        return _readDatabaseProperties(project, PICKED_DATABASE_CONFIG_FILE)
-    }
-
-    private static Properties _readDatabaseProperties(Project project, String configFile)
-    {
-        if (getConfigFile(project, configFile).exists())
+        Properties fileProperties = readDatabaseProperties(file, logger)
+        for (String name : fileProperties.propertyNames())
         {
-            Properties props = PropertiesUtils.readFileProperties(BuildUtils.getConfigsProject(project), configFile)
+            if (this.configProperties.getProperty(name) == null)
+            {
+                this.configProperties.setProperty(name, fileProperties.getProperty(name))
+            }
+        }
+        setDefaultJdbcProperties(false)
+    }
+
+    static Properties readDatabaseProperties(File configFile, Logger logger)
+    {
+        if (configFile.exists())
+        {
+            Properties props = PropertiesUtils.readFileProperties(configFile)
             return props
         }
         else
         {
-            project.logger.info("No file ${configFile} found.  Returning empty properties.")
+            logger.info("No file ${configFile} found.  Returning empty properties.")
             return new Properties()
         }
-    }
-
-    private void writeDatabaseProperty(Project project, String name, String value)
-    {
-        project.ant.propertyfile(
-                file: getPickedConfigFile(project)
-        )
-                {
-                    entry( key: name, value: value)
-                }
     }
 }

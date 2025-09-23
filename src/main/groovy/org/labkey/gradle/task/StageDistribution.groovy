@@ -16,13 +16,18 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.FileTree
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.file.RelativePath
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.ServerDeploy
@@ -34,8 +39,10 @@ import javax.inject.Inject
 abstract class StageDistribution extends DefaultTask
 {
     @Inject abstract FileSystemOperations getFs()
+    @Inject abstract ArchiveOperations getArchiveOps()
 
-    protected File distributionFile = null
+    @Input
+    final abstract Property<String> distDir = project.objects.property(String).convention(project.hasProperty("distDir") ? (String) project.property("distDir") : "dist")
 
     @OutputDirectory
     final abstract DirectoryProperty modulesStagingDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_MODULES_DIR)
@@ -46,12 +53,15 @@ abstract class StageDistribution extends DefaultTask
     @OutputDirectory
     final abstract DirectoryProperty pipelineJarStagingDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_PIPELINE_DIR)
 
+    @InputFile
+    final abstract RegularFileProperty distributionFileProp = project.objects.fileProperty().fileValue(DistributionExtension.getDistributionFile(project, distDir.get()))
+
     @TaskAction
     void action()
     {
-        distributionFile = DistributionExtension.getDistributionFile(project)
+        File distributionFile = distributionFileProp.get().asFile
         String extension = DistributionExtension.TAR_ARCHIVE_EXTENSION
-        FileTree distArchiveTree = project.tarTree(distributionFile)
+        FileTree distArchiveTree = archiveOps.tarTree(distributionFile)
 
         // first clean out the staging directory so we don't pick up modules not in this distribution
         fs.delete {

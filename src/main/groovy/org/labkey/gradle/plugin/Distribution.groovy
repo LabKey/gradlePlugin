@@ -23,15 +23,11 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
-import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.DistributionExtension
-import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
-import org.labkey.gradle.task.ModuleDistribution
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
-import org.labkey.gradle.util.PomFileHelper
 import org.labkey.gradle.util.TaskUtils
 
 class Distribution implements Plugin<Project>
@@ -62,10 +58,6 @@ class Distribution implements Plugin<Project>
         addDependencies(project)
         addTasks(project)
         addTaskDependencies(project)
-
-        // commented out until we start publishing distribution artifacts, and then we'll examine the publications more closely
-//        if (BuildUtils.shouldPublishDistribution(project))
-//            addArtifacts(project)
     }
 
     private void addConfigurations(Project project)
@@ -167,74 +159,6 @@ class Distribution implements Plugin<Project>
                 }
                 else if (dep instanceof ModuleDependency && !excludedModules.contains(dep.getName()))
                     project.dependencies.add("distribution", dep)
-        }
-    }
-
-    private void addArtifacts(Project project)
-    {
-        project.apply plugin: 'maven-publish'
-
-        // TODO this is really only an approximation of what's needed. We don't currently publish distribution artifacts
-        // to artifactory
-        project.afterEvaluate {
-            String artifactId = getArtifactId(project)
-            Properties pomProperties = LabKeyExtension.getApiPomProperties(artifactId, project.dist.description, project)
-            project.publishing {
-                publications {
-                    distributions(MavenPublication) { pub ->
-                        pub.artifactId(artifactId)
-                        project.tasks.each {
-                            if (it instanceof ModuleDistribution)
-                            {
-                                it.outputs.files.each {File file ->
-                                    pub.artifact(file)
-                                    {
-                                        String fileName = file.getName()
-                                        if (fileName.endsWith("gz"))
-                                            extension "tar.gz"
-                                        if (fileName.contains("-src."))
-                                            classifier "src"
-                                    }
-                                }
-                            }
-                        }
-                        pom {
-                            name = project.name
-                            description = pomProperties.getProperty("Description")
-                            url = PomFileHelper.LABKEY_ORG_URL
-                            developers PomFileHelper.getLabKeyTeamDevelopers()
-                            // TODO this should probably not always be Apache license
-//                            licenses pomUtil.getLicense()
-                            organization PomFileHelper.getLabKeyOrganization()
-//                            scm PomFileHelper.getLabKeyScm()
-                            // doesn't seem like these pom files will have any dependencies
-                        }
-                    }
-                }
-
-                project.artifactoryPublish {
-                    project.tasks.each {
-                        if (it instanceof ModuleDistribution)
-                        {
-                            dependsOn it
-                        }
-                    }
-                    publications('distributions')
-                }
-            }
-        }
-    }
-
-    static String getArtifactId(Project project)
-    {
-        if (project.dist.artifactId != null)
-            return project.dist.artifactId
-        else
-        {
-            return TaskUtils.getOptionalTask(project, "distribution")
-                    .filter(task -> task.get() instanceof ModuleDistribution)
-                    .map(task -> ((ModuleDistribution)task.get()).getArtifactId())
-                    .orElse(project.name)
         }
     }
 }

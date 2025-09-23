@@ -16,11 +16,10 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.tasks.Input
-import org.labkey.gradle.util.SqlUtils
+import org.labkey.gradle.util.DatabaseProperties
 
-class TeamCityDbSetup extends DoThenSetup
+abstract class TeamCityDbSetup extends DoThenSetup
 {
-    boolean dbPropertiesChanged = true
     @Input
     boolean dropDatabase = false
     @Input
@@ -29,17 +28,33 @@ class TeamCityDbSetup extends DoThenSetup
     @Override
     protected void doDatabaseTask()
     {
-        databaseProperties.mergePropertiesFromFile()
+        databaseProperties.mergePropertiesFromFile(chosenPropsFile.get().asFile)
         if (dropDatabase) {
-            if (testValidationOnly){
+            if (testValidationOnly) {
                 logger.info("The 'testValidationOnly' flag is true, not going to drop the database.")
             }
             else {
-                SqlUtils.dropDatabase(project, databaseProperties)
+                dropDatabase(getPath(), databaseProperties)
             }
         }
         databaseProperties.interpolateCompositeProperties()
-        databaseProperties.writeDbProps()
+        writeDbProps()
     }
 
+    void writeDbProps()
+    {
+        writeDatabaseProperty(DatabaseProperties.JDBC_URL_PROP, databaseProperties.getJdbcURL())
+        writeDatabaseProperty(DatabaseProperties.JDBC_USER_PROP, databaseProperties.getJdbcUser())
+        writeDatabaseProperty(DatabaseProperties.JDBC_PASSWORD_PROP, databaseProperties.getJdbcPassword())
+    }
+
+    private void writeDatabaseProperty(String name, String value)
+    {
+        this.ant.propertyfile(
+                file: chosenPropsFile.get().asFile
+        )
+                {
+                    entry( key: name, value: value)
+                }
+    }
 }

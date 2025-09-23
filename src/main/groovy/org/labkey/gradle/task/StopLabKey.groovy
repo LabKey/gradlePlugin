@@ -16,6 +16,10 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 
@@ -27,6 +31,14 @@ import java.nio.file.Files
  */
 class StopLabKey extends DefaultTask
 {
+    @InputFile
+    final abstract RegularFileProperty propertiesFile = project.objects.fileProperty().fileValue(
+            BuildUtils.getApplicationPropertiesFile(project)
+    )
+
+    @Input
+    final abstract Property<Boolean> useSsl = project.objects.property(Boolean).convention(project.hasProperty("useSsl"))
+
     @TaskAction
     void action()
     {
