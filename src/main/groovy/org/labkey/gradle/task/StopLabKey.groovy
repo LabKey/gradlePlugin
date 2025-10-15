@@ -16,9 +16,6 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 
@@ -30,15 +27,12 @@ import java.nio.file.Files
  */
 class StopLabKey extends DefaultTask
 {
-    @InputFile @Optional
-    final abstract RegularFileProperty pidFile = project.objects.fileProperty().convention(
-            ServerDeployExtension.getEmbeddedDir(project).file("labkey.pid")
-    )
-
     @TaskAction
     void action()
     {
-        if (pidFile.get().asFile.exists())
+        File pidFile = ServerDeployExtension.getEmbeddedDir(project).file("labkey.pid").asFile
+
+        if (pidFile.exists())
         {
             String pidStr = new String(Files.readAllBytes(pidFile.get().asFile.toPath()), StandardCharsets.UTF_8).trim()
             Integer pid = Integer.parseInt(pidStr)
@@ -69,5 +63,4 @@ class StopLabKey extends DefaultTask
             }
         }
     }
-
 }
