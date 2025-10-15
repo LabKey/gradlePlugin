@@ -17,9 +17,8 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 
@@ -31,22 +30,17 @@ import java.nio.file.Files
  */
 class StopLabKey extends DefaultTask
 {
-    @InputFile
-    final abstract RegularFileProperty propertiesFile = project.objects.fileProperty().fileValue(
-            BuildUtils.getApplicationPropertiesFile(project)
+    @InputFile @Optional
+    final abstract RegularFileProperty pidFile = project.objects.fileProperty().convention(
+            ServerDeployExtension.getEmbeddedDir(project).file("labkey.pid")
     )
-
-    @Input
-    final abstract Property<Boolean> useSsl = project.objects.property(Boolean).convention(project.hasProperty("useSsl"))
 
     @TaskAction
     void action()
     {
-        def pidFile = new File(ServerDeployExtension.getLabKeyPidFile(project), "labkey.pid")
-
-        if (pidFile.exists())
+        if (pidFile.get().asFile.exists())
         {
-            String pidStr = new String(Files.readAllBytes(pidFile.toPath()), StandardCharsets.UTF_8).trim()
+            String pidStr = new String(Files.readAllBytes(pidFile.get().asFile.toPath()), StandardCharsets.UTF_8).trim()
             Integer pid = Integer.parseInt(pidStr)
             stopLabKeyByPid(pid)
         }
