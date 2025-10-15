@@ -47,7 +47,7 @@ class StopLabKey extends DefaultTask
 
     }
 
-    private static void stopLabKeyByPid(long pid)
+    private void stopLabKeyByPid(long pid)
     {
         ProcessHandle.of(pid).ifPresent {processHandle ->
             processHandle.onExit().thenRun {
