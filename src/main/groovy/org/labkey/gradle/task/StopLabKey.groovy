@@ -21,6 +21,7 @@ import org.labkey.gradle.plugin.extension.ServerDeployExtension
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.util.concurrent.TimeUnit
 
 /**
  * Task for stopping a running LabKey instance
@@ -34,7 +35,7 @@ class StopLabKey extends DefaultTask
 
         if (pidFile.exists())
         {
-            String pidStr = new String(Files.readAllBytes(pidFile.get().asFile.toPath()), StandardCharsets.UTF_8).trim()
+            String pidStr = new String(Files.readAllBytes(pidFile.toPath()), StandardCharsets.UTF_8).trim()
             Integer pid = Integer.parseInt(pidStr)
             stopLabKeyByPid(pid)
         }
@@ -43,23 +44,21 @@ class StopLabKey extends DefaultTask
 
     private void stopLabKeyByPid(long pid)
     {
-        ProcessHandle.of(pid).ifPresent {processHandle ->
-            processHandle.onExit().thenRun {
-                this.logger.quiet("LabKey gracefully terminated. pid: " + pid)
-            }
+        ProcessHandle.of(pid).ifPresent { processHandle ->
+            if (processHandle.destroy()) {
+                // Wait up to 30 seconds for the process to terminate
+                boolean isTerminated = processHandle.onExit().orTimeout(30, TimeUnit.SECONDS)
+                        .thenApply({ handle -> true })
+                        .exceptionally({ throwable -> false })
+                        .get()
 
-            boolean terminated = processHandle.destroy()
-            if (terminated) {
-                this.logger.info("LabKey shutdown triggered.")
-                try {
-                    processHandle.onExit().wait(10_000)
+                if (isTerminated) {
+                    logger.info("Successfully terminated LabKey process with PID: {}", pid)
+                } else {
+                    logger.warn("Process with PID {} did not terminate within timeout period", pid)
                 }
-                catch (InterruptedException ie) {
-                    this.logger.error("Failed to shutdown LabKey", ie)
-                }
-            }
-            else {
-                this.logger.error("Unable to shutdown LabKey")
+            } else {
+                logger.warn("Failed to initiate termination of LabKey process with PID: {}", pid)
             }
         }
     }
