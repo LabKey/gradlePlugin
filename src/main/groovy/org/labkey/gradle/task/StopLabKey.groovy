@@ -49,7 +49,7 @@ class StopLabKey extends DefaultTask
 
     private void stopLabKeyByPid(long pid)
     {
-        ProcessHandle.of(pid).ifPresent { processHandle ->
+        ProcessHandle.of(pid).ifPresentOrElse({ processHandle ->
             if (processHandle.destroy()) {
                 // Wait up to 30 seconds for the process to terminate
                 boolean isTerminated = processHandle.onExit().orTimeout(30, TimeUnit.SECONDS)
@@ -65,6 +65,6 @@ class StopLabKey extends DefaultTask
             } else {
                 logger.warn("Failed to initiate termination of LabKey process with PID: {}", pid)
             }
-        }
+        }, { () -> logger.warn("No process found with PID {}", pid)} )
     }
 }
