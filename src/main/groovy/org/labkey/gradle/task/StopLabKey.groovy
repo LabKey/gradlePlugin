@@ -38,11 +38,12 @@ class StopLabKey extends DefaultTask
     @TaskAction
     void action()
     {
-        if (pidFile != null && pidFile.exists())
-        {
+        if (pidFile != null && pidFile.exists()) {
             String pidStr = new String(Files.readAllBytes(pidFile.toPath()), StandardCharsets.UTF_8).trim()
             Integer pid = Integer.parseInt(pidStr)
             stopLabKeyByPid(pid)
+        } else {
+            logger.info("LabKey doesn't appear to be running in this enlistment. PID file not found")
         }
 
     }
