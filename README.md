@@ -42,6 +42,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - Update `PropertiesUtils` to remove code for supporting `labkey.xml`
 - Relocate the `.restartTriggerFile` to prevent creation of empty `build/deploy/modules` directory for embedded distribution deployment
 - Fix `bootstrap` task so it will update `application.properties`
+- Remove `description` property from `DistributionExtension`
 
 ### 6.3.0
 *Released*: 3 July 2025
