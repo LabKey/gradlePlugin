@@ -16,6 +16,8 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 
@@ -28,12 +30,15 @@ import java.util.concurrent.TimeUnit
  */
 class StopLabKey extends DefaultTask
 {
+
+    @InputFile @Optional
+    final abstract File pidFile = ServerDeployExtension.getEmbeddedDir(project).file("labkey.pid").asFile
+            .with { it.exists() ? it : null } // "Optional" means that the property may be null, not refer to something nonexistent
+
     @TaskAction
     void action()
     {
-        File pidFile = ServerDeployExtension.getEmbeddedDir(project).file("labkey.pid").asFile
-
-        if (pidFile.exists())
+        if (pidFile != null && pidFile.exists())
         {
             String pidStr = new String(Files.readAllBytes(pidFile.toPath()), StandardCharsets.UTF_8).trim()
             Integer pid = Integer.parseInt(pidStr)
