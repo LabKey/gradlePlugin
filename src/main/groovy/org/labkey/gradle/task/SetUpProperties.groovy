@@ -63,7 +63,8 @@ abstract class SetUpProperties extends TeamCityPropertiesTask
     final abstract Property<String> pathToServer = project.objects.property(String).convention(project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))
 
     @Input
-    final abstract Property<String> embeddedDir = project.objects.property(String).convention(BuildUtils.getEmbeddedConfigPath(project))
+    final abstract Property<String> embeddedConfigDir = project.objects.property(String).convention(BuildUtils.getEmbeddedConfigPath(project))
+
     @InputDirectory
     File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
 
@@ -87,7 +88,7 @@ abstract class SetUpProperties extends TeamCityPropertiesTask
 
             fs.copy({ CopySpec copy ->
                 copy.from configsDir
-                copy.into embeddedDir.get()
+                copy.into embeddedConfigDir.get()
                 copy.include "application.properties"
                 copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
                 copy.filter({ String line ->

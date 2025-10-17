@@ -16,40 +16,56 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
-import org.labkey.gradle.util.PropertiesUtils
-import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.plugin.extension.ServerDeployExtension
+
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.util.concurrent.TimeUnit
 
 /**
  * Task for stopping a running LabKey instance
  */
 class StopLabKey extends DefaultTask
 {
-    @InputFile
-    final abstract RegularFileProperty propertiesFile = project.objects.fileProperty().fileValue(
-            BuildUtils.getApplicationPropertiesFile(project)
-    )
 
-    @Input
-    final abstract Property<Boolean> useSsl = project.objects.property(Boolean).convention(project.hasProperty("useSsl"))
+    @InputFile @Optional
+    final abstract File pidFile = ServerDeployExtension.getEmbeddedDir(project).file("labkey.pid").asFile
+            .with { it.exists() ? it : null } // "Optional" means that the property may be null, not refer to something nonexistent
 
     @TaskAction
     void action()
     {
-        def applicationProperties = PropertiesUtils.getApplicationProperties(propertiesFile.get().asFile)
-        def port = applicationProperties.getProperty("management.server.port", applicationProperties.getProperty("server.port"))
-        def endpoint = "${useSsl.get() ? "https" : "http"}://localhost:$port/actuator/shutdown"
-        def command = "curl -X POST $endpoint"
-        this.logger.info("Sending command to $endpoint")
-        def proc = command.execute()
-        proc.waitFor()
-        if (proc.exitValue() != 0)
-            this.logger.warn("Shutdown command exited with non-zero status ${proc.exitValue()}.")
-        else
-            this.logger.quiet("Shutdown successful")
+        if (pidFile != null && pidFile.exists()) {
+            String pidStr = new String(Files.readAllBytes(pidFile.toPath()), StandardCharsets.UTF_8).trim()
+            Integer pid = Integer.parseInt(pidStr)
+            stopLabKeyByPid(pid)
+        } else {
+            logger.info("LabKey doesn't appear to be running in this enlistment. PID file not found")
+        }
+
+    }
+
+    private void stopLabKeyByPid(long pid)
+    {
+        ProcessHandle.of(pid).ifPresentOrElse({ processHandle ->
+            if (processHandle.destroy()) {
+                // Wait up to 30 seconds for the process to terminate
+                boolean isTerminated = processHandle.onExit().orTimeout(30, TimeUnit.SECONDS)
+                        .thenApply({ handle -> true })
+                        .exceptionally({ throwable -> false })
+                        .get()
+
+                if (isTerminated) {
+                    logger.info("Successfully terminated LabKey process with PID: {}", pid)
+                } else {
+                    logger.warn("Process with PID {} did not terminate within timeout period", pid)
+                }
+            } else {
+                logger.warn("Failed to initiate termination of LabKey process with PID: {}", pid)
+            }
+        }, { () -> logger.warn("No process found with PID {}", pid)} )
     }
 }

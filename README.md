@@ -13,6 +13,13 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### 7.1.0
+*Released*: 17 October 2025
+(Earliest compatible LabKeyversion: 25.10)
+- [Issue 53244](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=53244): Update `stopLabKey` task to work without Spring's shutdown endpoint
+- [Issue 53792](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=53792): Conditionally enable Java heap dumps in `StartLabKey` task
+- Fix output destination of `application.properties` for `DeployApp` task
+
 ### 7.0.0
 *Released*: 22 September 2025
 (Earliest compatible LabKey version: 25.10)
@@ -36,6 +43,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - Update `PropertiesUtils` to remove code for supporting `labkey.xml`
 - Relocate the `.restartTriggerFile` to prevent creation of empty `build/deploy/modules` directory for embedded distribution deployment
 - Fix `bootstrap` task so it will update `application.properties`
+- Remove `description` property from `DistributionExtension`
 
 ### 6.3.0
 *Released*: 3 July 2025

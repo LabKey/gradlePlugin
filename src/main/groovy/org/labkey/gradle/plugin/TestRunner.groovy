@@ -169,6 +169,7 @@ class TestRunner extends UiTest
                     destdir: BuildUtils.getBuildDirFile(project,"classes/java/uiTest/").getPath(),
                     source: project.sourceCompatibility,
                     target: project.targetCompatibility,
+                    encoding: "UTF-8",
                     classpath: project.configurations.uiTestRuntimeClasspath.asPath,
                     {
                         project.sourceSets.uiTest.java.srcDirs.each {

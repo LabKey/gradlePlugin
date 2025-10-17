@@ -110,8 +110,14 @@ abstract class StartLabKey extends TeamCityPropertiesTask
             optsList.add("-DsequencePipelineEnabled=${TeamCityExtension.getTeamCityProperty(project, "sequencePipelineEnabled", false)}".toString())
         }
 
-        if (project.hasProperty("extraCatalinaOpts"))
-            optsList.addAll(((String) project.property("extraCatalinaOpts")).split("\\s+"))
+        if (TeamCityExtension.getTeamCityProperty(project, "labkey.heapDumpOnOutOfMemoryError", TeamCityExtension.isOnTeamCity(project)))
+        {
+            optsList.add("-XX:+HeapDumpOnOutOfMemoryError");
+        }
+
+        String extraCatalinaOpts = TeamCityExtension.getTeamCityProperty(project, "extraCatalinaOpts", "")
+        if (!extraCatalinaOpts.isEmpty())
+            optsList.addAll(extraCatalinaOpts.split("\\s+"))
 
         return optsList.stream()
                 .filter({String opt -> return !StringUtils.isEmpty(opt)})
