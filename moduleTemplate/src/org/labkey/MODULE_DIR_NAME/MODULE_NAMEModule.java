@@ -66,8 +66,6 @@ public class @@MODULE_NAME@@Module extends DefaultModule
     @Override
     public void doStartup(ModuleContext moduleContext)
     {
-        // add a container listener so we'll know when our container is deleted:
-        ContainerManager.addContainerListener(new @@MODULE_NAME@@ContainerListener());
     }
 
     @Override
