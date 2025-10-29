@@ -13,8 +13,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### 7.1.1
-*Released*: 28 October 2025
+### 7.X.X
+*Released*: TBD
 (Earliest compatible LabKey version: 25.10)
 - Remove `ContainerListener` from module template
 
