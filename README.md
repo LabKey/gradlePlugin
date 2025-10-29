@@ -13,9 +13,14 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### 7.X.X
+*Released*: TBD
+(Earliest compatible LabKey version: 25.10)
+- Remove `ContainerListener` from module template
+
 ### 7.1.0
 *Released*: 17 October 2025
-(Earliest compatible LabKeyversion: 25.10)
+(Earliest compatible LabKey version: 25.10)
 - [Issue 53244](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=53244): Update `stopLabKey` task to work without Spring's shutdown endpoint
 - [Issue 53792](https://www.labkey.org/home/Developer/issues/issues-details.view?issueId=53792): Conditionally enable Java heap dumps in `StartLabKey` task
 - Fix output destination of `application.properties` for `DeployApp` task
