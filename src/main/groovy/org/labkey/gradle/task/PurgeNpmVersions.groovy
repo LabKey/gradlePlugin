@@ -1,6 +1,6 @@
 package org.labkey.gradle.task
 
-import groovy.json.JsonSlurper
+
 import org.apache.commons.lang3.StringUtils
 import org.apache.hc.client5.http.classic.methods.HttpDelete
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
@@ -12,84 +12,68 @@ import org.gradle.api.GradleException
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
-import org.labkey.gradle.plugin.NpmRun
+import org.labkey.gradle.util.TaskUtils
 
-import java.util.stream.Collectors
-
-abstract class PurgeNpmAlphaVersions extends PurgeNpmVersions
+abstract class PurgeNpmVersions extends DefaultTask
 {
     private static final String REPOSITORY_NAME = 'libs-client-local'
-    public static final String ALPHA_PREFIX_PROPERTY = 'alphaPrefix'
     public static final String DRY_RUN_PROPERTY = 'dryRun'
-    public static final String[] PACKAGE_NAMES = [
-            '@labkey/api',
-            '@labkey/assayreport',
-            '@labkey/build',
-            '@labkey/components',
-            '@labkey/ehr',
-            '@labkey/premium',
-            '@labkey/test',
-            '@labkey/themes'
-    ]
+    private static final String PACKAGE_NAME_PROP = "packageName"
+    private static final String VERSION_LIST_PROP = "versionList"
 
     @Input
-    final abstract Property<String> alphaPrefixProp = project.objects.property(String).convention((project.hasProperty(ALPHA_PREFIX_PROPERTY) ? (String) project.property(ALPHA_PREFIX_PROPERTY) : null))
+    final abstract Property<String> packageName = project.objects.property(String).convention((project.hasProperty(PACKAGE_NAME_PROP) ? (String) project.property(PACKAGE_NAME_PROP) : null))
+
+    @Input
+    final abstract Property<String> versionList = project.objects.property(String).convention((project.hasProperty(VERSION_LIST_PROP) ? (String) project.property(VERSION_LIST_PROP) : null))
+
+    @Input
+    final abstract Property<Boolean> isDryRun = project.objects.property(Boolean).convention(project.hasProperty(DRY_RUN_PROPERTY))
+    @Input
+    final abstract Property<String> artifactoryUrl = project.objects.property(String).convention((String) project.property('artifactory_contextUrl'))
+    @Input
+    final abstract Property<String> artifactoryUser = project.objects.property(String).convention((String) project.property('artifactory_user'))
+    @Input
+    final abstract Property<String> artifactoryPassword = project.objects.property(String).convention((String) project.property('artifactory_password'))
 
     @TaskAction
     void purgeVersions()
     {
-        if (!alphaPrefixProp.isPresent() || StringUtils.isEmpty(alphaPrefixProp.get().trim()))
-            throw new GradleException("No value provided for alphaPrefix.")
-        String alphaPrefix = alphaPrefixProp.get()
+        if (!packageName.isPresent() || StringUtils.isEmpty(packageName.get().trim()))
+            throw new GradleException("No value provided for packageName.")
+        String packageName = "@labkey/" + packageName.get()
         String[] undeletedVersions = []
-        for (String packageName : PACKAGE_NAMES)
-        {
-            logger.quiet("Considering ${packageName}...")
-            List<String> alphaVersions = getNpmAlphaVersions(packageName, alphaPrefix)
-            if (alphaVersions == null)
-                logger.quiet("Package ${packageName} not found.")
-            else {
-                logger.quiet("Found ${alphaVersions.size()} versions with alpha prefix ${alphaPrefix} in package ${packageName}")
-                if (!alphaVersions.isEmpty()) {
-                    alphaVersions.forEach(version -> {
-                        if (isDryRun.get())
-                            logger.quiet("Removing version ${version} of package ${packageName} -- Skipped for dry run")
-                        else {
-                            logger.quiet("Removing version ${version} of package ${packageName}")
-                            if (!makeDeleteRequest(packageName, version)) {
-                                undeletedVersions += "${packageName}: ${version}"
-                            }
-                        }
-                    })
+
+        logger.quiet("Considering ${packageName}...")
+        List<String> versions = readPurgeVersions()
+        if (versions.isEmpty())
+            logger.quiet("No versions provided.")
+        else {
+            logger.quiet("Found ${versions.size()} versions in package ${packageName}")
+            versions.forEach(version -> {
+                if (isDryRun.get())
+                    logger.quiet("Removing version ${version} of package ${packageName} -- Skipped for dry run")
+                else {
+                    logger.quiet("Removing version ${version} of package ${packageName}")
+                    if (!makeDeleteRequest(packageName, version)) {
+                        undeletedVersions += "${packageName}: ${version}"
+                    }
                 }
-            }
+            })
         }
+
         if (undeletedVersions.size() > 0)
             throw new GradleException("The following versions were not deleted.\n${undeletedVersions}\nCheck the log for more information.")
     }
 
-
-    private static List<String> getNpmAlphaVersions(String packageName, String alphaPrefix)
+    List<String> readPurgeVersions()
     {
-        String alphaPrefixPattern = ".+-" + alphaPrefix + "\\.\\d+"
-        String output = (NpmRun.getNpmCommand() + " view ${packageName} versions --json").execute().text
-        if (!StringUtils.isEmpty(output)) {
-            def parsedJson = new JsonSlurper().parseText(output)
-            if (parsedJson instanceof String) {
-                if (parsedJson.matches(alphaPrefixPattern))
-                    return List.of(parsedJson)
-                else
-                    return Collections.emptyList()
-            }
-            else if (parsedJson instanceof ArrayList) {
-                return parsedJson.stream().filter(version -> {
-                    version.matches(alphaPrefixPattern)
-                }).collect(Collectors.toList()) as List<String>
-            } else
-                throw new GradleException("Error retrieving versions for package ${packageName}: ${parsedJson.error}")
-        }
-        return null
+        if (versionList.isPresent() && !StringUtils.isEmpty(versionList.get().trim()))
+            return TaskUtils.readInputFile(versionList.get(), "versions", logger)
+        else
+            throw new GradleException("No " + VERSION_LIST_PROP + " or " + VERSION_LIST_PROP + " property provided.");
     }
+
 
     /**
      * This uses the Artifactory REST Api to request a deletion of a particular package and version.  There does
@@ -107,11 +91,11 @@ abstract class PurgeNpmAlphaVersions extends PurgeNpmVersions
      *     path: "@labkey/components/-/@labkey/components-2.14.2-fb-update-react-select.1.tgz"
      * The REST API seems a better approach, though.
      * @param packageName the package whose version is to be deleted, including the scope (e.g., @labkey/components)
-     * @param version the version of the pacakge to delete (e.g., 2.14.2-fb-update-react-select.1)
+     * @param version the version of the package to delete (e.g., 2.14.2-fb-update-react-select.1)
      * @return true if deletion was successful, false otherwise
      * @throws GradleException if the delete request throws an exception
      */
-    boolean makeDeleteRequest(String packageName, String version)
+    protected boolean makeDeleteRequest(String packageName, String version)
     {
         CloseableHttpClient httpClient = HttpClients.createDefault()
         String endpoint = artifactoryUrl.get()

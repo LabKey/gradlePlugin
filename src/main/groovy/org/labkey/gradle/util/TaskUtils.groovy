@@ -15,11 +15,16 @@
  */
 package org.labkey.gradle.util
 
+import org.apache.commons.io.IOUtils
+import org.apache.commons.lang3.StringUtils
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
+import org.gradle.api.logging.Logger
 import org.gradle.api.tasks.TaskProvider
 
+import java.nio.file.Paths
 import java.util.function.Consumer
 
 class TaskUtils
@@ -52,6 +57,25 @@ class TaskUtils
         }
         catch (UnknownTaskException ignore) {
             return Optional.empty()
+        }
+    }
+
+    static List<String> readInputFile(String fileName, String type, Logger logger)
+    {
+        if (!StringUtils.isEmpty(fileName)) {
+            File listing = Paths.get(fileName).toFile();
+            if (listing.exists()) {
+                logger.quiet("Reading ${type} list from file ${listing.getAbsolutePath()}.")
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(listing)))) {
+                    List<String> lines = IOUtils.readLines(reader).stream().filter(line -> !line.startsWith("#")).toList()
+                    logger.quiet("... found ${lines.size()} uncommented lines")
+                    return lines
+                }
+            } else {
+                throw new GradleException("No such file or directory: ${fileName}")
+            }
+        } else {
+            throw new GradleException("No file name provided for ${type} input")
         }
     }
 }

@@ -17,6 +17,8 @@ on how to do that, including how to develop and test locally and the versioning 
 *Released*: TBD
 (Earliest compatible LabKey version: 25.10)
 - Remove `ContainerListener` from module template
+- Remove logging of XMLBeans version
+- Add `PurgeNpmVersions` task
 
 ### 7.1.0
 *Released*: 17 October 2025
