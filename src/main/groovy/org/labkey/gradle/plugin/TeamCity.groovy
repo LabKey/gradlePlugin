@@ -71,7 +71,7 @@ class TeamCity extends Tomcat
         project.tomcat.disableRecompileJsp = true
         project.tomcat.ignoreModuleSource = !(Boolean) extension.getTeamCityProperty("allowResourceReloading", false)
         project.tomcat.debugPort = extension.getTeamCityProperty("tomcat.debug") // Tomcat intermittently hangs on shutdown if we don't specify a debug port
-        project.tomcat.catalinaOpts = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${project.tomcat.debugPort} -Dproject.root=${project.rootProject.projectDir.absolutePath} -Djava.compiler=NONE"
+        project.tomcat.catalinaOpts = "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${project.tomcat.debugPort} -Dproject.root=${project.rootProject.projectDir.absolutePath} -Xint"
 
         addTasks(project)
     }

@@ -17,7 +17,7 @@ on how to do that, including how to develop and test locally and the versioning 
 *Released*: TBD
 (Earliest compatible LabKey version: 25.10)
 - Remove `ContainerListener` from module template
-- Java 25: Remove obsolete JVM debug flags from tasks (`-Xdebug`, `-Xnoagent`, `-Xrunjdwp`)
+- Java 25: Remove obsolete JVM flags from tasks (`-Xdebug`, `-Xnoagent`, `-Djava.compiler`)
 - Java 25: Update gradle wrapper to 9.2.1
 
 ### 7.1.0
