@@ -76,7 +76,7 @@ class XmlBeans implements Plugin<Project>
                 task.onlyIf {
                     task.schemasDir.get().asFile.exists()
                 }
-                task.compileClasspath.from(project.sourceSets.main.runtimeClasspath)
+                task.compileClasspath.from(project.configurations.xmlbeans)
                 // make sure we compile any API schemas first as other schemas can depend on that
                 String apiProjectPath = BuildUtils.getApiProjectPath(project.gradle)
                 if (!project.path.equals(apiProjectPath) && project.findProject(apiProjectPath))
