@@ -15,23 +15,12 @@
  */
 package org.labkey.gradle.plugin
 
-import com.sun.jdi.AbsentInformationException
-import com.sun.jdi.Bootstrap
-import com.sun.jdi.IncompatibleThreadStateException
-import com.sun.jdi.ObjectReference
-import com.sun.jdi.StackFrame
-import com.sun.jdi.ThreadReference
-import com.sun.jdi.VMDisconnectedException
-import com.sun.jdi.VirtualMachine
+import com.sun.jdi.*
 import com.sun.jdi.connect.AttachingConnector
 import com.sun.jdi.connect.Connector
 import com.sun.jdi.connect.IllegalConnectorArgumentsException
 import org.apache.commons.lang3.SystemUtils
-import org.gradle.api.AntBuilder
-import org.gradle.api.GradleException
-import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.UnknownTaskException
+import org.gradle.api.*
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.Provider
@@ -82,7 +71,7 @@ class TeamCity extends Tomcat
         project.tomcat.disableRecompileJsp = true
         project.tomcat.ignoreModuleSource = !(Boolean) extension.getTeamCityProperty("allowResourceReloading", false)
         project.tomcat.debugPort = extension.getTeamCityProperty("tomcat.debug") // Tomcat intermittently hangs on shutdown if we don't specify a debug port
-        project.tomcat.catalinaOpts = "-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${project.tomcat.debugPort} -Dproject.root=${project.rootProject.projectDir.absolutePath} -Xnoagent -Djava.compiler=NONE"
+        project.tomcat.catalinaOpts = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${project.tomcat.debugPort} -Dproject.root=${project.rootProject.projectDir.absolutePath} -Djava.compiler=NONE"
 
         addTasks(project)
     }
