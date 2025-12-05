@@ -55,7 +55,6 @@ class XmlBeans implements Plugin<Project>
                     xmlbeans "org.apache.xmlbeans:xmlbeans:${project.xmlbeansVersion}"
                 }
 
-        project.logger.quiet("XMLBeans version: ${project.xmlbeansVersion}")
         String schemasProjectPath = BuildUtils.getSchemasProjectPath(project.gradle)
         if (!project.path.equals(schemasProjectPath))
         {
@@ -77,7 +76,7 @@ class XmlBeans implements Plugin<Project>
                 task.onlyIf {
                     task.schemasDir.get().asFile.exists()
                 }
-                task.compileClasspath.from(project.configurations.xmlbeans)
+                task.compileClasspath.from(project.sourceSets.main.runtimeClasspath)
                 // make sure we compile any API schemas first as other schemas can depend on that
                 String apiProjectPath = BuildUtils.getApiProjectPath(project.gradle)
                 if (!project.path.equals(apiProjectPath) && project.findProject(apiProjectPath))
