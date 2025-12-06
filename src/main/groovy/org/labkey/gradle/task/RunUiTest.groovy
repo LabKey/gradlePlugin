@@ -53,7 +53,7 @@ abstract class RunUiTest extends Test
     void setJvmArgs()
     {
         List<String> jvmArgsList = ["-Xmx512m",
-                                    "-Xrunjdwp:transport=dt_socket,server=y," +
+                                    "-agentlib:jdwp=transport=dt_socket,server=y," +
                                             "suspend=${testExt.getTestConfig("debugSuspendSelenium")}," +
                                             "address=${testExt.getTestConfig("selenium.debug.port")}",
                                     "-Dfile.encoding=UTF-8",
