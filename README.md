@@ -13,10 +13,12 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### 7.X.X
+### TBD
 *Released*: TBD
 (Earliest compatible LabKey version: 25.10)
 - Remove `ContainerListener` from module template
+- Java 25: Remove obsolete JVM flags from tasks (`-Xdebug`, `-Xnoagent`, `-Xrunjdwp`, `-Djava.compiler`)
+- Java 25: Update gradle wrapper to 9.2.1
 
 ### 7.1.0
 *Released*: 17 October 2025
