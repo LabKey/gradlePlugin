@@ -17,6 +17,8 @@ on how to do that, including how to develop and test locally and the versioning 
 *Released*: TBD
 (Earliest compatible LabKey version: 25.10)
 - Remove `ContainerListener` from module template
+- Java 25: Remove obsolete JVM flags from tasks (`-Xdebug`, `-Xnoagent`, `-Xrunjdwp`, `-Djava.compiler`)
+- Java 25: Update gradle wrapper to 9.2.1
 - Remove logging of XMLBeans version
 - Add `PurgeNpmVersions` task
 - Remove use of `versioning` plugin in favor of capturing output from a few dedicated `git` commands
