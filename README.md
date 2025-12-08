@@ -19,6 +19,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - Remove `ContainerListener` from module template
 - Remove logging of XMLBeans version
 - Add `PurgeNpmVersions` task
+- Remove use of `versioning` plugin in favor of capturing output from a few dedicated `git` commands
 
 ### 7.1.0
 *Released*: 17 October 2025
