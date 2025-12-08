@@ -494,49 +494,32 @@ class BuildUtils
                 (String) TeamCityExtension.getTeamCityProperty(project, "system.teamcity.agent.dotnet.build_id", // Unique build ID
                         TeamCityExtension.getTeamCityProperty(project,"build.number", null))
         Properties ret = new Properties()
-        if (project.plugins.hasPlugin("org.labkey.versioning"))
+
+        if (project.hasProperty("includeVcs") && (!project.hasProperty("lkModule") || project.lkModule.getModProperties().get("VcsURL").isEmpty()))
         {
-            Project vcsProject = project
-            while (vcsProject.versioning.info.url == "No VCS" && vcsProject != project.rootProject)
-            {
-                vcsProject = vcsProject.parent
-            }
-            vcsProject.println("${project.path} versioning info ${ vcsProject.versioning.info}")
-            ret.setProperty("VcsURL", vcsProject.versioning.info.url)
-            if (vcsProject.versioning.info.branch != null)
-                ret.setProperty("VcsBranch", vcsProject.versioning.info.branch)
-            if (vcsProject.versioning.info.tag != null)
-               ret.setProperty("VcsTag", vcsProject.versioning.info.tag)
-            ret.setProperty("VcsRevision", vcsProject.versioning.info.commit)
-            ret.setProperty("BuildNumber", buildNumber != null ? buildNumber : vcsProject.versioning.info.build)
-        }
-        else if (project.plugins.hasPlugin("net.nemerosa.versioning"))
-        {
-            // In our fork of the plugin (above), we added the url property to the VersioningInfo object
-            Project vcsProject = project
-            String url = getGitUrl(vcsProject)
-            while (url == null && vcsProject != project.rootProject)
-            {
-                vcsProject = vcsProject.parent
-                url = getGitUr(vcsProject)
-            }
-            vcsProject.println("${project.path} versioning info ${ vcsProject.versioning.info}")
+            def url = "git -C ${project.projectDir.absolutePath} config --get remote.origin.url".execute().text.trim()
             ret.setProperty("VcsURL", url)
-            if (vcsProject.versioning.info.branch != null)
-                ret.setProperty("VcsBranch", vcsProject.versioning.info.branch)
-            if (vcsProject.versioning.info.tag != null)
-                ret.setProperty("VcsTag", vcsProject.versioning.info.tag)
-            ret.setProperty("VcsRevision", vcsProject.versioning.info.commit)
-            ret.setProperty("BuildNumber", buildNumber != null ? buildNumber : vcsProject.versioning.info.build)
-        }
+            project.logger.quiet("${project.path}: url ${url}")
+            def branch = "git -C ${project.projectDir.absolutePath} rev-parse --abbrev-ref HEAD".execute().text.trim()
+            project.logger.debug("${project.path}: branch ${branch}")
+            ret.setProperty("VcsBranch", branch)
+            def revision = "git -C ${project.projectDir.absolutePath} rev-parse @".execute().text.trim()
+            project.logger.debug("${project.path}: revision ${revision}")
+            ret.setProperty("VcsRevision", revision)
+            def tag = "git -C ${project.projectDir.absolutePath} describe --tags --exact-match 2> /dev/null".execute().text.trim()
+            project.logger.debug("${project.path}: tag ${revision}")
+            if (!tag.isEmpty() && !tag.equals(revision))
+                ret.setProperty("VcsTag", tag)
+            else
+                ret.setProperty("VcsTag", "")}
         else
         {
             ret.setProperty("VcsBranch", "Unknown")
             ret.setProperty("VcsTag", "Unknown")
             ret.setProperty("VcsURL", "Unknown")
             ret.setProperty("VcsRevision", "Unknown")
-            ret.setProperty("BuildNumber", buildNumber != null ? buildNumber : "Unknown")
         }
+        ret.setProperty("BuildNumber", buildNumber != null ? buildNumber : "Unknown")
         return ret
     }
 

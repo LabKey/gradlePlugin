@@ -34,14 +34,6 @@ class LabKey implements Plugin<Project>
     @Override
     void apply(Project project)
     {
-        if (project.hasProperty('includeVcs'))
-        {
-            if (project.hasProperty('nemerosaVersioningPluginVersion'))
-                project.apply plugin: 'net.nemerosa.versioning'
-            else
-                project.apply plugin: 'org.labkey.versioning'
-        }
-
         project.group = LabKeyExtension.LABKEY_GROUP
         project.version = BuildUtils.getVersionNumber(project)
         project.subprojects { Project subproject ->
