@@ -18,6 +18,7 @@ package org.labkey.gradle.util
 import org.ajoberstar.grgit.Grgit
 import org.ajoberstar.grgit.Remote
 import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.UnknownDomainObjectException
@@ -494,20 +495,20 @@ class BuildUtils
                 (String) TeamCityExtension.getTeamCityProperty(project, "system.teamcity.agent.dotnet.build_id", // Unique build ID
                         TeamCityExtension.getTeamCityProperty(project,"build.number", null))
         Properties ret = new Properties()
-
+        def gitCmd = SystemUtils.IS_OS_WINDOWS ? "git.exe" : "git"
         if (project.hasProperty("includeVcs") && (!project.hasProperty("lkModule") || project.lkModule.getModProperties().get("VcsURL").isEmpty()))
         {
-            def url = "git -C ${project.projectDir.absolutePath} config --get remote.origin.url".execute().text.trim()
+            def url = "${gitCmd} -C ${project.projectDir.absolutePath} config --get remote.origin.url".execute().text.trim()
             ret.setProperty("VcsURL", url)
-            project.logger.info("${project.path}: url ${url}")
-            def branch = "git -C ${project.projectDir.absolutePath} rev-parse --abbrev-ref HEAD".execute().text.trim()
-            project.logger.info("${project.path}: branch ${branch}")
+            project.logger.info("${project.path} git url: ${url}")
+            def branch = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse --abbrev-ref HEAD".execute().text.trim()
+            project.logger.info("${project.path} git branch: ${branch}")
             ret.setProperty("VcsBranch", branch)
-            def revision = "git -C ${project.projectDir.absolutePath} rev-parse @".execute().text.trim()
-            project.logger.info("${project.path}: revision ${revision}")
+            def revision = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse @".execute().text.trim()
+            project.logger.info("${project.path} git revision: ${revision}")
             ret.setProperty("VcsRevision", revision)
-            def tag = "git -C ${project.projectDir.absolutePath} describe --tags --exact-match 2> /dev/null".execute().text.trim()
-            project.logger.info("${project.path}: tag ${revision}")
+            def tag = "${gitCmd} -C ${project.projectDir.absolutePath} describe --tags --exact-match 2> /dev/null".execute().text.trim()
+            project.logger.info("${project.path} git tag: ${revision}")
             if (!tag.isEmpty() && !tag.equals(revision))
                 ret.setProperty("VcsTag", tag)
             else
