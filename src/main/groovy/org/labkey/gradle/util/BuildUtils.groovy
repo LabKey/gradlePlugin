@@ -53,6 +53,7 @@ class BuildUtils
     public static final String PLATFORM_MODULES_DIR = "server/modules/platform"
     public static final String COMMON_ASSAYS_MODULES_DIR = "server/modules/commonAssays"
     public static final String CUSTOM_MODULES_DIR = "server/modules/customModules"
+    private static final Pattern GIT_URL_WITH_TOKEN = Pattern.compile("(https://[^:]+):([^@]+)@(.*)");
 
     public static final List<String> EHR_MODULE_NAMES = [
             "EHR_ComplianceDB",
@@ -499,6 +500,9 @@ class BuildUtils
         if (project.hasProperty("includeVcs") && (!project.hasProperty("lkModule") || project.lkModule.getModProperties().get("VcsURL").isEmpty()))
         {
             def url = "${gitCmd} -C ${project.projectDir.absolutePath} config --get remote.origin.url".execute().text.trim()
+            Matcher matcher = GIT_URL_WITH_TOKEN.matcher(url)
+            if (matcher.matches()) // Strip out the token if included in the URL.
+                url =  matcher.group(1) + "@" + matcher.group(3)
             ret.setProperty("VcsURL", url)
             project.logger.info("${project.path} git url: ${url}")
             def branch = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse --abbrev-ref HEAD".execute().text.trim()
