@@ -13,12 +13,15 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### TBD
-*Released*: TBD
+### 7.2.0
+*Released*: 11 December 2025
 (Earliest compatible LabKey version: 25.10)
 - Remove `ContainerListener` from module template
 - Java 25: Remove obsolete JVM flags from tasks (`-Xdebug`, `-Xnoagent`, `-Xrunjdwp`, `-Djava.compiler`)
 - Java 25: Update gradle wrapper to 9.2.1
+- Remove logging of XMLBeans version
+- Add `PurgeNpmVersions` task
+- Remove use of `versioning` plugin in favor of capturing output from a few dedicated `git` commands
 
 ### 7.1.0
 *Released*: 17 October 2025

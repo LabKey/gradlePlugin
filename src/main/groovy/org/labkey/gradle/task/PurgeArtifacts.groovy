@@ -13,6 +13,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
+import org.labkey.gradle.util.TaskUtils
 
 import java.nio.file.Paths
 
@@ -57,7 +58,7 @@ class PurgeArtifacts extends DefaultTask
         String purgeModulesFileName = purgeListFile.get()
         if (StringUtils.isEmpty(purgeModulesFileName))
             throw new GradleException("Use -P${PURGE_LIST_FILE_PROPERTY}=<moduleNames.txt> to provide a list of modules to work with.")
-        List<String> moduleNames = readInputFile(purgeListFile.get(), "modules")
+        List<String> moduleNames = TaskUtils.readInputFile(purgeListFile.get(), "modules", logger)
         if (moduleNames.isEmpty())
             throw new GradleException("No module names found in file ${purgeListFile.get()}")
         if (!StringUtils.isEmpty(version))
@@ -70,7 +71,7 @@ class PurgeArtifacts extends DefaultTask
             String purgeVersionsFileName = purgeVersions.get()
             if (StringUtils.isEmpty(purgeVersionsFileName))
                 throw new GradleException("Either -P${VERSION_PROPERTY}=<versionToPurge> or -P${VERSIONS_FILE_PROPERTY}=<versionsFile.txt> must be provided")
-            List<String> versions = readInputFile(purgeVersionsFileName, "versions")
+            List<String> versions = TaskUtils.readInputFile(purgeVersionsFileName, "versions", logger)
             if (versions.isEmpty())
                 throw new GradleException("No versions found for file ${purgeVersionsFileName}.")
             if (versions.size() > 1) {
@@ -95,24 +96,6 @@ class PurgeArtifacts extends DefaultTask
 
     }
 
-    List<String> readInputFile(String fileName, String type)
-    {
-        if (!StringUtils.isEmpty(fileName)) {
-            File listing = Paths.get(fileName).toFile();
-            if (listing.exists()) {
-                logger.quiet("Reading ${type} purge list from file ${listing.getAbsolutePath()}.")
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(listing)))) {
-                    List<String> lines = IOUtils.readLines(reader).stream().filter(line -> !line.startsWith("#")).toList()
-                    logger.quiet("... found ${lines.size()} uncommented lines for purging")
-                    return lines
-                }
-            } else {
-                throw new GradleException("No such file or directory: ${fileName}")
-            }
-        } else {
-            throw new GradleException("No file name provided for ${type} input")
-        }
-    }
 
     Map<String, Object> purgeModuleVersions(String moduleName, List<String> versions)
     {
