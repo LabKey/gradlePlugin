@@ -11,6 +11,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.util.TaskUtils
 
@@ -22,9 +23,11 @@ abstract class PurgeNpmVersions extends DefaultTask
     private static final String VERSION_LIST_PROP = "versionList"
 
     @Input
+    @Optional
     final abstract Property<String> packageName = project.objects.property(String).convention((project.hasProperty(PACKAGE_NAME_PROP) ? (String) project.property(PACKAGE_NAME_PROP) : null))
 
     @Input
+    @Optional
     final abstract Property<String> versionList = project.objects.property(String).convention((project.hasProperty(VERSION_LIST_PROP) ? (String) project.property(VERSION_LIST_PROP) : null))
 
     @Input
