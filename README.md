@@ -12,6 +12,10 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+### TBD
+*Released* TBD
+(Earliest compatible LabKey version: 25.10)
+- Fix `PurgeNpmAlphaVersions` task
 
 ### 7.2.0
 *Released*: 11 December 2025
