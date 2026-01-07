@@ -67,7 +67,7 @@ class TaskUtils
             if (listing.exists()) {
                 logger.quiet("Reading ${type} list from file ${listing.getAbsolutePath()}.")
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(listing)))) {
-                    List<String> lines = IOUtils.readLines(reader).stream().filter(line -> !line.startsWith("#")).toList()
+                    List<String> lines = IOUtils.readLines(reader).stream().filter(line -> !line.startsWith("#") && !line.trim().isEmpty()).toList()
                     logger.quiet("... found ${lines.size()} uncommented lines")
                     return lines
                 }
