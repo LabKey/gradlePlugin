@@ -401,10 +401,11 @@ class BuildUtils
     {
         String version = project.labkeyVersion
 
-        if (project.hasProperty("versioning"))
+        if (project.hasProperty("includeVcs"))
         {
-            String branch = project.versioning.info.branchId
-            if (!["trunk", "develop", "master", "main", "none", ""].contains(branch) &&
+            var vcsProps = getStandardVCSProperties(project)
+            String branch = vcsProps.get(VCS_BRANCH_PROP_NAME)
+            if (branch != null && !["trunk", "develop", "master", "main", "none", ""].contains(branch) &&
                     !branch.toLowerCase().matches("release.*-snapshot"))
             {
                 Matcher matcher = Pattern.compile(".*fb_(.+)").matcher(branch)
@@ -601,10 +602,7 @@ class BuildUtils
 
     static void addModuleDistributionDependency(Project distributionProject, String depProjectPath, String config, boolean addTransitive)
     {
-        if (distributionProject.configurations.named(config) == null)
-            distributionProject.configurations {
-                config
-            }
+        distributionProject.configurations.maybeCreate(config)
         distributionProject.logger.info("${distributionProject.path}: adding ${depProjectPath} as dependency for config ${config}")
         addLabKeyDependency(project: distributionProject, config: config, depProjectPath: depProjectPath, depProjectConfig: "published", depExtension: "module", depVersion: distributionProject.labkeyVersion)
         if (addTransitive) {
@@ -620,7 +618,7 @@ class BuildUtils
             return
 
         distributionProject.evaluationDependsOn(depProject.getPath())
-        if (depProject.configurations.named("modules") != null) {
+        if (depProject.configurations.findByName("modules") != null) {
             depProject.configurations.modules.dependencies.each { dep ->
                 if (dep instanceof ProjectDependency)
                 {
