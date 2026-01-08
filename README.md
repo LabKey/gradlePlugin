@@ -12,6 +12,13 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+### 7.3.0
+*Released* 8 January 2026
+(Earliest compatible LabKey version: 25.10)
+- Update `BuildUtils.getDistributionVersion` to get VCS properties from git commands instead of removed versioning plugin
+- Add some trimming and empty string checks for `PurgeArtficats` task
+- Modify `RestoreFromTrash` task to read modules and versions from files
+
 ### 7.2.1
 *Released* 23 December 2025
 (Earliest compatible LabKey version: 25.10)

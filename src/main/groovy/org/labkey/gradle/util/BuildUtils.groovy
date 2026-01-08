@@ -401,10 +401,11 @@ class BuildUtils
     {
         String version = project.labkeyVersion
 
-        if (project.hasProperty("versioning"))
+        if (project.hasProperty("includeVcs"))
         {
-            String branch = project.versioning.info.branchId
-            if (!["trunk", "develop", "master", "main", "none", ""].contains(branch) &&
+            var vcsProps = getStandardVCSProperties(project)
+            String branch = vcsProps.get(VCS_BRANCH_PROP_NAME)
+            if (branch != null && !["trunk", "develop", "master", "main", "none", ""].contains(branch) &&
                     !branch.toLowerCase().matches("release.*-snapshot"))
             {
                 Matcher matcher = Pattern.compile(".*fb_(.+)").matcher(branch)
@@ -452,9 +453,10 @@ class BuildUtils
             }
         }
 
-        if (project.hasProperty("versioning"))
+        if (project.hasProperty("includeVcs"))
         {
-            String rootBranch = project.rootProject.versioning.info.branchId
+            Properties vcsProps = getStandardVCSProperties(project)
+            String rootBranch = vcsProps.get(VCS_BRANCH_PROP_NAME)
             project.logger.info("${project.path} rootBranch ${rootBranch}")
             if (rootBranch.startsWith("release") && /* e.g. release20.11-SNAPSHOT */
                     project.labkeyVersion.contains("-SNAPSHOT")) /* e.g. 20.11-SNAPSHOT */
@@ -490,6 +492,12 @@ class BuildUtils
         return version
     }
 
+    public static final String VCS_URL_PROP_NAME = "VcsURL"
+    public static final String VCS_BRANCH_PROP_NAME = "VcsBranch"
+    public static final String VCS_TAG_PROP_NAME = "VcsTag"
+    public static final String VCS_REVISION_PROP_NAME = "VcsRevision"
+    public static final String BUILD_NUMBER_PROP_NAME = "BuildNumber"
+
     static Properties getStandardVCSProperties(project)
     {
         String buildNumber =
@@ -497,34 +505,34 @@ class BuildUtils
                         TeamCityExtension.getTeamCityProperty(project,"build.number", null))
         Properties ret = new Properties()
         def gitCmd = SystemUtils.IS_OS_WINDOWS ? "git.exe" : "git"
-        if (project.hasProperty("includeVcs") && (!project.hasProperty("lkModule") || project.lkModule.getModProperties().get("VcsURL").isEmpty()))
+        if (project.hasProperty("includeVcs") && (!project.hasProperty("lkModule") || project.lkModule.getModProperties().get(VCS_URL_PROP_NAME).isEmpty()))
         {
             def url = "${gitCmd} -C ${project.projectDir.absolutePath} config --get remote.origin.url".execute().text.trim()
             Matcher matcher = GIT_URL_WITH_TOKEN.matcher(url)
             if (matcher.matches()) // Strip out the token if included in the URL.
                 url =  matcher.group(1) + "@" + matcher.group(3)
-            ret.setProperty("VcsURL", url)
+            ret.setProperty(VCS_URL_PROP_NAME, url)
             project.logger.info("${project.path} git url: ${url}")
             def branch = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse --abbrev-ref HEAD".execute().text.trim()
             project.logger.info("${project.path} git branch: ${branch}")
-            ret.setProperty("VcsBranch", branch)
+            ret.setProperty(VCS_BRANCH_PROP_NAME, branch)
             def revision = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse @".execute().text.trim()
             project.logger.info("${project.path} git revision: ${revision}")
-            ret.setProperty("VcsRevision", revision)
+            ret.setProperty(VCS_REVISION_PROP_NAME, revision)
             def tag = "${gitCmd} -C ${project.projectDir.absolutePath} describe --tags --exact-match 2> /dev/null".execute().text.trim()
             project.logger.info("${project.path} git tag: ${revision}")
             if (!tag.isEmpty() && !tag.equals(revision))
-                ret.setProperty("VcsTag", tag)
+                ret.setProperty(VCS_TAG_PROP_NAME, tag)
             else
-                ret.setProperty("VcsTag", "")}
-        else
+                ret.setProperty(VCS_TAG_PROP_NAME, "")}
+        else if (!project.hasProperty("includeVcs"))
         {
-            ret.setProperty("VcsBranch", "Unknown")
-            ret.setProperty("VcsTag", "Unknown")
-            ret.setProperty("VcsURL", "Unknown")
-            ret.setProperty("VcsRevision", "Unknown")
+            ret.setProperty(VCS_BRANCH_PROP_NAME, "Unknown")
+            ret.setProperty(VCS_TAG_PROP_NAME, "Unknown")
+            ret.setProperty(VCS_URL_PROP_NAME, "Unknown")
+            ret.setProperty(VCS_REVISION_PROP_NAME, "Unknown")
         }
-        ret.setProperty("BuildNumber", buildNumber != null ? buildNumber : "Unknown")
+        ret.setProperty(BUILD_NUMBER_PROP_NAME, buildNumber != null ? buildNumber : "Unknown")
         return ret
     }
 
@@ -594,10 +602,7 @@ class BuildUtils
 
     static void addModuleDistributionDependency(Project distributionProject, String depProjectPath, String config, boolean addTransitive)
     {
-        if (distributionProject.configurations.findByName(config) == null)
-            distributionProject.configurations {
-                config
-            }
+        distributionProject.configurations.maybeCreate(config)
         distributionProject.logger.info("${distributionProject.path}: adding ${depProjectPath} as dependency for config ${config}")
         addLabKeyDependency(project: distributionProject, config: config, depProjectPath: depProjectPath, depProjectConfig: "published", depExtension: "module", depVersion: distributionProject.labkeyVersion)
         if (addTransitive) {
@@ -618,11 +623,11 @@ class BuildUtils
                 if (dep instanceof ProjectDependency)
                 {
                     if (!pathsAdded.contains(dep.getPath())) {
-                        distributionProject.logger.info("${distributionProject.path}: Adding '${config}' dependency on project ${dep}")
+                        distributionProject.logger.info("${distributionProject.path}: Adding '${config}' dependency on ${dep}")
                         distributionProject.dependencies.add(config, dep)
                         distributionProject.evaluationDependsOn(dep.getPath())
                         pathsAdded.add(dep.getPath())
-                        distributionProject.logger.debug("${distributionProject.path}: Adding recursive '${config}' dependenices from ${dep.getPath()}")
+                        distributionProject.logger.info("${distributionProject.path}: Adding recursive '${config}' dependenices from ${dep.getPath()}")
                         addTransitiveModuleDependencies(distributionProject, depProject.project(dep.getPath()), config, pathsAdded)
                     }
                 }
@@ -974,7 +979,7 @@ class BuildUtils
     {
         try {
             project.configurations.named(configName) { Configuration config ->
-                resolutionStrategy.dependencySubstitution { DependencySubstitutions ds ->
+                config.resolutionStrategy.dependencySubstitution { DependencySubstitutions ds ->
                     project.rootProject.subprojects {
                         Project p ->
                             {
@@ -985,7 +990,7 @@ class BuildUtils
                                             p.plugins.hasPlugin('org.labkey.build.javaModule')
                                     ) {
                                         ds.substitute ds.module("org.labkey.module:${p.name}") using ds.project(p.path)
-                                        p.logger.debug("Substituting org.labkey.module:${p.name} with ${p.path}")
+                                        p.logger.info("Substituting org.labkey.module:${p.name} with ${p.path}")
                                     }
 //                                    if (p.plugins.hasPlugin('org.labkey.build.api'))
 //                                    {

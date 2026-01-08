@@ -107,7 +107,8 @@ class PurgeArtifacts extends DefaultTask
         logger.quiet("### Begin purge for module ${moduleName} for ${versions.size()} versions\n")
 
         for (String version: versions) {
-            makeRequests(moduleName, moduleName, version, deleteStats, true)
+            if (!StringUtils.isEmpty(version.trim()))
+                makeRequests(moduleName, moduleName, version, deleteStats, true)
         }
 
         logger.quiet("Deleted ${deleteStats.get(NUM_DELETED)} artifacts; ${deleteStats.get(NUM_NOT_FOUND)} artifacts not found.")
