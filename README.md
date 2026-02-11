@@ -12,6 +12,11 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+### TBD
+*Released* TBD
+(Earliest compatible LabKey version: 25.10)
+- [GitHub Issue 851](https://github.com/LabKey/internal-issues/issues/851) We need to allow for twoversions of jackson as transitive dependencies of different libraries
+
 ### 7.3.0
 *Released* 8 January 2026
 (Earliest compatible LabKey version: 25.10)
