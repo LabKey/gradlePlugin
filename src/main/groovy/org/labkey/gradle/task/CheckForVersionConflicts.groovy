@@ -90,7 +90,7 @@ class CheckForVersionConflicts  extends DefaultTask
                 String nameWithClassifier = matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)
                 if (matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX) != null)
                     nameWithClassifier += matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX)
-                if (nameVersionMap.containsKey(nameWithClassifier) && !MULTIPLE_VERSIONS_ALLOWED.contains(nameWithClassifier))
+                if (nameVersionMap.containsKey(nameWithClassifier))
                 {
                     if (MULTIPLE_VERSIONS_ALLOWED.contains(nameWithClassifier))
                     {
