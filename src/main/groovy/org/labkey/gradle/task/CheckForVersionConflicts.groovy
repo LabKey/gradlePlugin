@@ -31,6 +31,9 @@ import java.util.regex.Matcher
  */
 class CheckForVersionConflicts  extends DefaultTask
 {
+    @Input
+    Set<String> MULTIPLE_VERSIONS_ALLOWED = Set.of("jackson-core", "jackson-databind")
+
     enum ConflictAction  {
         delete,
         fail,
@@ -89,8 +92,15 @@ class CheckForVersionConflicts  extends DefaultTask
                     nameWithClassifier += matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX)
                 if (nameVersionMap.containsKey(nameWithClassifier))
                 {
-                    haveMultiples = true
-                    conflictMessages += "Multiple existing ${matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)} ${extension} files."
+                    if (MULTIPLE_VERSIONS_ALLOWED.contains(nameWithClassifier))
+                    {
+                        this.logger.info("Multiple exsiting versions of ${matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)} ${extension} found, but deemed acceptable.")
+                    }
+                    else
+                    {
+                        haveMultiples = true
+                        conflictMessages += "Multiple existing ${matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)} ${extension} files."
+                    }
                 }
                 else if (matcher.group(BuildUtils.ARTIFACT_VERSION_INDEX) != null)
                 {
@@ -120,8 +130,12 @@ class CheckForVersionConflicts  extends DefaultTask
                     String existingVersion = nameVersionMap.get(name).v1
                     if (existingVersion != version)
                     {
-                        existingFilesInConflict.add(nameVersionMap.get(name).v2)
-                        conflictMessages += "Conflicting version of ${matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)} ${extension} file (${existingVersion} in directory vs. ${version} from build)."
+                        if (MULTIPLE_VERSIONS_ALLOWED.contains(name))
+                            this.logger.info("Multiple versions of ${matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)} ${extension} file found, but deemed acceptable (${existingVersion} and ${version})")
+                        else {
+                            existingFilesInConflict.add(nameVersionMap.get(name).v2)
+                            conflictMessages += "Conflicting version of ${matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)} ${extension} file (${existingVersion} in directory vs. ${version} from build)."
+                        }
                     }
                 }
             }
