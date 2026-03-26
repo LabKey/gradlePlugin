@@ -975,40 +975,6 @@ class BuildUtils
         return project.objects.directoryProperty().convention(getRootBuildDirectoryProvider(project, defaultDirectoryPath))
     }
 
-    // See GH Issue 464
-    static void substituteModuleDependencies(Project project, String configName)
-    {
-        try {
-            project.configurations.named(configName) { Configuration config ->
-                config.resolutionStrategy.dependencySubstitution { DependencySubstitutions ds ->
-                    project.rootProject.subprojects {
-                        Project p ->
-                            {
-                                p.logger.debug("Considering substitution for ${p.path}.")
-                                if (shouldBuildFromSource(p)) {
-                                    if (p.plugins.hasPlugin('org.labkey.build.module') ||
-                                            p.plugins.hasPlugin('org.labkey.build.fileModule') ||
-                                            p.plugins.hasPlugin('org.labkey.build.javaModule')
-                                    ) {
-                                        ds.substitute(ds.module("org.labkey.module:${p.name}"))
-                                                .using(variant(ds.project(p.path)) {
-                                                    attributes {
-                                                        attribute(FileModule.ARTIFACT_TYPE, FileModule.MODULE_ARTIFACT_TYPE)
-                                                    }
-                                                })
-
-                                        p.logger.info("Substituting org.labkey.module:${p.name} with ${p.path} module file")
-                                    }
-                                }
-                            }
-                    }
-                }
-            }
-        } catch (UnknownDomainObjectException ignore) {
-            project.logger.debug("No ${configName} configuration found for ${project.path}.")
-        }
-    }
-
     enum BuildFromSource {
         _TRUE,
         _FALSE,
