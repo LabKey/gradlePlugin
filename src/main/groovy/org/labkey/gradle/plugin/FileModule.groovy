@@ -23,6 +23,8 @@ import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.Usage
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.java.archives.Manifest
@@ -44,6 +46,10 @@ import org.labkey.gradle.util.TaskUtils
  */
 class FileModule implements Plugin<Project>
 {
+    public static final Attribute ARTIFACT_TYPE = Attribute.of('artifactType', String)
+    public static final String MODULE_ARTIFACT_TYPE = "module"
+    public static final String API_JAR_ARTIFACT_TYPE = "apiJar"
+
     static boolean shouldDoBuild(Project project, boolean logMessages)
     {
         List<String> indicators = new ArrayList<>()
@@ -115,7 +121,13 @@ class FileModule implements Plugin<Project>
     {
         project.configurations
                 {
-                    published
+                    published {
+                        canBeConsumed = true
+                        canBeResolved = false
+                        attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_API))
+                        // The second attribute is needed to be able to distinguish from the API jar file when doing dependency substitution for distributions
+                        attributes.attribute(ARTIFACT_TYPE, MODULE_ARTIFACT_TYPE)
+                    }
                 }
     }
 
@@ -168,8 +180,7 @@ class FileModule implements Plugin<Project>
 
         project.artifacts
                 {
-                    // TODO: Figure out how to add this artifact without resolving 'module' task
-                    published moduleTask.get()
+                    published(moduleTask)
                 }
 
         project.tasks.register('deployModule')

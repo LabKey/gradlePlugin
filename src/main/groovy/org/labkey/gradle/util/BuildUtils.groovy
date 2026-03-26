@@ -30,6 +30,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Provider
+import org.labkey.gradle.plugin.FileModule
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
@@ -974,7 +975,7 @@ class BuildUtils
         return project.objects.directoryProperty().convention(getRootBuildDirectoryProvider(project, defaultDirectoryPath))
     }
 
-    // See Issue 49316: https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=49316
+    // See GH Issue 464
     static void substituteModuleDependencies(Project project, String configName)
     {
         try {
@@ -989,13 +990,15 @@ class BuildUtils
                                             p.plugins.hasPlugin('org.labkey.build.fileModule') ||
                                             p.plugins.hasPlugin('org.labkey.build.javaModule')
                                     ) {
-                                        ds.substitute ds.module("org.labkey.module:${p.name}") using ds.project(p.path)
-                                        p.logger.info("Substituting org.labkey.module:${p.name} with ${p.path}")
+                                        ds.substitute(ds.module("org.labkey.module:${p.name}"))
+                                                .using(variant(ds.project(p.path)) {
+                                                    attributes {
+                                                        attribute(FileModule.ARTIFACT_TYPE, FileModule.MODULE_ARTIFACT_TYPE)
+                                                    }
+                                                })
+
+                                        p.logger.info("Substituting org.labkey.module:${p.name} with ${p.path} module file")
                                     }
-//                                    if (p.plugins.hasPlugin('org.labkey.build.api'))
-//                                    {
-//                                        ds.substitute ds.module("org.labkey.api:${p.name}") using ds.project(p.path)
-//                                    }
                                 }
                             }
                     }
