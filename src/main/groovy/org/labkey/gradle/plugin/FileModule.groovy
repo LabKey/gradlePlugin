@@ -124,7 +124,7 @@ class FileModule implements Plugin<Project>
                     published {
                         canBeConsumed = true
                         canBeResolved = false
-                        attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_API))
+                        attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                         // The second attribute is needed to be able to distinguish from the API jar file when doing dependency substitution for distributions
                         attributes.attribute(ARTIFACT_TYPE, MODULE_ARTIFACT_TYPE)
                     }
