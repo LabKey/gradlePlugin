@@ -520,6 +520,7 @@ class BuildUtils
             def revision = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse @".execute().text.trim()
             project.logger.info("${project.path} git revision: ${revision}")
             ret.setProperty(VCS_REVISION_PROP_NAME, revision)
+            // N.B. this doesn't actually work for our TC builds. We don't check out tags when building installers, so the command here returns nothing
             def tag = "${gitCmd} -C ${project.projectDir.absolutePath} describe --tags --exact-match 2> /dev/null".execute().text.trim()
             project.logger.info("${project.path} git tag: ${tag}")
             if (!tag.isEmpty() && !tag.equals(revision))
