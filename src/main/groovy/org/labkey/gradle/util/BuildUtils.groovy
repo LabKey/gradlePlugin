@@ -521,7 +521,7 @@ class BuildUtils
             project.logger.info("${project.path} git revision: ${revision}")
             ret.setProperty(VCS_REVISION_PROP_NAME, revision)
             def tag = "${gitCmd} -C ${project.projectDir.absolutePath} describe --tags --exact-match 2> /dev/null".execute().text.trim()
-            project.logger.info("${project.path} git tag: ${revision}")
+            project.logger.info("${project.path} git tag: ${tag}")
             if (!tag.isEmpty() && !tag.equals(revision))
                 ret.setProperty(VCS_TAG_PROP_NAME, tag)
             else
