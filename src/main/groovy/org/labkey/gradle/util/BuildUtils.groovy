@@ -495,7 +495,6 @@ class BuildUtils
 
     public static final String VCS_URL_PROP_NAME = "VcsURL"
     public static final String VCS_BRANCH_PROP_NAME = "VcsBranch"
-    public static final String VCS_TAG_PROP_NAME = "VcsTag"
     public static final String VCS_REVISION_PROP_NAME = "VcsRevision"
     public static final String BUILD_NUMBER_PROP_NAME = "BuildNumber"
 
@@ -520,17 +519,10 @@ class BuildUtils
             def revision = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse @".execute().text.trim()
             project.logger.info("${project.path} git revision: ${revision}")
             ret.setProperty(VCS_REVISION_PROP_NAME, revision)
-            // N.B. this doesn't actually work for our TC builds. We don't check out tags when building installers, so the command here returns nothing
-            def tag = "${gitCmd} -C ${project.projectDir.absolutePath} describe --tags --exact-match 2> /dev/null".execute().text.trim()
-            project.logger.info("${project.path} git tag: ${tag}")
-            if (!tag.isEmpty() && !tag.equals(revision))
-                ret.setProperty(VCS_TAG_PROP_NAME, tag)
-            else
-                ret.setProperty(VCS_TAG_PROP_NAME, "")}
+        }
         else if (!project.hasProperty("includeVcs"))
         {
             ret.setProperty(VCS_BRANCH_PROP_NAME, "Unknown")
-            ret.setProperty(VCS_TAG_PROP_NAME, "Unknown")
             ret.setProperty(VCS_URL_PROP_NAME, "Unknown")
             ret.setProperty(VCS_REVISION_PROP_NAME, "Unknown")
         }

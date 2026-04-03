@@ -14,11 +14,12 @@ on how to do that, including how to develop and test locally and the versioning 
 ## Release Notes
 ### TBD
 *Released*: TBD
-(Earliest compatible LabKey version: 25.10)
+(Earliest compatible LabKey version: 26.3.3)
 - [GitHub Issue 464](https://github.com/LabKey/internal-issues/issues/464) Update `Distribution.substituteModuleDependencies` (moved from `BuildUtils`) to incorporate variant usage so it will pick up the module file
 - Update to Gradle 9.4.1
 - Update various dependency versions
 - [Github Issue 1015](https://github.com/LabKey/internal-issues/issues/1015) Update `CheckForVersionConflicts` to account for using some jars that differ by classifier only but should not coexist.
+- Remove setting of VcsTag property since our TC builds do not check out tags and will never populate this with a value
 
 ### 7.3.1
 *Released* 11 February 2026
