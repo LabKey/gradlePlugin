@@ -31,42 +31,15 @@ import java.util.regex.Matcher
  */
 class CheckForVersionConflicts  extends DefaultTask
 {
+    // GH Issue 1015: We are using milestone versions of spring-ai jars, which use classifiers like -M2 to distinguish the different versions.
+    // We want to have the later milestones replace the earlier ones, so we want to exclude the milestone classifier from the name when
+    // comparing for conflicts. This is rather sketchy and I hope it goes away soon. We match on the spring-ai- prefix to try to guard against
+    // additional jars that might be included in later milestones, but it's entirely possible that, say, a jar with milestone M2 will not have
+    // the same name with M3 or M4 and won't get cleaned up during the conflict checking.
+    private static final String SPRING_AI_ARTIFACT_PREFIX = "spring-ai-";
+
     @Input
     Set<String> MULTIPLE_VERSIONS_ALLOWED = Set.of("jackson-core", "jackson-databind")
-
-    // GH Issue 1015: We are using milestone versions of spring-ai jars, which use classifiers like -M2 to distinguish the differnet versions.
-    // We want to have the later milestones replace the earlier ones, so we want to exclude the milestone classifier from the name when
-    // comparing for conflicts. This is rather sketchy and I hope it goes away soon. The list has to include all transitive dependencies as
-    // well as the direct dependencies, and since the artifacts are not released for production use they are not entirely stable, so it's entirely
-    // possible that, say, a jar with milestone M2 will not have the same name with M3 or M4 and won't get cleaned up during the conflict checking.
-    @Input
-    Set<String> USE_CLASSIFIER_IN_VERSION = Set.of(
-            "spring-ai-bom",
-            "spring-ai-starter-model-google-genai",
-            "spring-ai-anthropic",
-            "spring-ai-openai",
-            "spring-ai-client-chat",
-            "spring-ai-advisors-vector-store",
-            "spring-ai-starter-model-google-genai-embedding",
-            "spring-ai-autoconfigure-model-chat-client",
-            "spring-ai-autoconfigure-mcp-sever-common",
-            "spring-ai-autoconfigure-mcp-server-webmvc",
-            "spring-ai-autoconfigure-model-chat-memory",
-            "spring-ai-autoconfigure-model-chat-observation",
-            "spring-ai-autoconfigure-model-google-genai",
-            "spring-ai-autoconfigure-model-tool",
-            "spring-ai-autoconfigure-retry",
-            "spring-ai-commons",
-            "spring-ai-google-genai",
-            "spring-ai-google-genai-embedding",
-            "spring-ai-mcp",
-            "spring-ai-mcp-annotations",
-            "spring-ai-model",
-            "spring-ai-retry",
-            "spring-ai-starter-mcp-server-webmvc",
-            "spring-ai-template-st",
-            "spring-ai-vector-store"
-    )
 
     enum ConflictAction  {
         delete,
@@ -123,7 +96,8 @@ class CheckForVersionConflicts  extends DefaultTask
                 // we support artifacts with different classifiers (e.g., activeio-core-3.1.0-tests.jar should not be in conflict with activeio-core-3.1.0.jar)
                 String nameWithoutClassifier = matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)
                 String nameWithClassifier = nameWithoutClassifier
-                if (matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX) != null && !USE_CLASSIFIER_IN_VERSION.contains(nameWithoutClassifier))
+                boolean useClassifierInName = !nameWithoutClassifier.startsWith(SPRING_AI_ARTIFACT_PREFIX)
+                if (matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX) != null && useClassifierInName)
                     nameWithClassifier += matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX)
                 if (nameVersionMap.containsKey(nameWithClassifier))
                 {
@@ -133,7 +107,7 @@ class CheckForVersionConflicts  extends DefaultTask
                     }
                     else
                     {
-                        haveMultiples = !USE_CLASSIFIER_IN_VERSION.contains(nameWithoutClassifier)
+                        haveMultiples = haveMultiples || useClassifierInName
                         conflictMessages += "Multiple existing ${matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)} ${extension} files."
                     }
                 }
@@ -149,13 +123,12 @@ class CheckForVersionConflicts  extends DefaultTask
                 }
             }
         }
-        // nameVersionMap has "spring-ai", "2.2.0-M2" in it
         collection.files.each { File f ->
             Matcher matcher = BuildUtils.VERSIONED_ARTIFACT_NAME_PATTERN.matcher(f.name)
             if (matcher.matches())
             {
                 String name = matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)
-                if (matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX) != null && !USE_CLASSIFIER_IN_VERSION.contains(name))
+                if (matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX) != null && !name.startsWith(SPRING_AI_ARTIFACT_PREFIX))
                     name += matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX)
                 if (nameVersionMap.containsKey(name)) // with match for spring-ai
                 {
