@@ -17,6 +17,7 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.attributes.Usage
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
@@ -52,7 +53,14 @@ class Api implements Plugin<Project>
     private void addConfigurations(Project project)
     {
         project.configurations {
-            apiJarFile // used by other project to declare dependencies to this project api jar
+            apiJarFile { // used by other project to declare dependencies to this project's api jar
+                canBeConsumed = true
+                canBeResolved = false
+                attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                // The second attribute is needed to be able to distinguish from the module jar file when doing dependency substitution for distributions
+                attributes.attribute(FileModule.ARTIFACT_TYPE, FileModule.API_JAR_ARTIFACT_TYPE)
+            }
+
         }
         project.configurations.apiJarFile.setDescription("Configuration that depends on the task that generates the api jar file.  Projects that depend on this project's api jar file should use this configuration in their dependency declaration.")
     }

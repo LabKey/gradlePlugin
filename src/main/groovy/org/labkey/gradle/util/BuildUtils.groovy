@@ -30,6 +30,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Provider
+import org.labkey.gradle.plugin.FileModule
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
@@ -494,7 +495,6 @@ class BuildUtils
 
     public static final String VCS_URL_PROP_NAME = "VcsURL"
     public static final String VCS_BRANCH_PROP_NAME = "VcsBranch"
-    public static final String VCS_TAG_PROP_NAME = "VcsTag"
     public static final String VCS_REVISION_PROP_NAME = "VcsRevision"
     public static final String BUILD_NUMBER_PROP_NAME = "BuildNumber"
 
@@ -519,16 +519,10 @@ class BuildUtils
             def revision = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse @".execute().text.trim()
             project.logger.info("${project.path} git revision: ${revision}")
             ret.setProperty(VCS_REVISION_PROP_NAME, revision)
-            def tag = "${gitCmd} -C ${project.projectDir.absolutePath} describe --tags --exact-match 2> /dev/null".execute().text.trim()
-            project.logger.info("${project.path} git tag: ${revision}")
-            if (!tag.isEmpty() && !tag.equals(revision))
-                ret.setProperty(VCS_TAG_PROP_NAME, tag)
-            else
-                ret.setProperty(VCS_TAG_PROP_NAME, "")}
+        }
         else if (!project.hasProperty("includeVcs"))
         {
             ret.setProperty(VCS_BRANCH_PROP_NAME, "Unknown")
-            ret.setProperty(VCS_TAG_PROP_NAME, "Unknown")
             ret.setProperty(VCS_URL_PROP_NAME, "Unknown")
             ret.setProperty(VCS_REVISION_PROP_NAME, "Unknown")
         }
@@ -972,38 +966,6 @@ class BuildUtils
     static DirectoryProperty getRootBuildDirectoryProperty(Project project, String defaultDirectoryPath)
     {
         return project.objects.directoryProperty().convention(getRootBuildDirectoryProvider(project, defaultDirectoryPath))
-    }
-
-    // See Issue 49316: https://www.labkey.org/home/Developer/issues/Secure/issues-details.view?issueId=49316
-    static void substituteModuleDependencies(Project project, String configName)
-    {
-        try {
-            project.configurations.named(configName) { Configuration config ->
-                config.resolutionStrategy.dependencySubstitution { DependencySubstitutions ds ->
-                    project.rootProject.subprojects {
-                        Project p ->
-                            {
-                                p.logger.debug("Considering substitution for ${p.path}.")
-                                if (shouldBuildFromSource(p)) {
-                                    if (p.plugins.hasPlugin('org.labkey.build.module') ||
-                                            p.plugins.hasPlugin('org.labkey.build.fileModule') ||
-                                            p.plugins.hasPlugin('org.labkey.build.javaModule')
-                                    ) {
-                                        ds.substitute ds.module("org.labkey.module:${p.name}") using ds.project(p.path)
-                                        p.logger.info("Substituting org.labkey.module:${p.name} with ${p.path}")
-                                    }
-//                                    if (p.plugins.hasPlugin('org.labkey.build.api'))
-//                                    {
-//                                        ds.substitute ds.module("org.labkey.api:${p.name}") using ds.project(p.path)
-//                                    }
-                                }
-                            }
-                    }
-                }
-            }
-        } catch (UnknownDomainObjectException ignore) {
-            project.logger.debug("No ${configName} configuration found for ${project.path}.")
-        }
     }
 
     enum BuildFromSource {

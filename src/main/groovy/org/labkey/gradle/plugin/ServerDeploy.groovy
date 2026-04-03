@@ -16,18 +16,19 @@
 package org.labkey.gradle.plugin
 
 import org.apache.commons.lang3.SystemUtils
-import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.task.*
+import org.labkey.gradle.task.CheckForVersionConflicts
+import org.labkey.gradle.task.DeployApp
+import org.labkey.gradle.task.DeployDistribution
+import org.labkey.gradle.task.StageDistribution
+import org.labkey.gradle.task.StageModules
+import org.labkey.gradle.task.UndeployModules
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.TaskUtils

@@ -31,6 +31,13 @@ import java.util.regex.Matcher
  */
 class CheckForVersionConflicts  extends DefaultTask
 {
+    // GH Issue 1015: We are using milestone versions of spring-ai jars, which use classifiers like -M2 to distinguish the different versions.
+    // We want to have the later milestones replace the earlier ones, so we want to exclude the milestone classifier from the name when
+    // comparing for conflicts. This is rather sketchy and I hope it goes away soon. We match on the spring-ai- prefix to try to guard against
+    // additional jars that might be included in later milestones, but it's entirely possible that, say, a jar with milestone M2 will not have
+    // the same name with M3 or M4 and won't get cleaned up during the conflict checking.
+    private static final String SPRING_AI_ARTIFACT_PREFIX = "spring-ai-";
+
     @Input
     Set<String> MULTIPLE_VERSIONS_ALLOWED = Set.of("jackson-core", "jackson-databind")
 
@@ -87,8 +94,10 @@ class CheckForVersionConflicts  extends DefaultTask
             if (matcher.matches())
             {
                 // we support artifacts with different classifiers (e.g., activeio-core-3.1.0-tests.jar should not be in conflict with activeio-core-3.1.0.jar)
-                String nameWithClassifier = matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)
-                if (matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX) != null)
+                String nameWithoutClassifier = matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)
+                String nameWithClassifier = nameWithoutClassifier
+                boolean useClassifierInName = !nameWithoutClassifier.startsWith(SPRING_AI_ARTIFACT_PREFIX)
+                if (matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX) != null && useClassifierInName)
                     nameWithClassifier += matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX)
                 if (nameVersionMap.containsKey(nameWithClassifier))
                 {
@@ -98,7 +107,7 @@ class CheckForVersionConflicts  extends DefaultTask
                     }
                     else
                     {
-                        haveMultiples = true
+                        haveMultiples = haveMultiples || useClassifierInName
                         conflictMessages += "Multiple existing ${matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)} ${extension} files."
                     }
                 }
@@ -119,9 +128,9 @@ class CheckForVersionConflicts  extends DefaultTask
             if (matcher.matches())
             {
                 String name = matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)
-                if (matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX) != null)
+                if (matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX) != null && !name.startsWith(SPRING_AI_ARTIFACT_PREFIX))
                     name += matcher.group(BuildUtils.ARTIFACT_CLASSIFIER_INDEX)
-                if (nameVersionMap.containsKey(name))
+                if (nameVersionMap.containsKey(name)) // with match for spring-ai
                 {
                     String version = matcher.group(BuildUtils.ARTIFACT_VERSION_INDEX)
                     if (version != null)
