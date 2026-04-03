@@ -43,7 +43,7 @@ dependencies {
 }
 
 group = 'org.labkey.build'
-project.version = "7.4.0-dependencySub-SNAPSHOT"
+project.version = "8.1.0-SNAPSHOT"
 
 gradlePlugin {
     plugins {
