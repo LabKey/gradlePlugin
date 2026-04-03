@@ -37,7 +37,7 @@ class CheckForVersionConflicts  extends DefaultTask
     // GH Issue 1015: We are using milestone versions of spring-ai jars, which use classifiers like -M2 to distinguish the differnet versions.
     // We want to have the later milestones replace the earlier ones, so we want to exclude the milestone classifier from the name when
     // comparing for conflicts. This is rather sketchy and I hope it goes away soon. The list has to include all transitive dependencies as
-    // we as the direct dependencies, and since the artifacts are not released for production use they are not entirely stable, so it's entirely
+    // well as the direct dependencies, and since the artifacts are not released for production use they are not entirely stable, so it's entirely
     // possible that, say, a jar with milestone M2 will not have the same name with M3 or M4 and won't get cleaned up during the conflict checking.
     @Input
     Set<String> USE_CLASSIFIER_IN_VERSION = Set.of(
