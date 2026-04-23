@@ -210,25 +210,6 @@ abstract class ModuleDistribution extends DefaultTask
         return "${getDistributionDir()}/${getArchiveName()}.${DistributionExtension.TAR_ARCHIVE_EXTENSION}"
     }
 
-    private File getWindowsUtilDir()
-    {
-        return project.rootProject.file("external/windows/core")
-    }
-
-    private void copyWindowsCoreUtilities()
-    {
-        File utilsDir = getWindowsUtilDir()
-        if (project.configurations.findByName("utilities") != null && !utilsDir.exists())
-        {
-            fs.copy({
-                CopySpec copy ->
-                    copy.from(project.configurations.utilities.collect { project.zipTree(it) })
-                    copy.into utilsDir
-                    copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-            })
-        }
-    }
-
     private makeEmbeddedTomcatJar()
     {
         File embeddedJarFile = project.configurations.embedded.singleFile
@@ -271,17 +252,10 @@ abstract class ModuleDistribution extends DefaultTask
         if (!serverJarFile.exists())
             makeEmbeddedTomcatJar()
 
-        copyWindowsCoreUtilities()
-        def utilsDir = getWindowsUtilDir()
-
         ant.tar(tarfile: getTarArchivePath(),
                 longfile: "gnu",
                 compression: "gzip") {
             tarfileset(dir: BuildUtils.getBuildDir(project), prefix: archiveName) { include(name: serverJarFile.getName()) }
-
-            if (!simpleDistribution) {
-                tarfileset(dir: utilsDir.path, prefix: "${archiveName}/bin")
-            }
 
             tarfileset(dir: "${BuildUtils.getBuildDirPath(project)}/embedded", prefix: archiveName)
         }

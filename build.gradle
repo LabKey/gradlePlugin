@@ -43,7 +43,12 @@ dependencies {
 }
 
 group = 'org.labkey.build'
-project.version = "8.1.0-SNAPSHOT"
+project.version = "8.2.0-SNAPSHOT"
+
+// Stricter plugin validation was added in 9.4.0. Disable it for now. TODO: Address complaints and remove.
+tasks.validatePlugins {
+    enableStricterValidation = false
+}
 
 gradlePlugin {
     plugins {

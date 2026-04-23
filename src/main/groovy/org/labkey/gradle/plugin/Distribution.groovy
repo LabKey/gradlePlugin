@@ -76,26 +76,11 @@ class Distribution implements Plugin<Project>
                     embedded
                 }
         project.configurations.embedded.setDescription("Artifacts for creating a LabKey distribution (aka installer) with Tomcat embedded in it")
-
-        if (project.configurations.findByName("utilities") == null)
-        {
-            project.configurations
-                    {
-                        utilities
-                    }
-            project.configurations.utilities.setDescription("Utility binaries for use on Windows platform")
-        }
     }
 
 
     private void addDependencies(Project project)
     {
-        // we package these Windows utilities with each distribution so any distribution can be used on any platform
-        if (project.hasProperty('windowsUtilsVersion'))
-            project.dependencies {
-                utilities "org.labkey.tools.windows:utils:${project.windowsUtilsVersion}@zip"
-            }
-
         BuildUtils.addLabKeyDependency(project: project, config: "embedded", depProjectPath: BuildUtils.getEmbeddedProjectPath(project.gradle), depVersion: project.labkeyVersion, depProjectConfig: "embedded", transitive: false)
         TaskUtils.configureTaskIfPresent(project, 'artifactoryDeploy', { dependsOn(project.tasks.distribution) })
         substituteModuleDependencies(project, "distribution")
