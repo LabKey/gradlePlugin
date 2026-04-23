@@ -12,10 +12,6 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
-### 8.2.0-SNAPSHOT
-*Released*: TBD
-(Earliest compatible LabKey version: 26.5.0)
-
 ### 8.1.0
 *Released*: 22 April 2026
 (Earliest compatible LabKey version: 26.5.0)
