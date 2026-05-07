@@ -23,10 +23,13 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.NpmRun
 import org.labkey.gradle.plugin.extension.LabKeyExtension
@@ -43,18 +46,23 @@ import java.util.stream.Collectors
 /**
  * Class for compressing javascript and css files using the yuicompressor classes.
  */
+@CacheableTask
 class ClientLibsCompress extends DefaultTask
 {
     public static final String LIB_XML_EXTENSION = ".lib.xml"
 
-    protected File workingDir = new File((String) project.labkey.explodedModuleWebDir)
-
    // This returns the libXml files from the project directory (the actual input files)
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     FileTree xmlFiles
     private List<File> inputFiles = null
     private List<File> outputFiles = null
     private List<File> outputDirs = null
+
+    @Internal
+    String getWorkingDirPath() {
+        return new File((String) project.labkey.explodedModuleWebDir).getAbsolutePath()
+    }
 
     /**
      * Creates a map between the individual .lib.xml files and the importers used to parse these files and
@@ -103,6 +111,7 @@ class ClientLibsCompress extends DefaultTask
      * @return list of all the .lib.xml files and the (internal) files referenced in the .lib.xml files
      */
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     List<File> getInputFiles()
     {
         if (inputFiles == null)
@@ -139,7 +148,7 @@ class ClientLibsCompress extends DefaultTask
             getImporterMap().entrySet().each { Map.Entry<File, XmlImporter> entry ->
                 // The output file will be in the working directory not in the source directory used when parsing the file.
                 String fileName = entry.key.getAbsolutePath()
-                fileName = fileName.replace(entry.value.sourceDir.getAbsolutePath(), workingDir.getAbsolutePath())
+                fileName = fileName.replace(entry.value.sourceDir.getAbsolutePath(), getWorkingDirPath())
                 File workingFile = project.file(fileName)
                 if (entry.value.getCssFiles().size() > 0)
                 {
@@ -306,7 +315,7 @@ class ClientLibsCompress extends DefaultTask
         File cssMinFile = null
 
         File sourceDir = getSourceDir(xmlFile)
-        File workingFile = new File(xmlFile.getAbsolutePath().replace(sourceDir.getAbsolutePath(), workingDir.getAbsolutePath()))
+        File workingFile = new File(xmlFile.getAbsolutePath().replace(sourceDir.getAbsolutePath(), getWorkingDirPath()))
 
         File packageJson = new File(getMinificationWorkingDir(xmlFile), "package.json")
         project.logger.info("Creating ${packageJson} for ${xmlFile.getAbsolutePath()}")

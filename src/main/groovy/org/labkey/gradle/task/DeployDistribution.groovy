@@ -11,12 +11,16 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 
 import javax.inject.Inject
 
+@DisableCachingByDefault(because="Outputs are in the deploy directory")
 abstract class DeployDistribution extends DeployAppBase
 {
     @Inject abstract ArchiveOperations getArchiveOps()
@@ -31,6 +35,7 @@ abstract class DeployDistribution extends DeployAppBase
     final abstract DirectoryProperty deployBinDir = project.objects.directoryProperty().convention(ServerDeployExtension.getEmbeddedBinDir(project))
 
     @InputFile @Optional
+    @PathSensitive(PathSensitivity.RELATIVE)
     final abstract RegularFileProperty distributionFile = project.objects.fileProperty().fileValue(DistributionExtension.getDistributionFile(project, distDir.get()))
 
     @TaskAction

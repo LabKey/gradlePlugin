@@ -17,6 +17,7 @@ package org.labkey.gradle.task
 
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.plugin.TeamCity
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.DatabaseProperties
@@ -25,6 +26,7 @@ import org.labkey.gradle.util.DatabaseProperties
  * Class that sets our test/Runner.class as the junit test suite and configures a bunch of system properties for
  * running these suites of tests.
  */
+@UntrackedTask(because="Runs tests")
 abstract class RunTestSuite extends RunUiTest
 {
     // Designated as @Internal instead of @Input to avoid this error in TeamCity (dbProperties is not used for running local tests).

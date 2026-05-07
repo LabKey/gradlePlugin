@@ -1,6 +1,6 @@
 package org.labkey.gradle.task
 
-import org.apache.commons.io.IOUtils
+
 import org.apache.commons.lang3.StringUtils
 import org.apache.hc.client5.http.classic.methods.HttpDelete
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
@@ -13,17 +13,19 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
+import org.gradle.work.DisableCachingByDefault
+import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.TaskUtils
 
-import java.nio.file.Paths
-
+@UntrackedTask(because="External side effects only")
 class PurgeArtifacts extends DefaultTask
 {
     public static final String SNAPSHOT_REPOSITORY_NAME = 'libs-snapshot-local'
     public static final String RELEASE_REPOSITORY_NAME = 'libs-release-local'
     public static final String VERSION_PROPERTY = 'purgeVersion'
     public static final String VERSIONS_FILE_PROPERTY = 'purgeVersions'
-    public static final String PURGE_LIST_FILE_PROPERTY = 'purgeList';
+    public static final String PURGE_LIST_FILE_PROPERTY = 'purgeList'
     public static final String DRY_RUN_PROPERTY = 'dryRun';
 
     @Input @Optional
@@ -36,11 +38,11 @@ class PurgeArtifacts extends DefaultTask
     final abstract Property<Boolean> isDryRun = project.objects.property(Boolean).convention(project.hasProperty(DRY_RUN_PROPERTY))
 
     @Input
-    final abstract Property<String> artifactoryUrl = project.objects.property(String).convention((String) project.property('artifactory_contextUrl'))
+    final abstract Property<String> artifactoryUrl = project.objects.property(String).convention((String) project.property(BuildUtils.ARTIFACTORY_CONTEXT_URL_PROP))
     @Input
-    final abstract Property<String> artifactoryUser = project.objects.property(String).convention((String) project.property('artifactory_user'))
+    final abstract Property<String> artifactoryUser = project.objects.property(String).convention((String) project.property(BuildUtils.ARTIFACTORY_USER_PROP))
     @Input
-    final abstract Property<String> artifactoryPassword = project.objects.property(String).convention((String) project.property('artifactory_password'))
+    final abstract Property<String> artifactoryPassword = project.objects.property(String).convention((String) project.property(BuildUtils.ARTIFACTORY_PASSWORD_PROP))
 
     enum Response {
         SUCCESS,
@@ -66,6 +68,7 @@ class PurgeArtifacts extends DefaultTask
         else
         {
             Map<String, Integer> overallStats = new HashMap<>()
+            List<String> inactiveModules = new ArrayList<>()
             overallStats.put(NUM_NOT_FOUND, 0)
             overallStats.put(NUM_DELETED, 0)
             String purgeVersionsFileName = purgeVersions.get()
@@ -77,11 +80,16 @@ class PurgeArtifacts extends DefaultTask
             if (versions.size() > 1) {
                 for (String moduleName : moduleNames) {
                     Map<String, Object> deleteStats = purgeModuleVersions(moduleName, versions)
+                    if (deleteStats.get(NUM_DELETED) == 0) // if none of the versions in question were deleted, we may have removed all versions of this module and can remove it from consideration
+                        inactiveModules.add(moduleName)
                     overallStats.put(NUM_NOT_FOUND, overallStats.get(NUM_NOT_FOUND) + (Integer) deleteStats.get(NUM_NOT_FOUND))
                     overallStats.put(NUM_DELETED, overallStats.get(NUM_DELETED) + (Integer) deleteStats.get(NUM_DELETED))
                 }
-                if (moduleNames.size() > 1)
+                if (moduleNames.size() > 1) {
                     logger.quiet("\nSummary:\n\tDeleted ${overallStats.get(NUM_DELETED)} artifacts.\n\t${overallStats.get(NUM_NOT_FOUND)} artifacts not found.")
+                    if (!inactiveModules.isEmpty())
+                        logger.quiet("\n\tModules with no artifacts deleted: " + inactiveModules.join(", "))
+                }
             }
             else {
                 for (String v : versions) {

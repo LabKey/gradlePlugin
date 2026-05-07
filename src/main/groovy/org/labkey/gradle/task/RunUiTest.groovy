@@ -16,7 +16,9 @@
 package org.labkey.gradle.task
 
 import org.apache.commons.lang3.StringUtils
+import org.gradle.api.tasks.UntrackedTask
 import org.gradle.api.tasks.testing.Test
+import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
@@ -25,6 +27,7 @@ import org.labkey.gradle.util.BuildUtils
 /**
  * Class that sets up jvmArgs and our standard output options
  */
+@UntrackedTask(because="Runs tests")
 abstract class RunUiTest extends Test
 {
     public static final String LOG_DIR = "test/logs"

@@ -47,8 +47,7 @@ abstract class JspCompile2Java extends DefaultTask
     @Input
     final abstract Property<String> sourceCompatibility = project.objects.property(String).convention((String) project.property('sourceCompatibility'))
 
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputDirectory
+    @InputDirectory @PathSensitive(PathSensitivity.RELATIVE)
     File webappDirectory
 
     @OutputDirectory

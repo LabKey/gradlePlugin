@@ -12,10 +12,13 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
+import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.TaskUtils
 
 import static org.labkey.gradle.task.PurgeArtifacts.Response
 
+@UntrackedTask(because="External side effects only")
 class RestoreFromTrash extends DefaultTask
 {
     public static final String VERSION_PROPERTY = "restoreVersion"
@@ -33,11 +36,11 @@ class RestoreFromTrash extends DefaultTask
     final abstract Property<Boolean> isDryRun = project.objects.property(Boolean).convention(project.hasProperty(PurgeArtifacts.DRY_RUN_PROPERTY))
 
     @Input
-    final abstract Property<String> artifactoryUrl = project.objects.property(String).convention((String) project.property('artifactory_contextUrl'))
+    final abstract Property<String> artifactoryUrl = project.objects.property(String).convention((String) project.property(ARTIFACTORY_CONTEXT_URL_PROP))
     @Input
-    final abstract Property<String> artifactoryUser = project.objects.property(String).convention((String) project.property('artifactory_user'))
+    final abstract Property<String> artifactoryUser = project.objects.property(String).convention((String) project.property(ARTIFACTORY_USER_PROP))
     @Input
-    final abstract Property<String> artifactoryPassword = project.objects.property(String).convention((String) project.property('artifactory_password'))
+    final abstract Property<String> artifactoryPassword = project.objects.property(String).convention((String) project.property(ARTIFACTORY_PASSWORD_PROP))
 
     private static final String NUM_NOT_FOUND = "numNotFound"
     private static final String NUM_RESTORED = "numRestored"
@@ -163,7 +166,7 @@ class RestoreFromTrash extends DefaultTask
         }
 
         CloseableHttpClient httpClient = HttpClients.createDefault()
-        String endpoint = project.property('artifactory_contextUrl')
+        String endpoint = project.property(BuildUtils.ARTIFACTORY_CONTEXT_URL_PROP)
         Response responseStatus = Response.SUCCESS
         if (!endpoint.endsWith("/"))
             endpoint += "/"
@@ -178,7 +181,7 @@ class RestoreFromTrash extends DefaultTask
         {
             HttpPost httpPost = new HttpPost(endpoint)
             // N.B. Using Authorization Bearer with an API token does not currently work
-            httpPost.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${project.property('artifactory_user')}:${project.property('artifactory_password')}".getBytes()))
+            httpPost.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${project.property(BuildUtils.ARTIFACTORY_USER_PROP)}:${project.property(BuildUtils.ARTIFACTORY_PASSWORD_PROP)}".getBytes()))
             CloseableHttpResponse response = httpClient.execute(httpPost)
             int statusCode = response.getCode()
 

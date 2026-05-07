@@ -23,6 +23,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
@@ -37,6 +38,7 @@ import org.labkey.gradle.util.GroupNames
 
 import javax.inject.Inject
 
+@CacheableTask
 abstract class ModuleDistribution extends DefaultTask
 {
     @Inject abstract FileSystemOperations getFs()

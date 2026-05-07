@@ -22,6 +22,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.util.BuildUtils
 
 import java.util.regex.Matcher
@@ -32,6 +33,7 @@ import java.util.regex.Pattern
  * user input based on the prompt flag.
  * Documented at <a href='https://www.labkey.org/Documentation/wiki-page.view?name=createNewModule'>labkey.org</a>
  */
+@UntrackedTask(because="Has user interaction and side effects")
 class CreateModule extends DefaultTask
 {
     @TaskAction

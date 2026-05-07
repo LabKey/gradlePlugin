@@ -31,6 +31,7 @@ import org.labkey.gradle.util.ExternalDependency
 import java.nio.charset.StandardCharsets
 import java.util.stream.Collectors
 
+@CacheableTask
 abstract class WriteDependenciesFile extends DefaultTask
 {
     // we assume that if a version number has changed, we should generate a new dependencies file

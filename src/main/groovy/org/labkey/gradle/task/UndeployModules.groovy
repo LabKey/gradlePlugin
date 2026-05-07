@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.plugin.FileModule
 import org.labkey.gradle.plugin.JavaModule
 import org.labkey.gradle.plugin.Module
@@ -29,6 +30,7 @@ import org.labkey.gradle.plugin.Module
  * it removes those not supporting the given dbType.  If dbType is null, removes all modules from
  * the current set of projects.
  */
+@UntrackedTask(because="Does only file removal")
 class UndeployModules extends DefaultTask
 {
     @Input @Optional

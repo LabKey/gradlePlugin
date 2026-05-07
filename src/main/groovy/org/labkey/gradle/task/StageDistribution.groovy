@@ -29,13 +29,17 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.plugin.ServerDeploy
 import org.labkey.gradle.plugin.extension.DistributionExtension
 import org.labkey.gradle.util.BuildUtils
 
 import javax.inject.Inject
 
+@DisableCachingByDefault(because="Outputs are in the staging directory")
 abstract class StageDistribution extends DefaultTask
 {
     @Inject abstract FileSystemOperations getFs()
@@ -54,6 +58,7 @@ abstract class StageDistribution extends DefaultTask
     final abstract DirectoryProperty pipelineJarStagingDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_PIPELINE_DIR)
 
     @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     final abstract RegularFileProperty distributionFileProp = project.objects.fileProperty().fileValue(DistributionExtension.getDistributionFile(project, distDir.get()))
 
     @TaskAction

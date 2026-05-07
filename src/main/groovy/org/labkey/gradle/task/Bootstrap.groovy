@@ -15,8 +15,10 @@
  */
 package org.labkey.gradle.task
 
+import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.util.DatabaseProperties
 
+@UntrackedTask(because="Should always be run")
 abstract class Bootstrap extends DoThenSetup
 {
     @Override

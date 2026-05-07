@@ -18,8 +18,11 @@ package org.labkey.gradle.task
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.util.BuildUtils
@@ -27,19 +30,23 @@ import org.labkey.gradle.util.BuildUtils
 /**
  * N.B.  This task requires that you have the platform/api project source as it needs access to directories in that project
  */
+@CacheableTask
 abstract class ServerSideJS extends DefaultTask
 {
     @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     File scriptFragmentsDir = project.file("script-fragments")
 
     @OutputDirectory
     File scriptsDir = project.file("resources/scripts")
 
     @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     final abstract DirectoryProperty ext3SrcDir = project.objects.directoryProperty()
             .convention(project.project(BuildUtils.getApiProjectPath(project.gradle)).layout.projectDirectory.dir("webapp/${LabKeyExtension.ext3Dir}/src"))
 
     @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     final abstract DirectoryProperty ext4SrcDir = project.objects.directoryProperty()
             .convention(project.project(BuildUtils.getApiProjectPath(project.gradle)).layout.projectDirectory.dir("webapp/${LabKeyExtension.ext4Dir}/src"))
 
@@ -101,6 +108,5 @@ abstract class ServerSideJS extends DefaultTask
         File destFile = new File("${scriptsDir}/Ext4.js")
         if (!destFile.exists())
             throw new GradleException("Output file ${destFile} not created")
-
     }
 }

@@ -7,12 +7,17 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
+import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.plugin.ServerDeploy
 import org.labkey.gradle.util.BuildUtils
 
 import javax.inject.Inject
 
+@DisableCachingByDefault(because="Outputs are in the staging directory")
 abstract class StageModules extends DefaultTask
 {
     @Inject abstract FileSystemOperations getFs()
@@ -21,9 +26,11 @@ abstract class StageModules extends DefaultTask
     final abstract DirectoryProperty stagingModulesDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_MODULES_DIR)
 
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     abstract ConfigurableFileCollection getDownloadedModules()
 
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     abstract ConfigurableFileCollection getBuiltModules()
 
     @TaskAction

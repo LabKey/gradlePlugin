@@ -23,11 +23,16 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.UntrackedTask
+import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
@@ -35,12 +40,13 @@ import org.labkey.gradle.util.PropertiesUtils
 
 import javax.inject.Inject
 
+@DisableCachingByDefault(because="Outputs are not in the build directory")
 abstract class SetUpProperties extends TeamCityPropertiesTask
 {
     @Internal
     private DatabaseProperties databaseProperties
 
-    @InputFiles
+    @InputFiles @Classpath
     abstract ConfigurableFileCollection getDriverFiles()
 
     @Input
@@ -65,7 +71,7 @@ abstract class SetUpProperties extends TeamCityPropertiesTask
     @Input
     final abstract Property<String> embeddedConfigDir = project.objects.property(String).convention(BuildUtils.getEmbeddedConfigPath(project))
 
-    @InputDirectory
+    @InputDirectory @PathSensitive(PathSensitivity.ABSOLUTE)
     File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
 
     @OutputFile

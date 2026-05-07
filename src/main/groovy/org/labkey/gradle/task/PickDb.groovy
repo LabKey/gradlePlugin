@@ -20,10 +20,14 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.util.BuildUtils
 
 import javax.inject.Inject
 
+@UntrackedTask(because="Does only file copying and should always be run")
 abstract class PickDb extends DoThenSetup
 {
     @Inject abstract FileSystemOperations getFs()
@@ -31,7 +35,7 @@ abstract class PickDb extends DoThenSetup
     @Input
     String dbType
 
-    @InputDirectory
+    @InputDirectory @PathSensitive(PathSensitivity.RELATIVE)
     File configsDir = new File(BuildUtils.getConfigsProject(project).projectDir, "configs")
 
     @Override

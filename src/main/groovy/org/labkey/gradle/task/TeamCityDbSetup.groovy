@@ -16,8 +16,10 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.util.DatabaseProperties
 
+@UntrackedTask(because="External side effects are not cacheable")
 abstract class TeamCityDbSetup extends DoThenSetup
 {
     @Input
