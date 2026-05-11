@@ -18,7 +18,6 @@ package org.labkey.gradle.task
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.FileTree
-import org.gradle.api.tasks.UntrackedTask
 
 /**
  * This action can be applied to a task as a doLast action if we need to create gzipped versions of the output files

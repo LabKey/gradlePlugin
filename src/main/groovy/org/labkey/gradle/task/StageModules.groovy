@@ -10,7 +10,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.UntrackedTask
 import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.plugin.ServerDeploy
 import org.labkey.gradle.util.BuildUtils
