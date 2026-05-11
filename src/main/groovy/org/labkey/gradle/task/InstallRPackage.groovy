@@ -22,8 +22,10 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 
+@UntrackedTask(because="Does only file copying outside the build directory")
 class InstallRPackage extends DefaultTask
 {
     @Optional @Input

@@ -7,20 +7,20 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse
 import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.core5.http.HttpStatus
-import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.plugin.NpmRun
 
 import java.util.stream.Collectors
 
+@UntrackedTask(because="External side effects only")
 abstract class PurgeNpmAlphaVersions extends PurgeNpmVersions
 {
     private static final String REPOSITORY_NAME = 'libs-client-local'
     public static final String ALPHA_PREFIX_PROPERTY = 'alphaPrefix'
-    public static final String DRY_RUN_PROPERTY = 'dryRun'
     public static final String[] PACKAGE_NAMES = [
             '@labkey/api',
             '@labkey/assayreport',

@@ -18,7 +18,10 @@ package org.labkey.gradle.task
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 
 import java.nio.charset.StandardCharsets
@@ -28,10 +31,11 @@ import java.util.concurrent.TimeUnit
 /**
  * Task for stopping a running LabKey instance
  */
+@UntrackedTask(because="Output is a stopped process")
 class StopLabKey extends DefaultTask
 {
 
-    @InputFile @Optional
+    @InputFile @Optional @PathSensitive(PathSensitivity.RELATIVE)
     final abstract File pidFile = ServerDeployExtension.getEmbeddedDir(project).file("labkey.pid").asFile
             .with { it.exists() ? it : null } // "Optional" means that the property may be null, not refer to something nonexistent
 

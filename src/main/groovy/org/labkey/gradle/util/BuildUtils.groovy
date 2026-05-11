@@ -21,16 +21,12 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.UnknownDomainObjectException
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.DependencySubstitutions
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Provider
-import org.labkey.gradle.plugin.FileModule
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
@@ -99,6 +95,9 @@ class BuildUtils
     public static final int ARTIFACT_EXTENSION_INDEX = 8
     public static final String BOOTSTRAP_JAR_BASE_NAME = "labkeyBootstrap"
     public static final String RESTART_FILE_NAME = ".restartTrigger"
+    public static final String ARTIFACTORY_CONTEXT_URL_PROP = 'artifactory_contextUrl'
+    public static final String ARTIFACTORY_USER_PROP = 'artifactory_user'
+    public static final String ARTIFACTORY_PASSWORD_PROP = 'artifactory_password'
 
     // the set of modules required for minimal LabKey server functionality
     static List<String> getBaseModules(Gradle gradle)
@@ -984,5 +983,12 @@ class BuildUtils
             else
                 return Boolean.valueOf(propertyValue) ? _TRUE : _FALSE
         }
+    }
+
+    static boolean hasArtifactoryProperties(Project project)
+    {
+        return project.hasProperty(ARTIFACTORY_CONTEXT_URL_PROP) &&
+                project.hasProperty(ARTIFACTORY_USER_PROP) &&
+                project.hasProperty(ARTIFACTORY_PASSWORD_PROP)
     }
 }

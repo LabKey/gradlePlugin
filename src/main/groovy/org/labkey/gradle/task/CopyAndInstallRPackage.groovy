@@ -4,16 +4,21 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.work.DisableCachingByDefault
 
 import javax.inject.Inject
 
+@DisableCachingByDefault(because="Does only file copying")
 abstract class CopyAndInstallRPackage extends InstallRPackage
 {
     @Inject abstract FileSystemOperations getFs()
 
     @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     File packageLocation
 
     @TaskAction

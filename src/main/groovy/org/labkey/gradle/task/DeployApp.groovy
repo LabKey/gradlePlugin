@@ -26,17 +26,22 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.plugin.ServerDeploy
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.util.BuildUtils
 
+@DisableCachingByDefault(because="Outputs are in the deploy directory")
 abstract class DeployApp extends DeployAppBase
 {
-    @InputDirectory
+    @InputDirectory @PathSensitive(PathSensitivity.RELATIVE)
     final abstract DirectoryProperty stagingModulesDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_MODULES_DIR)
 
     @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     final abstract DirectoryProperty stagingPipelineJarDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.STAGING_PIPELINE_DIR)
     
     @OutputDirectory
@@ -62,6 +67,7 @@ abstract class DeployApp extends DeployAppBase
     final abstract DirectoryProperty embeddedDir = project.objects.directoryProperty().convention(ServerDeployExtension.getEmbeddedServerDeployDirectory(project))
 
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     abstract ConfigurableFileCollection getBootJar()
 
     @TaskAction

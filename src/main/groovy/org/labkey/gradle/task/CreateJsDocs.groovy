@@ -21,20 +21,26 @@ import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 import org.labkey.gradle.plugin.XsdDoc
 
 import javax.inject.Inject
 
+@CacheableTask
 abstract class CreateJsDocs extends DefaultTask
 {
     @Inject abstract ExecOperations getExec()
 
     @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     final abstract DirectoryProperty templateDir = project.objects.directoryProperty().convention(
             project.rootProject.layout.projectDirectory.dir("tools/jsdoc-toolkit/templates/jsdoc_substituted")
     )

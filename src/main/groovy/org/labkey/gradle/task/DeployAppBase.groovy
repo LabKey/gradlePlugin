@@ -8,15 +8,20 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.util.BuildUtils
 
 import javax.inject.Inject
 
+@DisableCachingByDefault(because="Outputs are in the deploy directory")
 abstract class DeployAppBase extends SetUpProperties {
 
     @Inject abstract FileSystemOperations getFs()
 
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     abstract ConfigurableFileCollection getBinaries()
 
     @OutputDirectory

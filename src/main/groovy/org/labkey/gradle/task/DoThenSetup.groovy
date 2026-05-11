@@ -16,7 +16,9 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 
+@UntrackedTask(because="No trackable file outputs")
 abstract class DoThenSetup extends SetUpProperties
 {
     protected void doDatabaseTask()

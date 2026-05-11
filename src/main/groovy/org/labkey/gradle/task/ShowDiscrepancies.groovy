@@ -21,11 +21,13 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 
 /**
  * This task will collect all the resolved dependencies from each project and print a report
  * that shows the external dependencies with more than one version referenced within the build.
  */
+@UntrackedTask(because="Output is logging")
 class ShowDiscrepancies extends DefaultTask
 {
 

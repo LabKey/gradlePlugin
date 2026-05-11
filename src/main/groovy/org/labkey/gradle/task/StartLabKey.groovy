@@ -23,7 +23,10 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.plugin.Tomcat
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
@@ -32,6 +35,7 @@ import org.labkey.gradle.util.BuildUtils
 
 import java.util.stream.Collectors
 
+@UntrackedTask(because="Output is a running process")
 abstract class StartLabKey extends TeamCityPropertiesTask
 {
     private static final String EMBEDDED_REFLECTION_PARAM = "embeddedReflectionArgs"
@@ -45,6 +49,7 @@ abstract class StartLabKey extends TeamCityPropertiesTask
     ]
 
     @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     final abstract DirectoryProperty deployDir = project.objects.directoryProperty().convention(ServerDeployExtension.getEmbeddedServerDeployDirectory(project))
 
     @OutputFile

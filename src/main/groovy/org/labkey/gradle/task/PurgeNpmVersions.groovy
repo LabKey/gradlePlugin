@@ -1,6 +1,5 @@
 package org.labkey.gradle.task
 
-
 import org.apache.commons.lang3.StringUtils
 import org.apache.hc.client5.http.classic.methods.HttpDelete
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
@@ -13,8 +12,11 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
+import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.TaskUtils
 
+@UntrackedTask(because="External side effects only")
 abstract class PurgeNpmVersions extends DefaultTask
 {
     private static final String REPOSITORY_NAME = 'libs-client-local'
@@ -33,11 +35,11 @@ abstract class PurgeNpmVersions extends DefaultTask
     @Input
     final abstract Property<Boolean> isDryRun = project.objects.property(Boolean).convention(project.hasProperty(DRY_RUN_PROPERTY))
     @Input
-    final abstract Property<String> artifactoryUrl = project.objects.property(String).convention((String) project.property('artifactory_contextUrl'))
+    final abstract Property<String> artifactoryUrl = project.objects.property(String).convention((String) project.property(BuildUtils.ARTIFACTORY_CONTEXT_URL_PROP))
     @Input
-    final abstract Property<String> artifactoryUser = project.objects.property(String).convention((String) project.property('artifactory_user'))
+    final abstract Property<String> artifactoryUser = project.objects.property(String).convention((String) project.property(BuildUtils.ARTIFACTORY_USER_PROP))
     @Input
-    final abstract Property<String> artifactoryPassword = project.objects.property(String).convention((String) project.property('artifactory_password'))
+    final abstract Property<String> artifactoryPassword = project.objects.property(String).convention((String) project.property(BuildUtils.ARTIFACTORY_PASSWORD_PROP))
 
     @TaskAction
     void purgeVersions()

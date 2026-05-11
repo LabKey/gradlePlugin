@@ -21,7 +21,10 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.util.BuildUtils
 
 import java.util.regex.Matcher
@@ -29,7 +32,8 @@ import java.util.regex.Matcher
 /**
  * Checks for conflicts that may exist between a file collection and the files in an existing directory
  */
-class CheckForVersionConflicts  extends DefaultTask
+@UntrackedTask(because="Should always be run")
+class CheckForVersionConflicts extends DefaultTask
 {
     // GH Issue 1015: We are using milestone versions of spring-ai jars, which use classifiers like -M2 to distinguish the different versions.
     // We want to have the later milestones replace the earlier ones, so we want to exclude the milestone classifier from the name when
@@ -64,7 +68,7 @@ class CheckForVersionConflicts  extends DefaultTask
             project.hasProperty('versionConflictAction') ? ConflictAction.valueOf((String) project.property('versionConflictAction')) : ConflictAction.fail)
 
     /** The collection of files to check for.  Usually this will come from a configuration. **/
-    @InputFiles
+    @InputFiles @PathSensitive(PathSensitivity.RELATIVE)
     FileCollection collection
 
     /** The name of a task to run if conflicts are found that will resolve the conflict (presumably by cleaning out the directory) **/
