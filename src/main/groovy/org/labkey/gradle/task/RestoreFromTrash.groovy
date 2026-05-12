@@ -181,6 +181,7 @@ class RestoreFromTrash extends DefaultTask
         {
             HttpPost httpPost = new HttpPost(endpoint)
             // N.B. Using Authorization Bearer with an API token does not currently work
+            // TODO JFrog claims to support bearer tokens now. https://docs.jfrog.com/administration/docs/access-tokens#authorization-headers
             httpPost.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${project.property(BuildUtils.ARTIFACTORY_USER_PROP)}:${project.property(BuildUtils.ARTIFACTORY_PASSWORD_PROP)}".getBytes()))
             CloseableHttpResponse response = httpClient.execute(httpPost)
             int statusCode = response.getCode()
