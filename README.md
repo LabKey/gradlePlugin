@@ -13,12 +13,17 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 26.6.0)
+- Update to Gradle 9.5.1
+- 
+
 ### 8.2.0
 *Released*: 11 May 2026
 (Earliest compatible LabKey version: 26.5.0)
 - Add `BuildUtils.hasArtifactoryProperties` method for brevity
 - Add cacheability annotations to tasks so they work with stricter plugin validation
-- Update to Gradle 9.5.0
 
 ### 8.1.0
 *Released*: 22 April 2026
