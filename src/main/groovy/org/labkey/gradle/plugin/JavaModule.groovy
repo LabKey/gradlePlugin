@@ -74,9 +74,6 @@ class JavaModule implements Plugin<Project>
         if (Jsp.isApplicable(project))
             project.apply plugin: 'org.labkey.build.jsp'
 
-        if (Gwt.isApplicable(project))
-            project.apply plugin: 'org.labkey.build.gwt'
-
         if (UiTest.isApplicable(project))
         {
             project.apply plugin: 'org.labkey.build.uiTest'
