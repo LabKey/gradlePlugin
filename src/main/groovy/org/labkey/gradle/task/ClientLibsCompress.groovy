@@ -72,7 +72,7 @@ class ClientLibsCompress extends DefaultTask
     @Internal
     Map<File, XmlImporter> getImporterMap()
     {
-        Map<File, XmlImporter> importerMap = new HashMap<>()
+        Map<File, XmlImporter> importerMap = new LinkedHashMap<>()
         xmlFiles.files.each() {
             File file ->
                 importerMap.put(file, parseXmlFile(getSourceDir(file), file))
@@ -153,14 +153,14 @@ class ClientLibsCompress extends DefaultTask
                 if (entry.value.getCssFiles().size() > 0)
                 {
                     outputFiles.add(getOutputFile(workingFile, "min", "css"))
-                    if (LabKeyExtension.isDevMode(project))
+                    if (!LabKeyExtension.isDevMode(project))
                         outputFiles.add(getOutputFile(workingFile, "min", "css.gz"))
                     outputFiles.add(getOutputFile(workingFile, "combined", "css"))
                 }
                 if (entry.value.getJavascriptFiles().size() > 0)
                 {
                     outputFiles.add(getOutputFile(workingFile, "min", "js"))
-                    if (LabKeyExtension.isDevMode(project))
+                    if (!LabKeyExtension.isDevMode(project))
                         outputFiles.add(getOutputFile(workingFile, "min", "js.gz"))
                     outputFiles.add(getOutputFile(workingFile, "combined", "js"))
                 }
