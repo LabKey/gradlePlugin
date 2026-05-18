@@ -23,7 +23,9 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectories
@@ -58,6 +60,9 @@ class ClientLibsCompress extends DefaultTask
     private List<File> inputFiles = null
     private List<File> outputFiles = null
     private List<File> outputDirs = null
+
+    @Input
+    final abstract Property<Boolean> isDevMode = project.objects.property(Boolean).convention(LabKeyExtension.isDevMode(project))
 
     @Internal
     String getWorkingDirPath() {
@@ -146,23 +151,21 @@ class ClientLibsCompress extends DefaultTask
             outputFiles = new ArrayList<>()
 
             getImporterMap().entrySet().each { Map.Entry<File, XmlImporter> entry ->
-                // The output file will be in the working directory not in the source directory used when parsing the file.
-                String fileName = entry.key.getAbsolutePath()
-                fileName = fileName.replace(entry.value.sourceDir.getAbsolutePath(), getWorkingDirPath())
-                File workingFile = project.file(fileName)
-                if (entry.value.getCssFiles().size() > 0)
-                {
-                    outputFiles.add(getOutputFile(workingFile, "min", "css"))
-                    if (!LabKeyExtension.isDevMode(project))
-                        outputFiles.add(getOutputFile(workingFile, "min", "css.gz"))
-                    outputFiles.add(getOutputFile(workingFile, "combined", "css"))
-                }
-                if (entry.value.getJavascriptFiles().size() > 0)
-                {
-                    outputFiles.add(getOutputFile(workingFile, "min", "js"))
-                    if (!LabKeyExtension.isDevMode(project))
-                        outputFiles.add(getOutputFile(workingFile, "min", "js.gz"))
-                    outputFiles.add(getOutputFile(workingFile, "combined", "js"))
+                if (entry.value.doCompile) {
+                    // The output file will be in the working directory not in the source directory used when parsing the file.
+                    String fileName = entry.key.getAbsolutePath()
+                    fileName = fileName.replace(entry.value.sourceDir.getAbsolutePath(), getWorkingDirPath())
+                    File workingFile = project.file(fileName)
+                    if (entry.value.getCssFiles().size() > 0) {
+                        outputFiles.add(getOutputFile(workingFile, "min", "css"))
+                        if (!isDevMode.get())
+                            outputFiles.add(getOutputFile(workingFile, "min", "css.gz"))
+                    }
+                    if (entry.value.getJavascriptFiles().size() > 0) {
+                        outputFiles.add(getOutputFile(workingFile, "min", "js"))
+                        if (!isDevMode.get())
+                            outputFiles.add(getOutputFile(workingFile, "min", "js.gz"))
+                    }
                 }
             }
         }
@@ -387,7 +390,7 @@ class ClientLibsCompress extends DefaultTask
 
     void compressFile(File file)
     {
-        if (!LabKeyExtension.isDevMode(project))
+        if (!isDevMode.get())
         {
             this.logger.info("Compressing " + file)
             project.ant.gzip(
