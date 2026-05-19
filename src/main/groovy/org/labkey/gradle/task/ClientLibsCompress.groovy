@@ -47,9 +47,10 @@ import java.nio.charset.StandardCharsets
 import java.util.stream.Collectors
 
 /**
- * Class for compressing javascript and css files using the yuicompressor classes.
+ * Class for compressing javascript and css files using terser
  */
-@DisableCachingByDefault(because="Troubleshooting")
+//@DisableCachingByDefault(because="Troubleshooting")
+@CacheableTask
 class ClientLibsCompress extends DefaultTask
 {
     public static final String LIB_XML_EXTENSION = ".lib.xml"
