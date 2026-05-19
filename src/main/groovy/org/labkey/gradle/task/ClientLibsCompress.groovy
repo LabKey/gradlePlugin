@@ -22,6 +22,7 @@ import org.apache.tools.ant.util.FileUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
@@ -47,9 +48,8 @@ import java.nio.charset.StandardCharsets
 import java.util.stream.Collectors
 
 /**
- * Class for compressing javascript and css files using terser
+ * Class for compressing javascript and css files
  */
-//@DisableCachingByDefault(because="Troubleshooting")
 @CacheableTask
 class ClientLibsCompress extends DefaultTask
 {
@@ -59,6 +59,7 @@ class ClientLibsCompress extends DefaultTask
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
     FileTree xmlFiles
+
     private List<File> inputFiles = null
     private List<File> outputFiles = null
     private List<File> outputDirs = null
@@ -66,9 +67,24 @@ class ClientLibsCompress extends DefaultTask
     @Input
     final abstract Property<Boolean> isDevMode = project.objects.property(Boolean).convention(LabKeyExtension.isDevMode(project))
 
+    @Input
+    final abstract Property<String> nodeVersion = project.objects.property(String).convention(project.hasProperty("nodeVersion") ? project.nodeVersion : "")
+
     @Internal
     String getWorkingDirPath() {
         return new File((String) project.labkey.explodedModuleWebDir).getAbsolutePath()
+    }
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    FileCollection getNpmPackageFiles() {
+        if (BuildUtils.haveMinificationProject(project.gradle)) {
+            Project minProject = project.project(BuildUtils.getMinificationProjectPath(project.gradle))
+            return project.files(
+                    "${minProject.projectDir}/package.json",
+                    "${minProject.projectDir}/package-lock.json"
+            ).filter { it.exists() }
+        }
     }
 
     /**
@@ -111,28 +127,23 @@ class ClientLibsCompress extends DefaultTask
     }
 
     /**
-     * Input files include:
-     * - .lib.xml files
+     * Input files includes:
      * - css files referenced in the .lib.xml files
      * - js files referenced in the .lib.xml files
-     * @return list of all the .lib.xml files and the (internal) files referenced in the .lib.xml files
+     * @return list of all the (internal) files referenced in the .lib.xml files (the xml files are designated as input above)
      */
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
     List<File> getInputFiles()
     {
-        if (inputFiles == null)
-        {
-            inputFiles = new ArrayList<>()
-            inputFiles.addAll(xmlFiles)
+        if (inputFiles == null) {
+           inputFiles = new ArrayList<>()
 
             getImporterMap().entrySet().each { Map.Entry<File, XmlImporter> entry ->
-                if (entry.value.getCssFiles().size() > 0)
-                {
+                if (entry.value.getCssFiles().size() > 0) {
                     inputFiles.addAll(entry.value.getCssFiles())
                 }
-                if (entry.value.getJavascriptFiles().size() > 0)
-                {
+                if (entry.value.getJavascriptFiles().size() > 0) {
                     inputFiles.addAll(entry.value.getJavascriptFiles())
                 }
             }
@@ -239,7 +250,7 @@ class ClientLibsCompress extends DefaultTask
     String getNodeExecutableDir()
     {
         Project minProject = project.project(BuildUtils.getMinificationProjectPath(project.gradle))
-        String nodeFilePrefix = "node-v${project.nodeVersion}-"
+        String nodeFilePrefix = "node-v${nodeVersion.get()}-"
         File nodeDir = new File("${minProject.projectDir}/.gradle/nodejs")
         File[] nodeFiles = nodeDir.listFiles({ File file -> file.name.startsWith(nodeFilePrefix) } as FileFilter)
         if (nodeFiles != null && nodeFiles.length > 0)
