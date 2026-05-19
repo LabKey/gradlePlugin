@@ -33,6 +33,7 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.plugin.NpmRun
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.util.BuildUtils
@@ -48,7 +49,7 @@ import java.util.stream.Collectors
 /**
  * Class for compressing javascript and css files using the yuicompressor classes.
  */
-@CacheableTask
+@DisableCachingByDefault(because="Troubleshooting")
 class ClientLibsCompress extends DefaultTask
 {
     public static final String LIB_XML_EXTENSION = ".lib.xml"
