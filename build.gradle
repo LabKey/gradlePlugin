@@ -43,7 +43,7 @@ dependencies {
 }
 
 group = 'org.labkey.build'
-project.version = "8.3.0-SNAPSHOT"
+project.version = "9.1.0-SNAPSHOT"
 
 gradlePlugin {
     plugins {
@@ -74,10 +74,6 @@ gradlePlugin {
         fileModule {
             id = 'org.labkey.build.fileModule'
             implementationClass = 'org.labkey.gradle.plugin.FileModule'
-        }
-        gwt {
-            id = 'org.labkey.build.gwt'
-            implementationClass = 'org.labkey.gradle.plugin.Gwt'
         }
         javaModule {
             id = 'org.labkey.build.javaModule'

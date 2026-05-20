@@ -22,8 +22,10 @@ import org.apache.tools.ant.util.FileUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectories
@@ -31,6 +33,7 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.plugin.NpmRun
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.util.BuildUtils
@@ -44,9 +47,12 @@ import java.nio.charset.StandardCharsets
 import java.util.stream.Collectors
 
 /**
- * Class for compressing javascript and css files using the yuicompressor classes.
+ * Class for compressing javascript and css files
  */
-@CacheableTask
+// TODO When caching is enabled, the moduleEditor[prod] suite fails to find the Ext libraries.
+// No luck yet finding what inputs or outputs are not well configured. Perhaps when converted to
+// use configuration cache something will become more clear.
+@DisableCachingByDefault(because="Needs troubleshooting")
 class ClientLibsCompress extends DefaultTask
 {
     public static final String LIB_XML_EXTENSION = ".lib.xml"
@@ -55,13 +61,32 @@ class ClientLibsCompress extends DefaultTask
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
     FileTree xmlFiles
+
     private List<File> inputFiles = null
     private List<File> outputFiles = null
     private List<File> outputDirs = null
 
+    @Input
+    final abstract Property<Boolean> isDevMode = project.objects.property(Boolean).convention(LabKeyExtension.isDevMode(project))
+
+    @Input
+    final abstract Property<String> nodeVersion = project.objects.property(String).convention(project.hasProperty("nodeVersion") ? project.nodeVersion : "")
+
     @Internal
     String getWorkingDirPath() {
         return new File((String) project.labkey.explodedModuleWebDir).getAbsolutePath()
+    }
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    FileCollection getNpmPackageFiles() {
+        if (BuildUtils.haveMinificationProject(project.gradle)) {
+            Project minProject = project.project(BuildUtils.getMinificationProjectPath(project.gradle))
+            return project.files(
+                    "${minProject.projectDir}/package.json",
+                    "${minProject.projectDir}/package-lock.json"
+            ).filter { it.exists() }
+        }
     }
 
     /**
@@ -72,7 +97,7 @@ class ClientLibsCompress extends DefaultTask
     @Internal
     Map<File, XmlImporter> getImporterMap()
     {
-        Map<File, XmlImporter> importerMap = new HashMap<>()
+        Map<File, XmlImporter> importerMap = new LinkedHashMap<>()
         xmlFiles.files.each() {
             File file ->
                 importerMap.put(file, parseXmlFile(getSourceDir(file), file))
@@ -104,28 +129,23 @@ class ClientLibsCompress extends DefaultTask
     }
 
     /**
-     * Input files include:
-     * - .lib.xml files
+     * Input files includes:
      * - css files referenced in the .lib.xml files
      * - js files referenced in the .lib.xml files
-     * @return list of all the .lib.xml files and the (internal) files referenced in the .lib.xml files
+     * @return list of all the (internal) files referenced in the .lib.xml files (the xml files are designated as input above)
      */
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
     List<File> getInputFiles()
     {
-        if (inputFiles == null)
-        {
-            inputFiles = new ArrayList<>()
-            inputFiles.addAll(xmlFiles)
+        if (inputFiles == null) {
+           inputFiles = new ArrayList<>()
 
             getImporterMap().entrySet().each { Map.Entry<File, XmlImporter> entry ->
-                if (entry.value.getCssFiles().size() > 0)
-                {
+                if (entry.value.getCssFiles().size() > 0) {
                     inputFiles.addAll(entry.value.getCssFiles())
                 }
-                if (entry.value.getJavascriptFiles().size() > 0)
-                {
+                if (entry.value.getJavascriptFiles().size() > 0) {
                     inputFiles.addAll(entry.value.getJavascriptFiles())
                 }
             }
@@ -146,23 +166,21 @@ class ClientLibsCompress extends DefaultTask
             outputFiles = new ArrayList<>()
 
             getImporterMap().entrySet().each { Map.Entry<File, XmlImporter> entry ->
-                // The output file will be in the working directory not in the source directory used when parsing the file.
-                String fileName = entry.key.getAbsolutePath()
-                fileName = fileName.replace(entry.value.sourceDir.getAbsolutePath(), getWorkingDirPath())
-                File workingFile = project.file(fileName)
-                if (entry.value.getCssFiles().size() > 0)
-                {
-                    outputFiles.add(getOutputFile(workingFile, "min", "css"))
-                    if (LabKeyExtension.isDevMode(project))
-                        outputFiles.add(getOutputFile(workingFile, "min", "css.gz"))
-                    outputFiles.add(getOutputFile(workingFile, "combined", "css"))
-                }
-                if (entry.value.getJavascriptFiles().size() > 0)
-                {
-                    outputFiles.add(getOutputFile(workingFile, "min", "js"))
-                    if (LabKeyExtension.isDevMode(project))
-                        outputFiles.add(getOutputFile(workingFile, "min", "js.gz"))
-                    outputFiles.add(getOutputFile(workingFile, "combined", "js"))
+                if (entry.value.doCompile) {
+                    // The output file will be in the working directory not in the source directory used when parsing the file.
+                    String fileName = entry.key.getAbsolutePath()
+                    fileName = fileName.replace(entry.value.sourceDir.getAbsolutePath(), getWorkingDirPath())
+                    File workingFile = project.file(fileName)
+                    if (entry.value.getCssFiles().size() > 0) {
+                        outputFiles.add(getOutputFile(workingFile, "min", "css"))
+                        if (!isDevMode.get())
+                            outputFiles.add(getOutputFile(workingFile, "min", "css.gz"))
+                    }
+                    if (entry.value.getJavascriptFiles().size() > 0) {
+                        outputFiles.add(getOutputFile(workingFile, "min", "js"))
+                        if (!isDevMode.get())
+                            outputFiles.add(getOutputFile(workingFile, "min", "js.gz"))
+                    }
                 }
             }
         }
@@ -234,7 +252,7 @@ class ClientLibsCompress extends DefaultTask
     String getNodeExecutableDir()
     {
         Project minProject = project.project(BuildUtils.getMinificationProjectPath(project.gradle))
-        String nodeFilePrefix = "node-v${project.nodeVersion}-"
+        String nodeFilePrefix = "node-v${nodeVersion.get()}-"
         File nodeDir = new File("${minProject.projectDir}/.gradle/nodejs")
         File[] nodeFiles = nodeDir.listFiles({ File file -> file.name.startsWith(nodeFilePrefix) } as FileFilter)
         if (nodeFiles != null && nodeFiles.length > 0)
@@ -387,7 +405,7 @@ class ClientLibsCompress extends DefaultTask
 
     void compressFile(File file)
     {
-        if (!LabKeyExtension.isDevMode(project))
+        if (!isDevMode.get())
         {
             this.logger.info("Compressing " + file)
             project.ant.gzip(

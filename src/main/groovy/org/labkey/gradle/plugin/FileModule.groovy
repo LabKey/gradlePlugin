@@ -156,7 +156,6 @@ class FileModule implements Plugin<Project>
                 jar.from project.labkey.explodedModuleDir
                 jar.exclude '**/*.uptodate'
                 jar.exclude "META-INF/${project.name}/**"
-                jar.exclude 'gwt-unitCache/**'
                 jar.archiveBaseName.set(project.name)
                 jar.archiveExtension.set('module')
                 jar.destinationDirectory.set(project.layout.buildDirectory)
