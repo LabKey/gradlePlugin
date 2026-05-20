@@ -25,7 +25,6 @@ import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -50,7 +49,10 @@ import java.util.stream.Collectors
 /**
  * Class for compressing javascript and css files
  */
-@CacheableTask
+// TODO When caching is enabled, the moduleEditor[prod] suite fails to find the Ext libraries.
+// No luck yet finding what inputs or outputs are not well configured. Perhaps when converted to
+// use configuration cache something will become more clear.
+@DisableCachingByDefault(because="Needs troubleshooting")
 class ClientLibsCompress extends DefaultTask
 {
     public static final String LIB_XML_EXTENSION = ".lib.xml"

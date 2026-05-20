@@ -18,7 +18,7 @@ on how to do that, including how to develop and test locally and the versioning 
 (Earliest compatible LabKey version: 26.6.0)
 - Update to Gradle 9.5.1
 - Remove GWT plugin and extension
-- Fix caching bug related to output file declaration for `ClientLibsCompress` task 
+- Disable caching for `ClientLibsCompress` task for now
 
 ### 8.2.0
 *Released*: 11 May 2026
