@@ -13,6 +13,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 26.6.0)
+- Update `ModuleFinder.isModuleContainer` to use `hasProperty` instead of `findProperty` for better future compatibility
+
 ### 9.0.0
 *Released*: 20 May 2026
 (Earliest compatible LabKey version: 26.6.0)
