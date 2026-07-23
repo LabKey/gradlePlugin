@@ -546,9 +546,9 @@ class BuildUtils
 
     private static boolean shouldCheckVersionTag(Project project) {
         if (!shouldPublish(project)) // no check necessary if not publishing
-            return false;
+            return false
         if (((String) project.rootProject.property("labkeyVersion")).endsWith("-SNAPSHOT")) // don't check SNAPSHOT versions
-            return false;
+            return false
 
         var excludedProjects = ((String) TeamCityExtension.getTeamCityProperty(project, TAG_CHECK_EXCLUDED_PROJECTS_PROP_NAME, ""))
                 .split(/[,\n]+/)*.trim().findAll { !it.isEmpty() && project.rootProject.findProject(it) != null }

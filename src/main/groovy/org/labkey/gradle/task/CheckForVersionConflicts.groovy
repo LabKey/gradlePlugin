@@ -98,6 +98,7 @@ class CheckForVersionConflicts extends DefaultTask
                     }
                     else
                     {
+                        haveMultiples = true
                         conflictMessages += "Multiple existing ${matcher.group(BuildUtils.ARTIFACT_NAME_INDEX)} ${extension} files."
                     }
                 }
