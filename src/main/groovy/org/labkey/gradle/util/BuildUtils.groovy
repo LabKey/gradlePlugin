@@ -552,7 +552,7 @@ class BuildUtils
 
     private static boolean shouldCheckVersionTag(Project project) {
         var excludedModules = ((String) TeamCityExtension.getTeamCityProperty(project, TAG_CHECK_EXCLUDED_MODULES_PROP_NAME, ""))
-                .split(",")*.trim()
+                .split(/[,\n]+/)*.trim().findAll { !it.isEmpty() }
         return shouldPublish(project)
                 && !((String) project.property("labkeyVersion")).endsWith("-SNAPSHOT")
                 && !excludedModules.contains(project.name)
