@@ -529,8 +529,8 @@ class BuildUtils
                 if (shouldCheckVersionTag(project))
                 {
                     String labkeyVersion = project.property("labkeyVersion")
-                    boolean hasMismatchedTag = grgit.tag.list().any { tag -> tag.name == labkeyVersion && tag.commit.id != revision }
-                    if (hasMismatchedTag)
+                    boolean hasMatchingTag = grgit.tag.list().any { tag -> tag.commit.id == revision && tag.name == labkeyVersion }
+                    if (!hasMatchingTag)
                         throw new GradleException("Current commit ${revision} in ${project.name} does not have a tag matching labkeyVersion '${labkeyVersion}'")
                 }
             }
