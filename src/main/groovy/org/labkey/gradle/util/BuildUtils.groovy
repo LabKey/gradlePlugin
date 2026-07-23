@@ -558,6 +558,7 @@ class BuildUtils
                 && !excludedModules.contains(project.name)
                 && (project.parent == null || !excludedModules.contains(project.parent.name))
                 && !excludedModules.contains(project.path)
+                && (project.parent == null || !excludedModules.contains(project.parent.path))
     }
 
     // Default Tomcat libraries for building Java modules and server API
