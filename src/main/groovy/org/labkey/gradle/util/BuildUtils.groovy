@@ -556,7 +556,7 @@ class BuildUtils
         return shouldPublish(project)
                 && !((String) project.property("labkeyVersion")).contains("-SNAPSHOT")
                 && !excludedModules.contains(project.name)
-                && !excludedModules.contains(project.parent.name)
+                && (project.parent == null || !excludedModules.contains(project.parent.name))
     }
 
     // Default Tomcat libraries for building Java modules and server API
