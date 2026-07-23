@@ -16,7 +16,6 @@ on how to do that, including how to develop and test locally and the versioning 
 ### 9.2.0
 *Released*: TBD
 (Earliest compatible LabKey version: 26.6.0)
-- Update `BuildUtils.getStandardVCSProperties` to use `Grgit` instead of shelling out to `git` commands
 - Throw a `GradleException` from `BuildUtils.getStandardVCSProperties` if a non-SNAPSHOT `labkeyVersion` build's commit does not have a matching git tag
 - Add `tagCheckExcludedModules` project property (`-PtagCheckExcludedModules=...`) to exclude specific modules from this tag check
 - Remove spring-ai milestone special-casing added for [Github Issue 1015](https://github.com/LabKey/internal-issues/issues/1015) in `CheckForVersionConflicts`

@@ -18,6 +18,7 @@ package org.labkey.gradle.util
 import org.ajoberstar.grgit.Grgit
 import org.ajoberstar.grgit.Remote
 import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
@@ -506,38 +507,30 @@ class BuildUtils
                 (String) TeamCityExtension.getTeamCityProperty(project, "system.teamcity.agent.dotnet.build_id", // Unique build ID
                         TeamCityExtension.getTeamCityProperty(project,"build.number", null))
         Properties ret = new Properties()
+        def gitCmd = SystemUtils.IS_OS_WINDOWS ? "git.exe" : "git"
         if (project.hasProperty("includeVcs") && (!project.hasProperty("lkModule") || project.lkModule.getModProperties().get(VCS_URL_PROP_NAME).isEmpty()))
         {
-            Grgit grgit = Grgit.open(currentDir: project.projectDir)
-            try
+            def url = "${gitCmd} -C ${project.projectDir.absolutePath} config --get remote.origin.url".execute().text.trim()
+            Matcher matcher = GIT_URL_WITH_TOKEN.matcher(url)
+            if (matcher.matches()) // Strip out the token if included in the URL.
+                url =  matcher.group(1) + "@" + matcher.group(3)
+            ret.setProperty(VCS_URL_PROP_NAME, url)
+            project.logger.info("${project.path} git url: ${url}")
+
+            def branch = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse --abbrev-ref HEAD".execute().text.trim()
+            project.logger.info("${project.path} git branch: ${branch}")
+            ret.setProperty(VCS_BRANCH_PROP_NAME, branch)
+
+            def revision = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse @".execute().text.trim()
+            project.logger.info("${project.path} git revision: ${revision}")
+            ret.setProperty(VCS_REVISION_PROP_NAME, revision)
+
+            if (shouldCheckVersionTag(project))
             {
-                Remote origin = grgit.remote.list().find { it.name == "origin" }
-                String url = origin != null ? origin.url : ""
-                Matcher matcher = GIT_URL_WITH_TOKEN.matcher(url)
-                if (matcher.matches()) // Strip out the token if included in the URL.
-                    url =  matcher.group(1) + "@" + matcher.group(3)
-                ret.setProperty(VCS_URL_PROP_NAME, url)
-                project.logger.info("${project.path} git url: ${url}")
-
-                String branch = grgit.branch.current().name
-                project.logger.info("${project.path} git branch: ${branch}")
-                ret.setProperty(VCS_BRANCH_PROP_NAME, branch)
-
-                String revision = grgit.head().id
-                project.logger.info("${project.path} git revision: ${revision}")
-                ret.setProperty(VCS_REVISION_PROP_NAME, revision)
-
-                if (shouldCheckVersionTag(project))
-                {
-                    String labkeyVersion = project.property("labkeyVersion")
-                    boolean hasMatchingTag = grgit.tag.list().any { tag -> tag.commit.id == revision && tag.name == labkeyVersion }
-                    if (!hasMatchingTag)
-                        throw new GradleException("Current commit ${revision} in ${project.name} does not have a tag matching labkeyVersion '${labkeyVersion}'")
-                }
-            }
-            finally
-            {
-                grgit.close()
+                String labkeyVersion = project.property("labkeyVersion")
+                List<String> tagsAtRevision = "${gitCmd} -C ${project.projectDir.absolutePath} tag --points-at ${revision}".execute().text.split(/\r?\n/)*.trim().findAll { !it.isEmpty() }
+                if (!tagsAtRevision.contains(labkeyVersion))
+                    throw new GradleException("Current commit ${revision} in ${project.name} does not have a tag matching labkeyVersion '${labkeyVersion}'")
             }
         }
         else if (!project.hasProperty("includeVcs"))
