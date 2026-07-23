@@ -497,8 +497,9 @@ class BuildUtils
     public static final String VCS_REVISION_PROP_NAME = "VcsRevision"
     public static final String BUILD_NUMBER_PROP_NAME = "BuildNumber"
 
-    // Comma-separated list of module names or paths (-PtagCheckExcludedModules=...) that are not required to have a git tag matching labkeyVersion
-    // Use ('system.tagCheckExcludedModules=...) on TeamCity
+    // List of Gradle projects (-PtagCheckExcludedModules=...) that are not required to have a git tag matching
+    // labkeyVersion. The list should be comma or newline separated. On TeamCity, set this via a system property
+    // named 'system.tagCheckExcludedModules'.
     public static final String TAG_CHECK_EXCLUDED_MODULES_PROP_NAME = "tagCheckExcludedModules"
 
     static Properties getStandardVCSProperties(Project project)
@@ -548,15 +549,18 @@ class BuildUtils
             return false;
         if (((String) project.property("labkeyVersion")).endsWith("-SNAPSHOT")) // don't check SNAPSHOT versions
             return false;
-        if (project.parent == null) // always check the root project
-            return true;
 
         var excludedModules = ((String) TeamCityExtension.getTeamCityProperty(project, TAG_CHECK_EXCLUDED_MODULES_PROP_NAME, ""))
                 .split(/[,\n]+/)*.trim().findAll { !it.isEmpty() }
-        return !excludedModules.contains(project.name)
-                && !excludedModules.contains(project.parent.name)
-                && !excludedModules.contains(project.path)
-                && !excludedModules.contains(project.parent.path)
+
+        Project current = project
+        while (current != null)
+        {
+            if (excludedModules.contains(current.path))
+                return false
+            current = current.parent
+        }
+        return true
     }
 
     // Default Tomcat libraries for building Java modules and server API
