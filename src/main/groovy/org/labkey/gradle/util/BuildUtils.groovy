@@ -18,7 +18,6 @@ package org.labkey.gradle.util
 import org.ajoberstar.grgit.Grgit
 import org.ajoberstar.grgit.Remote
 import org.apache.commons.lang3.StringUtils
-import org.apache.commons.lang3.SystemUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
@@ -497,27 +496,48 @@ class BuildUtils
     public static final String VCS_REVISION_PROP_NAME = "VcsRevision"
     public static final String BUILD_NUMBER_PROP_NAME = "BuildNumber"
 
-    static Properties getStandardVCSProperties(project)
+    // Comma-separated list of module names or paths (-PtagCheckExcludedModules=...) that are not required to have a git tag matching labkeyVersion
+    public static final String TAG_CHECK_EXCLUDED_MODULES_PROP_NAME = "tagCheckExcludedModules"
+
+    static Properties getStandardVCSProperties(Project project)
     {
         String buildNumber =
                 (String) TeamCityExtension.getTeamCityProperty(project, "system.teamcity.agent.dotnet.build_id", // Unique build ID
                         TeamCityExtension.getTeamCityProperty(project,"build.number", null))
         Properties ret = new Properties()
-        def gitCmd = SystemUtils.IS_OS_WINDOWS ? "git.exe" : "git"
         if (project.hasProperty("includeVcs") && (!project.hasProperty("lkModule") || project.lkModule.getModProperties().get(VCS_URL_PROP_NAME).isEmpty()))
         {
-            def url = "${gitCmd} -C ${project.projectDir.absolutePath} config --get remote.origin.url".execute().text.trim()
-            Matcher matcher = GIT_URL_WITH_TOKEN.matcher(url)
-            if (matcher.matches()) // Strip out the token if included in the URL.
-                url =  matcher.group(1) + "@" + matcher.group(3)
-            ret.setProperty(VCS_URL_PROP_NAME, url)
-            project.logger.info("${project.path} git url: ${url}")
-            def branch = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse --abbrev-ref HEAD".execute().text.trim()
-            project.logger.info("${project.path} git branch: ${branch}")
-            ret.setProperty(VCS_BRANCH_PROP_NAME, branch)
-            def revision = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse @".execute().text.trim()
-            project.logger.info("${project.path} git revision: ${revision}")
-            ret.setProperty(VCS_REVISION_PROP_NAME, revision)
+            Grgit grgit = Grgit.open(currentDir: project.projectDir)
+            try
+            {
+                Remote origin = grgit.remote.list().find { it.name == "origin" }
+                String url = origin != null ? origin.url : ""
+                Matcher matcher = GIT_URL_WITH_TOKEN.matcher(url)
+                if (matcher.matches()) // Strip out the token if included in the URL.
+                    url =  matcher.group(1) + "@" + matcher.group(3)
+                ret.setProperty(VCS_URL_PROP_NAME, url)
+                project.logger.info("${project.path} git url: ${url}")
+
+                String branch = grgit.branch.current().name
+                project.logger.info("${project.path} git branch: ${branch}")
+                ret.setProperty(VCS_BRANCH_PROP_NAME, branch)
+
+                String revision = grgit.head().id
+                project.logger.info("${project.path} git revision: ${revision}")
+                ret.setProperty(VCS_REVISION_PROP_NAME, revision)
+
+                if (shouldCheckVersionTag(project))
+                {
+                    String labkeyVersion = project.property("labkeyVersion")
+                    boolean hasMismatchedTag = grgit.tag.list().any { tag -> tag.name == labkeyVersion && tag.commit.id != revision }
+                    if (hasMismatchedTag)
+                        throw new GradleException("Current commit ${revision} in ${project.name} does not have a tag matching labkeyVersion '${labkeyVersion}'")
+                }
+            }
+            finally
+            {
+                grgit.close()
+            }
         }
         else if (!project.hasProperty("includeVcs"))
         {
@@ -527,6 +547,16 @@ class BuildUtils
         }
         ret.setProperty(BUILD_NUMBER_PROP_NAME, buildNumber != null ? buildNumber : "Unknown")
         return ret
+    }
+
+    private static boolean shouldCheckVersionTag(Project project) {
+        var excludedModules = project.hasProperty(TAG_CHECK_EXCLUDED_MODULES_PROP_NAME)
+                ? ((String) project.property(TAG_CHECK_EXCLUDED_MODULES_PROP_NAME)).split(",")*.trim()
+                : []
+        return shouldPublish(project)
+                && !((String) project.property("labkeyVersion")).contains("-SNAPSHOT")
+                && !excludedModules.contains(project.name)
+                && !excludedModules.contains(project.parent.name)
     }
 
     // Default Tomcat libraries for building Java modules and server API
