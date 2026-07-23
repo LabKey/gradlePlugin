@@ -550,13 +550,13 @@ class BuildUtils
     }
 
     private static boolean shouldCheckVersionTag(Project project) {
-        var excludedModules = project.hasProperty(TAG_CHECK_EXCLUDED_MODULES_PROP_NAME)
-                ? ((String) project.property(TAG_CHECK_EXCLUDED_MODULES_PROP_NAME)).split(",")*.trim()
-                : []
+        var excludedModules = ((String) TeamCityExtension.getTeamCityProperty(project, TAG_CHECK_EXCLUDED_MODULES_PROP_NAME, ""))
+                .split(",")*.trim()
         return shouldPublish(project)
-                && !((String) project.property("labkeyVersion")).contains("-SNAPSHOT")
+                && !((String) project.property("labkeyVersion")).endsWith("-SNAPSHOT")
                 && !excludedModules.contains(project.name)
                 && (project.parent == null || !excludedModules.contains(project.parent.name))
+                && !excludedModules.contains(project.path)
     }
 
     // Default Tomcat libraries for building Java modules and server API
