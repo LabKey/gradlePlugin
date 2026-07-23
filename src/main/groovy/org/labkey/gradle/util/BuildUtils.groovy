@@ -497,6 +497,7 @@ class BuildUtils
     public static final String BUILD_NUMBER_PROP_NAME = "BuildNumber"
 
     // Comma-separated list of module names or paths (-PtagCheckExcludedModules=...) that are not required to have a git tag matching labkeyVersion
+    // Use ('system.tagCheckExcludedModules=...) on TeamCity
     public static final String TAG_CHECK_EXCLUDED_MODULES_PROP_NAME = "tagCheckExcludedModules"
 
     static Properties getStandardVCSProperties(Project project)
