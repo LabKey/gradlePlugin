@@ -551,7 +551,10 @@ class BuildUtils
             return false;
 
         var excludedModules = ((String) TeamCityExtension.getTeamCityProperty(project, TAG_CHECK_EXCLUDED_MODULES_PROP_NAME, ""))
-                .split(/[,\n]+/)*.trim().findAll { !it.isEmpty() }
+                .split(/[,\n]+/)*.trim().findAll { !it.isEmpty() && project.rootProject.findProject(it) != null }
+
+        if (excludedModules.isEmpty())
+            return true
 
         Project current = project
         while (current != null)
