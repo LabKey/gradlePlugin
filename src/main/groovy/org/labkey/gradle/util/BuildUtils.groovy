@@ -497,10 +497,10 @@ class BuildUtils
     public static final String VCS_REVISION_PROP_NAME = "VcsRevision"
     public static final String BUILD_NUMBER_PROP_NAME = "BuildNumber"
 
-    // List of Gradle projects (-PtagCheckExcludedModules=...) that are not required to have a git tag matching
+    // List of Gradle projects (-PtagCheckExcludedProjects=...) that are not required to have a git tag matching
     // labkeyVersion. The list should be comma or newline separated. On TeamCity, set this via a system property
-    // named 'system.tagCheckExcludedModules'.
-    public static final String TAG_CHECK_EXCLUDED_MODULES_PROP_NAME = "tagCheckExcludedModules"
+    // named 'system.tagCheckExcludedProjects'.
+    public static final String TAG_CHECK_EXCLUDED_PROJECTS_PROP_NAME = "tagCheckExcludedProjects"
 
     static Properties getStandardVCSProperties(Project project)
     {
@@ -547,19 +547,19 @@ class BuildUtils
     private static boolean shouldCheckVersionTag(Project project) {
         if (!shouldPublish(project)) // no check necessary if not publishing
             return false;
-        if (((String) project.property("labkeyVersion")).endsWith("-SNAPSHOT")) // don't check SNAPSHOT versions
+        if (((String) project.rootProject.property("labkeyVersion")).endsWith("-SNAPSHOT")) // don't check SNAPSHOT versions
             return false;
 
-        var excludedModules = ((String) TeamCityExtension.getTeamCityProperty(project, TAG_CHECK_EXCLUDED_MODULES_PROP_NAME, ""))
+        var excludedProjects = ((String) TeamCityExtension.getTeamCityProperty(project, TAG_CHECK_EXCLUDED_PROJECTS_PROP_NAME, ""))
                 .split(/[,\n]+/)*.trim().findAll { !it.isEmpty() && project.rootProject.findProject(it) != null }
 
-        if (excludedModules.isEmpty())
+        if (excludedProjects.isEmpty())
             return true
 
         Project current = project
         while (current != null)
         {
-            if (excludedModules.contains(current.path))
+            if (excludedProjects.contains(current.path))
                 return false
             current = current.parent
         }
