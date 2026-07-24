@@ -14,7 +14,7 @@ on how to do that, including how to develop and test locally and the versioning 
 ## Release Notes
 
 ### 9.2.0
-*Released*: TBD
+*Released*: 27 July 2026
 (Earliest compatible LabKey version: 26.6.0)
 - Throw a `GradleException` from `BuildUtils.getStandardVCSProperties` if a non-SNAPSHOT `labkeyVersion` build's commit does not have a matching git tag
 - Add `tagCheckExcludedProjects` project property (`-PtagCheckExcludedProjects=...`) to exclude specific projects from this tag check
