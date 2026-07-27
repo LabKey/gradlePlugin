@@ -29,3 +29,6 @@ gradle-app.setting
 
 # setenv configuration file
 .envrc
+
+# local claude settings
+.claude/

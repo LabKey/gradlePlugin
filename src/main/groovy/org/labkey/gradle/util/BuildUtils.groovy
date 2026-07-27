@@ -497,7 +497,12 @@ class BuildUtils
     public static final String VCS_REVISION_PROP_NAME = "VcsRevision"
     public static final String BUILD_NUMBER_PROP_NAME = "BuildNumber"
 
-    static Properties getStandardVCSProperties(project)
+    // List of Gradle projects (-PtagCheckExcludedProjects=...) that are not required to have a git tag matching
+    // labkeyVersion. The list should be comma or newline separated. On TeamCity, set this via a system property
+    // named 'system.tagCheckExcludedProjects'.
+    public static final String TAG_CHECK_EXCLUDED_PROJECTS_PROP_NAME = "tagCheckExcludedProjects"
+
+    static Properties getStandardVCSProperties(Project project)
     {
         String buildNumber =
                 (String) TeamCityExtension.getTeamCityProperty(project, "system.teamcity.agent.dotnet.build_id", // Unique build ID
@@ -512,12 +517,22 @@ class BuildUtils
                 url =  matcher.group(1) + "@" + matcher.group(3)
             ret.setProperty(VCS_URL_PROP_NAME, url)
             project.logger.info("${project.path} git url: ${url}")
+
             def branch = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse --abbrev-ref HEAD".execute().text.trim()
             project.logger.info("${project.path} git branch: ${branch}")
             ret.setProperty(VCS_BRANCH_PROP_NAME, branch)
+
             def revision = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse @".execute().text.trim()
             project.logger.info("${project.path} git revision: ${revision}")
             ret.setProperty(VCS_REVISION_PROP_NAME, revision)
+
+            if (shouldCheckVersionTag(project))
+            {
+                String labkeyVersion = project.property("labkeyVersion")
+                List<String> tagsAtRevision = "${gitCmd} -C ${project.projectDir.absolutePath} tag --points-at ${revision}".execute().text.split(/\r?\n/)*.trim().findAll { !it.isEmpty() }
+                if (!tagsAtRevision.contains(labkeyVersion))
+                    throw new GradleException("Current commit ${revision} in ${project.name} does not have a tag matching labkeyVersion '${labkeyVersion}'")
+            }
         }
         else if (!project.hasProperty("includeVcs"))
         {
@@ -527,6 +542,28 @@ class BuildUtils
         }
         ret.setProperty(BUILD_NUMBER_PROP_NAME, buildNumber != null ? buildNumber : "Unknown")
         return ret
+    }
+
+    private static boolean shouldCheckVersionTag(Project project) {
+        if (!shouldPublish(project)) // no check necessary if not publishing
+            return false
+        if (((String) project.rootProject.property("labkeyVersion")).endsWith("-SNAPSHOT")) // don't check SNAPSHOT versions
+            return false
+
+        var excludedProjects = ((String) TeamCityExtension.getTeamCityProperty(project, TAG_CHECK_EXCLUDED_PROJECTS_PROP_NAME, ""))
+                .split(/[,\n]+/)*.trim().findAll { !it.isEmpty() && project.rootProject.findProject(it) != null }
+
+        if (excludedProjects.isEmpty())
+            return true
+
+        Project current = project
+        while (current != null)
+        {
+            if (excludedProjects.contains(current.path))
+                return false
+            current = current.parent
+        }
+        return true
     }
 
     // Default Tomcat libraries for building Java modules and server API
