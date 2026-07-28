@@ -85,10 +85,10 @@ abstract class RunUiTest extends Test
                 systemProperty key, testConfig.get(key)
         }
         // Include all 'webtest' and 'webdriver' properties, whether they are in test.properties or not
-        for (String key : project.extensions.extraProperties.properties.keySet())
+        for (String key : project.ext.properties.keySet())
         {
             if (key.startsWith("webtest.") || key.startsWith("webdriver.")) {
-                systemProperty key, project.extensions.extraProperties.get(key)
+                systemProperty key, project.ext[key]
             }
         }
         systemProperty "devMode", LabKeyExtension.isDevMode(project)

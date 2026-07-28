@@ -16,7 +16,7 @@ on how to do that, including how to develop and test locally and the versioning 
 ### TBD
 *Released*: TBD
 (Earliest compatible LabKey version: 26.6.0)
-- Pass all command-line 'webtest' and 'webdriver' properties to tests
+- Pass all command-line 'webtest' and 'webdriver' properties to tests (fix to work off of TeamCity)
 
 ### 9.2.0
 *Released*: 27 July 2026
