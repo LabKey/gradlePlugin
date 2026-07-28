@@ -13,6 +13,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 26.6.0)
+- Pass all command-line 'webtest' and 'webdriver' properties to tests
+
 ### 9.2.0
 *Released*: 27 July 2026
 (Earliest compatible LabKey version: 26.6.0)

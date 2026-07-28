@@ -18,7 +18,6 @@ package org.labkey.gradle.task
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.tasks.UntrackedTask
 import org.gradle.api.tasks.testing.Test
-import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
@@ -84,6 +83,13 @@ abstract class RunUiTest extends Test
         {
             if (!StringUtils.isEmpty((String) testConfig.get(key)))
                 systemProperty key, testConfig.get(key)
+        }
+        // Include all 'webtest' and 'webdriver' properties, whether they are in test.properties or not
+        for (String key : project.extensions.extraProperties.properties.keySet())
+        {
+            if (key.startsWith("webtest.") || key.startsWith("webdriver.")) {
+                systemProperty key, project.extensions.extraProperties.get(key)
+            }
         }
         systemProperty "devMode", LabKeyExtension.isDevMode(project)
         systemProperty "failure.output.dir", "${BuildUtils.getBuildDirPath(project)}/${LOG_DIR}"
