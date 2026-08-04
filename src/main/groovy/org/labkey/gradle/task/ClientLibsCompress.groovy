@@ -22,8 +22,9 @@ import org.apache.tools.ant.util.FileUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.logging.Logger
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -33,6 +34,9 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecOperations
+import org.gradle.process.ExecResult
+import org.gradle.process.ExecSpec
 import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.plugin.NpmRun
 import org.labkey.gradle.plugin.extension.LabKeyExtension
@@ -41,10 +45,12 @@ import org.xml.sax.Attributes
 import org.xml.sax.SAXException
 import org.xml.sax.helpers.DefaultHandler
 
+import javax.inject.Inject
 import javax.xml.parsers.SAXParser
 import javax.xml.parsers.SAXParserFactory
 import java.nio.charset.StandardCharsets
 import java.util.stream.Collectors
+import java.util.zip.GZIPOutputStream
 
 /**
  * Class for compressing javascript and css files
@@ -53,14 +59,16 @@ import java.util.stream.Collectors
 // No luck yet finding what inputs or outputs are not well configured. Perhaps when converted to
 // use configuration cache something will become more clear.
 @DisableCachingByDefault(because="Needs troubleshooting")
-class ClientLibsCompress extends DefaultTask
+abstract class ClientLibsCompress extends DefaultTask
 {
     public static final String LIB_XML_EXTENSION = ".lib.xml"
+
+    @Inject abstract ExecOperations getExec()
 
    // This returns the libXml files from the project directory (the actual input files)
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
-    FileTree xmlFiles
+    abstract ConfigurableFileCollection getXmlFiles()
 
     private List<File> inputFiles = null
     private List<File> outputFiles = null
@@ -72,21 +80,44 @@ class ClientLibsCompress extends DefaultTask
     @Input
     final abstract Property<String> nodeVersion = project.objects.property(String).convention(project.hasProperty("nodeVersion") ? project.nodeVersion : "")
 
+    // The directory the minified files are written to, which is also the directory used to derive the output file names
     @Internal
-    String getWorkingDirPath() {
-        return new File((String) project.labkey.explodedModuleWebDir).getAbsolutePath()
-    }
+    final abstract Property<String> workingDirPath = project.objects.property(String).convention(new File((String) project.labkey.explodedModuleWebDir).getAbsolutePath())
 
+    // The directory in the minification project where the package.json files and concatenated sources are written
+    @Internal
+    final abstract DirectoryProperty minificationDir = project.objects.directoryProperty().fileValue(getMinificationDir(project))
+
+    // The directory where the node distribution is unpacked by the minification project's npmInstall task
+    @Internal
+    final abstract DirectoryProperty nodeJsDir = project.objects.directoryProperty().fileValue(findNodeJsDir(project))
+
+    // Used only for error reporting when the node executable cannot be found
+    @Internal
+    final abstract Property<String> minificationProjectPath = project.objects.property(String).convention(BuildUtils.getMinificationProjectPath(project.gradle))
+
+    // Missing files are simply not snapshotted, so there is no need to filter for existence here
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
-    FileCollection getNpmPackageFiles() {
-        if (BuildUtils.haveMinificationProject(project.gradle)) {
-            Project minProject = project.project(BuildUtils.getMinificationProjectPath(project.gradle))
-            return project.files(
-                    "${minProject.projectDir}/package.json",
-                    "${minProject.projectDir}/package-lock.json"
-            ).filter { it.exists() }
-        }
+    final abstract ConfigurableFileCollection npmPackageFiles = project.objects.fileCollection().from(findNpmPackageFiles(project))
+
+    private static File findNodeJsDir(Project project)
+    {
+        if (!BuildUtils.haveMinificationProject(project.gradle))
+            return null
+        Project minProject = project.project(BuildUtils.getMinificationProjectPath(project.gradle))
+        return new File("${minProject.projectDir}/.gradle/nodejs")
+    }
+
+    private static List<File> findNpmPackageFiles(Project project)
+    {
+        if (!BuildUtils.haveMinificationProject(project.gradle))
+            return Collections.emptyList()
+        Project minProject = project.project(BuildUtils.getMinificationProjectPath(project.gradle))
+        return List.of(
+                new File("${minProject.projectDir}/package.json"),
+                new File("${minProject.projectDir}/package-lock.json")
+        )
     }
 
     /**
@@ -155,7 +186,7 @@ class ClientLibsCompress extends DefaultTask
 
     File getMinificationWorkingDir(File libXmlFile)
     {
-        return new File(getMinificationDir(project), "${libXmlFile.name.substring(0, libXmlFile.name.length() - LIB_XML_EXTENSION.length())}")
+        return new File(minificationDir.get().asFile, "${libXmlFile.name.substring(0, libXmlFile.name.length() - LIB_XML_EXTENSION.length())}")
     }
 
     @OutputFiles
@@ -169,8 +200,8 @@ class ClientLibsCompress extends DefaultTask
                 if (entry.value.doCompile) {
                     // The output file will be in the working directory not in the source directory used when parsing the file.
                     String fileName = entry.key.getAbsolutePath()
-                    fileName = fileName.replace(entry.value.sourceDir.getAbsolutePath(), getWorkingDirPath())
-                    File workingFile = project.file(fileName)
+                    fileName = fileName.replace(entry.value.sourceDir.getAbsolutePath(), workingDirPath.get())
+                    File workingFile = new File(fileName)
                     if (entry.value.getCssFiles().size() > 0) {
                         outputFiles.add(getOutputFile(workingFile, "min", "css"))
                         if (!isDevMode.get())
@@ -205,9 +236,8 @@ class ClientLibsCompress extends DefaultTask
     @TaskAction
     void compressAllFiles()
     {
-        FileTree libXmlFiles = xmlFiles
         Map<File, XmlImporter> importerMap = getImporterMap()
-        libXmlFiles.files.each() {
+        xmlFiles.files.each() {
             File file -> compressSingleFile(file, importerMap.get(file))
         }
     }
@@ -238,7 +268,7 @@ class ClientLibsCompress extends DefaultTask
             SAXParser parser = factory.newSAXParser()
             // we pass in the source directory here because this directory is used for constructing
             // the destination files
-            XmlImporter importer = new XmlImporter(xmlFile, sourceDir)
+            XmlImporter importer = new XmlImporter(xmlFile, sourceDir, logger)
             parser.parse(xmlFile, importer)
             return importer
         }
@@ -251,10 +281,9 @@ class ClientLibsCompress extends DefaultTask
     @Internal
     String getNodeExecutableDir()
     {
-        Project minProject = project.project(BuildUtils.getMinificationProjectPath(project.gradle))
         String nodeFilePrefix = "node-v${nodeVersion.get()}-"
-        File nodeDir = new File("${minProject.projectDir}/.gradle/nodejs")
-        File[] nodeFiles = nodeDir.listFiles({ File file -> file.name.startsWith(nodeFilePrefix) } as FileFilter)
+        File nodeDir = nodeJsDir.getAsFile().getOrNull()
+        File[] nodeFiles = nodeDir == null ? null : nodeDir.listFiles({ File file -> file.name.startsWith(nodeFilePrefix) } as FileFilter)
         if (nodeFiles != null && nodeFiles.length > 0)
             return "${nodeFiles[0].getAbsolutePath()}${SystemUtils.IS_OS_WINDOWS ? '' : '/bin'}"
         else
@@ -264,62 +293,45 @@ class ClientLibsCompress extends DefaultTask
     void minifyViaNpm(File xmlFile, XmlImporter importer)
     {
         if (importer.hasFilesToCompress()) {
-            String propPrefix = "minifiy${xmlFile.name.substring(0, xmlFile.name.length()-LIB_XML_EXTENSION.length())}"
             String executableDir = getNodeExecutableDir()
+            if (executableDir == null)
+                throw new GradleException("Could not find expected files in ${minificationProjectPath.get()} project")
 
             Pair<File, File> minFiles = createPackageJson(xmlFile, importer)
             if (importer.hasJavascriptFiles()) {
-                if (executableDir == null)
-                    throw new GradleException("Could not find expected files in ${BuildUtils.getMinificationProjectPath(project.gradle)} project")
-                project.logger.info("Compressing Javascript files for ${xmlFile} with ${executableDir} in ${getMinificationWorkingDir(xmlFile)}")
-                project.ant.exec(
-                    outputproperty:"${propPrefix}JsText",
-                    errorproperty: "${propPrefix}JsError",
-                    resultproperty: "${propPrefix}JsExitValue",
-                    executable: "${executableDir}/${NpmRun.getNpmCommand()}",
-                    dir: getMinificationWorkingDir(xmlFile)
-                )
-                    {
-                        arg(line: "run minify-js")
-                        env(
-                                key: "PATH",
-                                value: "${executableDir}${File.pathSeparator}${System.getenv("PATH")}"
-                        )
-                    }
-                project.logger.debug("${project.path} ${xmlFile} ant text ${project.ant.project.properties.get(propPrefix + 'JsText')}")
-                project.logger.debug("${project.path} ${xmlFile} ant error ${project.ant.project.properties.get(propPrefix + 'JsError')}")
-                project.logger.debug("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.get(propPrefix + 'JsExitValue')}")
-                if (project.ant.project.properties.get(propPrefix + 'JsExitValue') != '0')
-                    throw new GradleException("Error compressing Javascript files for ${xmlFile}. Exit code ${project.ant.project.properties.get(propPrefix + 'JsExitValue')}.\n Output: ${project.ant.project.properties.get(propPrefix + 'JsText')}.\n Error: ${project.ant.project.properties.get(propPrefix + 'JsError')} ")
-
-                project.logger.debug("DONE Compressing Javascript files as ${minFiles.left}")
+                logger.info("Compressing Javascript files for ${xmlFile} with ${executableDir} in ${getMinificationWorkingDir(xmlFile)}")
+                runNpmScript(xmlFile, "minify-js", executableDir, "Javascript")
+                logger.debug("DONE Compressing Javascript files as ${minFiles.left}")
                 compressFile(minFiles.left)
             }
             if (importer.hasCssFiles()) {
-                project.logger.info("Compressing css files for ${xmlFile}")
-                project.ant.exec(
-                    outputproperty:"${propPrefix}CssText",
-                    errorproperty: "${propPrefix}CssError",
-                    resultproperty: "${propPrefix}CssExitValue",
-                    executable: "${executableDir}/${NpmRun.getNpmCommand()}",
-                    dir: getMinificationWorkingDir(xmlFile)
-                )
-                    {
-                        arg(line: "run minify-css")
-                        env(
-                                key: "PATH",
-                                value: "${executableDir}${File.pathSeparator}${System.getenv("PATH")}"
-                        )
-                    }
-                project.logger.debug("${project.path} ${xmlFile} ant text ${project.ant.project.properties.get(propPrefix + 'CssText')}")
-                project.logger.debug("${project.path} ${xmlFile} ant error ${project.ant.project.properties.get(propPrefix + 'CssError')}")
-                project.logger.debug("${project.path} ${xmlFile} ant exitValue ${project.ant.project.properties.get(propPrefix + 'CssExitValue')}")
-                if (project.ant.project.properties.get(propPrefix + 'CssExitValue') != '0')
-                    throw new GradleException("Error compressing css files for ${xmlFile}. Exit code ${project.ant.project.properties.get(propPrefix + 'CssExitValue')}.\n Output: ${project.ant.project.properties.get(propPrefix + 'CssText')}.\n Error: ${project.ant.project.properties.get(propPrefix + 'CssError')} ")
-                project.logger.debug("DONE Compressing css files as ${minFiles.right}")
+                logger.info("Compressing css files for ${xmlFile}")
+                runNpmScript(xmlFile, "minify-css", executableDir, "css")
+                logger.debug("DONE Compressing css files as ${minFiles.right}")
                 compressFile(minFiles.right)
             }
         }
+    }
+
+    private void runNpmScript(File xmlFile, String scriptName, String executableDir, String fileType)
+    {
+        ByteArrayOutputStream output = new ByteArrayOutputStream()
+        ByteArrayOutputStream error = new ByteArrayOutputStream()
+        ExecResult result = exec.exec({ ExecSpec spec ->
+            spec.executable = "${executableDir}/${NpmRun.getNpmCommand()}"
+            spec.args("run", scriptName)
+            spec.workingDir = getMinificationWorkingDir(xmlFile)
+            spec.environment("PATH", "${executableDir}${File.pathSeparator}${System.getenv("PATH")}")
+            spec.standardOutput = output
+            spec.errorOutput = error
+            // we report the failure ourselves, with the captured output, below
+            spec.ignoreExitValue = true
+        })
+        logger.debug("${path} ${xmlFile} npm text ${output}")
+        logger.debug("${path} ${xmlFile} npm error ${error}")
+        logger.debug("${path} ${xmlFile} npm exitValue ${result.exitValue}")
+        if (result.exitValue != 0)
+            throw new GradleException("Error compressing ${fileType} files for ${xmlFile}. Exit code ${result.exitValue}.\n Output: ${output}.\n Error: ${error} ")
     }
 
     static String escapeBackslashPaths(String path)
@@ -333,10 +345,10 @@ class ClientLibsCompress extends DefaultTask
         File cssMinFile = null
 
         File sourceDir = getSourceDir(xmlFile)
-        File workingFile = new File(xmlFile.getAbsolutePath().replace(sourceDir.getAbsolutePath(), getWorkingDirPath()))
+        File workingFile = new File(xmlFile.getAbsolutePath().replace(sourceDir.getAbsolutePath(), workingDirPath.get()))
 
         File packageJson = new File(getMinificationWorkingDir(xmlFile), "package.json")
-        project.logger.info("Creating ${packageJson} for ${xmlFile.getAbsolutePath()}")
+        logger.info("Creating ${packageJson} for ${xmlFile.getAbsolutePath()}")
         String sanitizedName = xmlFile.name.substring(0, xmlFile.name.length()-LIB_XML_EXTENSION.length())
         packageJson.createNewFile()
         StringBuffer buffer = new StringBuffer("")
@@ -408,10 +420,11 @@ class ClientLibsCompress extends DefaultTask
         if (!isDevMode.get())
         {
             this.logger.info("Compressing " + file)
-            project.ant.gzip(
-                    src: file,
-                    destfile: "${file}.gz"
-            )
+            new FileInputStream(file).withStream { InputStream input ->
+                new GZIPOutputStream(new FileOutputStream("${file}.gz")).withStream { OutputStream output ->
+                    IOUtils.copy(input, output)
+                }
+            }
         }
     }
 
@@ -472,19 +485,21 @@ class ClientLibsCompress extends DefaultTask
         }
     }
 
-    private class XmlImporter extends DefaultHandler
+    private static class XmlImporter extends DefaultHandler
     {
         private boolean withinScriptsTag = false
         private File xmlFile
         private File sourceDir
+        private Logger logger
         private LinkedHashSet<File> javascriptFiles = new LinkedHashSet<>()
         private LinkedHashSet<File> cssFiles = new LinkedHashSet<>()
         private boolean doCompile = true
 
-        XmlImporter(File xml, File sourceDir)
+        XmlImporter(File xml, File sourceDir, Logger logger)
         {
             xmlFile = xml
             this.sourceDir = sourceDir
+            this.logger = logger
         }
 
         boolean hasFilesToCompress()

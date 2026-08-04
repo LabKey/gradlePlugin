@@ -15,11 +15,10 @@
  */
 package org.labkey.gradle.plugin
 
-import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.tasks.bundling.Jar
+import org.labkey.gradle.task.PatchApiModule
+import org.labkey.gradle.task.VerifyLicensePatch
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 
@@ -68,8 +67,8 @@ class ApplyLicenses implements Plugin<Project>
     private static void addTasks(Project project)
     {
         if (!BuildUtils.isOpenSource(project)) {
-            var patchApiTask = project.tasks.register('patchApiModule', Jar) {
-                Jar jar ->
+            var patchApiTask = project.tasks.register('patchApiModule', PatchApiModule) {
+                PatchApiModule jar ->
                     jar.group = GroupNames.DISTRIBUTION
                     jar.description = "Patches the api module to replace ExtJS libraries with commercial versions"
                     jar.archiveBaseName.set("api")
@@ -77,27 +76,9 @@ class ApplyLicenses implements Plugin<Project>
                     jar.archiveClassifier.set("extJsCommercial")
                     jar.archiveExtension.set('module')
                     jar.destinationDirectory.set(project.layout.buildDirectory.dir("patchApiModule"))
-                    jar.outputs.cacheIf({ true })
-                    // first include the ext-3.4.1 and ext-4.2.1 directories from the extjs configuration artifacts
-                    jar.into('web') {
-                        from project.configurations.extJs3Commercial.collect {
-                            project.zipTree(it)
-                        }
-                    }
-                    jar.into('web') {
-                        from project.configurations.extJs4Commercial.collect {
-                            project.zipTree(it)
-                        }
-                    }
-                    // include the original module file ...
-                    jar.from project.configurations.licensePatch.collect {
-                        project.zipTree(it).matching {
-                            // DuplicatesStrategy.EXCLUDE doesn't seem to work in some environments
-                            exclude('web/ext-*/**')
-                        }
-                    }
-                    // ... but don't use the ext directories that come from that file
-                    jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+                    jar.extJs3Archives.from(project.configurations.extJs3Commercial)
+                    jar.extJs4Archives.from(project.configurations.extJs4Commercial)
+                    jar.moduleArchives.from(project.configurations.licensePatch)
                     jar.manifest.attributes(
                             "Implementation-Version": project.version,
                             "Implementation-Title": "Internal API classes",
@@ -110,23 +91,12 @@ class ApplyLicenses implements Plugin<Project>
                     }
             }
 
-            project.tasks.register('verifyLicensePatch') {
-                it.group = GroupNames.TEST
-                it.dependsOn(patchApiTask)
-                it.doLast {
-                    [project.configurations.extJs3Commercial, project.configurations.extJs4Commercial].forEach {
-                        def commercialLicense = project.zipTree(it.singleFile).matching {
-                            include '*/license.txt'
-                        }.singleFile
-                        def patchedLicense = project.zipTree(patchApiTask.get().outputs.files.singleFile).matching {
-                            include 'web/' + commercialLicense.parentFile.name + '/license.txt'
-                        }.singleFile
-                        if (commercialLicense.length() != patchedLicense.length()) {
-                            throw new GradleException("License files didn't match for " + commercialLicense.parentFile.name)
-                        }
-                    }
-                }
-                it.notCompatibleWithConfigurationCache("Needs to inject ArtifactOperations for zipTree usage")
+            project.tasks.register('verifyLicensePatch', VerifyLicensePatch) {
+                VerifyLicensePatch verify ->
+                    verify.group = GroupNames.TEST
+                    verify.description = "Verifies that the patched api module contains the commercial ExtJS license files"
+                    verify.commercialArchives.from(project.configurations.extJs3Commercial, project.configurations.extJs4Commercial)
+                    verify.patchedArchive.set(patchApiTask.flatMap { PatchApiModule jar -> jar.archiveFile })
             }
         }
     }
