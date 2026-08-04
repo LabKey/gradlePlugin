@@ -213,7 +213,6 @@ class TeamCity extends Tomcat
                         task.dbType = properties.shortType
                         task.mustRunAfter(BuildUtils.getServerProject(project).tasks.pickMSSQL)
                         task.mustRunAfter(BuildUtils.getServerProject(project).tasks.pickPg)
-                        task.notCompatibleWithConfigurationCache("Walks the project tree")
                 }
             }
             undeployTask = project.tasks.named(undeployTaskName)
