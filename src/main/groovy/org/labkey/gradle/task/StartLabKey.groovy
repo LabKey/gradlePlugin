@@ -61,7 +61,7 @@ abstract class StartLabKey extends TeamCityPropertiesTask
     final abstract ListProperty<String> startupOpts = project.objects.listProperty(String).convention(getStartupOpts(project))
 
     @Input
-    final abstract ListProperty<String> embeddedReflectionOpts = project.objects.listProperty(String).convention(getEmbeddedReflectionOpts(project))
+    final abstract ListProperty<String> embeddedReflectionOpts = project.objects.listProperty(String).convention(getReflectionOptions(project))
 
     @TaskAction
     void action()
@@ -138,7 +138,7 @@ abstract class StartLabKey extends TeamCityPropertiesTask
 
     }
 
-    private static List<String> getEmbeddedReflectionOpts(Project project)
+    private static List<String> getReflectionOptions(Project project)
     {
         if (project.hasProperty(EMBEDDED_REFLECTION_PARAM)) {
             return List.of(((String) project.property(EMBEDDED_REFLECTION_PARAM)).trim().split("\\s+"))
