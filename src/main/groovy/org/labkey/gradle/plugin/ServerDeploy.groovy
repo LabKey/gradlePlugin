@@ -28,14 +28,11 @@ import org.labkey.gradle.task.DeployApp
 import org.labkey.gradle.task.DeployDistribution
 import org.labkey.gradle.task.StageDistribution
 import org.labkey.gradle.task.StageModules
+import org.labkey.gradle.task.SymlinkNode
 import org.labkey.gradle.task.UndeployModules
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.TaskUtils
-
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 
 /**
  * First stages then deploys the application locally to the tomcat directory
@@ -180,18 +177,22 @@ class ServerDeploy implements Plugin<Project>
         // At a later date, we can possibly make this task execute the mklink command (and its counterpart to remove the link).
         // This would require that the gradle tasks be run as an administrator, and that is possibly not ideal.
         if (!SystemUtils.IS_OS_WINDOWS &&  project.hasProperty('nodeVersion')) {
-            project.tasks.register("symlinkNode") {
-                Task task ->
+            project.tasks.register("symlinkNode", SymlinkNode) {
+                SymlinkNode task ->
                     task.group = GroupNames.DEPLOY
                     task.description = "Make a symbolic link to the npm directory for use in PATH environment variable"
-                    task.doFirst({
-                        if (project.hasProperty('npmVersion') && project.hasProperty('npmWorkDirectory'))
-                            linkBinaries(project, "npm", project.npmVersion, project.npmWorkDirectory)
-                    })
+                    task.nodeVersion.set((String) project.property('nodeVersion'))
+                    Project nodeBinProject = project.findProject(BuildUtils.getNodeBinProjectPath(project.gradle))
+                    if (nodeBinProject != null && project.hasProperty('npmVersion') && project.hasProperty('npmWorkDirectory'))
+                    {
+                        task.npmVersion.set((String) project.property('npmVersion'))
+                        task.linkContainerDir.set(new File("${project.rootDir}/${project.npmWorkDirectory}"))
+                        task.npmTargetDir.set(nodeBinProject.file(project.npmWorkDirectory))
+                        if (project.hasProperty('nodeWorkDirectory'))
+                            task.nodeTargetDir.set(nodeBinProject.file(project.nodeWorkDirectory))
+                    }
                     task.dependsOn(project.tasks.npmSetup)
-                    task.notCompatibleWithConfigurationCache("Needs its own class to declare proper input and output properties")
             }
-            project.tasks.symlinkNode.notCompatibleWithConfigurationCache("References project properties. Need to add task class with input properties")
             project.tasks.named('deployApp').configure {dependsOn(project.tasks.symlinkNode)}
         }
 
@@ -281,44 +282,4 @@ class ServerDeploy implements Plugin<Project>
         }
     }
 
-    private static linkBinaries(Project project, String packageMgr, String version, workDirectory) {
-
-        Project pmLinkProject = project.findProject(BuildUtils.getNodeBinProjectPath(project.gradle))
-        if (pmLinkProject == null)
-            return
-
-        File linkContainer = new File("${project.rootDir}/${project.npmWorkDirectory}")
-        linkContainer.mkdirs()
-
-        Path pmLinkPath = Paths.get("${linkContainer.getPath()}/${packageMgr}")
-        String pmDirName = "${packageMgr}-v${version}"
-        Path pmTargetPath = Paths.get(pmLinkProject.file( "${workDirectory}/${pmDirName}").getPath())
-
-        if (!Files.isSymbolicLink(pmLinkPath) || !Files.readSymbolicLink(pmLinkPath).getFileName().toString().equals(pmDirName))
-        {
-            // if the symbolic link exists, we want to replace it
-            if (Files.isSymbolicLink(pmLinkPath))
-                Files.delete(pmLinkPath)
-
-            Files.createSymbolicLink(pmLinkPath, pmTargetPath)
-        }
-
-        String nodeFilePrefix = "node-v${project.nodeVersion}-"
-        Path nodeLinkPath = Paths.get("${linkContainer.getPath()}/node")
-        if (!Files.isSymbolicLink(nodeLinkPath) || !Files.readSymbolicLink(nodeLinkPath).getFileName().toString().startsWith(nodeFilePrefix))
-        {
-            File nodeDir = pmLinkProject.file(project.nodeWorkDirectory)
-            File[] nodeFiles = nodeDir.listFiles({ File file -> file.name.startsWith(nodeFilePrefix) } as FileFilter)
-            if (nodeFiles != null && nodeFiles.length > 0)
-            {
-                // if the symbolic link exists, we want to replace it
-                if (Files.isSymbolicLink(nodeLinkPath))
-                    Files.delete(nodeLinkPath)
-
-                Files.createSymbolicLink(nodeLinkPath, nodeFiles[0].toPath())
-            }
-            else
-                project.logger.warn("No file found with prefix ${nodeDir.path}/${nodeFilePrefix}.  Symbolic link in ${linkContainer.getPath()}/node not created.")
-        }
-    }
 }
