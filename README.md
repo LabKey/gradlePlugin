@@ -18,6 +18,8 @@ on how to do that, including how to develop and test locally and the versioning 
 (Earliest compatible LabKey version: 26.6.0)
 - Pass all command-line 'webtest' and 'webdriver' properties to tests (fix to work off of TeamCity)
 - Convert verifyLicensePatch, patchApiModule, deployModule, undeployModule, symlinkNode, undeployModules to configuration-cache compatible tasks
+- Update `ModuleFinder` to not use deprecated `hasProperty` check that looks in parent project
+- Update `ModuleDistribution` to be compatible with the configuration cache
 
 ### 9.2.0
 *Released*: 27 July 2026
