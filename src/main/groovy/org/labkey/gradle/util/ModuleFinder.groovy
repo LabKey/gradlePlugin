@@ -81,7 +81,7 @@ class ModuleFinder extends SimpleFileVisitor<Path>
 
     static boolean isModuleContainer(Project p)
     {
-        return (p.hasProperty("moduleContainer") && p.path.equalsIgnoreCase((String) p.property("moduleContainer")))
+        return (p.ext.has("moduleContainer") && p.path.equalsIgnoreCase((String) p.ext.moduleContainer))
     }
 
     static boolean isPotentialModule(Project p)
