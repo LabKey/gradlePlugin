@@ -178,7 +178,7 @@ class TestRunner extends UiTest
                     }
                 )
             }
-            it.notCompatibleWithConfigurationCache("Needs configurations adn sourceSets specified as ConfigurableFileCollection.")
+            it.notCompatibleWithConfigurationCache("Needs configurations and sourceSets specified as ConfigurableFileCollection.")
         }
     }
 }
