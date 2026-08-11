@@ -17,6 +17,7 @@ package org.labkey.gradle.plugin
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.JavaExec
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.RunTestSuite
@@ -38,6 +39,20 @@ class TestRunner extends UiTest
 
         addAspectJ(project)
 
+    }
+
+    // Declared here, rather than in the project's build file, so it is available when the tasks are added
+    @Override
+    protected void addConfigurations(Project project)
+    {
+        super.addConfigurations(project)
+        project.configurations {
+            aspectj {
+                canBeConsumed = false
+                canBeResolved = true
+            }
+        }
+        project.configurations.aspectj.setDescription("AspectJ tools used to weave the UI test classes")
     }
 
     @Override
@@ -157,28 +172,36 @@ class TestRunner extends UiTest
         }
     }
 
-    private void addAspectJ(Project project)
+    // This method is static, and the values used by the task action are captured here, so the action does not reference
+    // the project or this plugin (which holds the uiTest extension, which references the project)
+    private static void addAspectJ(Project project)
     {
+        FileCollection aspectJClasspath = project.configurations.aspectj
+        FileCollection uiTestClasspath = project.configurations.uiTestRuntimeClasspath
+        Set<File> srcDirs = project.sourceSets.uiTest.java.srcDirs
+        File destinationDir = BuildUtils.getBuildDirFile(project,"classes/java/uiTest/")
+        String sourceCompatibility = (String) project.property('sourceCompatibility')
+        String targetCompatibility = (String) project.property('targetCompatibility')
+
         project.tasks.named('compileUiTestJava').configure {it ->
-            it.doLast {
-                ant.taskdef(
+            it.doLast { Task task ->
+                task.ant.taskdef(
                     resource: "org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties",
-                    classpath: project.configurations.aspectj.asPath
+                    classpath: aspectJClasspath.asPath
                 )
-                ant.iajc(
-                    destdir: BuildUtils.getBuildDirFile(project,"classes/java/uiTest/").getPath(),
-                    source: project.sourceCompatibility,
-                    target: project.targetCompatibility,
+                task.ant.iajc(
+                    destdir: destinationDir.getPath(),
+                    source: sourceCompatibility,
+                    target: targetCompatibility,
                     encoding: "UTF-8",
-                    classpath: project.configurations.uiTestRuntimeClasspath.asPath,
+                    classpath: uiTestClasspath.asPath,
                     {
-                        project.sourceSets.uiTest.java.srcDirs.each {
+                        srcDirs.each {
                             src(path: it)
                         }
                     }
                 )
             }
-            it.notCompatibleWithConfigurationCache("Needs configurations and sourceSets specified as ConfigurableFileCollection.")
         }
     }
 }

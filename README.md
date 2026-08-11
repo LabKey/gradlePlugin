@@ -22,6 +22,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - Update `ModuleDistribution` and `RunUiTest` to be compatible with the configuration cache
 - Updates to `MultiGit` to mark as not configuration-cache compatible
 - Convert tasks that write out startup properties in `TeamCity` plugin to be compatible with the configuration cache
+- Update `TestRunner`'s `compileUITestJava` task to be config-cache compatible and move the delcaration of the `aspectj` configuration to that plugin
 
 ### 9.2.0
 *Released*: 27 July 2026
