@@ -20,6 +20,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.plugin.TeamCity
 import org.labkey.gradle.plugin.extension.TeamCityExtension
+import org.labkey.gradle.plugin.extension.UiTestExtension
 import org.labkey.gradle.util.DatabaseProperties
 
 /**
@@ -50,7 +51,7 @@ abstract class RunTestSuite extends RunUiTest
         }
     }
 
-    protected void setTeamCityProperties()
+    protected void configureTeamCityProperties(UiTestExtension testExt)
     {
         if (TeamCityExtension.isOnTeamCity(project))
         {
