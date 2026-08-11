@@ -32,6 +32,7 @@ import org.labkey.gradle.task.PickDb
 import org.labkey.gradle.task.RunTestSuite
 import org.labkey.gradle.task.TeamCityDbSetup
 import org.labkey.gradle.task.UndeployModules
+import org.labkey.gradle.task.WriteStartupProperties
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
@@ -129,14 +130,10 @@ class TeamCity extends Tomcat
                 }
         }
 
-        project.tasks.register("createStartupPropertyFile") {
-            doLast {
-                String properties = extension.getTeamCityProperty('labkey.startup.properties')
-
-                if (!properties.isBlank()) {
-                    extension.writeStartupProperties('99_teamcity_startup.properties', properties)
-                }
-            }
+        project.tasks.register("createStartupPropertyFile", WriteStartupProperties) {
+            WriteStartupProperties task ->
+                task.propertiesFile.set(TeamCityExtension.startupPropertiesFile(project, '99_teamcity_startup.properties'))
+                task.propertiesContent.set(extension.getTeamCityProperty('labkey.startup.properties'))
         }
 
         project.tasks.named("startLabKey").configure {
@@ -247,23 +244,20 @@ class TeamCity extends Tomcat
         {
             String inheritedDistPath = extension.getTeamCityProperty('labkey.startup.includeDistModules')
             project.evaluationDependsOn(inheritedDistPath)
-            def includeDistModulesTask = project.tasks.register("includeDistModules", Task) {
-                Task task ->
+            def includeDistModulesTask = project.tasks.register("includeDistModules", WriteStartupProperties) {
+                WriteStartupProperties task ->
                     task.group = GroupNames.TEST_SERVER
                     task.description = "Generate server properties file to run with modules from a specified distribution"
-                    task.doLast {
-                        task.logger.info("inheriting from distribution ${inheritedDistPath}")
-                        Set<String> includeModules = new HashSet<>()
-                        project.project(inheritedDistPath).configurations.distribution.dependencies.each {
-                            includeModules.add(it.getName())
-                        }
-
-                        includeModules.addAll(extension.getTeamCityProperty('labkey.startup.includeDistModules.additional').split(','))
-
-                        extension.writeStartupProperties('00_modulesInclude.properties',
-                                'ModuleLoader.include;startup=' + String.join(',', includeModules))
+                    project.logger.info("inheriting from distribution ${inheritedDistPath}")
+                    Set<String> includeModules = new HashSet<>()
+                    project.project(inheritedDistPath).configurations.distribution.dependencies.each {
+                        includeModules.add(it.getName())
                     }
-                    task.notCompatibleWithConfigurationCache("Needs the distribution configuration specified as an input ConfigurableFileCollection")
+
+                    includeModules.addAll(extension.getTeamCityProperty('labkey.startup.includeDistModules.additional').split(','))
+
+                    task.propertiesFile.set(TeamCityExtension.startupPropertiesFile(project, '00_modulesInclude.properties'))
+                    task.propertiesContent.set('ModuleLoader.include;startup=' + String.join(',', includeModules))
             }
 
             project.tasks.named("startLabKey").configure {
