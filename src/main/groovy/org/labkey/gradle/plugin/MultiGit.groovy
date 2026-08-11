@@ -979,6 +979,7 @@ class MultiGit implements Plugin<Project>
                     }
                     println(builder.toString())
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("gitBranches")  {
@@ -1016,6 +1017,7 @@ class MultiGit implements Plugin<Project>
 
                     println(builder.toString())
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("gitCheckout") {
@@ -1060,6 +1062,7 @@ class MultiGit implements Plugin<Project>
                             }
                     })
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("gitStatus") {
@@ -1123,6 +1126,7 @@ class MultiGit implements Plugin<Project>
                             }
                     })
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("gitPull") {
@@ -1155,6 +1159,7 @@ class MultiGit implements Plugin<Project>
                             }
                     })
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("gitFetch") {
@@ -1180,6 +1185,7 @@ class MultiGit implements Plugin<Project>
                             }
                     })
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
 
@@ -1206,6 +1212,7 @@ class MultiGit implements Plugin<Project>
                             }
                     })
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("gitEnlist") {
@@ -1234,6 +1241,7 @@ class MultiGit implements Plugin<Project>
                             enlist(repositories, repository, enlisted,  project.hasProperty('branch') ? (String) project.property('branch') : null)
                     })
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("listPullRequests") {
@@ -1260,12 +1268,8 @@ class MultiGit implements Plugin<Project>
                         }
                     }
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
-
-        //
-        // TODO Add tasks for releasing
-        // - branch
-        // - release
     }
 
     private String getEchoHeader(Map<String, Repository> repositories, Project project)
