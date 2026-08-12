@@ -186,7 +186,7 @@ class FileModule implements Plugin<Project>
                 task.group = GroupNames.MODULE
                 task.description = "copy a project's .module file to the local deploy directory"
                 task.moduleFiles.from(moduleTask, project.configurations.modules)
-                task.moduleFileName.set(moduleTask.get().archiveFileName)
+                task.moduleFileName.set(moduleTask.flatMap { Jar jar -> jar.archiveFileName })
             }
 
 
