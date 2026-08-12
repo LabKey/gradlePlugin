@@ -125,15 +125,6 @@ class Api implements Plugin<Project>
         }
     }
 
-    // It may seem proper to make this action a dependency on the project's clean task since the
-    // jar file is put there by the build task, but since the copy is more of a deployment
-    // task than a build task and removing it will affect the running server, we make this
-    // deletion a step for the 'undeployModule' task instead
-    static void deleteModulesApiJar(Project project)
-    {
-        project.delete getModulesApiJars(project)
-    }
-
     /**
      * @param project the project whose api jar files are to be found
      * @return the api jar files copied to the {@link #MODULES_API_DIR} directory for this project. The tree is not
