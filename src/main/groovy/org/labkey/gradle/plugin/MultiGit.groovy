@@ -45,7 +45,6 @@ import java.util.stream.Collectors
 import static org.labkey.gradle.plugin.MultiGit.RepositoryQuery.getAuthorizationToken
 
 /**
- *
  * This plugin can be used to get data about a gradle project that is comprised of multiple git repositories.
  * It uses the GitHub GraphQL API (https://developer.github.com/v4/) to query for a set of repositories. Using
  * the properties gitTopics, requireAllTopics, and includeArchived, a user is able to filter to a certain set
