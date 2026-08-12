@@ -47,6 +47,7 @@ abstract class WriteStartupProperties extends DefaultTask
         if (content.isBlank())
         {
             logger.info("No properties to write. ${file} not created.")
+            file.delete()
             return
         }
         logger.info("Writing startup properties to ${file}")
