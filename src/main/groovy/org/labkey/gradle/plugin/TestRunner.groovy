@@ -178,7 +178,9 @@ class TestRunner extends UiTest
     {
         FileCollection aspectJClasspath = project.configurations.aspectj
         FileCollection uiTestClasspath = project.configurations.uiTestRuntimeClasspath
-        Set<File> srcDirs = project.sourceSets.uiTest.java.srcDirs
+        // A live view of the source directories, so directories added by the project's build file after this plugin is
+        // applied are still included
+        FileCollection srcDirs = project.sourceSets.uiTest.java.sourceDirectories
         File destinationDir = BuildUtils.getBuildDirFile(project,"classes/java/uiTest/")
         String sourceCompatibility = (String) project.property('sourceCompatibility')
         String targetCompatibility = (String) project.property('targetCompatibility')
