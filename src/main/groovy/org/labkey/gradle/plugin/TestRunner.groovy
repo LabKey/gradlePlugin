@@ -182,8 +182,8 @@ class TestRunner extends UiTest
         // applied are still included
         FileCollection srcDirs = project.sourceSets.uiTest.java.sourceDirectories
         File destinationDir = BuildUtils.getBuildDirFile(project,"classes/java/uiTest/")
-        String sourceCompatibility = (String) project.property('sourceCompatibility')
-        String targetCompatibility = (String) project.property('targetCompatibility')
+        String sourceCompatibility = (String) project.rootProject.property('sourceCompatibility')
+        String targetCompatibility = (String) project.rootProject.property('targetCompatibility')
 
         project.tasks.named('compileUiTestJava').configure {it ->
             it.doLast { Task task ->
