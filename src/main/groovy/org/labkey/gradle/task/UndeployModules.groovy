@@ -34,17 +34,12 @@ import org.labkey.gradle.util.BuildUtils
 import javax.inject.Inject
 
 /**
- * Removes modules from the deploy and staging directories.  If a value for dbType is provided,
- * it removes those not supporting the given dbType.  If dbType is null, removes all modules from
- * the current set of projects.
+ * Removes all modules from the deploy and staging directories for the current set of projects
  */
 @UntrackedTask(because="Does only file removal")
 abstract class UndeployModules extends DefaultTask
 {
     @Inject abstract FileSystemOperations getFs()
-
-    @Input @Optional
-    String dbType = null
 
     // The project tree is walked when this task is created because the projects are not available when it executes
     private final List<ModuleInfo> moduleInfos = findModuleInfos(project)
@@ -53,16 +48,9 @@ abstract class UndeployModules extends DefaultTask
     void action()
     {
         moduleInfos.forEach({ ModuleInfo module ->
-            if (dbType == null || !module.shouldDoBuild || !module.supportsDatabase(dbType))
-            {
-                this.logger.info("Undeploying module ${module.path} for dbType ${dbType}")
-                FileModule.getModuleFilesAndDirectories(module.name, module.deployDir, module.stagingDir)
-                        .forEach({ File file -> fs.delete({ DeleteSpec spec -> spec.delete(file) }) })
-            }
-            else
-            {
-                this.logger.info("Module ${module.path} left in deployment for dbType ${dbType}")
-            }
+            this.logger.info("Undeploying module ${module.path}")
+            FileModule.getModuleFilesAndDirectories(module.name, module.deployDir, module.stagingDir)
+                    .forEach({ File file -> fs.delete({ DeleteSpec spec -> spec.delete(file) }) })
         })
     }
 
@@ -93,8 +81,6 @@ abstract class UndeployModules extends DefaultTask
         final String name
         final File deployDir
         final File stagingDir
-        final boolean shouldDoBuild
-        final String supportedDatabases
 
         ModuleInfo(Project project)
         {
@@ -102,15 +88,7 @@ abstract class UndeployModules extends DefaultTask
             name = project.name
             deployDir = new File(ServerDeployExtension.getModulesDeployDirectory(project))
             stagingDir = BuildUtils.getRootBuildDirFile(project, ServerDeploy.STAGING_MODULES_DIR)
-            // the message for a module that is not to be built is already logged when its plugin is applied
-            shouldDoBuild = FileModule.shouldDoBuild(project, false)
-            ModuleExtension extension = shouldDoBuild ? project.extensions.findByType(ModuleExtension.class) : null
-            supportedDatabases = extension == null ? null : extension.getPropertyValue("SupportedDatabases")
-        }
+       }
 
-        boolean supportsDatabase(String database)
-        {
-            return supportedDatabases == null || supportedDatabases.contains(database)
-        }
     }
 }

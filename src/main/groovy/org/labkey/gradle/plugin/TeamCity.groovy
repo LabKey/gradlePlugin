@@ -31,7 +31,6 @@ import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.PickDb
 import org.labkey.gradle.task.RunTestSuite
 import org.labkey.gradle.task.TeamCityDbSetup
-import org.labkey.gradle.task.UndeployModules
 import org.labkey.gradle.task.WriteStartupProperties
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
