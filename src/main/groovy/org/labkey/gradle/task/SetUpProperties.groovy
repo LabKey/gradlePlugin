@@ -63,7 +63,7 @@ abstract class SetUpProperties extends TeamCityPropertiesTask
     @Input
     final abstract Property<String> portNumber = project.objects.property(String).convention(project.hasProperty("useSsl") ? "8443" : "8080")
     @Input
-    final abstract Property<Boolean> useLocalBuild = project.objects.property(Boolean).convention(project.hasProperty("useLocalBuild") && "false" != project.property("useLocalBuild"))
+    final abstract Property<Boolean> useLocalBuild = project.objects.property(Boolean).convention(BuildUtils.useLocalBuild(project))
 
     @Input // in .properties files, backward slashes are seen as escape characters, so all paths must use forward slashes, even on Windows
     final abstract Property<String> pathToServer = project.objects.property(String).convention(project.rootDir.getAbsolutePath().replaceAll("\\\\", "/"))

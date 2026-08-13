@@ -68,7 +68,7 @@ abstract class DeployModule extends DefaultTask
     final abstract RegularFileProperty stagedModuleFile = project.objects.fileProperty().value(stagingModulesDir.file(moduleFileName))
 
     @Input
-    final abstract Property<Boolean> useLocalBuild = project.objects.property(Boolean).convention(project.hasProperty("useLocalBuild") && "false" != project.property("useLocalBuild"))
+    final abstract Property<Boolean> useLocalBuild = project.objects.property(Boolean).convention(BuildUtils.useLocalBuild(project))
 
     // Not declared as an output because it is shared with the other tasks that trigger a server restart
     @Internal

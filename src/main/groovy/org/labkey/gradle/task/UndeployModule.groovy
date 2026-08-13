@@ -58,7 +58,7 @@ abstract class UndeployModule extends DefaultTask
     final abstract ConfigurableFileCollection modulesApiJars = project.objects.fileCollection().from(Api.getModulesApiJars(project))
 
     @Internal
-    final abstract Property<Boolean> useLocalBuild = project.objects.property(Boolean).convention(project.hasProperty("useLocalBuild") && "false" != project.property("useLocalBuild"))
+    final abstract Property<Boolean> useLocalBuild = project.objects.property(Boolean).convention(BuildUtils.useLocalBuild(project))
 
     @Internal
     final abstract RegularFileProperty restartTriggerFile = project.objects.fileProperty().fileValue(BuildUtils.getRestartTriggerFile(project))
