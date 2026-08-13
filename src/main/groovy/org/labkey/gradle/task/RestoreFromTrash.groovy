@@ -51,11 +51,11 @@ class RestoreFromTrash extends DefaultTask
     final abstract Property<Boolean> isDryRun = project.objects.property(Boolean).convention(project.hasProperty(PurgeArtifacts.DRY_RUN_PROPERTY))
 
     @Input
-    final abstract Property<String> artifactoryUrl = project.objects.property(String).convention((String) project.property(ARTIFACTORY_CONTEXT_URL_PROP))
+    final abstract Property<String> artifactoryUrl = project.objects.property(String).convention((String) project.property(BuildUtils.ARTIFACTORY_CONTEXT_URL_PROP))
     @Input
-    final abstract Property<String> artifactoryUser = project.objects.property(String).convention((String) project.property(ARTIFACTORY_USER_PROP))
+    final abstract Property<String> artifactoryUser = project.objects.property(String).convention((String) project.property(BuildUtils.ARTIFACTORY_USER_PROP))
     @Input
-    final abstract Property<String> artifactoryPassword = project.objects.property(String).convention((String) project.property(ARTIFACTORY_PASSWORD_PROP))
+    final abstract Property<String> artifactoryPassword = project.objects.property(String).convention((String) project.property(BuildUtils.ARTIFACTORY_PASSWORD_PROP))
 
     private static final String NUM_NOT_FOUND = "numNotFound"
     private static final String NUM_RESTORED = "numRestored"
