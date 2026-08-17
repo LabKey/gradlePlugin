@@ -29,7 +29,6 @@ import org.labkey.gradle.task.DeployDistribution
 import org.labkey.gradle.task.StageDistribution
 import org.labkey.gradle.task.StageModules
 import org.labkey.gradle.task.SymlinkNode
-import org.labkey.gradle.task.UndeployModules
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.TaskUtils
@@ -231,12 +230,6 @@ class ServerDeploy implements Plugin<Project>
                 task.description = "Extract the executable jar from a distribution and put it and the included binaries in the appropriate deploy directory"
                 task.dependsOn(project.tasks.cleanEmbeddedDeploy)
                 task.binaries.setFrom(project.configurations.binaries)
-        }
-
-        project.tasks.register('undeployModules', UndeployModules) {
-            UndeployModules task ->
-                task.group = GroupNames.DEPLOY
-                task.description = "Removes all module files and directories from the deploy and staging directories"
         }
 
         project.tasks.register(

@@ -19,11 +19,11 @@ on how to do that, including how to develop and test locally and the versioning 
 - Pass all command-line 'webtest' and 'webdriver' properties to tests (fix to work off of TeamCity)
 - Convert `verifyLicensePatch`, `patchApiModule`, `deployModule`, `undeployModule`, `symlinkNode`, `undeployModules` to configuration-cache compatible tasks
 - Update `ModuleFinder` to not use deprecated `hasProperty` check that looks in parent project
-- Update `ModuleDistribution` and `RunUiTest` to be compatible with the configuration cache
+- Update `ModuleDistribution`, `RunUiTest`, and `StopLabKey` to be compatible with the configuration cache
 - Updates to `MultiGit` to mark as not configuration-cache compatible
 - Convert tasks that write out startup properties in `TeamCity` plugin to be compatible with the configuration cache
 - Update `TestRunner`'s `compileUITestJava` task to be config-cache compatible and move the declaration of the `aspectj` configuration to that plugin
-- Remove `undeployModulesNotForX` task from the `TeamCity` plugin
+- Remove `UndeployModules` task class and the `undeployModulesNotForX` task from the `TeamCity` plugin
 
 ### 9.2.0
 *Released*: 27 July 2026
