@@ -13,8 +13,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### TBD
-*Released*: TBD
+### 10.0.0
+*Released*: 17 August 2026
 (Earliest compatible LabKey version: 26.6.0)
 - Pass all command-line 'webtest' and 'webdriver' properties to tests (fix to work off of TeamCity)
 - Convert `verifyLicensePatch`, `patchApiModule`, `deployModule`, `undeployModule`, `symlinkNode`, `undeployModules` to configuration-cache compatible tasks
