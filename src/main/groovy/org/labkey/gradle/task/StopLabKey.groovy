@@ -16,10 +16,8 @@
 package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
@@ -32,24 +30,24 @@ import java.util.concurrent.TimeUnit
  * Task for stopping a running LabKey instance
  */
 @UntrackedTask(because="Output is a stopped process")
-class StopLabKey extends DefaultTask
+abstract class StopLabKey extends DefaultTask
 {
-
-    @InputFile @Optional @PathSensitive(PathSensitivity.RELATIVE)
-    final abstract File pidFile = ServerDeployExtension.getEmbeddedDir(project).file("labkey.pid").asFile
-            .with { it.exists() ? it : null } // "Optional" means that the property may be null, not refer to something nonexistent
+    // file comes and goes as the server is started and stopped, so its existence must be checked when the task executes
+    // rather than when the property value is captured for the configuration cache
+    @Internal
+    final abstract RegularFileProperty pidFile = project.objects.fileProperty().convention(ServerDeployExtension.getEmbeddedDir(project).file("labkey.pid"))
 
     @TaskAction
     void action()
     {
-        if (pidFile != null && pidFile.exists()) {
-            String pidStr = new String(Files.readAllBytes(pidFile.toPath()), StandardCharsets.UTF_8).trim()
+        File file = pidFile.get().asFile
+        if (file.exists()) {
+            String pidStr = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8).trim()
             Integer pid = Integer.parseInt(pidStr)
             stopLabKeyByPid(pid)
         } else {
-            logger.info("LabKey doesn't appear to be running in this enlistment. PID file not found")
+            logger.info("LabKey doesn't appear to be running in this enlistment. PID file ${file} not found")
         }
-
     }
 
     private void stopLabKeyByPid(long pid)

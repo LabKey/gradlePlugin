@@ -99,15 +99,19 @@ class TeamCity extends Tomcat
                 }
         }
 
+        // Captured here because the task actions below are stored in the configuration cache, so they must not
+        // reference this plugin, which holds the extension that references the project
+        String debugPort = extension.getTeamCityProperty("tomcat.debug")
+
         project.tasks.named("stopLabKey").configure {
-            it.doLast {
-                ensureShutdown(it.logger)
+            it.doLast { Task task ->
+                ensureShutdown(task.logger, debugPort)
             }
         }
 
         project.tasks.named("stopTomcat").configure {
-            it.doLast {
-                ensureShutdown(it.logger)
+            it.doLast { Task task ->
+                ensureShutdown(task.logger, debugPort)
             }
         }
 
@@ -428,9 +432,8 @@ class TeamCity extends Tomcat
         }
     }
 
-    private void ensureShutdown(Logger logger)
+    private static void ensureShutdown(Logger logger, String debugPort)
     {
-        String debugPort = extension.getTeamCityProperty("tomcat.debug")
         if (!debugPort.isEmpty())
         {
             logger.debug("Ensuring shutdown using port ${debugPort}")
