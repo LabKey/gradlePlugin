@@ -31,7 +31,7 @@ import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.PickDb
 import org.labkey.gradle.task.RunTestSuite
 import org.labkey.gradle.task.TeamCityDbSetup
-import org.labkey.gradle.task.UndeployModules
+import org.labkey.gradle.task.WriteStartupProperties
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
@@ -99,15 +99,19 @@ class TeamCity extends Tomcat
                 }
         }
 
+        // Captured here because the task actions below are stored in the configuration cache, so they must not
+        // reference this plugin, which holds the extension that references the project
+        String debugPort = extension.getTeamCityProperty("tomcat.debug")
+
         project.tasks.named("stopLabKey").configure {
-            it.doLast {
-                ensureShutdown(it.logger)
+            it.doLast { Task task ->
+                ensureShutdown(task.logger, debugPort)
             }
         }
 
         project.tasks.named("stopTomcat").configure {
-            it.doLast {
-                ensureShutdown(it.logger)
+            it.doLast { Task task ->
+                ensureShutdown(task.logger, debugPort)
             }
         }
 
@@ -129,14 +133,10 @@ class TeamCity extends Tomcat
                 }
         }
 
-        project.tasks.register("createStartupPropertyFile") {
-            doLast {
-                String properties = extension.getTeamCityProperty('labkey.startup.properties')
-
-                if (!properties.isBlank()) {
-                    extension.writeStartupProperties('99_teamcity_startup.properties', properties)
-                }
-            }
+        project.tasks.register("createStartupPropertyFile", WriteStartupProperties) {
+            WriteStartupProperties task ->
+                task.propertiesFile.set(TeamCityExtension.startupPropertiesFile(project, '99_teamcity_startup.properties'))
+                task.propertiesContent.set(extension.getTeamCityProperty('labkey.startup.properties'))
         }
 
         project.tasks.named("startLabKey").configure {
@@ -196,35 +196,6 @@ class TeamCity extends Tomcat
             }
 
             TaskProvider setUpDbTask = project.tasks.named(setUpTaskName)
-
-            // TODO we need a counterpart of this for embedded tomcat server.  Probably we'll want to
-            // make the deployment extract the module files so we can walk through them to remove the
-            // ones that are not supported.  But, undeployModule currently knows nothing about the build/deploy/embedded
-            // directory, so that needs to be updated as well.
-            String undeployTaskName = "undeployModulesNotFor${properties.shortType.capitalize()}"
-            Provider<Task> undeployTask
-            try {
-                undeployTask = project.tasks.named(undeployTaskName)
-            } catch (UnknownTaskException ignore) {
-                project.tasks.register(undeployTaskName, UndeployModules) {
-                    UndeployModules task ->
-                        task.group = GroupNames.DEPLOY
-                        task.description = "Undeploy modules that are either not supposed to be built or are not supported by database ${properties.dbTypeAndVersion}"
-                        task.dbType = properties.shortType
-                        task.mustRunAfter(BuildUtils.getServerProject(project).tasks.pickMSSQL)
-                        task.mustRunAfter(BuildUtils.getServerProject(project).tasks.pickPg)
-                        task.notCompatibleWithConfigurationCache("Walks the project tree")
-                }
-            }
-            undeployTask = project.tasks.named(undeployTaskName)
-            project.tasks.named("startLabKey").configure {
-                it.mustRunAfter(undeployTask)
-            }
-
-            project.tasks.named("startTomcat").configure {
-                it.mustRunAfter(undeployTask)
-            }
-
             project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startLabKey.mustRunAfter(setUpDbTask)
             project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startTomcat.mustRunAfter(setUpDbTask)
             String ciTestTaskName = "ciTests" + properties.dbTypeAndVersion.capitalize()
@@ -232,7 +203,7 @@ class TeamCity extends Tomcat
                 RunTestSuite task ->
                     task.group = GroupNames.TEST_SERVER
                     task.description = "Run a test suite for ${properties.dbTypeAndVersion} on the TeamCity server"
-                    task.dependsOn(setUpDbTask, undeployTask)
+                    task.dependsOn(setUpDbTask)
                     task.dbProperties = properties
                     task.mustRunAfter(project.tasks.validateConfiguration)
                     task.mustRunAfter(project.tasks.cleanTestLogs)
@@ -248,23 +219,20 @@ class TeamCity extends Tomcat
         {
             String inheritedDistPath = extension.getTeamCityProperty('labkey.startup.includeDistModules')
             project.evaluationDependsOn(inheritedDistPath)
-            def includeDistModulesTask = project.tasks.register("includeDistModules", Task) {
-                Task task ->
+            def includeDistModulesTask = project.tasks.register("includeDistModules", WriteStartupProperties) {
+                WriteStartupProperties task ->
                     task.group = GroupNames.TEST_SERVER
                     task.description = "Generate server properties file to run with modules from a specified distribution"
-                    task.doLast {
-                        task.logger.info("inheriting from distribution ${inheritedDistPath}")
-                        Set<String> includeModules = new HashSet<>()
-                        project.project(inheritedDistPath).configurations.distribution.dependencies.each {
-                            includeModules.add(it.getName())
-                        }
-
-                        includeModules.addAll(extension.getTeamCityProperty('labkey.startup.includeDistModules.additional').split(','))
-
-                        extension.writeStartupProperties('00_modulesInclude.properties',
-                                'ModuleLoader.include;startup=' + String.join(',', includeModules))
+                    project.logger.info("inheriting from distribution ${inheritedDistPath}")
+                    Set<String> includeModules = new HashSet<>()
+                    project.project(inheritedDistPath).configurations.distribution.dependencies.each {
+                        includeModules.add(it.getName())
                     }
-                    task.notCompatibleWithConfigurationCache("Needs the distribution configuration specified as an input ConfigurableFileCollection")
+
+                    includeModules.addAll(extension.getTeamCityProperty('labkey.startup.includeDistModules.additional').split(','))
+
+                    task.propertiesFile.set(TeamCityExtension.startupPropertiesFile(project, '00_modulesInclude.properties'))
+                    task.propertiesContent.set('ModuleLoader.include;startup=' + String.join(',', includeModules))
             }
 
             project.tasks.named("startLabKey").configure {
@@ -464,9 +432,8 @@ class TeamCity extends Tomcat
         }
     }
 
-    private void ensureShutdown(Logger logger)
+    private static void ensureShutdown(Logger logger, String debugPort)
     {
-        String debugPort = extension.getTeamCityProperty("tomcat.debug")
         if (!debugPort.isEmpty())
         {
             logger.debug("Ensuring shutdown using port ${debugPort}")

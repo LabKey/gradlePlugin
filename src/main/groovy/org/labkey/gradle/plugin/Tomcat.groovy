@@ -54,32 +54,34 @@ class Tomcat implements Plugin<Project>
 
     private static void addTasks(Project project)
     {
+        // Captured here because the onlyIf specs below are stored in the configuration cache, so they must not
+        // reference the project
+        File applicationPropertiesFile = BuildUtils.getApplicationPropertiesFile(project)
+
         project.tasks.register("startLabKey", StartLabKey) {
             StartLabKey task ->
                 task.group = GroupNames.WEB_APPLICATION
                 task.description = "Start the LabKey web application"
-                task.notCompatibleWithConfigurationCache("Needs some properties converted to inputs and outputs")
         }
 
         project.tasks.register("stopLabKey", StopLabKey) {
             StopLabKey task ->
                 task.group = GroupNames.WEB_APPLICATION
                 task.description = "Stop the LabKey web application"
-                task.onlyIf{ BuildUtils.getApplicationPropertiesFile(project).exists() }
+                task.onlyIf{ applicationPropertiesFile.exists() }
         }
 
         project.tasks.register("startTomcat", StartLabKey) {
             StartLabKey task ->
                 task.group = GroupNames.WEB_APPLICATION
                 task.description = "Start the LabKey web application (deprecated: use startLabKey)"
-                task.notCompatibleWithConfigurationCache("Needs some properties converted to inputs and outputs")
         }
 
         project.tasks.register("stopTomcat", StopLabKey) {
             StopLabKey task ->
                 task.group = GroupNames.WEB_APPLICATION
                 task.description = "Stop the LabKey web application (deprecated: use stopLabKey)"
-                task.onlyIf{ BuildUtils.getApplicationPropertiesFile(project).exists() }
+            task.onlyIf{ applicationPropertiesFile.exists() }
         }
 
         project.tasks.register("cleanLogs", Delete) {

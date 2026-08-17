@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory
 
 class DatabaseProperties
 {
-    Logger logger = LoggerFactory.getLogger(DatabaseProperties.class)
+    private static Logger logger = LoggerFactory.getLogger(DatabaseProperties.class)
     private static final String PICKED_DATABASE_CONFIG_FILE = "config.properties"
 
     private static final String JDBC_DRIVER_CLASS_NAME_PROP = "jdbcDriverClassName"

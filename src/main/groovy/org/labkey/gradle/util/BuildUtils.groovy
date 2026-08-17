@@ -912,7 +912,12 @@ class BuildUtils
      */
     static void updateRestartTriggerFile(Project project)
     {
-        updateRestartTriggerFile(project.hasProperty('useLocalBuild') && "false" != project.property("useLocalBuild"), getRestartTriggerFile(project))
+        updateRestartTriggerFile(useLocalBuild(project), getRestartTriggerFile(project))
+    }
+
+    static boolean useLocalBuild(Project project)
+    {
+        return project.hasProperty("useLocalBuild") && "false" != project.property("useLocalBuild")
     }
 
     static File getRestartTriggerFile(Project project)

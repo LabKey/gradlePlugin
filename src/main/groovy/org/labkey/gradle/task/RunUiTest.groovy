@@ -30,14 +30,13 @@ import org.labkey.gradle.util.BuildUtils
 abstract class RunUiTest extends Test
 {
     public static final String LOG_DIR = "test/logs"
-    protected UiTestExtension testExt
 
     RunUiTest()
     {
         testLogging.showStandardStreams = true
-        testExt = (UiTestExtension) project.getExtensions().getByType(UiTestExtension.class)
-        setSystemProperties()
-        setJvmArgs()
+        UiTestExtension testExt = (UiTestExtension) project.getExtensions().getByType(UiTestExtension.class)
+        configureSystemProperties(testExt)
+        configureJvmArgs(testExt)
 
         reports { TestTaskReports -> reports
             reports.junitXml.required = false
@@ -49,10 +48,9 @@ abstract class RunUiTest extends Test
         setTestClassesDirs (project.sourceSets.uiTest.output.classesDirs)
 
         ignoreFailures = true // Failing tests should not cause task to fail
-        outputs.upToDateWhen( { return false }) // always run tests when asked to
     }
 
-    void setJvmArgs()
+    void configureJvmArgs(UiTestExtension testExt)
     {
         List<String> jvmArgsList = ["-Xmx512m",
                                     "-agentlib:jdwp=transport=dt_socket,server=y," +
@@ -76,7 +74,7 @@ abstract class RunUiTest extends Test
         jvmArgs jvmArgsList
     }
 
-    protected void setSystemProperties()
+    protected void configureSystemProperties(UiTestExtension testExt)
     {
         Properties testConfig = testExt.getConfig()
         for (String key : testConfig.keySet())
@@ -98,10 +96,10 @@ abstract class RunUiTest extends Test
         systemProperty "user.home", System.getProperty('user.home')
         systemProperty "test.credentials.file", "${project.projectDir}/test.credentials.json"
 
-        setTeamCityProperties()
+        configureTeamCityProperties(testExt)
     }
 
-    protected void setTeamCityProperties() {
+    protected void configureTeamCityProperties(UiTestExtension testExt) {
         // do nothing by default
     }
 }

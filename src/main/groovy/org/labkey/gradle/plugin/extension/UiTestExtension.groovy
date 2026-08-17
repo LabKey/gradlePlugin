@@ -89,7 +89,7 @@ class UiTestExtension
             if (TeamCityExtension.isOnTeamCity(project))
             {
                 // Load properties from template when running on TeamCity.
-                // These properties control which TeamCity properties are loaded by `RunTestSuite.setTeamCityProperties`
+                // These properties control which TeamCity properties are loaded by `RunTestSuite.configureTeamCityProperties`
                 def propertiesTemplate = project.project(BuildUtils.getTestProjectPath(project.gradle)).file(propertiesTemplateName)
                 if (propertiesTemplate.exists())
                 {

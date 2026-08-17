@@ -21,6 +21,8 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
@@ -55,6 +57,12 @@ abstract class StartLabKey extends TeamCityPropertiesTask
     @OutputFile
     final abstract RegularFileProperty logFileProp = project.objects.fileProperty().convention(ServerDeployExtension.getEmbeddedServerDeployDirectory(project).file(Tomcat.EMBEDDED_LOG_FILE_NAME))
 
+    @Input
+    final abstract ListProperty<String> startupOpts = project.objects.listProperty(String).convention(getStartupOpts(project))
+
+    @Input
+    final abstract ListProperty<String> embeddedReflectionOpts = project.objects.listProperty(String).convention(getReflectionOptions(project))
+
     @TaskAction
     void action()
     {
@@ -73,8 +81,8 @@ abstract class StartLabKey extends TeamCityPropertiesTask
             if (!javaExec.exists())
                 throw new GradleException("Invalid value for JAVA_HOME. Could not find java command in ${javaExec}")
             String[] commandParts = [javaExec.getAbsolutePath()]
-            commandParts += getEmbeddedReflectionOpts(project)
-            commandParts += getStartupOpts(project)
+            commandParts += embeddedReflectionOpts.get()
+            commandParts += startupOpts.get()
             commandParts += ["-jar", jarFile.getName()]
 
             File logFile = logFileProp.get().asFile
@@ -130,10 +138,10 @@ abstract class StartLabKey extends TeamCityPropertiesTask
 
     }
 
-    private static List<String> getEmbeddedReflectionOpts(Project project)
+    private static List<String> getReflectionOptions(Project project)
     {
         if (project.hasProperty(EMBEDDED_REFLECTION_PARAM)) {
-            return ((String) project.property(EMBEDDED_REFLECTION_PARAM)).trim().split("\\s+")
+            return List.of(((String) project.property(EMBEDDED_REFLECTION_PARAM)).trim().split("\\s+"))
         }
         else {
             return DEFAULT_EMBEDDED_REFLECTION_OPTS

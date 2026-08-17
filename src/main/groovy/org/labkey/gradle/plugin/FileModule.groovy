@@ -25,16 +25,15 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Usage
-import org.gradle.api.file.CopySpec
-import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
+import org.labkey.gradle.task.DeployModule
 import org.labkey.gradle.task.ModuleXmlFile
+import org.labkey.gradle.task.UndeployModule
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.PomFileHelper
@@ -182,55 +181,20 @@ class FileModule implements Plugin<Project>
                     published(moduleTask)
                 }
 
-        project.tasks.register('deployModule')
-            { Task task ->
+        project.tasks.register('deployModule', DeployModule)
+            { DeployModule task ->
                 task.group = GroupNames.MODULE
                 task.description = "copy a project's .module file to the local deploy directory"
-                task.inputs.files moduleTask
-                task.outputs.file "${ServerDeployExtension.getModulesDeployDirectory(project)}/${moduleTask.get().outputs.getFiles()[0].getName()}"
-
-                task.doLast {
-                    project.copy { CopySpec copy ->
-                        copy.from moduleTask
-                        copy.from project.configurations.modules
-                        copy.into "${BuildUtils.getRootBuildDirPath(project)}/$ServerDeploy.STAGING_MODULES_DIR"
-                        copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-                    }
-                    project.copy { CopySpec copy ->
-                        copy.from moduleTask
-                        copy.from project.configurations.modules
-                        copy.into ServerDeployExtension.getModulesDeployDirectory(project)
-                        copy.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
-                    }
-                    BuildUtils.updateRestartTriggerFile(project)
-                }
-                task.notCompatibleWithConfigurationCache("Needs its own class to do the two copies (one to staging and one to deploy or possibly two Copy tasks chained together.")
+                task.moduleFiles.from(moduleTask, project.configurations.modules)
+                task.moduleFileName.set(moduleTask.flatMap { Jar jar -> jar.archiveFileName })
             }
 
 
 
-        project.tasks.register('undeployModule', Delete) {
-            Delete task ->
+        project.tasks.register('undeployModule', UndeployModule) {
+            UndeployModule task ->
                 task.group = GroupNames.MODULE
                 task.description = "remove a project's .module file and the unjarred file from the deploy directory"
-                task.configure(
-                { Delete delete ->
-                    getModuleFilesAndDirectories(project).forEach({
-                        File file ->
-                            if (file.isDirectory())
-                                delete.inputs.dir file
-                            else
-                                delete.inputs.file file
-                    })
-                })
-                task.doFirst {
-                    undeployModule(project)
-                    Api.deleteModulesApiJar(project)
-                }
-                task.doLast {
-                    BuildUtils.updateRestartTriggerFile(project)
-                }
-                task.notCompatibleWithConfigurationCache("Does multiple deletes using project.delete. Should have its own class.")
         }
 
         project.tasks.register("reallyClean") {
@@ -270,11 +234,28 @@ class FileModule implements Plugin<Project>
      */
     static List<File> getModuleFilesAndDirectories(Project project, Boolean includeDeployed = true, Boolean includeStaging=true)
     {
-        String moduleFilePrefix = "${project.name}-"
+        return getModuleFilesAndDirectories(
+                project.name,
+                includeDeployed ? new File(ServerDeployExtension.getModulesDeployDirectory(project)) : null,
+                includeStaging ? BuildUtils.getRootBuildDirFile(project, ServerDeploy.STAGING_MODULES_DIR) : null
+        )
+    }
+
+    /**
+     * The same as {@link #getModuleFilesAndDirectories(Project, Boolean, Boolean)} but without any reference to a
+     * project, so it can be used from a task action.
+     * @param moduleName the name of the module whose files are to be found
+     * @param deployDir the deploy directory to look in, or null to skip the deploy directory
+     * @param stagingDir the staging directory to look in, or null to skip the staging directory
+     * @return list of files and directories for this module with the deploy .module files first, followed by the deploy
+     *          directories followed by the staging .module files.
+     */
+    static List<File> getModuleFilesAndDirectories(String moduleName, File deployDir, File stagingDir)
+    {
+        String moduleFilePrefix = "${moduleName}-"
         List<File> files = new ArrayList<>()
-        if (includeDeployed)
+        if (deployDir != null)
         {
-            File deployDir = new File(ServerDeployExtension.getModulesDeployDirectory(project))
             if (deployDir.isDirectory())
             {
                 // first add the files because we want to delete these first.  If the directory goes away and the .module file is there
@@ -293,17 +274,15 @@ class FileModule implements Plugin<Project>
                     @Override
                     boolean accept(final File file)
                     {
-                        return file.isDirectory() && (file.getName().startsWith("${project.name}-") || file.getName().equalsIgnoreCase(project.name))
+                        return file.isDirectory() && (file.getName().startsWith(moduleFilePrefix) || file.getName().equalsIgnoreCase(moduleName))
                     }
                 })
                 )
             }
         }
         // staging has only the .modules files
-        if (includeStaging)
+        if (stagingDir != null)
         {
-
-            File stagingDir = BuildUtils.getRootBuildDirFile(project, ServerDeploy.STAGING_MODULES_DIR)
             if (stagingDir.isDirectory())
             {
                 files.addAll(stagingDir.listFiles(new FilenameFilter() {

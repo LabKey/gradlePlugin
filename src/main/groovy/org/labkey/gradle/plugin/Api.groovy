@@ -19,6 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.LabKeyExtension
@@ -124,13 +125,14 @@ class Api implements Plugin<Project>
         }
     }
 
-    // It may seem proper to make this action a dependency on the project's clean task since the
-    // jar file is put there by the build task, but since the copy is more of a deployment
-    // task than a build task and removing it will affect the running server, we make this
-    // deletion a step for the 'undeployModule' task instead
-    static void deleteModulesApiJar(Project project)
+    /**
+     * @param project the project whose api jar files are to be found
+     * @return the api jar files copied to the {@link #MODULES_API_DIR} directory for this project. The tree is not
+     *         resolved until it is queried, so it can be used as a property value for a task that deletes these files.
+     */
+    static FileTree getModulesApiJars(Project project)
     {
-        project.delete project.fileTree(project.rootProject.layout.buildDirectory.file(MODULES_API_DIR)) {include "**/${project.name}_api*.jar"}
+        return project.fileTree(project.rootProject.layout.buildDirectory.file(MODULES_API_DIR)) {include "**/${project.name}_api*.jar"}
     }
 
     private void addArtifacts(Project project)

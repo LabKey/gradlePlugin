@@ -45,9 +45,6 @@ import java.util.stream.Collectors
 import static org.labkey.gradle.plugin.MultiGit.RepositoryQuery.getAuthorizationToken
 
 /**
- * This is an incubating feature set. Interfaces and functionality are likely to change, perhaps drastically,
- * before it is released.
- *
  * This plugin can be used to get data about a gradle project that is comprised of multiple git repositories.
  * It uses the GitHub GraphQL API (https://developer.github.com/v4/) to query for a set of repositories. Using
  * the properties gitTopics, requireAllTopics, and includeArchived, a user is able to filter to a certain set
@@ -981,6 +978,7 @@ class MultiGit implements Plugin<Project>
                     }
                     println(builder.toString())
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("gitBranches")  {
@@ -1018,6 +1016,7 @@ class MultiGit implements Plugin<Project>
 
                     println(builder.toString())
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("gitCheckout") {
@@ -1062,6 +1061,7 @@ class MultiGit implements Plugin<Project>
                             }
                     })
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("gitStatus") {
@@ -1125,6 +1125,7 @@ class MultiGit implements Plugin<Project>
                             }
                     })
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("gitPull") {
@@ -1157,6 +1158,7 @@ class MultiGit implements Plugin<Project>
                             }
                     })
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("gitFetch") {
@@ -1182,6 +1184,7 @@ class MultiGit implements Plugin<Project>
                             }
                     })
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
 
@@ -1208,6 +1211,7 @@ class MultiGit implements Plugin<Project>
                             }
                     })
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("gitEnlist") {
@@ -1236,6 +1240,7 @@ class MultiGit implements Plugin<Project>
                             enlist(repositories, repository, enlisted,  project.hasProperty('branch') ? (String) project.property('branch') : null)
                     })
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
 
         project.tasks.register("listPullRequests") {
@@ -1262,12 +1267,8 @@ class MultiGit implements Plugin<Project>
                         }
                     }
                 })
+                task.notCompatibleWithConfigurationCache("Needs properties converted to inputs")
         }
-
-        //
-        // TODO Add tasks for releasing
-        // - branch
-        // - release
     }
 
     private String getEchoHeader(Map<String, Repository> repositories, Project project)

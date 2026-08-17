@@ -58,7 +58,7 @@ abstract class DeployApp extends DeployAppBase
     final abstract DirectoryProperty deployBinDir = BuildUtils.getRootBuildDirectoryProperty(project, ServerDeploy.DEPLOY_BIN_DIR)
 
     @Input
-    final abstract Property<Boolean> useLocalBuild = project.objects.property(Boolean).convention(project.hasProperty("useLocalBuild") && "false" != project.property("useLocalBuild"))
+    final abstract Property<Boolean> useLocalBuild = project.objects.property(Boolean).convention(BuildUtils.useLocalBuild(project))
 
     @OutputFile
     final abstract RegularFileProperty restartTriggerFile = project.objects.fileProperty().fileValue(BuildUtils.getRestartTriggerFile(project))
