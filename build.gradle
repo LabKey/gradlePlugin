@@ -43,7 +43,7 @@ dependencies {
 }
 
 group = 'org.labkey.build'
-project.version = "10.1.0-disableClientLibsCache-SNAPSHOT"
+project.version = "10.1.0-SNAPSHOT"
 
 gradlePlugin {
     plugins {

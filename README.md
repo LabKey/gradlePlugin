@@ -13,8 +13,8 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
-### TBD
-*Releaed*: TBD
+### 10.0.1
+*Released*: 20 August 2026
 (Earliest compatible LabKey version: 26.6.0)
 - Disable caching for the ClientLibsCompress task again.
 - Upgrade to Gradle 9.7.1
