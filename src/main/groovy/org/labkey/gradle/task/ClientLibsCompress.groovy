@@ -56,8 +56,9 @@ import java.util.zip.GZIPOutputStream
 /**
  * Class for compressing javascript and css files
  */
-
-@CacheableTask
+// TODO When caching is enabled, the moduleEditor[prod] suite fails to find the Ext libraries.
+// No luck yet finding what inputs or outputs are not well configured.
+@DisableCachingByDefault(because="Needs troubleshooting")
 abstract class ClientLibsCompress extends DefaultTask
 {
     public static final String LIB_XML_EXTENSION = ".lib.xml"
