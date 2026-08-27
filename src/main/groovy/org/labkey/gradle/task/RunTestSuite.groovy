@@ -49,6 +49,17 @@ abstract class RunTestSuite extends RunUiTest
             dependsOn(project.tasks.killChrome)
             dependsOn(project.tasks.killFirefox)
         }
+
+        // TeamCity's "Parallel Tests" build feature applies its own include/exclude filter to every
+        // Test task, matched against the live JUnit description tree Runner reports as it runs, not
+        // against the classes Gradle statically discovers. Runner already shards via BatchInfo
+        // (webtest.parallelTests.currentBatch/totalBatches), so TeamCity's filter would otherwise
+        // silently re-shard the batch Runner already selected. doFirst runs after any init-script
+        // configures that filter, so resetting it here always wins.
+        doFirst {
+            filter.setIncludePatterns([])
+            filter.setExcludePatterns([])
+        }
     }
 
     protected void configureTeamCityProperties(UiTestExtension testExt)
