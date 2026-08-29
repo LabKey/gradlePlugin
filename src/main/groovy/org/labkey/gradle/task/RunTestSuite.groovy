@@ -56,7 +56,7 @@ abstract class RunTestSuite extends RunUiTest
         // (webtest.parallelTests.currentBatch/totalBatches), so TeamCity's filter would otherwise
         // silently re-shard the batch Runner already selected. doFirst runs after any init-script
         // configures that filter, so resetting it here always wins.
-        doFirst {
+        doFirst { ->
             filter.setIncludePatterns([])
             filter.setExcludePatterns([])
         }
