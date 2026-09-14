@@ -133,13 +133,6 @@ class JavaModule implements Plugin<Project>
         }
     }
 
-    static boolean isDatabaseSupported(Project project, String database)
-    {
-        ModuleExtension extension = project.extensions.getByType(ModuleExtension.class)
-        String supported = extension.getPropertyValue("SupportedDatabases")
-        return supported == null || supported.contains(database)
-    }
-
     protected static void addTasks(Project project)
     {
         List<String> copyFromTasks = JAR_TASK_NAMES + "copyExternalLibs"
