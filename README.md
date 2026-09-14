@@ -13,6 +13,10 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### TBD
+*Released*: TBD
+- Remove `supportedDatabases` property from `module.template.xml`
+
 ### 10.0.1
 *Released*: 20 August 2026
 (Earliest compatible LabKey version: 26.6.0)
