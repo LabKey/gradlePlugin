@@ -34,7 +34,6 @@
         <property name="buildPath" value="@@BuildPath@@"/>
         <property name="buildType" value="@@BuildType@@"/>
         <property name="sourcePath" value="@@SourcePath@@"/>
-        <property name="supportedDatabases" value="@@SupportedDatabases@@"/>
         <property name="resourcePath" value="@@ResourcePath@@"/>
         <property name="buildNumber" value="@@BuildNumber@@"/>
         <property name="enlistmentId" value="@@EnlistmentId@@"/>

@@ -200,7 +200,6 @@ class MultiGit implements Plugin<Project>
         private File enlistmentDir
         private Project rootProject
         private Properties moduleProperties
-        private String supportedDatabases = "mssql,pgsql"
         private List<PullRequest> pullRequests
 
         Repository(Project rootProject, String name, String url, Boolean isPrivate, Boolean isArchived, List<String> topics)
@@ -315,16 +314,6 @@ class MultiGit implements Plugin<Project>
         void setIsArchived(Boolean isArchived)
         {
             this.isArchived = isArchived
-        }
-
-        String getSupportedDatabases()
-        {
-            return supportedDatabases
-        }
-
-        void setSupportedDatabases(String supportedDatabases)
-        {
-            this.supportedDatabases = supportedDatabases
         }
 
         File getEnlistmentDir()
@@ -446,8 +435,6 @@ class MultiGit implements Plugin<Project>
                         this.setLicenseURL((String) this.moduleProperties.get("LicenseURL"))
                     if (this.moduleProperties.containsKey("Description") && !StringUtils.isEmpty(((String) this.moduleProperties.get("Description")).trim()))
                         this.setDescription((String) this.moduleProperties.get("Description"))
-                    if (this.moduleProperties.containsKey("SupportedDatabases"))
-                        this.setSupportedDatabases((String) this.moduleProperties.get("SupportedDatabases"))
                 }
             }
         }
@@ -547,7 +534,6 @@ class MultiGit implements Plugin<Project>
                     builder.append(" (${this.getLicenseURL()})")
                 builder.append("\n")
                 builder.append("\tRepoURL: ${this.getUrl()}\n")
-                builder.append("\tSupported Databases: ${this.supportedDatabases}\n")
                 List<PullRequest> prs = this.getPullRequests()
                 if (prs != null && !prs.isEmpty())
                 {
