@@ -18,13 +18,16 @@ package org.labkey.gradle.task
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
 import org.labkey.gradle.util.BuildUtils
 
+import javax.inject.Inject
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -34,8 +37,26 @@ import java.util.regex.Pattern
  * Documented at <a href='https://www.labkey.org/Documentation/wiki-page.view?name=createNewModule'>labkey.org</a>
  */
 @UntrackedTask(because="Has user interaction and side effects")
-class CreateModule extends DefaultTask
+abstract class CreateModule extends DefaultTask
 {
+    private final File projectDir
+    private final String moduleNameProperty
+    private final String moduleDestinationProperty
+    private final String createFilesProperty
+    private final String labKeyModuleVersion
+
+    @Inject abstract FileSystemOperations getFs()
+    @Inject abstract ArchiveOperations getArchiveOps()
+
+    CreateModule()
+    {
+        projectDir = project.projectDir
+        moduleNameProperty = (String) project.findProperty('moduleName')
+        moduleDestinationProperty = (String) project.findProperty('moduleDestination')
+        createFilesProperty = (String) project.findProperty('createFiles')
+        labKeyModuleVersion = BuildUtils.getLabKeyModuleVersion(project.rootProject)
+    }
+
     @TaskAction
     void createModule() {
         String moduleName
@@ -45,8 +66,8 @@ class CreateModule extends DefaultTask
         boolean createApiFiles
         boolean deleteExisting
 
-        if (project.hasProperty('moduleName')) {
-            moduleName =  project.moduleName
+        if (moduleNameProperty != null) {
+            moduleName = moduleNameProperty
         }
         else {
             ant.input(
@@ -63,12 +84,12 @@ class CreateModule extends DefaultTask
             throw new GradleException("Invalid module name: " + moduleName)
         }
 
-        if (project.hasProperty('moduleDestination')) {
-            moduleDestination =  project.moduleDestination
+        if (moduleDestinationProperty != null) {
+            moduleDestination = moduleDestinationProperty
         }
         else {
             ant.input(
-                    message: "\nEnter the location for the new module (absolute or relative to '" + project.projectDir.getAbsolutePath() + "'): ",
+                    message: "\nEnter the location for the new module (absolute or relative to '" + projectDir.getAbsolutePath() + "'): ",
                     addProperty: "new_moduleDestination"
             )
             moduleDestination = ant.new_moduleDestination.trim()
@@ -76,7 +97,10 @@ class CreateModule extends DefaultTask
         if (moduleDestination == null || moduleDestination == "") {
             throw new GradleException("moduleDestination is not specified")
         }
-        File moduleDestinationFile = project.file(moduleDestination).getAbsoluteFile()
+        File moduleDestinationFile = new File(moduleDestination)
+        if (!moduleDestinationFile.isAbsolute())
+            moduleDestinationFile = new File(projectDir, moduleDestination)
+        moduleDestinationFile = moduleDestinationFile.getAbsoluteFile()
         if (moduleDestinationFile.exists())
         {
             ant.input(
@@ -89,10 +113,10 @@ class CreateModule extends DefaultTask
                 throw new GradleException("Select a different destination")
         }
 
-        if (project.hasProperty('createFiles')) {
-            hasManagedSchema = ((String)project.createFiles).contains('schema')
-            createTestFiles = ((String)project.createFiles).contains('test')
-            createApiFiles = ((String)project.createFiles).contains('api')
+        if (createFilesProperty != null) {
+            hasManagedSchema = createFilesProperty.contains('schema')
+            createTestFiles = createFilesProperty.contains('test')
+            createApiFiles = createFilesProperty.contains('api')
         }
         else {
             ant.input(
@@ -135,7 +159,7 @@ class CreateModule extends DefaultTask
             throw new GradleException("Failed to create new module directory at ${moduleDestinationFile.getAbsolutePath()}")
         }
 
-        String[] versionParts = BuildUtils.getLabKeyModuleVersion(project.rootProject).split("\\.")
+        String[] versionParts = labKeyModuleVersion.split("\\.")
         Map<String, String> substitutions = [
                 'MODULE_DIR_NAME' : moduleName.toLowerCase(),
                 'MODULE_LOWERCASE_NAME' : moduleName.toLowerCase(),
@@ -145,17 +169,17 @@ class CreateModule extends DefaultTask
                 'SCHEMA_VERSION_NUMBER': versionParts[0] + ".001"
         ]
 
-        project.copy({ CopySpec copy ->
+        fs.copy({ CopySpec copy ->
 
             // This seems a very convoluted way to get to the zip file in the jar file.  Using the classLoader did not
             // work as expected, however.  Following the example from here:
             // https://discuss.gradle.org/t/gradle-plugin-copy-directory-tree-with-files-from-resources/12767/7
-            FileTree jarTree = project.zipTree(getClass().getProtectionDomain().getCodeSource().getLocation().toExternalForm())
+            FileTree jarTree = archiveOps.zipTree(getClass().getProtectionDomain().getCodeSource().getLocation().toExternalForm())
             File zipFile = jarTree.matching({
                 include "moduleTemplate.zip"
             }).singleFile
 
-            copy.from(project.zipTree(zipFile))
+            copy.from(archiveOps.zipTree(zipFile))
             copy.into(moduleDestinationFile)
             copy.setDuplicatesStrategy(DuplicatesStrategy.FAIL)
             if (hasManagedSchema)
