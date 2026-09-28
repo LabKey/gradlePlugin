@@ -37,15 +37,33 @@ class TeamCityExtension
         setValidationMessages()
     }
 
+    /**
+     * TeamCity's Gradle init script declares the 'teamcity' property on the root project. Look for it explicitly
+     * on the given project and then on the root project, since implicit lookup of properties in parent projects is
+     * deprecated (and will fail in Gradle 10).
+     * @param project the project whose TeamCity properties are wanted
+     * @return the map of TeamCity properties, or null if not running on TeamCity
+     */
+    static Map getTeamCityMap(Project project)
+    {
+        def extraProperties = project.extensions.extraProperties
+        if (extraProperties.has('teamcity'))
+            return (Map) extraProperties.get('teamcity')
+        if (project != project.rootProject)
+            return (Map) project.rootProject.findProperty('teamcity')
+        return (Map) project.findProperty('teamcity')
+    }
+
     static boolean isOnTeamCity(Project project)
     {
-        return project.hasProperty('teamcity')
+        return getTeamCityMap(project) != null
     }
 
     static Object getTeamCityProperty(Project project, String name, Object defaultValue)
     {
-        if (isOnTeamCity(project))
-            return project.teamcity[name] != null ? project.teamcity[name] : defaultValue
+        Map teamcity = getTeamCityMap(project)
+        if (teamcity != null)
+            return teamcity[name] != null ? teamcity[name] : defaultValue
         else if (project.hasProperty(name))
             return project.property(name)
         else
@@ -54,10 +72,11 @@ class TeamCityExtension
 
     static Properties getTeamCityProperties(Project project)
     {
-        if (isOnTeamCity(project))
+        Map teamcity = getTeamCityMap(project)
+        if (teamcity != null)
         {
             def tcProps = new Properties()
-            tcProps.putAll(project.teamcity)
+            tcProps.putAll(teamcity)
             return tcProps
         }
         else
