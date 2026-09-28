@@ -18,6 +18,8 @@ package org.labkey.gradle.plugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.labkey.gradle.plugin.extension.LabKeyExtension
+import org.labkey.gradle.task.ListExternalDependencies
+import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.ModuleFinder
 import org.labkey.gradle.util.BuildUtils
 
@@ -30,6 +32,7 @@ class LabKey implements Plugin<Project>
     public static final String SOURCES_CLASSIFIER = "sources"
     public static final String JAVADOC_CLASSIFIER = "javadoc"
     public static final String FAT_JAR_CLASSIFIER = "all"
+    public static final String LIST_EXTERNAL_DEPENDENCIES_TASK = "listExternalDependencies"
 
     @Override
     void apply(Project project)
@@ -44,6 +47,7 @@ class LabKey implements Plugin<Project>
         }
 
         addConfigurations(project)
+        addTasks(project)
 
         LabKeyExtension labKeyExt = project.extensions.create("labkey", LabKeyExtension)
         labKeyExt.setDirectories(project)
@@ -71,6 +75,20 @@ class LabKey implements Plugin<Project>
         project.configurations.modules.setDescription("Modules used in the current server deployment")
         project.configurations.remotePipelineJars.setDescription("Dependencies required for running remote pipeline jobs")
 
+    }
+
+    private static void addTasks(Project project)
+    {
+        project.tasks.register(LIST_EXTERNAL_DEPENDENCIES_TASK, ListExternalDependencies) {
+            ListExternalDependencies task ->
+                task.group = GroupNames.HELP
+                task.description = "Lists the external module versions resolved for the 'external' configuration (used by the showDiscrepancies task)"
+                task.projectPath.set(project.path)
+                task.moduleVersions.set(project.configurations.named("external")
+                        .flatMap { it.incoming.resolutionResult.rootComponent }
+                        .map { ListExternalDependencies.getModuleVersions(it) })
+                task.outputFile.set(project.layout.buildDirectory.file("externalDependencies.txt"))
+        }
     }
 }
 

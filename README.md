@@ -18,6 +18,8 @@ on how to do that, including how to develop and test locally and the versioning 
 (Earliest compatible LabKey version: 26.7.0)
 - Change logic for getting properties on TeamCity to be compatible with Gradle 10
 - More small updates in `CreateModule`, `InstallRPackage`, `RestoreFromTrash` and `SetUpProperties` for compatibility
+- Add `listExternalDependencies` task to help in converting `showDiscrepancies` to be compatible with Gradle 10
+- Update to Gradle 9.8.0
 
 ### 11.0.0
 *Released*: 15 September 2026
