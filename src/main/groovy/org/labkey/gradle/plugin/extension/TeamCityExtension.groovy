@@ -128,7 +128,7 @@ class TeamCityExtension
         return getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
     }
 
-    Boolean isValidForTestRun()
+    boolean isValidForTestRun()
     {
         return validationMessages.isEmpty()
     }
