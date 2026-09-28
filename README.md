@@ -21,6 +21,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - Add `listExternalDependencies` task to help in converting `showDiscrepancies` to be compatible with Gradle 10
 - Update to Gradle 9.8.0
 - Update `getStandardVCSProperties` to use non-deprecated command execution method
+- Update check for `isOnTeamCity` to be more reliable
 
 ### 11.0.0
 *Released*: 15 September 2026

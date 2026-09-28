@@ -24,6 +24,8 @@ import java.nio.charset.StandardCharsets
 
 class TeamCityExtension
 {
+    public static final String TEAMCITY_VERSION_ENV_VAR = "TEAMCITY_VERSION"
+
     String databaseName
     Boolean dropDatabase = false
     List<DatabaseProperties> databaseTypes = new ArrayList<>()
@@ -54,9 +56,16 @@ class TeamCityExtension
         return (Map) project.findProperty('teamcity')
     }
 
+    /**
+     * TeamCity sets the TEAMCITY_VERSION environment variable for all builds run on its agents. This is more reliable
+     * than checking for the 'teamcity' property, which TeamCity's Gradle init script does not always populate
+     * (for example, with some configuration cache setups).
+     * @param project the current project
+     * @return true if the build is running on a TeamCity agent
+     */
     static boolean isOnTeamCity(Project project)
     {
-        return getTeamCityMap(project) != null
+        return project.providers.environmentVariable(TEAMCITY_VERSION_ENV_VAR).isPresent()
     }
 
     static Object getTeamCityProperty(Project project, String name, Object defaultValue)
