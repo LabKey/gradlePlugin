@@ -27,6 +27,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Provider
+import org.gradle.process.ExecSpec
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.ModuleExtension
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
@@ -508,28 +509,27 @@ class BuildUtils
                 (String) TeamCityExtension.getTeamCityProperty(project, "system.teamcity.agent.dotnet.build_id", // Unique build ID
                         TeamCityExtension.getTeamCityProperty(project,"build.number", null))
         Properties ret = new Properties()
-        def gitCmd = SystemUtils.IS_OS_WINDOWS ? "git.exe" : "git"
         if (project.hasProperty("includeVcs") && (!project.hasProperty("lkModule") || project.lkModule.getModProperties().get(VCS_URL_PROP_NAME).isEmpty()))
         {
-            def url = "${gitCmd} -C ${project.projectDir.absolutePath} config --get remote.origin.url".execute().text.trim()
+            def url = getGitOutput(project, "config", "--get", "remote.origin.url")
             Matcher matcher = GIT_URL_WITH_TOKEN.matcher(url)
             if (matcher.matches()) // Strip out the token if included in the URL.
                 url =  matcher.group(1) + "@" + matcher.group(3)
             ret.setProperty(VCS_URL_PROP_NAME, url)
             project.logger.info("${project.path} git url: ${url}")
 
-            def branch = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse --abbrev-ref HEAD".execute().text.trim()
+            def branch = getGitOutput(project, "rev-parse", "--abbrev-ref", "HEAD")
             project.logger.info("${project.path} git branch: ${branch}")
             ret.setProperty(VCS_BRANCH_PROP_NAME, branch)
 
-            def revision = "${gitCmd} -C ${project.projectDir.absolutePath} rev-parse @".execute().text.trim()
+            def revision = getGitOutput(project, "rev-parse", "@")
             project.logger.info("${project.path} git revision: ${revision}")
             ret.setProperty(VCS_REVISION_PROP_NAME, revision)
 
             if (shouldCheckVersionTag(project))
             {
                 String labkeyVersion = project.property("labkeyVersion")
-                List<String> tagsAtRevision = "${gitCmd} -C ${project.projectDir.absolutePath} tag --points-at ${revision}".execute().text.split(/\r?\n/)*.trim().findAll { !it.isEmpty() }
+                List<String> tagsAtRevision = getGitOutput(project, "tag", "--points-at", revision).split(/\r?\n/)*.trim().findAll { !it.isEmpty() }
                 if (!tagsAtRevision.contains(labkeyVersion))
                     throw new GradleException("Current commit ${revision} in ${project.name} does not have a tag matching labkeyVersion '${labkeyVersion}'")
             }
@@ -542,6 +542,23 @@ class BuildUtils
         }
         ret.setProperty(BUILD_NUMBER_PROP_NAME, buildNumber != null ? buildNumber : "Unknown")
         return ret
+    }
+
+    /**
+     * Runs a git command in the project's directory. Uses ProviderFactory.exec because starting an external process
+     * directly at configuration time is deprecated (and will fail in Gradle 11).
+     * @param project the project in whose directory to run the command
+     * @param args the arguments to the git command
+     * @return the trimmed standard output of the command
+     */
+    private static String getGitOutput(Project project, String... args)
+    {
+        List<String> command = [SystemUtils.IS_OS_WINDOWS ? "git.exe" : "git", "-C", project.projectDir.absolutePath]
+        command.addAll(args)
+        return project.providers.exec { ExecSpec spec ->
+            spec.commandLine(command)
+            spec.ignoreExitValue = true
+        }.standardOutput.asText.get().trim()
     }
 
     private static boolean shouldCheckVersionTag(Project project) {

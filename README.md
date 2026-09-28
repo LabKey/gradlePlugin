@@ -20,6 +20,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - More small updates in `CreateModule`, `InstallRPackage`, `RestoreFromTrash` and `SetUpProperties` for compatibility
 - Add `listExternalDependencies` task to help in converting `showDiscrepancies` to be compatible with Gradle 10
 - Update to Gradle 9.8.0
+- Update `getStandardVCSProperties` to use non-deprecated command execution method
 
 ### 11.0.0
 *Released*: 15 September 2026
