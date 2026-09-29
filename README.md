@@ -22,6 +22,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - Update to Gradle 9.8.0
 - Update `getStandardVCSProperties` to use non-deprecated command execution method
 - Update check for `isOnTeamCity` to be more reliable
+- Add new `runClientLibBuilds` task so clientLibs are automatically built if the enlistment exists 
 
 ### 11.0.0
 *Released*: 15 September 2026
