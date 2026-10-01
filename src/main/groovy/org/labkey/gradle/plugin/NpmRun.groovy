@@ -203,11 +203,25 @@ class NpmRun implements Plugin<Project>
         List<TaskProvider<Task>> libTasks = []
         clientLibDirs.each { File libDir ->
             List<TaskProvider<Task>> previousLibTasks = new ArrayList<>(libTasks)
-            libTasks.add(project.tasks.register(getTaskNameFromDirName(libDir.name), npmTaskClass) { Task task ->
+            TaskProvider<Task> installTask = project.tasks.register(getTaskNameFromDirName("npmInstall", libDir.name), npmTaskClass) { Task task ->
+                task.group = GroupNames.NPM_RUN
+                task.description = "Runs 'npm install --legacy-peer-deps' in ${libDir}"
+                task.workingDir.set(libDir)
+                // Specify legacy peer dependency mode for npm v7+
+                task.args.set(["install", "--legacy-peer-deps"])
+                task.inputs.files(new File(libDir, NPM_PROJECT_FILE), new File(libDir, NPM_PROJECT_LOCK_FILE))
+                        .withPropertyName("clientLibPackageFiles")
+                        .withPathSensitivity(PathSensitivity.RELATIVE)
+                // npm v7+ writes this file on every install; tracking it avoids snapshotting all of node_modules
+                task.outputs.file(new File(libDir, "node_modules/.package-lock.json"))
+                        .withPropertyName("clientLibNodeModules")
+            }
+            libTasks.add(project.tasks.register(getTaskNameFromDirName("npmRunBuild", libDir.name), npmTaskClass) { Task task ->
                 task.group = GroupNames.NPM_RUN
                 task.description = "Runs 'npm run build' in ${libDir}"
                 task.workingDir.set(libDir)
                 task.args.set(["run", "build"])
+                task.dependsOn(installTask)
                 task.dependsOn(previousLibTasks)
                 task.inputs.files(project.fileTree(dir: libDir, includes: ["src/**/*", NPM_PROJECT_FILE, NPM_PROJECT_LOCK_FILE, TYPESCRIPT_CONFIG_FILE, "package.config.js", "webpack.config.js"]))
                         .withPropertyName("clientLibSources")
@@ -219,17 +233,17 @@ class NpmRun implements Plugin<Project>
 
         return rootProject.tasks.register(BUILD_CLIENT_LIBS_TASK) { Task task ->
             task.group = GroupNames.NPM_RUN
-            task.description = "Runs 'npm run build' in the client library enlistments under ${CLIENT_API_DIR}"
+            task.description = "Runs 'npm install' and 'npm run build' in the client library enlistments under ${CLIENT_API_DIR}"
             task.dependsOn(libTasks)
         }
     }
 
-    private static String getTaskNameFromDirName(String dirName)
+    private static String getTaskNameFromDirName(String prefix, String dirName)
     {
         switch (dirName) {
-            case JS_API: return "npmRunBuild_api"
-            case UI_PREMIUM: return "npmRunBuild_premium"
-            default: return "npmRunBuild_" + dirName
+            case JS_API: return prefix + "_api"
+            case UI_PREMIUM: return prefix + "_premium"
+            default: return prefix + "_" + dirName
         }
     }
 
