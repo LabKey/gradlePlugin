@@ -175,13 +175,13 @@ class RestoreFromTrash extends DefaultTask
      */
     Response makeRestoreRequest(String artifactName, String version, String type)
     {
-        if (project.hasProperty("dryRun")) {
+        if (isDryRun.get()) {
             logger.quiet("\tRestoring version ${version} of ${artifactName} ${type} -- Skipped for dry run")
             return null
         }
 
         CloseableHttpClient httpClient = HttpClients.createDefault()
-        String endpoint = project.property(BuildUtils.ARTIFACTORY_CONTEXT_URL_PROP)
+        String endpoint = artifactoryUrl.get()
         Response responseStatus = Response.SUCCESS
         if (!endpoint.endsWith("/"))
             endpoint += "/"
@@ -197,7 +197,7 @@ class RestoreFromTrash extends DefaultTask
             HttpPost httpPost = new HttpPost(endpoint)
             // N.B. Using Authorization Bearer with an API token does not currently work
             // TODO JFrog claims to support bearer tokens now. https://docs.jfrog.com/administration/docs/access-tokens#authorization-headers
-            httpPost.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${project.property(BuildUtils.ARTIFACTORY_USER_PROP)}:${project.property(BuildUtils.ARTIFACTORY_PASSWORD_PROP)}".getBytes()))
+            httpPost.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${artifactoryUser.get()}:${artifactoryPassword.get()}".getBytes()))
             CloseableHttpResponse response = httpClient.execute(httpPost)
             int statusCode = response.getCode()
 

@@ -87,7 +87,7 @@ abstract class JspCompile2Java extends DefaultTask
         File classesDir = classesDirectory.get().asFile
 
         if (!classesDir.mkdirs())
-            throw new GradleException("${project.path}: problem creating output directory ${classesDir.getAbsolutePath()}")
+            throw new GradleException("${path}: problem creating output directory ${classesDir.getAbsolutePath()}")
 
         ant.taskdef(
                 name: 'jasper',

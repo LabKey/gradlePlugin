@@ -24,6 +24,8 @@ import java.nio.charset.StandardCharsets
 
 class TeamCityExtension
 {
+    public static final String TEAMCITY_VERSION_ENV_VAR = "TEAMCITY_VERSION"
+
     String databaseName
     Boolean dropDatabase = false
     List<DatabaseProperties> databaseTypes = new ArrayList<>()
@@ -37,15 +39,40 @@ class TeamCityExtension
         setValidationMessages()
     }
 
+    /**
+     * TeamCity's Gradle init script declares the 'teamcity' property on the root project. Look for it explicitly
+     * on the given project and then on the root project, since implicit lookup of properties in parent projects is
+     * deprecated (and will fail in Gradle 10).
+     * @param project the project whose TeamCity properties are wanted
+     * @return the map of TeamCity properties, or null if not running on TeamCity
+     */
+    static Map getTeamCityMap(Project project)
+    {
+        def extraProperties = project.extensions.extraProperties
+        if (extraProperties.has('teamcity'))
+            return (Map) extraProperties.get('teamcity')
+        if (project != project.rootProject)
+            return (Map) project.rootProject.findProperty('teamcity')
+        return (Map) project.findProperty('teamcity')
+    }
+
+    /**
+     * TeamCity sets the TEAMCITY_VERSION environment variable for all builds run on its agents. This is more reliable
+     * than checking for the 'teamcity' property, which TeamCity's Gradle init script does not always populate
+     * (for example, with some configuration cache setups).
+     * @param project the current project
+     * @return true if the build is running on a TeamCity agent
+     */
     static boolean isOnTeamCity(Project project)
     {
-        return project.hasProperty('teamcity')
+        return project.providers.environmentVariable(TEAMCITY_VERSION_ENV_VAR).isPresent()
     }
 
     static Object getTeamCityProperty(Project project, String name, Object defaultValue)
     {
-        if (isOnTeamCity(project))
-            return project.teamcity[name] != null ? project.teamcity[name] : defaultValue
+        Map teamcity = getTeamCityMap(project)
+        if (teamcity != null)
+            return teamcity[name] != null ? teamcity[name] : defaultValue
         else if (project.hasProperty(name))
             return project.property(name)
         else
@@ -54,10 +81,11 @@ class TeamCityExtension
 
     static Properties getTeamCityProperties(Project project)
     {
-        if (isOnTeamCity(project))
+        Map teamcity = getTeamCityMap(project)
+        if (teamcity != null)
         {
             def tcProps = new Properties()
-            tcProps.putAll(project.teamcity)
+            tcProps.putAll(teamcity)
             return tcProps
         }
         else
@@ -109,7 +137,7 @@ class TeamCityExtension
         return getTeamCityProperty(project, "tomcatJavaHome", System.getenv("JAVA_HOME"))
     }
 
-    Boolean isValidForTestRun()
+    boolean isValidForTestRun()
     {
         return validationMessages.isEmpty()
     }
