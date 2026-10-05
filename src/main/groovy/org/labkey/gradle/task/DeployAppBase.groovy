@@ -16,6 +16,7 @@
 package org.labkey.gradle.task
 
 import org.apache.commons.lang3.SystemUtils
+import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DirectoryProperty
@@ -34,6 +35,7 @@ import javax.inject.Inject
 abstract class DeployAppBase extends SetUpProperties {
 
     @Inject abstract FileSystemOperations getFs()
+    @Inject abstract ArchiveOperations getArchiveOps()
 
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -52,7 +54,7 @@ abstract class DeployAppBase extends SetUpProperties {
             fs.copy({
                 CopySpec copy ->
                     copy.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-                    copy.from(getBinaries().collect { project.zipTree(it) })
+                    copy.from(getBinaries().collect { archiveOps.zipTree(it) })
                     copy.into deployBinDir.path
             })
             this.logger.debug("Contents of ${deployBinDir}\n" + deployBinDir.listFiles())

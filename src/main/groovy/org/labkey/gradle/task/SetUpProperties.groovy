@@ -31,7 +31,6 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.UntrackedTask
 import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.util.BuildUtils
@@ -45,6 +44,8 @@ abstract class SetUpProperties extends TeamCityPropertiesTask
 {
     @Internal
     private DatabaseProperties databaseProperties
+
+    private final Properties teamCityProperties = TeamCityExtension.getTeamCityProperties(project)
 
     @InputFiles @Classpath
     abstract ConfigurableFileCollection getDriverFiles()
@@ -137,7 +138,7 @@ abstract class SetUpProperties extends TeamCityPropertiesTask
     Properties getExtraJdbcProperties()
     {
         def extraJdbcProperties = new Properties()
-        def tcProperties = isOnTeamCity.get() ? TeamCityExtension.getTeamCityProperties(project) : new Properties()
+        def tcProperties = isOnTeamCity.get() ? teamCityProperties : new Properties()
         for (Map.Entry entry : tcProperties.entrySet())
         {
             if (entry.getKey().startsWith("extraJdbc"))

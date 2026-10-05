@@ -35,9 +35,13 @@ class InstallRPackage extends DefaultTask
 
     protected String rPath
     protected File rLibsUserDir
+    protected final File projectDir
+    protected final String rLibsUserPath
 
     InstallRPackage()
     {
+        projectDir = project.projectDir
+        rLibsUserPath = getRLibsUserPath(project)
         rPath = getRPath()
         rLibsUserDir = getInstallDir()
         if (rPath == null)
@@ -61,14 +65,13 @@ class InstallRPackage extends DefaultTask
     @OutputDirectory
     File getInstallDir()
     {
-        String path = getRLibsUserPath(project)
-        return path == null ? null : new File(path)
+        return rLibsUserPath == null ? null : new File(rLibsUserPath)
     }
 
     @TaskAction
     void doInstall()
     {
-        project.mkdir("${getRLibsUserPath(project)}/logs")
+        new File("${rLibsUserPath}/logs").mkdirs()
         if (installScript != null)
             installRPackage(installScript)
     }
@@ -77,8 +80,8 @@ class InstallRPackage extends DefaultTask
     {
         String exitCode = ""
         ant.exec(executable: rPath,
-                dir: project.projectDir,
-                input:project.file("check-installed.R"),
+                dir: projectDir,
+                input: new File(projectDir, "check-installed.R"),
                 failifexecutionfails: true,
                 searchpath: true,
                 resultproperty: exitCode )
@@ -147,16 +150,16 @@ class InstallRPackage extends DefaultTask
     {
         ant.exec(
                 executable: rPath,
-                dir: project.projectDir,
+                dir: projectDir,
                 failifexecutionfails: false,
                 searchpath: true,
-                input: "${project.projectDir}/${scriptName}",
-                output: "${getRLibsUserPath(project)}/logs/${scriptName}.log",
+                input: "${projectDir}/${scriptName}",
+                output: "${rLibsUserPath}/logs/${scriptName}.log",
                 logError: true
         )
                 {
                     arg(line: "--vanilla --no-multiarch")
-                    env(key: "R_LIBS_USER", value: getRLibsUserPath(project)) // TODO is this actually necessary?
+                    env(key: "R_LIBS_USER", value: rLibsUserPath) // TODO is this actually necessary?
                 }
     }
 
@@ -165,10 +168,10 @@ class InstallRPackage extends DefaultTask
 
         ant.exec(
                 executable: rPath,
-                dir: getRLibsUserPath(project),
+                dir: rLibsUserPath,
                 failifexecutionfails: true,
                 searchpath: true,
-                output: "${getRLibsUserPath(project)}/logs/${archiveFileName}.log",
+                output: "${rLibsUserPath}/logs/${archiveFileName}.log",
                 logError: true
         )
                 {

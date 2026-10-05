@@ -53,30 +53,31 @@ abstract class RunTestSuite extends RunUiTest
 
     protected void configureTeamCityProperties(UiTestExtension testExt)
     {
-        if (TeamCityExtension.isOnTeamCity(project))
+        Map teamcity = TeamCityExtension.getTeamCityMap(project)
+        if (teamcity != null)
         {
-            systemProperty "teamcity.tests.recentlyFailedTests.file", project.teamcity['teamcity.tests.recentlyFailedTests.file']
-            systemProperty "teamcity.build.changedFiles.file", project.teamcity['teamcity.build.changedFiles.file']
-            String runRiskGroupTestsFirst = project.teamcity['tests.runRiskGroupTestsFirst']
+            systemProperty "teamcity.tests.recentlyFailedTests.file", teamcity['teamcity.tests.recentlyFailedTests.file']
+            systemProperty "teamcity.build.changedFiles.file", teamcity['teamcity.build.changedFiles.file']
+            String runRiskGroupTestsFirst = teamcity['tests.runRiskGroupTestsFirst']
             if (runRiskGroupTestsFirst != null)
             {
                 systemProperty "testNewAndModified", "${runRiskGroupTestsFirst.contains("newAndModified")}"
                 systemProperty "testRecentlyFailed", "${runRiskGroupTestsFirst.contains("recentlyFailed")}"
             }
-            systemProperty "teamcity.buildType.id", project.teamcity['teamcity.buildType.id']
-            systemProperty "tomcat.port", project.teamcity["tomcat.port"]
-            systemProperty "tomcat.debug", project.teamcity["tomcat.debug"]
-            systemProperty "labkey.port", project.teamcity['tomcat.port']
-            systemProperty "maxTestFailures", project.teamcity['maxTestFailures']
-            systemProperty 'test.credentials.file', project.teamcity['test.credentials.file']
-            systemProperty 'testValidationOnly', project.teamcity['testValidationOnly']
+            systemProperty "teamcity.buildType.id", teamcity['teamcity.buildType.id']
+            systemProperty "tomcat.port", teamcity["tomcat.port"]
+            systemProperty "tomcat.debug", teamcity["tomcat.debug"]
+            systemProperty "labkey.port", teamcity['tomcat.port']
+            systemProperty "maxTestFailures", teamcity['maxTestFailures']
+            systemProperty 'test.credentials.file', teamcity['test.credentials.file']
+            systemProperty 'testValidationOnly', teamcity['testValidationOnly']
 
             Properties testConfig = testExt.getConfig()
             for (String key : testConfig.keySet())
             {
-                if (!StringUtils.isEmpty((String) project.teamcity[key]))
+                if (!StringUtils.isEmpty((String) teamcity[key]))
                 {
-                    systemProperty key, project.teamcity[key]
+                    systemProperty key, teamcity[key]
                 }
             }
         }

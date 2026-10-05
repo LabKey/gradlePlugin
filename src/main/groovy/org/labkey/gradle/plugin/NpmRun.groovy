@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskProvider
 import org.labkey.gradle.plugin.extension.LabKeyExtension
 import org.labkey.gradle.plugin.extension.NpmRunExtension
@@ -41,8 +42,15 @@ class NpmRun implements Plugin<Project>
     public static final String NODE_MODULES_DIR = "node_modules"
     public static final String WEBPACK_DIR = "webpack"
     public static final String ENTRY_POINTS_FILE = "src/client/entryPoints.js"
+    public static final String UI_COMPONENTS = "labkey-ui-components"
+    public static final String UI_PREMIUM = "labkey-ui-premium"
+    public static final String JS_API = "labkey-api-js"
+    public static final String CLIENT_API_DIR = "clientAPIs"
 
     private static final String EXTENSION_NAME = "npmRun"
+    private static final String BUILD_CLIENT_LIBS_TASK = "npmRunBuildClientLibs"
+    private static final String NODE_PLUGIN_ID = "com.github.node-gradle.node"
+    private static final String NPM_TASK_CLASS = "com.github.gradle.node.npm.task.NpmTask"
 
     static boolean isApplicable(Project project)
     {
@@ -58,7 +66,7 @@ class NpmRun implements Plugin<Project>
     void apply(Project project)
     {
         // This brings in nodeSetup and npmInstall tasks.  See https://github.com/node-gradle/gradle-node-plugin
-        project.apply plugin: 'com.github.node-gradle.node'
+        project.apply plugin: NODE_PLUGIN_ID
         project.extensions.create(EXTENSION_NAME, NpmRunExtension)
 
         configurePlugin(project)
@@ -130,7 +138,20 @@ class NpmRun implements Plugin<Project>
                     task.mustRunAfter "npmInstall"
                 }
 
-        configureBuildTask(project.tasks.named("npm_run_${project.npmRun.buildDev}"))
+        def npmRunBuildDevTask = project.tasks.named("npm_run_${project.npmRun.buildDev}")
+        configureBuildTask(npmRunBuildDevTask)
+        if (project.hasProperty("runClientLibBuilds")) {
+            List<File> clientLibDirs = getClientLibDirs(project)
+            TaskProvider<Task> clientLibsTask = getClientLibsBuildTask(project, clientLibDirs)
+            if (clientLibsTask != null)
+                npmRunBuildDevTask.configure { Task task ->
+                    task.dependsOn(clientLibsTask)
+                    // Rebuild this module when the library build outputs change
+                    task.inputs.files(clientLibDirs.collect { new File(it, "dist") })
+                            .withPropertyName("clientLibs")
+                            .withPathSensitivity(PathSensitivity.RELATIVE)
+                }
+        }
         if (BuildUtils.useServerNode(project) && project.path !== BuildUtils.getServerProject(project).path) {
             project.tasks.named('npmSetup').configure
                     {
@@ -150,6 +171,102 @@ class NpmRun implements Plugin<Project>
         TaskUtils.configureTaskIfPresent(project, "processResources", { dependsOn(runCommand) })
         TaskUtils.configureTaskIfPresent(project, "processModuleResources", { dependsOn(runCommand) })
         TaskUtils.configureTaskIfPresent(project, "processWebappResources", { dependsOn(runCommand) })
+    }
+
+
+    /**
+     * @return the client library enlistments under clientAPIs, in dependency order
+     */
+    private static List<File> getClientLibDirs(Project project)
+    {
+        return [getJSAPIDir(project), getUIComponentsDir(project), getUIPremiumDir(project)].findAll { it != null }
+    }
+
+    /**
+     * Returns the root project's task for building the client library enlistments under clientAPIs, registering
+     * it if this is the first module to ask for it. This way the libraries are built once per build, not once per module.
+     * The builds themselves are NpmTasks registered in the first module so they use the npm and node from that module's
+     * node configuration, which the root project doesn't have.
+     * @return the task provider, or null if there are no client library enlistments
+     */
+    private static TaskProvider<Task> getClientLibsBuildTask(Project project, List<File> clientLibDirs)
+    {
+        if (clientLibDirs.isEmpty())
+            return null
+
+        Project rootProject = project.rootProject
+        if (rootProject.tasks.names.contains(BUILD_CLIENT_LIBS_TASK))
+            return rootProject.tasks.named(BUILD_CLIENT_LIBS_TASK)
+
+        // The node plugin is loaded by the build script, which this plugin's classloader can't see, so get NpmTask from the plugin's classloader
+        Class<? extends Task> npmTaskClass = project.plugins.getPlugin(NODE_PLUGIN_ID).class.classLoader.loadClass(NPM_TASK_CLASS) as Class<? extends Task>
+        List<TaskProvider<Task>> libTasks = []
+        clientLibDirs.each { File libDir ->
+            List<TaskProvider<Task>> previousLibTasks = new ArrayList<>(libTasks)
+            TaskProvider<Task> installTask = project.tasks.register(getTaskNameFromDirName("npmInstall", libDir.name), npmTaskClass) { Task task ->
+                task.group = GroupNames.NPM_RUN
+                task.description = "Runs 'npm install --legacy-peer-deps' in ${libDir}"
+                task.workingDir.set(libDir)
+                // Specify legacy peer dependency mode for npm v7+
+                task.args.set(["install", "--legacy-peer-deps"])
+                task.inputs.files(new File(libDir, NPM_PROJECT_FILE), new File(libDir, NPM_PROJECT_LOCK_FILE))
+                        .withPropertyName("clientLibPackageFiles")
+                        .withPathSensitivity(PathSensitivity.RELATIVE)
+                // npm v7+ writes this file on every install; tracking it avoids snapshotting all of node_modules
+                task.outputs.file(new File(libDir, "node_modules/.package-lock.json"))
+                        .withPropertyName("clientLibNodeModules")
+            }
+            libTasks.add(project.tasks.register(getTaskNameFromDirName("npmRunBuild", libDir.name), npmTaskClass) { Task task ->
+                task.group = GroupNames.NPM_RUN
+                task.description = "Runs 'npm run build' in ${libDir}"
+                task.workingDir.set(libDir)
+                task.args.set(["run", "build"])
+                task.dependsOn(installTask)
+                task.dependsOn(previousLibTasks)
+                task.inputs.files(project.fileTree(dir: libDir, includes: ["src/**/*", NPM_PROJECT_FILE, NPM_PROJECT_LOCK_FILE, TYPESCRIPT_CONFIG_FILE, "package.config.js", "webpack.config.js"]))
+                        .withPropertyName("clientLibSources")
+                        .withPathSensitivity(PathSensitivity.RELATIVE)
+                task.outputs.dir(new File(libDir, "dist"))
+                        .withPropertyName("clientLibDist")
+            })
+        }
+
+        return rootProject.tasks.register(BUILD_CLIENT_LIBS_TASK) { Task task ->
+            task.group = GroupNames.NPM_RUN
+            task.description = "Runs 'npm install' and 'npm run build' in the client library enlistments under ${CLIENT_API_DIR}"
+            task.dependsOn(libTasks)
+        }
+    }
+
+    private static String getTaskNameFromDirName(String prefix, String dirName)
+    {
+        switch (dirName) {
+            case JS_API: return prefix + "_api"
+            case UI_PREMIUM: return prefix + "_premium"
+            default: return prefix + "_" + dirName
+        }
+    }
+
+    static File getUIComponentsDir(Project project)
+    {
+       return getClientLibsDir(project, UI_COMPONENTS + "/packages/components")
+    }
+
+    static File getUIPremiumDir(Project project)
+    {
+        return getClientLibsDir(project, UI_PREMIUM)
+    }
+
+    static File getJSAPIDir(Project project)
+    {
+        return getClientLibsDir(project, JS_API)
+    }
+
+    static File getClientLibsDir(Project project, String clientLibName) {
+        File file = new File(project.rootProject.rootDir, "${CLIENT_API_DIR}/${clientLibName}")
+        if (file.exists())
+            return file
+        return null
     }
 
     private static void addTasks(Project project)

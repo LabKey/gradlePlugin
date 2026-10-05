@@ -17,51 +17,61 @@ package org.labkey.gradle.task
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
+import org.labkey.gradle.plugin.LabKey
+
+import java.nio.charset.StandardCharsets
 
 /**
  * This task will collect all the resolved dependencies from each project and print a report
  * that shows the external dependencies with more than one version referenced within the build.
+ * Each project's dependencies are resolved by its own {@link ListExternalDependencies} task, since a task may not
+ * resolve configurations of other projects.
  */
 @UntrackedTask(because="Output is logging")
-class ShowDiscrepancies extends DefaultTask
+abstract class ShowDiscrepancies extends DefaultTask
 {
+    @InputFiles
+    @PathSensitive(PathSensitivity.NONE)
+    abstract ConfigurableFileCollection getDependencyReports()
+
+    ShowDiscrepancies()
+    {
+        ConfigurableFileCollection reports = getDependencyReports()
+        project.allprojects {
+            Project p ->
+                p.plugins.withType(LabKey) {
+                    reports.from(p.tasks.named(LIST_EXTERNAL_DEPENDENCIES_TASK))
+                }
+        }
+    }
 
     @TaskAction
     void show()
     {
         // org.apache:commons-collections -> 3.2 -> [:server:modules:query, :server:api]
-        Map<String, Map<String, List<String>>> externals = new HashMap<>()
-        project.allprojects {
-            Project p ->
-                Configuration externalConfig = p.configurations.findByName('external')
-                if (externalConfig != null)
-                {
-                    externalConfig.resolvedConfiguration.resolvedArtifacts.each {
-                        ResolvedArtifact dep ->
-
-                            ModuleVersionIdentifier id = dep.moduleVersion.getId()
-                            String artifact = "${id.getGroup()}:${id.getName()}"
-                            String version = id.getVersion()
-                            Map<String, List<String>> artifactMap = externals.get(artifact)
-                            if (artifactMap == null)
-                            {
-                                artifactMap = new HashMap<>()
-                                externals.put(artifact, artifactMap)
-                            }
-                            if (artifactMap.get(version) == null)
-                            {
-                                artifactMap.put(version, new ArrayList<>())
-                            }
-                            List<String> paths = artifactMap.get(version)
-                            if (!paths.contains(p.getPath()))
-                                paths.add(p.getPath())
-                    }
-                }
+        Map<String, Map<String, List<String>>> externals = new TreeMap<>()
+        for (File report : dependencyReports.files)
+        {
+            List<String> lines = report.readLines(StandardCharsets.UTF_8.name())
+            if (lines.isEmpty())
+                continue
+            String projectPath = lines.get(0)
+            for (String coordinates : lines.subList(1, lines.size()))
+            {
+                int versionStart = coordinates.lastIndexOf(':')
+                String artifact = coordinates.substring(0, versionStart)
+                String version = coordinates.substring(versionStart + 1)
+                List<String> paths = externals.computeIfAbsent(artifact, { new TreeMap<>() })
+                        .computeIfAbsent(version, { new ArrayList<>() })
+                if (!paths.contains(projectPath))
+                    paths.add(projectPath)
+            }
         }
         // look for maps that have more than one version and report these
         for (Map.Entry<String, Map<String, List<String>>> entry : externals.entrySet())
@@ -74,7 +84,6 @@ class ShowDiscrepancies extends DefaultTask
                     this.logger.error("\t${versionEntry.key}\t${versionEntry.value}")
                 }
             }
-
         }
     }
 }

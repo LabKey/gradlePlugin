@@ -105,13 +105,13 @@ class TeamCity extends Tomcat
 
         project.tasks.named("stopLabKey").configure {
             it.doLast { Task task ->
-                ensureShutdown(task.logger, debugPort)
+                TeamCity.ensureShutdown(task.logger, debugPort)
             }
         }
 
         project.tasks.named("stopTomcat").configure {
             it.doLast { Task task ->
-                ensureShutdown(task.logger, debugPort)
+                TeamCity.ensureShutdown(task.logger, debugPort)
             }
         }
 
@@ -120,7 +120,7 @@ class TeamCity extends Tomcat
                 task.group = GroupNames.TEST_SERVER
                 task.description = "Kill Chrome processes"
                 task.doLast {
-                    killChrome(it.ant)
+                    TeamCity.killChrome(it.ant)
                 }
         }
 
@@ -129,7 +129,7 @@ class TeamCity extends Tomcat
                 task.group = GroupNames.TEST_SERVER
                 task.description = "Kill Firefox processes"
                 task.doLast {
-                    killFirefox(it.ant)
+                    TeamCity.killFirefox(it.ant)
                 }
         }
 
@@ -149,13 +149,19 @@ class TeamCity extends Tomcat
 
         project.tasks.register("validateConfiguration") {
             Task task ->
+                // Captured here because the extension (which references the project) cannot be used from a task
+                // action with the configuration cache
+                boolean isValid = extension.isValidForTestRun()
+                String validationMessages = extension.validationMessages.join('; ')
+                String branchIsDefault = extension.getTeamCityProperty('teamcity.build.branch.is_default')
+                String branch = extension.getTeamCityProperty('teamcity.build.branch')
                 task.doFirst
                         {
-                            if (!extension.isValidForTestRun())
-                                throw new GradleException("TeamCity configuration problem(s): ${extension.validationMessages.join('; ')}")
+                            if (!isValid)
+                                throw new GradleException("TeamCity configuration problem(s): ${validationMessages}")
 
-                            task.logger.info("teamcity.build.branch.is_default: ${extension.getTeamCityProperty('teamcity.build.branch.is_default')}")
-                            task.logger.info("teamcity.build.branch: ${extension.getTeamCityProperty('teamcity.build.branch')}")
+                            task.logger.info("teamcity.build.branch.is_default: ${branchIsDefault}")
+                            task.logger.info("teamcity.build.branch: ${branch}")
                         }
         }
 
@@ -251,7 +257,7 @@ class TeamCity extends Tomcat
                 task.description = "Run a test suite on the TeamCity server"
                 task.doLast(
              {
-                        killFirefox(task.ant)
+                        TeamCity.killFirefox(task.ant)
                     }
                 )
         }
@@ -263,7 +269,9 @@ class TeamCity extends Tomcat
         }
     }
 
-    private static void killChrome(AntBuilder ant)
+    // Not private and called qualified by class name from task actions because, with the configuration cache, those
+    // closures are restored without this plugin as their owner, so unqualified calls would be looked up on the task
+    static void killChrome(AntBuilder ant)
     {
         if (SystemUtils.IS_OS_WINDOWS)
         {
@@ -293,7 +301,7 @@ class TeamCity extends Tomcat
         }
     }
 
-    private static void killFirefox(AntBuilder ant)
+    static void killFirefox(AntBuilder ant)
     {
         if (SystemUtils.IS_OS_WINDOWS)
         {
@@ -432,7 +440,7 @@ class TeamCity extends Tomcat
         }
     }
 
-    private static void ensureShutdown(Logger logger, String debugPort)
+    static void ensureShutdown(Logger logger, String debugPort)
     {
         if (!debugPort.isEmpty())
         {
