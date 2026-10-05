@@ -39,7 +39,7 @@ dependencies {
 }
 
 group = 'org.labkey.build'
-project.version = "11.1.0-teamCityProps-SNAPSHOT"
+project.version = "11.2.0-SNAPSHOT"
 
 gradlePlugin {
     plugins {
