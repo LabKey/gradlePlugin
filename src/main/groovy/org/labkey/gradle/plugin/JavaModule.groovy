@@ -23,7 +23,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
 import org.labkey.gradle.plugin.extension.LabKeyExtension
-import org.labkey.gradle.plugin.extension.ModuleExtension
+import org.labkey.gradle.task.CheckForEmbeddedJarDuplicates
 import org.labkey.gradle.task.CheckForVersionConflicts
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
@@ -204,6 +204,19 @@ class JavaModule implements Plugin<Project>
             Project serverProject = BuildUtils.getServerProject(project)
             if (serverProject != null)
                 serverProject.tasks.named("checkVersionConflicts").configure {dependsOn(project.tasks.named("checkModuleJarVersions"))}
+            // Contribute this module's external jars to the embedded server's check for duplicate jars, if that task is registered
+            if (BuildUtils.embeddedProjectExists(project))
+            {
+                def copyExternalLibs = project.tasks.named("copyExternalLibs")
+                String externalLibsDir = BuildUtils.getBuildDirFile(project, "libsExternal").absolutePath
+                String modulePath = project.path
+                project.project(BuildUtils.getEmbeddedProjectPath(project.gradle)).tasks.withType(CheckForEmbeddedJarDuplicates).configureEach {
+                    CheckForEmbeddedJarDuplicates task ->
+                        // the task output is the destination directory, so use a file tree to get the jar files in it
+                        task.moduleJars.from(project.files(copyExternalLibs).asFileTree)
+                        task.moduleNames.put(externalLibsDir, modulePath)
+                }
+            }
             // This is necessary to avoid warnings with gradle 7 because, I believe, of the resource and java source sets
             // overlapping in certain cases.  By declaring this dependency, we enable some optimizations from Gradle because
             // it can know in what order to run tasks that put files into a common directory,

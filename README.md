@@ -13,6 +13,11 @@ on how to do that, including how to develop and test locally and the versioning 
 
 ## Release Notes
 
+### TBD
+*Released*: TBD
+(Earliest compatible LabKey version: 26.7.0)
+- Add `CheckForEmbeddedJarDuplicates` task 
+
 ### 11.1.0
 *Released*: 5 October 2026
 (Earliest compatible LabKey version: 26.7.0)
