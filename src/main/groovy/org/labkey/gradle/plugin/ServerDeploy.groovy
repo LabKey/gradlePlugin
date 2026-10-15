@@ -266,17 +266,16 @@ class ServerDeploy implements Plugin<Project>
             it.dependsOn(project.tasks.stopLabKey)
         }
 
-        def startupProperties = project.providers.gradleProperty('startupProperties')
-        if (startupProperties.isPresent()) {
-            def createStartupPropertyFileTask = project.tasks.register("createStartupPropertyFile", WriteStartupProperties) {
-                WriteStartupProperties task ->
-                    task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, '00_startup.properties'))
-                    task.propertiesContent.set(startupProperties)
-            }
+        def createStartupPropertyFileTask = project.tasks.register("createStartupPropertyFile", WriteStartupProperties) {
+            WriteStartupProperties task ->
+                task.group = GroupNames.DEPLOY
+                task.description = "Writes 'labKeyStartupProperties' to 00_startup.properties, or removes that file if the property is unset"
+                task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, '00_startup.properties'))
+                task.propertiesContent.set(project.providers.gradleProperty('labKeyStartupProperties'))
+        }
 
-            project.tasks.withType(PickDb.class).configureEach {
-                it.finalizedBy(createStartupPropertyFileTask)
-            }
+        project.tasks.withType(SetUpProperties.class).configureEach {
+            it.finalizedBy(createStartupPropertyFileTask)
         }
 
     }
