@@ -17,6 +17,7 @@ on how to do that, including how to develop and test locally and the versioning 
 *Released*: TBD
 (Earliest compatible LabKey version: 26.7.0)
 - Publish only the `gradlePlugins` artifact; the duplicate `gradlePlugin` artifact (published since 1.22.0) is no longer produced, and plugin markers now reference `gradlePlugins`
+- Update to Gradle 9.8.1
 
 ### 11.1.0
 *Released*: 5 October 2026
