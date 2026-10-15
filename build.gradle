@@ -188,11 +188,5 @@ if (hasProperty('artifactory_user') && hasProperty('artifactory_password'))
    
            }
        }
-       publications {
-           maven(MavenPublication) {
-               artifactId = 'gradlePlugins'
-               from components.java
-           }
-       }
    }
 }

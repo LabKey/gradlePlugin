@@ -1,7 +1,7 @@
 
-## gradlePlugin
+## gradlePlugins
 
-The gradlePlugin jar is a jar file containing plugins, tasks, extensions and utilities used for building the [LabKey](https://www.labkey.org)
+The gradlePlugins jar is a jar file containing plugins, tasks, extensions, and utilities used for building the [LabKey](https://www.labkey.org)
 Server application and its modules.
 
 If building your own LabKey module, you may choose to use these plugins or not. They bring in a lot of functionality 
@@ -12,6 +12,11 @@ If you are making changes to the plugins, please see the [internal docs](https:/
 on how to do that, including how to develop and test locally and the versioning information.
 
 ## Release Notes
+
+### 11.2.0
+*Released*: TBD
+(Earliest compatible LabKey version: 26.7.0)
+- Publish only the `gradlePlugins` artifact; the duplicate `gradlePlugin` artifact (published since 1.22.0) is no longer produced, and plugin markers now reference `gradlePlugins`
 
 ### 11.1.0
 *Released*: 5 October 2026
