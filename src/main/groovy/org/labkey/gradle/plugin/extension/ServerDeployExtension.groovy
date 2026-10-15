@@ -17,6 +17,7 @@ package org.labkey.gradle.plugin.extension
 
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 import org.labkey.gradle.plugin.ServerDeploy
 import org.labkey.gradle.util.BuildUtils
@@ -58,6 +59,16 @@ class ServerDeployExtension
     static String getModulesDeployDirectory(Project project)
     {
         return "${getServerDeployDirectoryPath(project)}/${ServerDeploy.MODULES_DIR}"
+    }
+
+    /**
+     * @param project used to locate the deploy directory the startup properties are written to
+     * @param fileName the name of the startup properties file
+     * @return the startup properties file, without creating its directory, so it can be used as a task's output file
+     */
+    static RegularFile startupPropertiesFile(Project project, String fileName) {
+        return getEmbeddedServerDeployDirectory(project).dir('startup')
+                .file(fileName.endsWith('.properties') ? fileName : fileName + '.properties')
     }
 
     String getFoundModule(String key)

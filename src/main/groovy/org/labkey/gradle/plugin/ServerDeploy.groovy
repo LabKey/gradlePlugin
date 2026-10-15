@@ -23,12 +23,7 @@ import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.task.CheckForVersionConflicts
-import org.labkey.gradle.task.DeployApp
-import org.labkey.gradle.task.DeployDistribution
-import org.labkey.gradle.task.StageDistribution
-import org.labkey.gradle.task.StageModules
-import org.labkey.gradle.task.SymlinkNode
+import org.labkey.gradle.task.*
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.TaskUtils
@@ -266,12 +261,24 @@ class ServerDeploy implements Plugin<Project>
 
         project.tasks.named("cleanBuild").configure {
             it.dependsOn(project.tasks.stopLabKey)
-            it.mustRunAfter(project.tasks.stopTomcat)
         }
         project.tasks.named("cleanDeploy").configure {
             it.dependsOn(project.tasks.stopLabKey)
-            it.mustRunAfter(project.tasks.stopTomcat)
         }
+
+        def startupProperties = project.providers.gradleProperty('startupProperties')
+        if (startupProperties.isPresent()) {
+            def createStartupPropertyFileTask = project.tasks.register("createStartupPropertyFile", WriteStartupProperties) {
+                WriteStartupProperties task ->
+                    task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, '00_startup.properties'))
+                    task.propertiesContent.set(startupProperties)
+            }
+
+            project.tasks.withType(PickDb.class).configureEach {
+                it.finalizedBy(createStartupPropertyFileTask)
+            }
+        }
+
     }
 
 }
