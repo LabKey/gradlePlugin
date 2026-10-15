@@ -3,6 +3,7 @@
 
 # Text files to convert
 *.css           text diff=css
+*.gradle        text diff=java
 *.groovy        text diff=java
 *.htm           text diff=html
 *.html          text diff=html
@@ -12,6 +13,8 @@
 *.jsp           text
 *.jspf          text
 *.jspx          text
+*.kts           text
+*.md            text
 *.properties    text
 *.py            text diff=python
 *.sql           text
@@ -25,6 +28,7 @@
 *.bash          text eol=lf
 *.sh            text eol=lf
 /gradlew        text eol=lf
+/moduleTemplate/** text eol=lf
 
 # Keep Windows endings
 *.bat           text eol=crlf
