@@ -17,6 +17,11 @@ on how to do that, including how to develop and test locally and the versioning 
 *Released*: TBD
 (Earliest compatible LabKey version: 26.7.0)
 - Publish only the `gradlePlugins` artifact; the duplicate `gradlePlugin` artifact (published since 1.22.0) is no longer produced, and plugin markers now reference `gradlePlugins`
+- Make `createStartupPropertyFile` task work outside TeamCity
+  - Writes the `labKeyStartupProperties` Gradle property (e.g. `ORG_GRADLE_PROJECT_labKeyStartupProperties`) to `00_startup.properties` after `pickPg` and `deployApp`
+  - Also reads a multi-line `labKeyStartupProperties` property from the picked database config (`pg.properties`/`mssql.properties`), written ahead of the Gradle property
+  - Rename TeamCity-specific task `createTeamCityStartupPropertyFile`
+- Delete deprecated `startTomcat` and `stopTomcat` tasks
 - Update to Gradle 9.8.1
 
 ### 11.1.0

@@ -15,12 +15,9 @@
  */
 package org.labkey.gradle.plugin.extension
 
-import org.apache.commons.io.FileUtils
-import org.gradle.api.Project
-import org.gradle.api.file.RegularFile
-import org.labkey.gradle.util.DatabaseProperties
 
-import java.nio.charset.StandardCharsets
+import org.gradle.api.Project
+import org.labkey.gradle.util.DatabaseProperties
 
 class TeamCityExtension
 {
@@ -213,27 +210,6 @@ class TeamCityExtension
             props.setJdbcPassword(getTeamCityProperty("database.${typeAndVersion}.password"))
 
         this.databaseTypes.add(props)
-    }
-
-    File startupPropertiesDir() {
-        File startupDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project).dir('startup').asFile
-        FileUtils.forceMkdir(startupDir)
-        return startupDir
-    }
-
-    /**
-     * @param project the project whose deploy directory the startup properties are written to
-     * @param fileName the name of the startup properties file
-     * @return the startup properties file, without creating its directory, so it can be used as a task's output file
-     */
-    static RegularFile startupPropertiesFile(Project project, String fileName) {
-        return ServerDeployExtension.getEmbeddedServerDeployDirectory(project).dir('startup').file(fileName)
-    }
-
-    void writeStartupProperties(String fileName, String properties) {
-        File propFile = new File(startupPropertiesDir(), fileName)
-
-        FileUtils.write(propFile, properties, StandardCharsets.UTF_8)
     }
 
     String getBuildBranch()

@@ -23,13 +23,9 @@ import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.task.CheckForVersionConflicts
-import org.labkey.gradle.task.DeployApp
-import org.labkey.gradle.task.DeployDistribution
-import org.labkey.gradle.task.StageDistribution
-import org.labkey.gradle.task.StageModules
-import org.labkey.gradle.task.SymlinkNode
+import org.labkey.gradle.task.*
 import org.labkey.gradle.util.BuildUtils
+import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.TaskUtils
 
@@ -266,12 +262,25 @@ class ServerDeploy implements Plugin<Project>
 
         project.tasks.named("cleanBuild").configure {
             it.dependsOn(project.tasks.stopLabKey)
-            it.mustRunAfter(project.tasks.stopTomcat)
         }
         project.tasks.named("cleanDeploy").configure {
             it.dependsOn(project.tasks.stopLabKey)
-            it.mustRunAfter(project.tasks.stopTomcat)
         }
+
+        def createStartupPropertyFileTask = project.tasks.register("createStartupPropertyFile", WriteStartupProperties) {
+            WriteStartupProperties task ->
+                task.group = GroupNames.DEPLOY
+                task.description = "Writes 'labKeyStartupProperties' from the database config and Gradle properties to 00_startup.properties, or removes that file if neither is set"
+                task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, '00_startup.properties'))
+                task.propertiesContent.set(project.providers.gradleProperty('labKeyStartupProperties'))
+                task.databasePropertiesFile.set(DatabaseProperties.getPickedConfigFile(project))
+                task.databasePropertyName.set('labKeyStartupProperties')
+        }
+
+        project.tasks.withType(SetUpProperties.class).configureEach {
+            it.finalizedBy(createStartupPropertyFileTask)
+        }
+
     }
 
 }

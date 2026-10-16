@@ -20,10 +20,14 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
+import org.labkey.gradle.util.PropertiesUtils
 
 import java.nio.charset.StandardCharsets
 
@@ -39,11 +43,20 @@ abstract class WriteStartupProperties extends DefaultTask
     @Input @Optional
     abstract Property<String> getPropertiesContent()
 
+    // @InputFiles rather than @InputFile because the database config doesn't exist until 'pickPg'/'pickMSSQL'
+    @InputFiles @Optional @PathSensitive(PathSensitivity.NONE)
+    abstract RegularFileProperty getDatabasePropertiesFile()
+
+    @Input @Optional
+    abstract Property<String> getDatabasePropertyName()
+
     @TaskAction
     void writeProperties()
     {
         File file = propertiesFile.get().asFile
-        String content = propertiesContent.getOrElse("")
+        String content = [readDatabaseStartupProperties(), propertiesContent.getOrNull()]
+                .findAll { it != null && !it.isBlank() }
+                .join("\n")
         if (content.isBlank())
         {
             logger.info("No properties to write. ${file} not created.")
@@ -52,5 +65,12 @@ abstract class WriteStartupProperties extends DefaultTask
         }
         logger.info("Writing startup properties to ${file}")
         FileUtils.write(file, content, StandardCharsets.UTF_8)
+    }
+
+    private String readDatabaseStartupProperties()
+    {
+        if (!databasePropertiesFile.isPresent() || !databasePropertyName.isPresent())
+            return null
+        return PropertiesUtils.readFileProperties(databasePropertiesFile.get().asFile).getProperty(databasePropertyName.get())
     }
 }
