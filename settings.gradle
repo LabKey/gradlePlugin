@@ -1,2 +1,2 @@
-// Ensure root project name is consistent, regardless of clone directory
-rootProject.name='gradlePlugin'
+// Ensure root project name matches artifact name, regardless of clone directory
+rootProject.name='gradlePlugins'
