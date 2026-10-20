@@ -67,8 +67,12 @@ class ServerDeployExtension
      * @return the startup properties file, without creating its directory, so it can be used as a task's output file
      */
     static RegularFile startupPropertiesFile(Project project, String fileName) {
-        return getEmbeddedServerDeployDirectory(project).dir('startup')
-                .file(fileName.endsWith('.properties') ? fileName : fileName + '.properties')
+        def startupDir = (BuildUtils.useLocalBuild(project)
+                ? getServerDeployDirectoryProvider(project).get()
+                : getEmbeddedServerDeployDirectory(project))
+                .dir('startup')
+
+        return startupDir.file(fileName.endsWith('.properties') ? fileName : fileName + '.properties')
     }
 
     String getFoundModule(String key)
