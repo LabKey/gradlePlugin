@@ -71,6 +71,6 @@ abstract class WriteStartupProperties extends DefaultTask
     {
         if (!databasePropertiesFile.isPresent() || !databasePropertyName.isPresent())
             return null
-        return PropertiesUtils.readFileProperties(databasePropertiesFile.get().asFile).getProperty(databasePropertyName.get())
+        return PropertiesUtils.readProperties(databasePropertiesFile.get().asFile).getProperty(databasePropertyName.get())
     }
 }

@@ -22,6 +22,7 @@ on how to do that, including how to develop and test locally and the versioning 
   - Also reads a multi-line `labKeyStartupProperties` property from the picked database config (`pg.properties`/`mssql.properties`), written ahead of the Gradle property
   - Rename TeamCity-specific task `createTeamCityStartupPropertyFile`
 - Delete deprecated `startTomcat` and `stopTomcat` tasks
+- Ensure `PropertiesUtils` methods close file streams
 - Update to Gradle 9.8.1
 
 ### 11.1.0

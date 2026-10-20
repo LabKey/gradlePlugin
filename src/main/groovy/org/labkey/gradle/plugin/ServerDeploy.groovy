@@ -281,6 +281,10 @@ class ServerDeploy implements Plugin<Project>
             it.finalizedBy(createStartupPropertyFileTask)
         }
 
+        project.tasks.withType(StartLabKey.class).configureEach {
+            it.mustRunAfter(createStartupPropertyFileTask)
+        }
+
     }
 
 }
