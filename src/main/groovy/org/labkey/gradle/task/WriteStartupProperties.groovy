@@ -21,13 +21,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.util.PropertiesUtils
 
@@ -54,7 +48,7 @@ abstract class WriteStartupProperties extends DefaultTask
 
     // Tracks the property's value so a change reruns the task
     @Input @Optional
-    protected Provider<String> getGradlePropertyValue()
+    Provider<String> getGradlePropertyValue()
     {
         return gradlePropertyName.flatMap { providers.gradleProperty(it) }
     }
