@@ -19,6 +19,8 @@ import org.apache.commons.io.FileUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
@@ -29,6 +31,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import org.labkey.gradle.util.PropertiesUtils
 
+import javax.inject.Inject
 import java.nio.charset.StandardCharsets
 
 /**
@@ -40,23 +43,41 @@ abstract class WriteStartupProperties extends DefaultTask
     @OutputFile
     abstract RegularFileProperty getPropertiesFile()
 
+    @Inject
+    abstract ProviderFactory getProviders()
+
     @Input @Optional
     abstract Property<String> getPropertiesContent()
 
-    // @InputFiles rather than @InputFile because the database config doesn't exist until 'pickPg'/'pickMSSQL'
-    @InputFiles @Optional @PathSensitive(PathSensitivity.NONE)
-    abstract RegularFileProperty getDatabasePropertiesFile()
-
     @Input @Optional
-    abstract Property<String> getDatabasePropertyPrefix()
+    abstract Property<String> getGradlePropertyName()
+
+    // Tracks the property's value so a change reruns the task
+    @Input @Optional
+    protected Provider<String> getGradlePropertyValue()
+    {
+        return gradlePropertyName.flatMap { providers.gradleProperty(it) }
+    }
+
+    // @InputFiles rather than @InputFile because the source may not exist (e.g. the database config before 'pickPg')
+    @InputFiles @Optional @PathSensitive(PathSensitivity.NONE)
+    abstract RegularFileProperty getSourcePropertiesFile()
+
+    // Only properties with this prefix are copied from the source file, with the prefix removed
+    @Input @Optional
+    abstract Property<String> getSourcePropertyPrefix()
 
     @TaskAction
     void writeProperties()
     {
         File file = propertiesFile.get().asFile
-        String content = [readDatabaseStartupProperties(), propertiesContent.getOrNull()]
+        String content = [
+                section(describeSourceProperties(), readSourceProperties()),
+                section("Gradle property '${gradlePropertyName.getOrNull()}'", gradlePropertyValue.getOrNull()),
+                propertiesContent.getOrNull()
+            ]
                 .findAll { it != null && !it.isBlank() }
-                .join("\n")
+                .join("\n\n")
         if (content.isBlank())
         {
             logger.info("No properties to write. ${file} not created.")
@@ -67,16 +88,27 @@ abstract class WriteStartupProperties extends DefaultTask
         FileUtils.write(file, content, StandardCharsets.UTF_8)
     }
 
-    private String readDatabaseStartupProperties()
+    private static String section(String source, String properties)
     {
-        if (!databasePropertiesFile.isPresent() || !databasePropertyPrefix.isPresent())
+        return properties == null || properties.isBlank() ? null : "# From ${source}\n${properties}"
+    }
+
+    private String describeSourceProperties()
+    {
+        String fileName = sourcePropertiesFile.map { it.asFile.name }.getOrNull()
+        return sourcePropertyPrefix.isPresent() ? "'${sourcePropertyPrefix.get()}'-prefixed properties in ${fileName}" : fileName
+    }
+
+    private String readSourceProperties()
+    {
+        if (!sourcePropertiesFile.isPresent())
             return null
-        String prefix = databasePropertyPrefix.get()
-        Properties databaseProperties = PropertiesUtils.readProperties(databasePropertiesFile.get().asFile)
+        String prefix = sourcePropertyPrefix.getOrElse("")
+        Properties sourceProperties = PropertiesUtils.readProperties(sourcePropertiesFile.get().asFile)
         Properties startupProperties = new Properties()
-        databaseProperties.stringPropertyNames()
+        sourceProperties.stringPropertyNames()
                 .findAll { it.startsWith(prefix) }
-                .each { startupProperties.setProperty(it.substring(prefix.length()), databaseProperties.getProperty(it)) }
+                .each { startupProperties.setProperty(it.substring(prefix.length()), sourceProperties.getProperty(it)) }
         if (startupProperties.isEmpty())
             return null
         StringWriter writer = new StringWriter()

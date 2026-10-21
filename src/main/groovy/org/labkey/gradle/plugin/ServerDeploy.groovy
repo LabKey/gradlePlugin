@@ -272,17 +272,25 @@ class ServerDeploy implements Plugin<Project>
                 task.group = GroupNames.DEPLOY
                 task.description = "Writes 'startup.'-prefixed database config properties and the 'labKeyStartupProperties' Gradle property to 00_startup.properties, or removes that file if neither is set"
                 task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, '00_startup.properties'))
-                task.propertiesContent.set(project.providers.gradleProperty('labKeyStartupProperties'))
-                task.databasePropertiesFile.set(DatabaseProperties.getPickedConfigFile(project))
-                task.databasePropertyPrefix.set('startup.')
+                task.gradlePropertyName.set('labKeyStartupProperties')
+                task.sourcePropertiesFile.set(DatabaseProperties.getPickedConfigFile(project))
+                task.sourcePropertyPrefix.set('startup.')
+        }
+
+        def copyStartupPropertyFileTask = project.tasks.register("copyStartupPropertyFile", WriteStartupProperties) {
+            WriteStartupProperties task ->
+                task.group = GroupNames.DEPLOY
+                task.description = "Copies configs/startup.properties to the startup properties directory, or removes the copy if that file doesn't exist"
+                task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, 'startup.properties'))
+                task.sourcePropertiesFile.set(BuildUtils.getConfigsProject(project).layout.projectDirectory.file('configs/startup.properties'))
         }
 
         project.tasks.withType(SetUpProperties.class).configureEach {
-            it.finalizedBy(createStartupPropertyFileTask)
+            it.finalizedBy(createStartupPropertyFileTask, copyStartupPropertyFileTask)
         }
 
         project.tasks.withType(StartLabKey.class).configureEach {
-            it.mustRunAfter(createStartupPropertyFileTask)
+            it.mustRunAfter(createStartupPropertyFileTask, copyStartupPropertyFileTask)
         }
 
     }
