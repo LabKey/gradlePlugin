@@ -86,7 +86,7 @@ class Tomcat implements Plugin<Project>
             Copy copy ->
                 copy.group = GroupNames.INIT
                 copy.description = "Create server properties files from templates"
-                File configsDir = project.file('server/configs')
+                File configsDir = BuildUtils.getConfigsProject(project).file('configs')
                 copy.from(new File(configsDir, 'templates'))
                 copy.include("*.template")
                 copy.into(configsDir)
