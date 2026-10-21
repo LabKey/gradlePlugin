@@ -268,7 +268,7 @@ class ServerDeploy implements Plugin<Project>
             it.dependsOn(project.tasks.stopLabKey)
         }
 
-        // TeamCity.groovy defines startup property task for builds running on TeamCity
+        // TeamCity.groovy defines startup property tasks for builds running on TeamCity
         if (!TeamCityExtension.isOnTeamCity(project)) {
 
             def createStartupPropertyFileTask = project.tasks.register("createStartupPropertyFile", WriteStartupProperties) {
