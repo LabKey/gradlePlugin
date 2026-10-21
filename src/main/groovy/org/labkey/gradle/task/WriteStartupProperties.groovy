@@ -90,7 +90,7 @@ abstract class WriteStartupProperties extends DefaultTask
 
     private static String section(String source, String properties)
     {
-        return properties == null || properties.isBlank() ? null : "# From ${source}\n${properties}"
+        return properties == null || properties.isBlank() ? null : "# From ${source}\n${properties.trim()}"
     }
 
     private String describeSourceProperties()
