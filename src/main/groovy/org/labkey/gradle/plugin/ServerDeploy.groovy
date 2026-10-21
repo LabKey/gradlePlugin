@@ -279,6 +279,7 @@ class ServerDeploy implements Plugin<Project>
                     task.gradlePropertyName.set('labKeyStartupProperties')
                     task.sourcePropertiesFile.set(DatabaseProperties.getPickedConfigFile(project))
                     task.sourcePropertyPrefix.set('startup.')
+                    task.mustRunAfter(project.tasks.cleanBuild, project.tasks.cleanDeploy)
             }
 
             def copyStartupPropertyFileTask = project.tasks.register("copyStartupPropertyFile", WriteStartupProperties) {
@@ -287,6 +288,7 @@ class ServerDeploy implements Plugin<Project>
                     task.description = "Copies configs/startup.properties to the startup properties directory, or removes the copy if that file doesn't exist"
                     task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, 'startup.properties'))
                     task.sourcePropertiesFile.set(BuildUtils.getConfigsProject(project).layout.projectDirectory.file('configs/startup.properties'))
+                    task.mustRunAfter(project.tasks.cleanBuild, project.tasks.cleanDeploy)
             }
 
             project.tasks.withType(SetUpProperties.class).configureEach {

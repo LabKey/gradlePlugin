@@ -35,6 +35,12 @@ class PropertiesUtils
         return readProperties(propFile)
     }
 
+    @Deprecated(since="11.2.0") // Unused in LK 26.11
+    static Properties readFileProperties(File propFile)
+    {
+        return readProperties(propFile)
+    }
+
     static Properties readProperties(File propFile)
     {
         return readProperties(propFile, new Properties())
