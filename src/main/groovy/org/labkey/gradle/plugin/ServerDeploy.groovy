@@ -289,7 +289,7 @@ class ServerDeploy implements Plugin<Project>
                     task.sourcePropertiesFile.set(BuildUtils.getConfigsProject(project).layout.projectDirectory.file('configs/startup.properties'))
             }
 
-            project.tasks.withType(PickDb.class).configureEach {
+            project.tasks.withType(SetUpProperties.class).configureEach {
                 it.finalizedBy(createStartupPropertyFileTask, copyStartupPropertyFileTask)
             }
 
