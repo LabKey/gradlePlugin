@@ -82,20 +82,24 @@ class Tomcat implements Plugin<Project>
                 task.configure { DeleteSpec spec -> spec.delete project.fileTree(logDir) }
         }
 
-        def configSetupTask = project.tasks.register("configSetup", Copy) {
-            Copy copy ->
-                copy.group = GroupNames.INIT
-                copy.description = "Create server properties files from templates"
-                File configsDir = BuildUtils.getConfigsProject(project).file('configs')
-                copy.from(new File(configsDir, 'templates'))
-                copy.include("*.template")
-                copy.into(configsDir)
-                copy.eachFile { FileCopyDetails details ->
-                    details.name = details.name - ~/\.template$/
-                    if (new File(configsDir, details.relativePath.pathString).exists())
-                        details.exclude()
+        // Registered once, in the configs project, since several projects apply this plugin (e.g. testAutomation on TeamCity)
+        Project configsProject = BuildUtils.getConfigsProject(project)
+        def configSetupTask = configsProject.tasks.names.contains("configSetup") ?
+                configsProject.tasks.named("configSetup") :
+                configsProject.tasks.register("configSetup", Copy) {
+                    Copy copy ->
+                        copy.group = GroupNames.INIT
+                        copy.description = "Create server properties files from templates"
+                        File configsDir = configsProject.file('configs')
+                        copy.from(new File(configsDir, 'templates'))
+                        copy.include("*.template")
+                        copy.into(configsDir)
+                        copy.eachFile { FileCopyDetails details ->
+                            details.name = details.name - ~/\.template$/
+                            if (new File(configsDir, details.relativePath.pathString).exists())
+                                details.exclude()
+                        }
                 }
-        }
 
         project.tasks.withType(SetUpProperties.class).configureEach {
             it.dependsOn(configSetupTask)
