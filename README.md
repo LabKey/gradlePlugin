@@ -19,7 +19,7 @@ on how to do that, including how to develop and test locally and the versioning 
 - Publish only the `gradlePlugins` artifact; the duplicate `gradlePlugin` artifact (published since 1.22.0) is no longer produced, and plugin markers now reference `gradlePlugins`
 - Make `createStartupPropertyFile` task work outside TeamCity
   - Writes the `labKeyStartupProperties` Gradle property (e.g. `ORG_GRADLE_PROJECT_labKeyStartupProperties`) to `00_startup.properties` after `pickPg` and `deployApp`
-  - Also reads a multi-line `labKeyStartupProperties` property from the picked database config (`pg.properties`/`mssql.properties`), written ahead of the Gradle property
+  - Also writes each `startup.`-prefixed property from the picked database config (`pg.properties`/`mssql.properties`) with the prefix removed, e.g. `startup.SiteSettings.baseServerURL;startup=...`, ahead of the Gradle property
   - Rename TeamCity-specific task `createTeamCityStartupPropertyFile`
 - Delete deprecated `startTomcat` and `stopTomcat` tasks
 - Ensure `PropertiesUtils` methods close file streams

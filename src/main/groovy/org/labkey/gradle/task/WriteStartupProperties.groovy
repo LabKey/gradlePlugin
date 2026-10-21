@@ -48,7 +48,7 @@ abstract class WriteStartupProperties extends DefaultTask
     abstract RegularFileProperty getDatabasePropertiesFile()
 
     @Input @Optional
-    abstract Property<String> getDatabasePropertyName()
+    abstract Property<String> getDatabasePropertyPrefix()
 
     @TaskAction
     void writeProperties()
@@ -69,8 +69,19 @@ abstract class WriteStartupProperties extends DefaultTask
 
     private String readDatabaseStartupProperties()
     {
-        if (!databasePropertiesFile.isPresent() || !databasePropertyName.isPresent())
+        if (!databasePropertiesFile.isPresent() || !databasePropertyPrefix.isPresent())
             return null
-        return PropertiesUtils.readProperties(databasePropertiesFile.get().asFile).getProperty(databasePropertyName.get())
+        String prefix = databasePropertyPrefix.get()
+        Properties databaseProperties = PropertiesUtils.readProperties(databasePropertiesFile.get().asFile)
+        Properties startupProperties = new Properties()
+        databaseProperties.stringPropertyNames()
+                .findAll { it.startsWith(prefix) }
+                .each { startupProperties.setProperty(it.substring(prefix.length()), databaseProperties.getProperty(it)) }
+        if (startupProperties.isEmpty())
+            return null
+        StringWriter writer = new StringWriter()
+        startupProperties.store(writer, null)
+        // Drop the timestamp comment that 'store' always writes
+        return writer.toString().readLines().findAll { !it.startsWith("#") }.join("\n")
     }
 }

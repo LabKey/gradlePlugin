@@ -270,11 +270,11 @@ class ServerDeploy implements Plugin<Project>
         def createStartupPropertyFileTask = project.tasks.register("createStartupPropertyFile", WriteStartupProperties) {
             WriteStartupProperties task ->
                 task.group = GroupNames.DEPLOY
-                task.description = "Writes 'labKeyStartupProperties' from the database config and Gradle properties to 00_startup.properties, or removes that file if neither is set"
+                task.description = "Writes 'startup.'-prefixed database config properties and the 'labKeyStartupProperties' Gradle property to 00_startup.properties, or removes that file if neither is set"
                 task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, '00_startup.properties'))
                 task.propertiesContent.set(project.providers.gradleProperty('labKeyStartupProperties'))
                 task.databasePropertiesFile.set(DatabaseProperties.getPickedConfigFile(project))
-                task.databasePropertyName.set('labKeyStartupProperties')
+                task.databasePropertyPrefix.set('startup.')
         }
 
         project.tasks.withType(SetUpProperties.class).configureEach {
