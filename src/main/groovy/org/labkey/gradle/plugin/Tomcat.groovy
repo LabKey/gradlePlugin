@@ -15,7 +15,6 @@
  */
 package org.labkey.gradle.plugin
 
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.DeleteSpec
@@ -25,7 +24,7 @@ import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
-import org.labkey.gradle.task.SetUpProperties
+import org.labkey.gradle.task.PickDb
 import org.labkey.gradle.task.StartLabKey
 import org.labkey.gradle.task.StopLabKey
 import org.labkey.gradle.util.BuildUtils
@@ -97,7 +96,7 @@ class Tomcat implements Plugin<Project>
                 }
         }
 
-        project.tasks.withType(SetUpProperties.class).configureEach {
+        project.tasks.withType(PickDb.class).configureEach {
             it.dependsOn(configSetupTask)
         }
 
