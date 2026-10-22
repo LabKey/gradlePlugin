@@ -21,12 +21,12 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.*
 import org.labkey.gradle.util.BuildUtils
-import org.labkey.gradle.util.DatabaseProperties
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.TaskUtils
 
@@ -274,20 +274,18 @@ class ServerDeploy implements Plugin<Project>
             def createStartupPropertyFileTask = project.tasks.register("createStartupPropertyFile", WriteStartupProperties) {
                 WriteStartupProperties task ->
                     task.group = GroupNames.DEPLOY
-                    task.description = "Writes 'startup.'-prefixed database config properties and the 'labKeyStartupProperties' Gradle property to 00_startup.properties, or removes that file if neither is set"
+                    task.description = "Writes the 'labKeyStartupProperties' Gradle property to 00_startup.properties, or removes that file if it isn't set"
                     task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, '00_startup.properties'))
                     task.gradlePropertyName.set('labKeyStartupProperties')
-                    task.sourcePropertiesFile.set(DatabaseProperties.getPickedConfigFile(project))
-                    task.sourcePropertyPrefix.set('startup.')
                     task.mustRunAfter(project.tasks.cleanBuild, project.tasks.cleanDeploy)
             }
 
-            def copyStartupPropertyFileTask = project.tasks.register("copyStartupPropertyFile", WriteStartupProperties) {
-                WriteStartupProperties task ->
+            def copyStartupPropertyFileTask = project.tasks.register("copyStartupPropertyFile", Copy) {
+                Copy task ->
                     task.group = GroupNames.DEPLOY
-                    task.description = "Copies configs/startup.properties to the startup properties directory, or removes the copy if that file doesn't exist"
-                    task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, 'startup.properties'))
-                    task.sourcePropertiesFile.set(BuildUtils.getConfigsProject(project).layout.projectDirectory.file('configs/startup.properties'))
+                    task.description = "Copies configs/startup.properties to the startup properties directory"
+                    task.from(BuildUtils.getConfigsProject(project).file('configs/startup.properties'))
+                    task.into(ServerDeployExtension.startupDir(project))
                     task.mustRunAfter(project.tasks.cleanBuild, project.tasks.cleanDeploy)
             }
 

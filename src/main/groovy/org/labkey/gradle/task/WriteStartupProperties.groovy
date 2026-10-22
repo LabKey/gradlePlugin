@@ -21,9 +21,11 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
-import org.labkey.gradle.util.PropertiesUtils
 
 import javax.inject.Inject
 import java.nio.charset.StandardCharsets
@@ -53,20 +55,11 @@ abstract class WriteStartupProperties extends DefaultTask
         return gradlePropertyName.flatMap { providers.gradleProperty(it) }
     }
 
-    // @InputFiles rather than @InputFile because the source may not exist (e.g. the database config before 'pickPg')
-    @InputFiles @Optional @PathSensitive(PathSensitivity.NONE)
-    abstract RegularFileProperty getSourcePropertiesFile()
-
-    // Only properties with this prefix are copied from the source file, with the prefix removed
-    @Input @Optional
-    abstract Property<String> getSourcePropertyPrefix()
-
     @TaskAction
     void writeProperties()
     {
         File file = propertiesFile.get().asFile
         String content = [
-                section(describeSourceProperties(), readSourceProperties()),
                 section("Gradle property '${gradlePropertyName.getOrNull()}'", gradlePropertyValue.getOrNull()),
                 propertiesContent.getOrNull()
             ]
@@ -85,29 +78,5 @@ abstract class WriteStartupProperties extends DefaultTask
     private static String section(String source, String properties)
     {
         return properties == null || properties.isBlank() ? null : "# From ${source}\n${properties.trim()}"
-    }
-
-    private String describeSourceProperties()
-    {
-        String fileName = sourcePropertiesFile.map { it.asFile.name }.getOrNull()
-        return sourcePropertyPrefix.isPresent() ? "'${sourcePropertyPrefix.get()}'-prefixed properties in ${fileName}" : fileName
-    }
-
-    private String readSourceProperties()
-    {
-        if (!sourcePropertiesFile.isPresent())
-            return null
-        String prefix = sourcePropertyPrefix.getOrElse("")
-        Properties sourceProperties = PropertiesUtils.readProperties(sourcePropertiesFile.get().asFile)
-        Properties startupProperties = new Properties()
-        sourceProperties.stringPropertyNames()
-                .findAll { it.startsWith(prefix) }
-                .each { startupProperties.setProperty(it.substring(prefix.length()), sourceProperties.getProperty(it)) }
-        if (startupProperties.isEmpty())
-            return null
-        StringWriter writer = new StringWriter()
-        startupProperties.store(writer, null)
-        // Drop the timestamp comment that 'store' always writes
-        return writer.toString().readLines().findAll { !it.startsWith("#") }.join("\n")
     }
 }

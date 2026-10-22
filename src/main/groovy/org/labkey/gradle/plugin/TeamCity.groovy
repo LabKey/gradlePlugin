@@ -128,14 +128,14 @@ class TeamCity extends Tomcat
                 }
         }
 
-        project.tasks.register("createTeamCityStartupPropertyFile", WriteStartupProperties) {
+        project.tasks.register("createStartupPropertyFile", WriteStartupProperties) {
             WriteStartupProperties task ->
                 task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, '99_teamcity_startup.properties'))
                 task.propertiesContent.set(extension.getTeamCityProperty('labkey.startup.properties'))
         }
 
         project.tasks.named("startLabKey").configure {
-            it.dependsOn(project.tasks.createTeamCityStartupPropertyFile)
+            it.dependsOn(project.tasks.createStartupPropertyFile)
         }
 
         project.tasks.register("validateConfiguration") {
