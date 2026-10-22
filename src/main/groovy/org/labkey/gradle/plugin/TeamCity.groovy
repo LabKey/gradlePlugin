@@ -27,6 +27,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskProvider
+import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TeamCityExtension
 import org.labkey.gradle.task.PickDb
 import org.labkey.gradle.task.RunTestSuite
@@ -109,12 +110,6 @@ class TeamCity extends Tomcat
             }
         }
 
-        project.tasks.named("stopTomcat").configure {
-            it.doLast { Task task ->
-                TeamCity.ensureShutdown(task.logger, debugPort)
-            }
-        }
-
         project.tasks.register("killChrome") {
             Task task ->
                 task.group = GroupNames.TEST_SERVER
@@ -135,16 +130,12 @@ class TeamCity extends Tomcat
 
         project.tasks.register("createStartupPropertyFile", WriteStartupProperties) {
             WriteStartupProperties task ->
-                task.propertiesFile.set(TeamCityExtension.startupPropertiesFile(project, '99_teamcity_startup.properties'))
+                task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, '99_teamcity_startup.properties'))
                 task.propertiesContent.set(extension.getTeamCityProperty('labkey.startup.properties'))
         }
 
         project.tasks.named("startLabKey").configure {
-            dependsOn(project.tasks.createStartupPropertyFile)
-        }
-
-        project.tasks.named("startTomcat").configure {
-            dependsOn(project.tasks.createStartupPropertyFile)
+            it.dependsOn(project.tasks.createStartupPropertyFile)
         }
 
         project.tasks.register("validateConfiguration") {
@@ -203,7 +194,6 @@ class TeamCity extends Tomcat
 
             TaskProvider setUpDbTask = project.tasks.named(setUpTaskName)
             project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startLabKey.mustRunAfter(setUpDbTask)
-            project.project(BuildUtils.getTestProjectPath(project.gradle)).tasks.startTomcat.mustRunAfter(setUpDbTask)
             String ciTestTaskName = "ciTests" + properties.dbTypeAndVersion.capitalize()
             project.tasks.register(ciTestTaskName, RunTestSuite) {
                 RunTestSuite task ->
@@ -214,7 +204,6 @@ class TeamCity extends Tomcat
                     task.mustRunAfter(project.tasks.validateConfiguration)
                     task.mustRunAfter(project.tasks.cleanTestLogs)
                     task.mustRunAfter(project.tasks.startLabKey)
-                    task.mustRunAfter(project.tasks.startTomcat)
             }
 
             ciTests.add(project.tasks.named(ciTestTaskName))
@@ -237,14 +226,11 @@ class TeamCity extends Tomcat
 
                     includeModules.addAll(extension.getTeamCityProperty('labkey.startup.includeDistModules.additional').split(','))
 
-                    task.propertiesFile.set(TeamCityExtension.startupPropertiesFile(project, '00_modulesInclude.properties'))
+                    task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, '00_modulesInclude.properties'))
                     task.propertiesContent.set('ModuleLoader.include;startup=' + String.join(',', includeModules))
             }
 
             project.tasks.named("startLabKey").configure {
-                it.dependsOn(includeDistModulesTask)
-            }
-            project.tasks.named("startTomcat").configure {
                 it.dependsOn(includeDistModulesTask)
             }
         }
@@ -262,9 +248,6 @@ class TeamCity extends Tomcat
                 )
         }
         project.tasks.named("startLabKey").configure {
-            it.mustRunAfter(project.tasks.cleanTestLogs)
-        }
-        project.tasks.named("startTomcat").configure {
             it.mustRunAfter(project.tasks.cleanTestLogs)
         }
     }

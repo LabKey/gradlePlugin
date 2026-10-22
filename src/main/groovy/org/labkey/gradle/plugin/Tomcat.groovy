@@ -19,10 +19,13 @@ package org.labkey.gradle.plugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.DeleteSpec
+import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
 import org.labkey.gradle.plugin.extension.TomcatExtension
 import org.labkey.gradle.plugin.extension.UiTestExtension
+import org.labkey.gradle.task.SetUpProperties
 import org.labkey.gradle.task.StartLabKey
 import org.labkey.gradle.task.StopLabKey
 import org.labkey.gradle.util.BuildUtils
@@ -71,19 +74,6 @@ class Tomcat implements Plugin<Project>
                 task.onlyIf{ applicationPropertiesFile.exists() }
         }
 
-        project.tasks.register("startTomcat", StartLabKey) {
-            StartLabKey task ->
-                task.group = GroupNames.WEB_APPLICATION
-                task.description = "Start the LabKey web application (deprecated: use startLabKey)"
-        }
-
-        project.tasks.register("stopTomcat", StopLabKey) {
-            StopLabKey task ->
-                task.group = GroupNames.WEB_APPLICATION
-                task.description = "Stop the LabKey web application (deprecated: use stopLabKey)"
-            task.onlyIf{ applicationPropertiesFile.exists() }
-        }
-
         project.tasks.register("cleanLogs", Delete) {
             Delete task ->
                 var logDir = ServerDeployExtension.getEmbeddedServerDeployDirectory(project).dir("logs")
@@ -91,6 +81,30 @@ class Tomcat implements Plugin<Project>
                 task.description = "Delete logs from ${logDir}"
                 task.configure { DeleteSpec spec -> spec.delete project.fileTree(logDir) }
         }
+
+        // Registered once, in the configs project, since several projects apply this plugin (e.g. testAutomation on TeamCity)
+        Project configsProject = BuildUtils.getConfigsProject(project)
+        def configSetupTask = configsProject.tasks.names.contains("configSetup") ?
+                configsProject.tasks.named("configSetup") :
+                configsProject.tasks.register("configSetup", Copy) {
+                    Copy copy ->
+                        copy.group = GroupNames.INIT
+                        copy.description = "Create server properties files from templates"
+                        File configsDir = configsProject.file('configs')
+                        copy.from(new File(configsDir, 'templates'))
+                        copy.include("*.template")
+                        copy.into(configsDir)
+                        copy.eachFile { FileCopyDetails details ->
+                            details.name = details.name - ~/\.template$/
+                            if (new File(configsDir, details.relativePath.pathString).exists())
+                                details.exclude()
+                        }
+                }
+
+        project.tasks.withType(SetUpProperties.class).configureEach {
+            it.dependsOn(configSetupTask)
+        }
+
     }
 }
 

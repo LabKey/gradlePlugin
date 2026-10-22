@@ -21,14 +21,11 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.labkey.gradle.plugin.extension.ServerDeployExtension
-import org.labkey.gradle.task.CheckForVersionConflicts
-import org.labkey.gradle.task.DeployApp
-import org.labkey.gradle.task.DeployDistribution
-import org.labkey.gradle.task.StageDistribution
-import org.labkey.gradle.task.StageModules
-import org.labkey.gradle.task.SymlinkNode
+import org.labkey.gradle.plugin.extension.TeamCityExtension
+import org.labkey.gradle.task.*
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.util.TaskUtils
@@ -266,12 +263,42 @@ class ServerDeploy implements Plugin<Project>
 
         project.tasks.named("cleanBuild").configure {
             it.dependsOn(project.tasks.stopLabKey)
-            it.mustRunAfter(project.tasks.stopTomcat)
         }
         project.tasks.named("cleanDeploy").configure {
             it.dependsOn(project.tasks.stopLabKey)
-            it.mustRunAfter(project.tasks.stopTomcat)
         }
+
+        // TeamCity.groovy defines startup property tasks for builds running on TeamCity
+        if (!TeamCityExtension.isOnTeamCity(project)) {
+
+            def createStartupPropertyFileTask = project.tasks.register("createStartupPropertyFile", WriteStartupProperties) {
+                WriteStartupProperties task ->
+                    task.group = GroupNames.DEPLOY
+                    task.description = "Writes the 'labKeyStartupProperties' Gradle property to 00_startup.properties, or removes that file if it isn't set"
+                    task.propertiesFile.set(ServerDeployExtension.startupPropertiesFile(project, '00_startup.properties'))
+                    task.gradlePropertyName.set('labKeyStartupProperties')
+                    task.mustRunAfter(project.tasks.cleanBuild, project.tasks.cleanDeploy)
+            }
+
+            def copyStartupPropertyFileTask = project.tasks.register("copyStartupPropertyFile", Copy) {
+                Copy task ->
+                    task.group = GroupNames.DEPLOY
+                    task.description = "Copies configs/startup.properties to the startup properties directory"
+                    task.from(BuildUtils.getConfigsProject(project).file('configs/startup.properties'))
+                    task.into(ServerDeployExtension.startupDir(project))
+                    task.mustRunAfter(project.tasks.cleanBuild, project.tasks.cleanDeploy)
+            }
+
+            project.tasks.withType(SetUpProperties.class).configureEach {
+                it.finalizedBy(createStartupPropertyFileTask, copyStartupPropertyFileTask)
+            }
+
+            project.tasks.withType(StartLabKey.class).configureEach {
+                it.mustRunAfter(createStartupPropertyFileTask, copyStartupPropertyFileTask)
+            }
+
+        }
+
     }
 
 }
