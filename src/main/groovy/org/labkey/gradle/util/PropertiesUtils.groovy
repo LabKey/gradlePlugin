@@ -28,21 +28,22 @@ class PropertiesUtils
     private static final String ENCRYPTION_KEY_PROP_NAME = 'encryptionKey'
     private static final String DEPRECATED_ENCRYPTION_KEY_PROP_NAME = 'masterEncryptionKey'
 
+    @Deprecated(since="11.2.0") // Unused in LK 26.11
     static Properties readFileProperties(Project project, String fileName)
     {
-        Properties props = new Properties()
         File propFile = project.file(fileName)
-        if (propFile.exists())
-            props.load(new FileInputStream(propFile))
-        return props
+        return readProperties(propFile)
     }
 
+    @Deprecated(since="11.2.0") // Unused in LK 26.11
     static Properties readFileProperties(File propFile)
     {
-        Properties props = new Properties()
-        if (propFile.exists())
-            props.load(new FileInputStream(propFile))
-        return props
+        return readProperties(propFile)
+    }
+
+    static Properties readProperties(File propFile)
+    {
+        return readProperties(propFile, new Properties())
     }
 
     static String parseCompositeProp(String projectPath, Properties props, String prop, Logger logger)
@@ -88,28 +89,21 @@ class PropertiesUtils
         return line
     }
 
-    static void readProperties(File propertiesFile, Properties properties)
+    static Properties readProperties(File propertiesFile, Properties properties)
     {
         if (propertiesFile.exists())
         {
-            FileInputStream is
-            try
+            try (FileInputStream is = new FileInputStream(propertiesFile))
             {
-                is = new FileInputStream(propertiesFile)
                 properties.load(is)
             }
-            finally
-            {
-                if (is != null)
-                    is.close()
-            }
         }
+        return properties
     }
 
+    @Deprecated(since="11.2.0") // Unused in LK 26.11
     static Properties getApplicationProperties(File propertiesFile)
     {
-        def applicationProperties = new Properties()
-        readProperties(propertiesFile, applicationProperties)
-        return applicationProperties
+        return readProperties(propertiesFile)
     }
 }

@@ -228,7 +228,7 @@ class DatabaseProperties
     {
         if (configFile.exists())
         {
-            Properties props = PropertiesUtils.readFileProperties(configFile)
+            Properties props = PropertiesUtils.readProperties(configFile)
             return props
         }
         else

@@ -19,12 +19,15 @@ import org.apache.commons.io.FileUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
+import javax.inject.Inject
 import java.nio.charset.StandardCharsets
 
 /**
@@ -36,14 +39,32 @@ abstract class WriteStartupProperties extends DefaultTask
     @OutputFile
     abstract RegularFileProperty getPropertiesFile()
 
+    @Inject
+    abstract ProviderFactory getProviders()
+
     @Input @Optional
     abstract Property<String> getPropertiesContent()
+
+    @Input @Optional
+    abstract Property<String> getGradlePropertyName()
+
+    // Tracks the property's value so a change reruns the task
+    @Input @Optional
+    Provider<String> getGradlePropertyValue()
+    {
+        return gradlePropertyName.flatMap { providers.gradleProperty(it) }
+    }
 
     @TaskAction
     void writeProperties()
     {
         File file = propertiesFile.get().asFile
-        String content = propertiesContent.getOrElse("")
+        String content = [
+                section("Gradle property '${gradlePropertyName.getOrNull()}'", gradlePropertyValue.getOrNull()),
+                propertiesContent.getOrNull()
+            ]
+                .findAll { it != null && !it.isBlank() }
+                .join("\n\n")
         if (content.isBlank())
         {
             logger.info("No properties to write. ${file} not created.")
@@ -52,5 +73,10 @@ abstract class WriteStartupProperties extends DefaultTask
         }
         logger.info("Writing startup properties to ${file}")
         FileUtils.write(file, content, StandardCharsets.UTF_8)
+    }
+
+    private static String section(String source, String properties)
+    {
+        return properties == null || properties.isBlank() ? null : "# From ${source}\n${properties.trim()}"
     }
 }
