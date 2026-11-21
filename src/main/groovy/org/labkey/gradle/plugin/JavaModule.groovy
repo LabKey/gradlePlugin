@@ -113,7 +113,8 @@ class JavaModule implements Plugin<Project>
             if (XmlBeans.isApplicable(project))
             {
                 project.tasks.compileJava.dependsOn(project.tasks.schemasCompile)
-                jar.from(project.tasks.compileJava, project.tasks.schemasCompile)
+                // Packaging XMLBeans classes via main's output lets IntelliJ map the jar to main instead of adding it as a library
+                project.sourceSets.main.output.dir(BuildUtils.getBuildDirFile(project, XmlBeans.CLASS_DIR), builtBy: project.tasks.schemasCompile)
             }
             jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
             jar.exclude '**/*.java'

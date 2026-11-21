@@ -67,7 +67,7 @@ class Module implements Plugin<Project> {
                     if (XmlBeans.isApplicable(project))
                         implementation project.tasks.schemasCompile.outputs.files
                     if (Api.isApplicable(project))
-                        implementation project.files(project.tasks.apiJar)
+                        implementation project.sourceSets.api.output // Not the apiJar file, which IntelliJ imports as a library instead of linking the api module
                 }
     }
 }

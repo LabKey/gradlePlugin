@@ -70,11 +70,12 @@ class SpringConfig implements Plugin<Project>
                     depProjectConfig: 'apiJarFile',
                     transitive: false
             )
+            // Source set outputs, not jar files, so IntelliJ links to the source modules instead of importing jars as libraries
             TaskUtils.doIfTaskPresent(project, "jar", (jarTask) -> {
-                project.dependencies.add("springImplementation", jarTask.get().outputs.files)
+                project.dependencies.add("springImplementation", project.sourceSets.main.output)
             })
             TaskUtils.doIfTaskPresent(project, "apiJar", (apiJarTask) -> {
-                project.dependencies.add("springImplementation", apiJarTask.get().outputs.files)
+                project.dependencies.add("springImplementation", project.sourceSets.api.output)
             })
         }
     }
