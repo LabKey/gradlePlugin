@@ -100,9 +100,10 @@ class Jsp implements Plugin<Project>
                         BuildUtils.addLabKeyDependency(project: project, config: "jspImplementation", depProjectPath: BuildUtils.getRemoteApiProjectPath(project.gradle), depVersion: BuildUtils.getLabKeyClientApiVersion(project))
                         BuildUtils.addLabKeyDependency(project: project, config: "jspTagLibs", depProjectPath: BuildUtils.getApiProjectPath(project.gradle), depVersion: project.labkeyVersion, depExtension: 'module', transitive: false)
                     }
-                    jspImplementation project.files(project.tasks.jar)
+                    // Source set outputs, not jar files, so IntelliJ links to the source modules instead of importing jars as libraries
+                    jspImplementation project.sourceSets.main.output
                     if (project.hasProperty('apiJar'))
-                        jspImplementation project.files(project.tasks.apiJar)
+                        jspImplementation project.sourceSets.api.output
                     BuildUtils.addTomcatBuildDependencies(project, "jspImplementation")
                 }
     }
@@ -137,9 +138,6 @@ class Jsp implements Plugin<Project>
                task.inputs.files project.tasks.copyJsp
                task.inputs.files project.tasks.copyTagLibs
                task.compileClasspath.from(project.configurations.jspCompileClasspath)
-               if (project.hasProperty('apiJar'))
-                   task.dependsOn('apiJar')
-               task.dependsOn('jar')
         }
 
         project.tasks.named('compileJspJava').configure {
