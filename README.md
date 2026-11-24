@@ -14,7 +14,7 @@ on how to do that, including how to develop and test locally and the versioning 
 ## Release Notes
 
 ### 11.3.0
-*Released*: TBD
+*Released*: 23 November 2026
 (Earliest compatible LabKey version: 26.7.0)
 - Declare a module's dependencies on its own code as source set outputs rather than jar files, so IntelliJ links source modules instead of importing the built jars as libraries
 - Package XMLBeans classes through the `main` source set output; module jars no longer include `previous-compilation-data.bin`
