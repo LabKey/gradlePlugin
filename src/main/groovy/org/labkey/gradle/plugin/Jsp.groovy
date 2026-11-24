@@ -138,9 +138,6 @@ class Jsp implements Plugin<Project>
                task.inputs.files project.tasks.copyJsp
                task.inputs.files project.tasks.copyTagLibs
                task.compileClasspath.from(project.configurations.jspCompileClasspath)
-               if (project.hasProperty('apiJar'))
-                   task.dependsOn('apiJar')
-               task.dependsOn('jar')
         }
 
         project.tasks.named('compileJspJava').configure {
